@@ -15,8 +15,7 @@ import ClientsPage from "./page/ClientsPage";
 import { useTranslation } from "react-i18next";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import AdminPage from "./page/AdminPage";
-import AdminCINReview from "./page/AdminCINReview";
+
 
 
 
@@ -99,8 +98,7 @@ function AppInner() {
         <Route path="/clients"     element={<ClientsPage />} />
         <Route path="/jobs"        element={<JobsPage />} />
         <Route path="/courses"     element={<CoursesPage />} />
-        <Route path="/admin"       element={<AdminPage />} />
-        <Route path="/admin/cin"   element={<AdminCINReview />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
       <Footer />
     </ToastProvider>
