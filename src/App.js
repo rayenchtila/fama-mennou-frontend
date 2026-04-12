@@ -12,12 +12,10 @@ import FreelancersPage from "./page/FreelancersPage";
 import JobsPage from "./page/JobsPage";
 import CoursesPage from "./page/CoursesPage";
 import ClientsPage from "./page/ClientsPage";
+import AdminPage from "../page/AdminPage"; 
 import { useTranslation } from "react-i18next";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-
-
-
 
 function AppInner() {
   const { i18n }           = useTranslation();
@@ -98,7 +96,7 @@ function AppInner() {
         <Route path="/clients"     element={<ClientsPage />} />
         <Route path="/jobs"        element={<JobsPage />} />
         <Route path="/courses"     element={<CoursesPage />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin"       element={<AdminPage />} />
       </Routes>
       <Footer />
     </ToastProvider>
@@ -109,6 +107,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        
         <AppInner />
       </AuthProvider>
     </Router>
