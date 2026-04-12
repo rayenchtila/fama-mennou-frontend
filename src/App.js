@@ -12,7 +12,7 @@ import FreelancersPage from "./page/FreelancersPage";
 import JobsPage from "./page/JobsPage";
 import CoursesPage from "./page/CoursesPage";
 import ClientsPage from "./page/ClientsPage";
-import AdminPage from "../page/AdminPage"; 
+import AdminPage from "./page/AdminPage"; 
 import { useTranslation } from "react-i18next";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -98,6 +98,7 @@ function AppInner() {
         <Route path="/courses"     element={<CoursesPage />} />
         <Route path="/admin"       element={<AdminPage />} />
       </Routes>
+      <AdminPage />
       <Footer />
     </ToastProvider>
   );
