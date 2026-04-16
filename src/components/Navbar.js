@@ -423,7 +423,7 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                   </div>
                 </>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-2">
                   <Button variant="ghost"   onClick={() => onLogin("login")}>{t("Log in")}</Button>
                   <Button variant="primary" onClick={() => onLogin("signup")}>{t("Sign up")}</Button>
                 </div>

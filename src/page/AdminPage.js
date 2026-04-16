@@ -429,25 +429,7 @@ function StatisticsPanel({ allUsers }) {
         <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
           Vue d'ensemble — {totalUsers} utilisateur{totalUsers !== 1 ? "s" : ""} inscrit{totalUsers !== 1 ? "s" : ""}
         </p>
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-sky-50 dark:bg-sky-900/20 rounded-2xl border border-sky-100 dark:border-sky-900 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-sky-100 dark:bg-sky-900/40 rounded-xl flex items-center justify-center text-base shrink-0">💼</div>
-              <p className="text-[11px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Clients</p>
-            </div>
-            <p className="text-3xl font-extrabold text-sky-700 dark:text-sky-300 mb-0.5">{clients.length}</p>
-            <p className="text-xs text-sky-500 font-semibold mb-3">{clientPct}% des utilisateurs</p>
-            <div className="flex gap-2">
-              <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 px-2.5 py-2 text-center">
-                <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200">{clFree}</p>
-                <p className="text-[10px] text-slate-400 font-medium">Free</p>
-              </div>
-              <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-indigo-100 dark:border-indigo-900 px-2.5 py-2 text-center">
-                <p className="text-sm font-extrabold text-indigo-600 dark:text-indigo-400">{clPremium}</p>
-                <p className="text-[10px] text-slate-400 font-medium">Premium ✦</p>
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-900 p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl flex items-center justify-center text-base shrink-0">🚀</div>
@@ -467,6 +449,24 @@ function StatisticsPanel({ allUsers }) {
               <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-rose-100 dark:border-rose-900 px-1.5 py-2 text-center">
                 <p className="text-sm font-extrabold text-rose-600 dark:text-rose-400">{flRejected}</p>
                 <p className="text-[10px] text-slate-400 font-medium leading-tight">Rejetés</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-sky-50 dark:bg-sky-900/20 rounded-2xl border border-sky-100 dark:border-sky-900 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-sky-100 dark:bg-sky-900/40 rounded-xl flex items-center justify-center text-base shrink-0">💼</div>
+              <p className="text-[11px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Clients</p>
+            </div>
+            <p className="text-3xl font-extrabold text-sky-700 dark:text-sky-300 mb-0.5">{clients.length}</p>
+            <p className="text-xs text-sky-500 font-semibold mb-3">{clientPct}% des utilisateurs</p>
+            <div className="flex gap-2">
+              <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 px-2.5 py-2 text-center">
+                <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200">{clFree}</p>
+                <p className="text-[10px] text-slate-400 font-medium">Free</p>
+              </div>
+              <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-indigo-100 dark:border-indigo-900 px-2.5 py-2 text-center">
+                <p className="text-sm font-extrabold text-indigo-600 dark:text-indigo-400">{clPremium}</p>
+                <p className="text-[10px] text-slate-400 font-medium">Premium ✦</p>
               </div>
             </div>
           </div>
@@ -647,9 +647,9 @@ export default function AdminPage() {
               )}
             </button>
 
-            <button onClick={logout} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <button onClick={logout} className="flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-              Log out
+              <span className="hidden sm:inline">Log out</span>
             </button>
           </div>
         </div>

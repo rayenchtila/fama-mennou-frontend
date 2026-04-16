@@ -279,7 +279,7 @@ const Home = () => {
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 className="overflow-hidden"
               >
-                <div className="grid grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 mt-6 sm:mt-8">
 
                   {/* ── Freelancer card ── */}
                   <motion.div

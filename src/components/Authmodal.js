@@ -980,14 +980,16 @@ return;
 
           {/* reCAPTCHA — login only */}
           {mode === "login" && (
-            <div className="mt-4">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={RECAPTCHA_SITE_KEY}
-                onChange={token => { setCaptchaToken(token); setErrors(err => ({ ...err, captcha: "" })); }}
-                onExpired={() => setCaptchaToken(null)}
-                theme="dark"
-              />
+            <div className="mt-4 overflow-x-hidden">
+              <div className="origin-top-left scale-[0.78] w-[128%] sm:scale-100 sm:w-full">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={RECAPTCHA_SITE_KEY}
+                  onChange={token => { setCaptchaToken(token); setErrors(err => ({ ...err, captcha: "" })); }}
+                  onExpired={() => setCaptchaToken(null)}
+                  theme="dark"
+                />
+              </div>
               {errors.captcha && <p className="mt-1.5 text-xs text-rose-500">{errors.captcha}</p>}
             </div>
           )}
