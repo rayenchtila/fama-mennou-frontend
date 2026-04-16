@@ -998,9 +998,9 @@ return;
 
           <p className="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">
             {t("By continuing you agree to our")}{" "}
-            <a href="#" className="text-indigo-600 dark:text-indigo-400 hover:underline">{t("Terms")}</a>
+            <span className="text-indigo-600 dark:text-indigo-400 cursor-pointer hover:underline">{t("Terms")}</span>
             {" "}{t("and")}{" "}
-            <a href="#" className="text-indigo-600 dark:text-indigo-400 hover:underline">{t("Privacy Policy")}</a>
+            <span className="text-indigo-600 dark:text-indigo-400 cursor-pointer hover:underline">{t("Privacy Policy")}</span>
           </p>
         </>
       )}

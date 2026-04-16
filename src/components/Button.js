@@ -1,7 +1,5 @@
 // components/Button.jsx
 import { forwardRef } from "react";
-import { useTranslation } from 'react-i18next';
- 
 const variants = {
   primary:
     "bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 focus:ring-indigo-500",

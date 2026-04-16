@@ -34,7 +34,7 @@ export default function Footer() {
               ].map((s) => (
                 <a
                   key={s.label}
-                  href="#"
+                  href="/"
                   aria-label={s.label}
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors duration-150"
                 >
@@ -54,7 +54,7 @@ export default function Footer() {
                 {links.map((link) => (
                   <li key={link}>
                     <a
-                      href="#"
+                      href="/"
                       className="text-sm text-slate-400 hover:text-white transition-colors duration-150 hover:translate-x-0.5 inline-block"
                     >
                       {t(link)}

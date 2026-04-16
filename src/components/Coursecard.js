@@ -1,8 +1,6 @@
 // components/CourseCard.jsx
 import Badge from "./Badge";
 import Button from "./Button";
-import { useTranslation } from 'react-i18next';
- 
 const LEVEL_COLOR = { Beginner: "emerald", Intermediate: "amber", Advanced: "rose" };
  
 function Stars({ value }) {
