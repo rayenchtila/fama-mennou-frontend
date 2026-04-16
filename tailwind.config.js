@@ -5,8 +5,10 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        syne: ["Syne", "sans-serif"],
-        dm: ["DM Sans", "sans-serif"],
+        syne:    ["Syne", "sans-serif"],
+        dm:      ["DM Sans", "sans-serif"],
+        inter:   ["Inter", "sans-serif"],
+        poppins: ["Poppins", "sans-serif"],
       },
       colors: {
         brand: {

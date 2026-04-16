@@ -211,7 +211,7 @@ function RejectDialog({ user, onConfirm, onClose }) {
   );
 }
  
-// ─── NEW: approve dialog ──────────────────────────────────────────────────────
+// ─── approve dialog ──────────────────────────────────────────────────────────
  
 function ApproveDialog({ user, onConfirm, onClose }) {
   const [reason, setReason] = useState("");
@@ -288,12 +288,13 @@ function ApproveDialog({ user, onConfirm, onClose }) {
  
 export default function AdminCINReview() {
   const { users, updateUser } = useAuth();
+  // ✅ Removed deleteUser — rejected users are NEVER deleted
  
   const [filter,      setFilter]      = useState("pending");
   const [search,      setSearch]      = useState("");
   const [viewing,     setViewing]     = useState(null);
   const [rejecting,   setRejecting]   = useState(null);
-  const [approving,   setApproving]   = useState(null);   // ← NEW
+  const [approving,   setApproving]   = useState(null);
   const [justActed,   setJustActed]   = useState({});
  
   const freelancers = (users ?? []).filter(u => u.role === "freelancer" && (u.cinFront || u.cinBack));
@@ -319,7 +320,6 @@ export default function AdminCINReview() {
     setTimeout(() => setJustActed(p => { const n = { ...p }; delete n[userId]; return n; }), 1800);
   }
  
-  // ── CHANGED: approve now opens dialog instead of acting directly ──
   function handleApprove(user) {
     setApproving(user);
   }
@@ -330,10 +330,12 @@ export default function AdminCINReview() {
     flash(user.email, "approved");
   }
  
+  // ── FIX: reject = update status only, NEVER delete the user ──
   function handleReject(user, reason) {
     updateUser(user.email, { cinStatus: "rejected", cinRejectionReason: reason, cinApprovalReason: null });
     setRejecting(null);
     flash(user.email, "rejected");
+    // ✅ NO deleteUser call — rejected users stay stored forever
   }
  
   const FILTERS = [
@@ -463,6 +465,7 @@ export default function AdminCINReview() {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-xs mb-3">
                           {[
                             { label: "Né(e) le",  value: user.dob    },
+                            { label: "Genre",     value: user.gender === "male" ? "Homme 👨" : user.gender === "female" ? "Femme 👩" : null },
                             { label: "Région",    value: user.region },
                             { label: "Skills",    value: user.skills },
                             { label: "CIN (nom)", value: user.cin    },
@@ -567,4 +570,3 @@ export default function AdminCINReview() {
     </div>
   );
 }
- 

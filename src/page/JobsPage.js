@@ -36,7 +36,7 @@ const JobsPage = () => {
   return (
     <div className="py-12">
       <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold mb-8">{t("Find Jobs")}</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-8">{t("Find Jobs")}</h1>
         <div className="mb-6">
           <Searchbar
             value={searchQuery}

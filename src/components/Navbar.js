@@ -32,18 +32,106 @@ function getRoleColor(role) {
     : { bg: "bg-indigo-100 dark:bg-indigo-900/30", text: "text-indigo-700 dark:text-indigo-400", label: "Freelancer" };
 }
 
+// ─── User Notifications Panel ─────────────────────────────────────────────────
+
+function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear, onClose }) {
+  const { t } = useTranslation();
+  const unread = notifications.filter(n => !n.read).length;
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pt-16" onClick={onClose}>
+      <div
+        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <p className="font-bold text-slate-900 dark:text-white text-sm">{t("Notifications")}</p>
+            {unread > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold">{unread}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {unread > 0 && (
+              <button onClick={onMarkAll} className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                {t("Mark all read")}
+              </button>
+            )}
+            {notifications.length > 0 && (
+              <button onClick={onClear} className="text-[11px] font-semibold text-slate-400 hover:text-rose-500 transition-colors">
+                {t("Clear")}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="max-h-96 overflow-y-auto">
+          {notifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+              <svg className="w-8 h-8 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+              <p className="text-xs font-semibold">{t("No notifications")}</p>
+            </div>
+          ) : (
+            notifications.map(n => (
+              <div
+                key={n.id}
+                onClick={() => onMarkRead(n.id)}
+                className={[
+                  "flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
+                  n.read
+                    ? "bg-white dark:bg-slate-900"
+                    : "bg-indigo-50/50 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20",
+                ].join(" ")}
+              >
+                <div className={[
+                  "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm",
+                  n.kind === "approved" ? "bg-emerald-100 dark:bg-emerald-900/30" :
+                  n.kind === "rejected" ? "bg-rose-100 dark:bg-rose-900/30" :
+                  "bg-amber-100 dark:bg-amber-900/30",
+                ].join(" ")}>
+                  {n.kind === "approved" ? "✅" : n.kind === "rejected" ? "❌" : "🔔"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-bold mb-0.5 ${n.read ? "text-slate-700 dark:text-slate-300" : "text-slate-900 dark:text-white"}`}>
+                    {n.title}
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">{n.message}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    {new Date(n.createdAt).toLocaleDateString("fr-TN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+                {!n.read && (
+                  <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1" />
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar({ dark, toggleDark, onLogin, language = "en", onLanguageChange }) {
-  const [scrolled,  setScrolled]  = useState(false);
-  const [menuOpen,  setMenuOpen]  = useState(false);
-  const [langOpen,  setLangOpen]  = useState(false);
-  const [profOpen,  setProfOpen]  = useState(false);
-  const [search,    setSearch]    = useState("");
+  const [scrolled,   setScrolled]   = useState(false);
+  const [menuOpen,   setMenuOpen]   = useState(false);
+  const [langOpen,   setLangOpen]   = useState(false);
+  const [profOpen,   setProfOpen]   = useState(false);
+  const [notifOpen,  setNotifOpen]  = useState(false);
+  const [search,     setSearch]     = useState("");
 
   const { t }          = useTranslation();
   const location       = useLocation();
   const navigate       = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, getUserNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications } = useAuth();
   const profileRef     = useRef(null);
+
+  // Get user notifications (only for logged-in non-admin users)
+  const userNotifications = (user && !user.isAdmin) ? getUserNotifications(user.email) : [];
+  const unreadCount = userNotifications.filter(n => !n.read).length;
 
   const NAV_LINKS = [
     { label: t("Find Freelancers"), to: "/freelancers" },
@@ -62,6 +150,7 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
     setMenuOpen(false);
     setLangOpen(false);
     setProfOpen(false);
+    setNotifOpen(false);
   }, [location.pathname]);
 
   // Close profile dropdown on outside click
@@ -168,140 +257,171 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
               {/* Theme Toggle */}
               <button
                 onClick={toggleDark}
-                className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="relative w-9 h-9 flex items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
+                aria-label="Toggle theme"
               >
-                {dark ? "🌙" : "☀️"}
+                {/* Sun — visible in light, rotates out in dark */}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4"/>
+                  <path d="M12 2v2"/><path d="M12 20v2"/>
+                  <path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/>
+                  <path d="M2 12h2"/><path d="M20 12h2"/>
+                  <path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+                </svg>
+                {/* Moon — hidden in light, rotates in for dark */}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" aria-hidden="true">
+                  <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>
+                </svg>
               </button>
 
-              {/* ── LOGGED IN: Profile Avatar + Dropdown ── */}
+              {/* ── LOGGED IN: Notification Bell + Profile Avatar + Dropdown ── */}
               {user ? (
-                <div className="relative" ref={profileRef}>
-                  <button
-                    onClick={() => setProfOpen(!profOpen)}
-                    className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 group"
-                  >
-                    {/* Avatar circle */}
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold shadow-sm group-hover:shadow-md transition-shadow">
-                      {getInitials(user.name)}
-                    </div>
-                    <div className="hidden sm:block text-left">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{user.name}</p>
-                      <p className="text-[10px] text-slate-400 leading-tight capitalize">{user.role ?? "member"}</p>
-                    </div>
-                    {/* Chevron */}
-                    <svg
-                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${profOpen ? "rotate-180" : ""}`}
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                <>
+                  {/* ── Notification Bell (only for non-admin users) ── */}
+                  {!user.isAdmin && (
+                    <button
+                      onClick={() => setNotifOpen(!notifOpen)}
+                      className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                  </button>
+                      <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                      </svg>
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center leading-none">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  )}
 
-                  {/* Profile Dropdown */}
-                  <AnimatePresence>
-                    {profOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 8 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 8 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50"
+                  <div className="relative" ref={profileRef}>
+                    <button
+                      onClick={() => setProfOpen(!profOpen)}
+                      className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 group"
+                    >
+                      {/* Avatar circle */}
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold shadow-sm group-hover:shadow-md transition-shadow">
+                        {getInitials(user.name)}
+                      </div>
+                      <div className="hidden sm:block text-left">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{user.name}</p>
+                        <p className="text-[10px] text-slate-400 leading-tight capitalize">{user.role ?? "member"}</p>
+                      </div>
+                      {/* Chevron */}
+                      <svg
+                        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${profOpen ? "rotate-180" : ""}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
                       >
-                        {/* Header */}
-                        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-base font-bold shadow-md flex-shrink-0">
-                              {getInitials(user.name)}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
-                              <p className="text-xs text-slate-400 truncate">{user.email}</p>
-                              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                                {user.role && (
-                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${roleStyle.bg} ${roleStyle.text}`}>
-                                    {roleStyle.label}
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </button>
+
+                    {/* Profile Dropdown */}
+                    <AnimatePresence>
+                      {profOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: 8 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50"
+                        >
+                          {/* Header */}
+                          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-base font-bold shadow-md flex-shrink-0">
+                                {getInitials(user.name)}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
+                                <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                  {user.role && (
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${roleStyle.bg} ${roleStyle.text}`}>
+                                      {roleStyle.label}
+                                    </span>
+                                  )}
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${planStyle.bg} ${planStyle.text}`}>
+                                    {planStyle.label}
                                   </span>
-                                )}
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${planStyle.bg} ${planStyle.text}`}>
-                                  {planStyle.label}
-                                </span>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Menu items */}
-                        <div className="py-1.5">
-                          {(user.isAdmin
-                            ? [
-                                {
-                                  label: "Admin Dashboard",
-                                  to: "/admin",
-                                  icon: (
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                    </svg>
-                                  ),
-                                },
-                              ]
-                            : [
-                                {
-                                  label: t("My Profile"),
-                                  to: null,
-                                  icon: (
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
-                                  ),
-                                },
-                                {
-                                  label: t("Dashboard"),
-                                  to: null,
-                                  icon: (
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                                    </svg>
-                                  ),
-                                },
-                                {
-                                  label: t("Settings"),
-                                  to: null,
-                                  icon: (
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                  ),
-                                },
-                              ]
-                          ).map(item => (
+                          {/* Menu items */}
+                          <div className="py-1.5">
+                            {(user.isAdmin
+                              ? [
+                                  {
+                                    label: "Admin Dashboard",
+                                    to: "/admin/dashboard",
+                                    icon: (
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                      </svg>
+                                    ),
+                                  },
+                                ]
+                              : [
+                                  {
+                                    label: t("My Profile"),
+                                    to: null,
+                                    icon: (
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                      </svg>
+                                    ),
+                                  },
+                                  {
+                                    label: t("Dashboard"),
+                                    to: null,
+                                    icon: (
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                      </svg>
+                                    ),
+                                  },
+                                  {
+                                    label: t("Settings"),
+                                    to: null,
+                                    icon: (
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                      </svg>
+                                    ),
+                                  },
+                                ]
+                            ).map(item => (
+                              <button
+                                key={item.label}
+                                onClick={() => { setProfOpen(false); if (item.to) navigate(item.to); }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+                              >
+                                <span className="text-slate-400">{item.icon}</span>
+                                {item.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Logout */}
+                          <div className="border-t border-slate-100 dark:border-slate-800 p-2">
                             <button
-                              key={item.label}
-                              onClick={() => { setProfOpen(false); if (item.to) navigate(item.to); }}
-                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+                              onClick={() => { logout(); setProfOpen(false); }}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
                             >
-                              <span className="text-slate-400">{item.icon}</span>
-                              {item.label}
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                              </svg>
+                              {t("Log out")}
                             </button>
-                          ))}
-                        </div>
-
-                        {/* Logout */}
-                        <div className="border-t border-slate-100 dark:border-slate-800 p-2">
-                          <button
-                            onClick={() => { logout(); setProfOpen(false); }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
-                            {t("Log out")}
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </>
               ) : (
                 <div className="flex items-center gap-2">
                   <Button variant="ghost"   onClick={() => onLogin("login")}>{t("Log in")}</Button>
@@ -372,6 +492,17 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── User Notifications Panel ── */}
+      {notifOpen && user && !user.isAdmin && (
+        <UserNotificationsPanel
+          notifications={userNotifications}
+          onMarkRead={id => markNotificationRead(id)}
+          onMarkAll={() => markAllNotificationsRead("user", user.email)}
+          onClear={() => clearNotifications("user", user.email)}
+          onClose={() => setNotifOpen(false)}
+        />
+      )}
     </>
   );
 }

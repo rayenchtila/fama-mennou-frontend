@@ -1,10 +1,15 @@
 // src/components/AuthModal.jsx
 import { useState, useEffect, useRef } from "react";
+import { useGoogleLogin } from "@react-oauth/google";
 import Modal from "./Modal";
 import Input from "./Input";
 import Button from "./Button";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+import ReCAPTCHA from "react-google-recaptcha";
+
+
+const RECAPTCHA_SITE_KEY = "6Lf-_bMsAAAAAC3k8lKXSuBA1yFrbA4RMV2F4VJi";
 
 const TUNISIAN_REGIONS = [
   "Ariana","Béja","Ben Arous","Bizerte","Gabès","Gafsa","Jendouba",
@@ -12,11 +17,6 @@ const TUNISIAN_REGIONS = [
   "Monastir","Nabeul","Sfax","Sidi Bouzid","Siliana","Sousse",
   "Tataouine","Tozeur","Tunis","Zaghouan",
 ];
-
-/*function updateUser(email, patch) {
-  setUsers(prev => prev.map(u => u.email === email ? { ...u, ...patch } : u));
-}
-// وتزيدها في الـ value: { ..., users, updateUser }*/
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -28,6 +28,7 @@ function fileToBase64(file) {
 }
 
 function ImageUploadBox({ label, hint, preview, onFile, side }) {
+  const { t } = useTranslation();
   const inputRef = useRef();
   return (
     <div className="flex-1">
@@ -45,7 +46,7 @@ function ImageUploadBox({ label, hint, preview, onFile, side }) {
           <>
             <img src={preview} alt={label} className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-              <span className="text-white text-xs font-semibold">Change</span>
+              <span className="text-white text-xs font-semibold">{t("Change")}</span>
             </div>
           </>
         ) : (
@@ -70,8 +71,96 @@ function ImageUploadBox({ label, hint, preview, onFile, side }) {
   );
 }
 
+// ── Forgot Password Screen ────────────────────────────────────────────────────
+function ForgotPasswordScreen({ onBack, onSent, accounts }) {
+  const { t } = useTranslation();
+  const [email, setEmail]   = useState("");
+  const [error, setError]   = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function handleSend() {
+    if (!email.trim()) { setError("Email is required"); return; }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError("Enter a valid email"); return; }
+    const account = accounts[email.toLowerCase()];
+    if (!account) { setError("No account found with this email"); return; }
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      onSent(email, account.password);
+    }, 1000);
+  }
+
+  return (
+    <div className="flex flex-col py-4 px-2">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 mb-6 w-fit transition-colors">
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        {t("Back to login")}
+      </button>
+      <div className="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-4 mx-auto">
+        <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+        </svg>
+      </div>
+      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white text-center mb-1">{t("Forgot your password?")}</h2>
+      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">{t("Enter your email and we'll show you your password")}</p>
+      <Input
+        label="Email address"
+        type="email"
+        placeholder="you@example.com"
+        value={email}
+        onChange={e => { setEmail(e.target.value); setError(""); }}
+        error={error}
+        required
+        leftIcon={
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        }
+      />
+      <Button variant="primary" size="lg" fullWidth className="mt-4" loading={loading} onClick={handleSend}>
+        {loading ? t("Searching…") : t("Find my password")}
+      </Button>
+    </div>
+  );
+}
+
+// ── Password Found Screen ─────────────────────────────────────────────────────
+function PasswordFoundScreen({ email, password, onBack }) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  function handleCopy() {
+    navigator.clipboard.writeText(password);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+  return (
+    <div className="flex flex-col items-center py-6 px-2 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
+        <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1">{t("Password found! 🎉")}</h2>
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("Account:")} <span className="font-bold text-slate-700 dark:text-slate-200">{email}</span></p>
+      <div className="w-full max-w-xs mt-4 mb-5">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Your password")}</p>
+        <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+          <span className="flex-1 font-mono text-sm font-bold text-slate-900 dark:text-white text-left">{password}</span>
+          <button onClick={handleCopy} className={["px-3 py-1.5 rounded-lg text-xs font-bold transition-colors", copied ? "bg-emerald-500 text-white" : "bg-indigo-600 hover:bg-indigo-700 text-white"].join(" ")}>
+            {copied ? t("Copied!") : t("Copy")}
+          </button>
+        </div>
+      </div>
+      <button onClick={onBack} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-opacity">
+        {t("Back to login")}
+      </button>
+    </div>
+  );
+}
+
 // ── "En cours de vérification" screen shown after signup ─────────────────────
 function PendingVerificationScreen({ userName, onClose }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-8 px-2 text-center">
       <div className="relative mb-6">
@@ -86,17 +175,16 @@ function PendingVerificationScreen({ userName, onClose }) {
           </svg>
         </span>
       </div>
-      <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">Compte créé avec succès !</h2>
-      <p className="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-4">En cours de vérification…</p>
+      <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">{t("Account created successfully!")}</h2>
+      <p className="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-4">{t("Under review…")}</p>
       <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mb-6 leading-relaxed">
-        Bonjour <span className="font-bold text-slate-700 dark:text-slate-200">{userName}</span>, votre dossier a été soumis.
-        Notre équipe va examiner vos informations et votre CIN sous peu.
+        {t("Hello")} <span className="font-bold text-slate-700 dark:text-slate-200">{userName}</span>{t(", your file has been submitted. Our team will review your information and CIN shortly.")}
       </p>
       <div className="w-full max-w-xs space-y-2 mb-7">
         {[
-          { icon: "✅", label: "Compte créé",           done: true  },
-          { icon: "🔍", label: "Vérification en cours", done: false, active: true },
-          { icon: "📬", label: "Décision de l'admin",   done: false },
+          { icon: "✅", label: t("Account created"),          done: true  },
+          { icon: "🔍", label: t("Verification in progress"), done: false, active: true },
+          { icon: "📬", label: t("Admin decision"),           done: false },
         ].map((step, i) => (
           <div key={i} className={[
             "flex items-center gap-3 p-3 rounded-xl border text-sm",
@@ -116,10 +204,10 @@ function PendingVerificationScreen({ userName, onClose }) {
         ))}
       </div>
       <p className="text-xs text-slate-400 dark:text-slate-500 mb-5">
-        Vous serez notifié dès que votre compte sera approuvé ou refusé.
+        {t("You will be notified once your account is approved or rejected.")}
       </p>
       <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-opacity">
-        Fermer
+        {t("Close")}
       </button>
     </div>
   );
@@ -127,6 +215,7 @@ function PendingVerificationScreen({ userName, onClose }) {
 
 // ── Status screen shown when user logs in and their account is decided ────────
 function CINStatusScreen({ user, onClose, onLogout }) {
+  const { t } = useTranslation();
   const isApproved = user.cinStatus === "approved";
 
   if (isApproved) {
@@ -144,19 +233,19 @@ function CINStatusScreen({ user, onClose, onLogout }) {
             </svg>
           </span>
         </div>
-        <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">Compte approuvé ! 🎉</h2>
-        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-4">Votre vérification a été acceptée</p>
+        <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">{t("Account approved! 🎉")}</h2>
+        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-4">{t("Your verification has been accepted")}</p>
         {user.cinApprovalReason && (
           <div className="w-full max-w-xs p-3.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl mb-5 text-left">
-            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider mb-1">Message de l'admin</p>
+            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider mb-1">{t("Admin message")}</p>
             <p className="text-sm text-emerald-800 dark:text-emerald-300 font-medium">{user.cinApprovalReason}</p>
           </div>
         )}
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mb-7 leading-relaxed">
-          Bienvenue sur la plateforme, <span className="font-bold text-slate-700 dark:text-slate-200">{user.name}</span> ! Votre compte est maintenant pleinement actif.
+          {t("Welcome to the platform,")} <span className="font-bold text-slate-700 dark:text-slate-200">{user.name}</span>{t("! Your account is now fully active.")}
         </p>
         <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">
-          Accéder à mon compte →
+          {t("Access my account →")}
         </button>
       </div>
     );
@@ -176,59 +265,85 @@ function CINStatusScreen({ user, onClose, onLogout }) {
           </svg>
         </span>
       </div>
-      <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">Compte refusé</h2>
-      <p className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-4">Votre vérification n'a pas été acceptée</p>
+      <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">{t("Account rejected")}</h2>
+      <p className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-4">{t("Your verification was not accepted")}</p>
       {user.cinRejectionReason && (
         <div className="w-full max-w-xs p-3.5 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl mb-5 text-left">
-          <p className="text-[10px] font-bold text-rose-600 dark:text-rose-500 uppercase tracking-wider mb-1">Raison du refus</p>
+          <p className="text-[10px] font-bold text-rose-600 dark:text-rose-500 uppercase tracking-wider mb-1">{t("Rejection reason")}</p>
           <p className="text-sm text-rose-800 dark:text-rose-300 font-medium">{user.cinRejectionReason}</p>
         </div>
       )}
       <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mb-7 leading-relaxed">
-        Si vous pensez qu'il s'agit d'une erreur, veuillez nous contacter ou créer un nouveau compte avec des informations correctes.
+        {t("If you believe this is an error, please contact us or create a new account with correct information.")}
       </p>
       <button onClick={onLogout} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors">
-        Fermer
+        {t("Close")}
       </button>
     </div>
   );
 }
 
-export default function AuthModal({ open, onClose, onAuth, defaultMode = "login" }) {
+export default function AuthModal({ open, onClose, onAuth, defaultMode = "login", closable = true }) {
   const [mode,    setMode]    = useState(defaultMode);
-  const [plan,    setPlan]    = useState("free");
   const [role,    setRole]    = useState("freelancer");
   const [loading, setLoading] = useState(false);
   const [errors,  setErrors]  = useState({});
   const [form,    setForm]    = useState({
     name: "", email: "", password: "", confirmPassword: "",
-    skills: "", bio: "", dob: "", region: "",
+    skills: "", bio: "", dob: "", region: "", gender: "",   // ← gender added
   });
 
-  // screen: "form" | "pending" | "status"
-  const [screen,      setScreen]      = useState("form");
-  const [pendingName, setPendingName] = useState("");
-  const [statusUser,  setStatusUser]  = useState(null);
+  // screen: "form" | "pending" | "status" | "forgot" | "passwordFound"
+  const [screen,        setScreen]        = useState("form");
+  const [pendingName,   setPendingName]   = useState("");
+  const [statusUser,    setStatusUser]    = useState(null);
+  const [foundEmail,    setFoundEmail]    = useState("");
+  const [foundPassword, setFoundPassword] = useState("");
 
-  // CIN state — upload only, no AI verification
+  // CAPTCHA
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const recaptchaRef = useRef();
+
+  // CIN state
   const [cinFrontFile,    setCinFrontFile]    = useState(null);
   const [cinBackFile,     setCinBackFile]     = useState(null);
   const [cinFrontPreview, setCinFrontPreview] = useState(null);
   const [cinBackPreview,  setCinBackPreview]  = useState(null);
 
-  const { t }               = useTranslation();
-  const { register, login, logout } = useAuth();
+  const { t }                        = useTranslation();
+  const { register, login, logout, accounts, loginWithGoogle, loginWithFacebook } = useAuth();
 
-  const PLANS = [
-    {
-      id: "free", label: t("Free"), price: t("$0/mo"),
-      features: [t("3 proposals per month"), t("Browse all jobs & freelancers"), t("1 course upload"), t("Basic profile")],
+  // ── Real Google login ──
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const profile = await res.json();
+
+        // ── BLOCK login if no account registered with this Google email ──
+        if (mode === "login") {
+          const emailKey = profile.email?.toLowerCase();
+          if (!emailKey || !accounts[emailKey]) {
+            setErrors({ email: t("No account found. Please sign up first.") });
+            return;
+          }
+        }
+
+        const result = loginWithGoogle(profile);
+        if (result?.success) {
+          onAuth?.(result.user);
+          onClose?.();
+        }
+      } catch (err) {
+        console.error("Google login error:", err);
+      }
     },
-    {
-      id: "premium", label: t("Premium"), price: t("$29/mo"), badge: t("✦ Most Popular"),
-      features: [t("Unlimited proposals"), t("Priority listing"), t("Unlimited course uploads"), t("Advanced analytics"), t("Direct messaging"), t("Verified badge")],
+    onError: (err) => {
+      console.error("Google OAuth error:", err);
     },
-  ];
+  });
 
   const ROLES = [
     {
@@ -256,14 +371,14 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
   useEffect(() => {
     setMode(defaultMode);
-    setForm({ name: "", email: "", password: "", confirmPassword: "", skills: "", bio: "", dob: "", region: "" });
+    setForm({ name: "", email: "", password: "", confirmPassword: "", skills: "", bio: "", dob: "", region: "", gender: "" });
     setErrors({});
     setRole("freelancer");
-    setPlan("free");
     resetCIN();
     setScreen("form");
     setPendingName("");
     setStatusUser(null);
+    setCaptchaToken(null);
   }, [defaultMode, open]);
 
   function resetCIN() {
@@ -302,12 +417,15 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     if (mode === "signup" && form.password !== form.confirmPassword)
       errs.confirmPassword = t("Passwords do not match");
     if (mode === "signup" && role === "freelancer") {
+      if (!form.gender)        errs.gender = t("Veuillez sélectionner votre genre");
       if (!form.skills.trim()) errs.skills = t("Please enter at least one skill");
       if (!form.dob)           errs.dob    = t("Date of birth is required");
       if (!form.region)        errs.region = t("Please select your region");
       if (!cinFrontFile || !cinBackFile)
         errs.cin = t("Please upload both sides of your CIN");
     }
+    if (mode === "login" && !captchaToken)
+      errs.captcha = t("Please complete the CAPTCHA");
     return errs;
   }
 
@@ -328,40 +446,54 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           name:        form.name,
           email:       form.email,
           password:    form.password,
-          plan,
           role,
           dob:         form.dob,
           region:      form.region,
+          gender:      form.gender,    // ← NEW
           cin:         "",
           cinFront:    cinFrontB64,
           cinBack:     cinBackB64,
           cinVerified: false,
         });
 
-        setPendingName(form.name);
-        setScreen("pending");
-        return;
+        if (role === "freelancer") {
+  setPendingName(form.name);
+  setScreen("pending");
+} else {
+  onAuth?.({ name: form.name, email: form.email, role, isAdmin: false });
+  onClose?.();
+}
+return;
       }
 
       // LOGIN
       const result = login(form.email, form.password);
       if (result.error === "noAccount") {
         setErrors({ email: t("No account found with this email") });
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
         return;
       }
       if (result.error === "wrongPassword") {
         setErrors({ password: t("Incorrect password") });
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
         return;
       }
 
-      // If freelancer with a decided status, show status screen
-      if (
-        result.user.role === "freelancer" &&
-        (result.user.cinStatus === "approved" || result.user.cinStatus === "rejected")
-      ) {
-        setStatusUser(result.user);
-        setScreen("status");
-        return;
+      // ── FIX 1: handle freelancer login by cinStatus ──
+      if (result.user.role === "freelancer") {
+        if (result.user.cinStatus === "approved" || result.user.cinStatus === "rejected") {
+          setStatusUser(result.user);
+          setScreen("status");
+          return;
+        }
+        if (result.user.cinStatus === "pending") {
+          setPendingName(result.user.name);
+          setScreen("pending");
+          logout();
+          return;
+        }
       }
 
       onAuth?.(result.user);
@@ -373,23 +505,51 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     if (e.key === "Enter") handleSubmit();
   }
 
+  function handleGoogleLogin() { googleLogin(); }
+
+  function handleFacebookLogin() {
+  window.FB.login(function(response) {
+    if (response.authResponse) {
+      window.FB.api('/me', { fields: 'name,email,picture' }, function(profile) {
+        if (mode === "login") {
+          const emailKey = profile.email?.toLowerCase();
+          if (!emailKey || !accounts[emailKey]) {
+            setErrors({ email: t("No account found. Please sign up first.") });
+            window.FB.logout(() => {});
+            return;
+          }
+        }
+        const result = loginWithFacebook(profile);
+        if (result?.success) {
+          onAuth?.(result.user);
+          onClose?.();
+        }
+      });
+    }
+  }, { scope: 'public_profile,email' });
+}
+
   const isClient     = role === "client";
   const isFreelancer = role === "freelancer" && mode === "signup";
 
   const modalTitle =
-    screen === "pending" ? t("Inscription soumise 📋") :
-    screen === "status"  ? (statusUser?.cinStatus === "approved" ? t("Compte approuvé ✅") : t("Compte refusé ❌")) :
-    mode === "login"     ? t("Welcome back 👋") :
-    isClient             ? t("Join As A Client 💼") : t("Join As A Freelancer 🚀");
+    screen === "pending"       ? t("Inscription soumise 📋") :
+    screen === "status"        ? (statusUser?.cinStatus === "approved" ? t("Compte approuvé ✅") : t("Compte refusé ❌")) :
+    screen === "forgot"        ? t("Reset Password 🔑") :
+    screen === "passwordFound" ? t("Password Found ✅") :
+    mode === "login"           ? t("Welcome back 👋") :
+    isClient                   ? t("Join As A Client 💼") : t("Join As A Freelancer 🚀");
 
   const modalSubtitle =
-    screen === "pending" ? t("Votre dossier est en cours d'examen") :
-    screen === "status"  ? "" :
-    mode === "login"     ? t("Log in to access your dashboard") :
+    screen === "pending"       ? t("Votre dossier est en cours d'examen") :
+    screen === "status"        ? "" :
+    screen === "forgot"        ? "" :
+    screen === "passwordFound" ? "" :
+    mode === "login"           ? t("Log in to access your dashboard") :
     t("Join thousands of professionals today");
 
   return (
-    <Modal open={open} onClose={onClose} size="md" title={modalTitle} subtitle={modalSubtitle}>
+    <Modal open={open} onClose={onClose} size="md" title={modalTitle} subtitle={modalSubtitle} closable={closable}>
 
       {/* ── PENDING SCREEN ── */}
       {screen === "pending" && (
@@ -419,6 +579,28 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         />
       )}
 
+      {/* ── FORGOT PASSWORD SCREEN ── */}
+      {screen === "forgot" && (
+        <ForgotPasswordScreen
+          accounts={accounts}
+          onBack={() => setScreen("form")}
+          onSent={(email, password) => {
+            setFoundEmail(email);
+            setFoundPassword(password);
+            setScreen("passwordFound");
+          }}
+        />
+      )}
+
+      {/* ── PASSWORD FOUND SCREEN ── */}
+      {screen === "passwordFound" && (
+        <PasswordFoundScreen
+          email={foundEmail}
+          password={foundPassword}
+          onBack={() => setScreen("form")}
+        />
+      )}
+
       {/* ── NORMAL FORM ── */}
       {screen === "form" && (
         <>
@@ -427,7 +609,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             {[{ id: "login", label: t("Log in") }, { id: "signup", label: t("Sign up") }].map(m => (
               <button
                 key={m.id}
-                onClick={() => { setMode(m.id); setErrors({}); }}
+                onClick={() => { setMode(m.id); setErrors({}); setCaptchaToken(null); recaptchaRef.current?.reset(); }}
                 className={[
                   "flex-1 py-2 text-sm font-semibold rounded-xl transition-all duration-200",
                   mode === m.id
@@ -476,43 +658,39 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           )}
 
           {/* Social login */}
-          <div className="flex gap-2 mb-4">
-            {[
-              {
-                name: "Google",
-                icon: (
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                ),
-              },
-              {
-                name: "GitHub",
-                icon: (
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-                  </svg>
-                ),
-              },
-            ].map(s => (
+          {(mode === "login" || (mode === "signup" && isClient)) && (
+            <div className="flex gap-2 mb-4">
               <button
-                key={s.name}
+                onClick={handleGoogleLogin}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 active:scale-95"
               >
-                {s.icon}
-                {s.name}
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Google
               </button>
-            ))}
-          </div>
+              <button
+                onClick={handleFacebookLogin}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="#1877F2" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                Facebook
+              </button>
+            </div>
+          )}
 
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-            <span className="text-xs text-slate-400">{t("or continue with email")}</span>
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-          </div>
+          {(mode === "login" || (mode === "signup" && isClient)) && (
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+              <span className="text-xs text-slate-400">{t("or continue with email")}</span>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            </div>
+          )}
 
           {/* Form fields */}
           <div className="space-y-3" onKeyDown={handleKey}>
@@ -559,6 +737,45 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   required
                 />
 
+                {/* ── GENDER SELECTOR ── */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                    {t("Genre")} <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex gap-2">
+                    {[
+                      {
+                        id: "male",
+                        label: t("Homme"),
+                        emoji: "👨",
+                        activeClass: "border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400",
+                      },
+                      {
+                        id: "female",
+                        label: t("Femme"),
+                        emoji: "👩",
+                        activeClass: "border-pink-500 bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400",
+                      },
+                    ].map(g => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => { setForm(f => ({ ...f, gender: g.id })); setErrors(err => ({ ...err, gender: "" })); }}
+                        className={[
+                          "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200",
+                          form.gender === g.id
+                            ? g.activeClass
+                            : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600",
+                        ].join(" ")}
+                      >
+                        <span className="text-base">{g.emoji}</span>
+                        {g.label}
+                      </button>
+                    ))}
+                  </div>
+                  {errors.gender && <p className="mt-1 text-xs text-rose-500">{errors.gender}</p>}
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
                     {t("Région")} <span className="text-rose-500">*</span>
@@ -587,45 +804,44 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   {errors.region && <p className="mt-1 text-xs text-rose-500">{errors.region}</p>}
                 </div>
 
-                {/* CIN Section — upload only, no AI verify button */}
+                {/* CIN Section */}
                 <div className="mt-1">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
                     <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
-                      Carte d'Identité Nationale
+                      {t("Carte d'Identité Nationale")}
                     </span>
                     <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
                   </div>
 
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 text-center">
-                    Prenez une photo claire de chaque face de votre CIN. La photo doit être nette et bien éclairée.
+                    {t("Prenez une photo claire de chaque face de votre CIN. La photo doit être nette et bien éclairée.")}
                   </p>
 
                   <div className="flex gap-3 mb-3">
                     <ImageUploadBox
-                      label="Face avant"
-                      hint="Photo de la face avant"
+                      label={t("Face avant")}
+                      hint={t("Photo de la face avant")}
                       preview={cinFrontPreview}
                       onFile={f => handleCINFile("front", f)}
                       side="front"
                     />
                     <ImageUploadBox
-                      label="Face arrière"
-                      hint="Retournez la carte et photographiez"
+                      label={t("Face arrière")}
+                      hint={t("Retournez la carte et photographiez")}
                       preview={cinBackPreview}
                       onFile={f => handleCINFile("back", f)}
                       side="back"
                     />
                   </div>
 
-                  {/* Confirmation when both uploaded */}
                   {cinFrontFile && cinBackFile && (
                     <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
                       <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                       </svg>
                       <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
-                        Les deux photos sont prêtes. L'admin vérifiera votre CIN après soumission.
+                        {t("Les deux photos sont prêtes. L'admin vérifiera votre CIN après soumission.")}
                       </p>
                     </div>
                   )}
@@ -652,52 +868,29 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             )}
           </div>
 
+          {/* Forgot password */}
           {mode === "login" && (
             <div className="text-right mt-2">
-              <button className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
+              <button
+                onClick={() => setScreen("forgot")}
+                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
                 {t("Forgot password?")}
               </button>
             </div>
           )}
 
-          {/* Plan selector */}
-          {mode === "signup" && (
-            <div className="mt-5">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">
-                {t("Choose your plan")}
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {PLANS.map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => setPlan(p.id)}
-                    className={[
-                      "relative p-3.5 rounded-2xl border-2 text-left transition-all duration-200",
-                      plan === p.id
-                        ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
-                        : "border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700",
-                    ].join(" ")}
-                  >
-                    {p.badge && (
-                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-bold rounded-full whitespace-nowrap">
-                        {p.badge}
-                      </span>
-                    )}
-                    <p className="font-bold text-sm text-slate-900 dark:text-white mb-0.5">{p.label}</p>
-                    <p className="text-indigo-600 dark:text-indigo-400 font-extrabold text-sm mb-2">{p.price}</p>
-                    <ul className="space-y-1">
-                      {p.features.slice(0, 3).map(f => (
-                        <li key={f} className="text-xs text-slate-500 dark:text-slate-400 flex items-start gap-1">
-                          <svg className="w-3 h-3 text-emerald-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                          </svg>
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                  </button>
-                ))}
-              </div>
+          {/* reCAPTCHA — login only */}
+          {mode === "login" && (
+            <div className="mt-4">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={RECAPTCHA_SITE_KEY}
+                onChange={token => { setCaptchaToken(token); setErrors(err => ({ ...err, captcha: "" })); }}
+                onExpired={() => setCaptchaToken(null)}
+                theme="dark"
+              />
+              {errors.captcha && <p className="mt-1.5 text-xs text-rose-500">{errors.captcha}</p>}
             </div>
           )}
 
