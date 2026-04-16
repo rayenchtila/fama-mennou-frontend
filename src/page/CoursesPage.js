@@ -33,8 +33,8 @@ const CoursesPage = () => {
   });
 
   return (
-    <div className="py-12">
-      <div className="container mx-auto px-4">
+    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-8">{t("Share Courses")}</h1>
         <div className="mb-6">
           <Searchbar
@@ -50,7 +50,7 @@ const CoursesPage = () => {
           resultCount={filteredCourses.length}
           label={t("Share Courses")}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8">
           {filteredCourses.map(course => (
             <Coursecard key={course.id} {...course} />
           ))}

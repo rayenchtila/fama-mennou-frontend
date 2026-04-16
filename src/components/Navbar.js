@@ -181,9 +181,9 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
           <div className="flex items-center h-16 gap-4">
 
             {/* Logo */}
-            <Link to="/" className="font-extrabold text-xl tracking-tighter text-slate-900 dark:text-white">
+            <a href="/" className="font-extrabold text-xl tracking-tighter text-slate-900 dark:text-white">
               Fama<span className="text-indigo-600">Mennou</span>
-            </Link>
+            </a>
 
             {/* Desktop Nav */}
             <nav className="hidden lg:flex items-center gap-1 ml-4">
@@ -453,42 +453,79 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[100] bg-white dark:bg-slate-950 lg:hidden flex flex-col p-6"
+            className="fixed inset-0 z-[100] bg-white dark:bg-slate-950 lg:hidden flex flex-col overflow-y-auto"
           >
-            <div className="flex items-center justify-between mb-8">
-              <span className="font-bold text-xl">Menu</span>
-              <button onClick={() => setMenuOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">✕</button>
+            {/* Mobile menu header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <a href="/" className="font-extrabold text-xl tracking-tighter text-slate-900 dark:text-white">
+                Fama<span className="text-indigo-600">Mennou</span>
+              </a>
+              <button onClick={() => setMenuOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-lg font-bold">✕</button>
             </div>
-            <nav className="flex flex-col gap-4">
+
+            {/* Search */}
+            <div className="px-5 pt-4 pb-2">
+              <Searchbar value={search} onChange={setSearch} placeholder={t("Search…")} compact />
+            </div>
+
+            {/* Nav links */}
+            <nav className="flex flex-col px-3 py-2 gap-1">
               {NAV_LINKS.map(link => (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`text-2xl font-bold ${location.pathname === link.to ? "text-indigo-600" : "text-slate-400"}`}
+                  onClick={() => setMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold transition-colors ${
+                    location.pathname === link.to
+                      ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                  }`}
                 >
                   {link.label}
                 </Link>
               ))}
             </nav>
-            {user && (
-              <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold">
-                    {getInitials(user.name)}
+
+            {/* Bottom section */}
+            <div className="mt-auto px-5 pb-8 pt-4 border-t border-slate-100 dark:border-slate-800">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                      {getInitials(user.name)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
+                      <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">{user.name}</p>
-                    <p className="text-xs text-slate-400">{user.email}</p>
-                  </div>
+                  <button
+                    onClick={() => { logout(); setMenuOpen(false); }}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 font-semibold text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    {t("Log out")}
+                  </button>
+                </>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => { onLogin("login"); setMenuOpen(false); }}
+                    className="w-full py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm hover:border-indigo-400 transition-colors"
+                  >
+                    {t("Log in")}
+                  </button>
+                  <button
+                    onClick={() => { onLogin("signup"); setMenuOpen(false); }}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/30"
+                  >
+                    {t("Sign up")}
+                  </button>
                 </div>
-                <button
-                  onClick={() => { logout(); setMenuOpen(false); }}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 font-semibold text-sm"
-                >
-                  {t("Log out")}
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

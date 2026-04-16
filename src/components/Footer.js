@@ -13,10 +13,10 @@ export default function Footer() {
 
   return (
     <footer className="bg-slate-950 dark:bg-slate-950 text-slate-300 mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10">
           {/* Brand col */}
-          <div className="lg:col-span-1">
+          <div className="col-span-2 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <span className="font-extrabold text-lg tracking-tight text-white">
                 Fama<span className="text-indigo-400">Mennou</span>

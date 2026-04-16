@@ -32,8 +32,8 @@ const ClientsPage = () => {
   });
 
   return (
-    <div className="py-12">
-      <div className="container mx-auto px-4">
+    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-8">{t("Find Clients")}</h1>
         <div className="mb-6">
           <Searchbar
@@ -49,7 +49,7 @@ const ClientsPage = () => {
           resultCount={filteredClients.length}
           label={t("Clients")}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8">
           {filteredClients.map(client => (
             <div key={client.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-shadow duration-200">
               <div className="flex items-start justify-between mb-4">

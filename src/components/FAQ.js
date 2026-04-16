@@ -30,7 +30,7 @@ const FAQ = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="relative w-full bg-white dark:bg-slate-950 py-20 md:py-28 overflow-hidden">
+    <section className="relative w-full bg-white dark:bg-slate-900 py-14 sm:py-20 md:py-28 overflow-hidden">
 
       {/* Background blobs — same as hero */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -39,7 +39,7 @@ const FAQ = () => {
         <div className="absolute -top-8 -right-8 w-[220px] h-[220px] rounded-full bg-violet-100 dark:bg-violet-900/15 blur-3xl opacity-50" />
       </div>
 
-      <div className="relative z-10 max-w-2xl mx-auto px-4">
+      <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6">
 
         {/* Section header */}
         <motion.div

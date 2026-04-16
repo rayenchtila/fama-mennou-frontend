@@ -20,6 +20,12 @@ import { useTranslation } from "react-i18next";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [pathname]);
+  return null;
+}
+
 // ── Guard: blocks any route if user is not logged in ──────────────────────────
 function PrivateRoute({ children, onLogin }) {
   const { user } = useAuth();
@@ -34,7 +40,7 @@ function PrivateRoute({ children, onLogin }) {
 
 function AppInner() {
   const { i18n } = useTranslation();
-  const { logout } = useAuth(); // FIXED: removed unused "user"
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   const isAdminDashboard = location.pathname === "/admin/dashboard";
@@ -98,6 +104,7 @@ function AppInner() {
 
   return (
     <ToastProvider>
+      <ScrollToTop />
       <Authmodal
         open={authModalOpen}
         onClose={() => setAuthModalOpen(false)}

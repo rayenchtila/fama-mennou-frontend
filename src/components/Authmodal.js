@@ -424,6 +424,12 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       if (!cinFrontFile || !cinBackFile)
         errs.cin = t("Please upload both sides of your CIN");
     }
+    if (mode === "signup" && role === "client") {
+      if (!form.dob)    errs.dob    = t("Date of birth is required");
+      if (!form.gender) errs.gender = t("Veuillez sélectionner votre genre");
+      if (!cinFrontFile || !cinBackFile)
+        errs.cin = t("Please upload both sides of your CIN");
+    }
     if (mode === "login" && !captchaToken)
       errs.captcha = t("Please complete the CAPTCHA");
     return errs;
@@ -865,6 +871,98 @@ return;
                   value={form.bio} onChange={set("bio")} error={errors.bio}
                 />
               </>
+            )}
+
+            {/* Date of Birth for Client signup */}
+            {mode === "signup" && isClient && (
+              <Input
+                label={t("Date de naissance")}
+                type="date"
+                value={form.dob}
+                onChange={set("dob")}
+                error={errors.dob}
+                required
+              />
+            )}
+
+            {/* Gender for Client signup */}
+            {mode === "signup" && isClient && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                  {t("Genre")} <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  {[
+                    { id: "male",   label: t("Homme"), emoji: "👨", activeClass: "border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400" },
+                    { id: "female", label: t("Femme"), emoji: "👩", activeClass: "border-pink-500 bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400" },
+                  ].map(g => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => { setForm(f => ({ ...f, gender: g.id })); setErrors(err => ({ ...err, gender: "" })); }}
+                      className={[
+                        "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200",
+                        form.gender === g.id
+                          ? g.activeClass
+                          : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600",
+                      ].join(" ")}
+                    >
+                      <span className="text-base">{g.emoji}</span>
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+                {errors.gender && <p className="mt-1 text-xs text-rose-500">{errors.gender}</p>}
+              </div>
+            )}
+
+            {/* CIN for Client signup */}
+            {mode === "signup" && isClient && (
+              <div className="mt-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
+                    {t("Carte d'Identité Nationale")}
+                  </span>
+                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                </div>
+
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 text-center">
+                  {t("Prenez une photo claire de chaque face de votre CIN. La photo doit être nette et bien éclairée.")}
+                </p>
+
+                <div className="flex gap-3 mb-3">
+                  <ImageUploadBox
+                    label={t("Face avant")}
+                    hint={t("Photo de la face avant")}
+                    preview={cinFrontPreview}
+                    onFile={f => handleCINFile("front", f)}
+                    side="front"
+                  />
+                  <ImageUploadBox
+                    label={t("Face arrière")}
+                    hint={t("Retournez la carte et photographiez")}
+                    preview={cinBackPreview}
+                    onFile={f => handleCINFile("back", f)}
+                    side="back"
+                  />
+                </div>
+
+                {cinFrontFile && cinBackFile && (
+                  <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                    <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                    </svg>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
+                      {t("Les deux photos sont prêtes. L'admin vérifiera votre CIN après soumission.")}
+                    </p>
+                  </div>
+                )}
+
+                {errors.cin && (
+                  <p className="mt-1.5 text-xs text-rose-500">{errors.cin}</p>
+                )}
+              </div>
             )}
           </div>
 

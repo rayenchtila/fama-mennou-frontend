@@ -103,18 +103,6 @@ function Hero() {
       <section className="w-full py-14 md:py-20 px-4 bg-slate-50 dark:bg-slate-900/40">
         <div className="max-w-5xl mx-auto">
 
-          {/* Heading */}
-          <div className="text-center mb-12">
-            <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest mb-4">
-              Get started
-            </span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-3">
-              How to create your account?
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base max-w-lg mx-auto">
-              Pick your path and follow the steps — simple, fast, built for Tunisia's best professionals.
-            </p>
-          </div>
 
           {/* Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

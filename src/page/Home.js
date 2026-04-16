@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -67,22 +67,27 @@ const NAV_BUTTONS = [
 ];
 
 const Home = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
+  const [howOpen, setHowOpen] = useState(true);
 
   // Split highlighted words so each animates independently
   const words1 = t('hero.title.highlight1').split(/,\s*/); // ["Freelancers", "Clients"]
   const words2 = t('hero.title.highlight2').split(/\s*&\s*/); // ["Jobs", "Courses"]
 
   return (
-    <div className="relative bg-white dark:bg-slate-950 overflow-x-hidden">
+    <div className="relative overflow-x-hidden">
+
+      {/* Hero background — always light */}
+      <div className="absolute inset-0 bg-white dark:bg-slate-900 z-0" />
 
       {/* Background blobs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
         <div className="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full bg-indigo-100 dark:bg-indigo-900/20 blur-3xl opacity-60" />
         <div className="absolute -bottom-24 -right-24 w-[360px] h-[360px] rounded-full bg-violet-100 dark:bg-violet-900/20 blur-3xl opacity-50" />
       </div>
 
-      <section className="relative z-10 w-full px-4 py-24 md:py-36 lg:py-44">
+      <section className="relative z-10 w-full px-4 sm:px-6 pt-28 pb-16 sm:py-32 md:py-36 lg:py-44">
         <div className="max-w-5xl mx-auto text-center">
 
           {/* Badge */}
@@ -90,7 +95,7 @@ const Home = () => {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-10 font-inter"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-6 sm:mb-10 font-inter"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
             {t('hero.badge')}
@@ -113,7 +118,7 @@ const Home = () => {
               className="inline-block mr-[0.22em] relative text-indigo-600 dark:text-indigo-400"
               custom={1} variants={wordVariant} initial="hidden" animate="visible"
             >
-              {words1[0]},
+              {words1[0]}{!isAr && ','}
               <motion.span
                 initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
                 transition={{ duration: 0.5, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
@@ -127,7 +132,7 @@ const Home = () => {
               className="inline-block mr-[0.22em] relative text-indigo-600 dark:text-indigo-400"
               custom={2} variants={wordVariant} initial="hidden" animate="visible"
             >
-              {words1[1]},
+              {words1[1]}{!isAr && ','}
               <motion.span
                 initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
                 transition={{ duration: 0.5, delay: 1.05, ease: [0.22, 1, 0.36, 1] }}
@@ -150,13 +155,15 @@ const Home = () => {
               />
             </motion.span>
 
-            {/* "&" */}
+            {/* "&" — hidden in Arabic */}
+            {!isAr && (
             <motion.span
               className="inline-block mx-[0.18em] text-slate-400 dark:text-slate-500"
               custom={4} variants={wordVariant} initial="hidden" animate="visible"
             >
               &amp;
             </motion.span>
+            )}
 
             {/* "Courses" */}
             <motion.span
@@ -189,7 +196,7 @@ const Home = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.05, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-wrap items-center justify-center gap-3 sm:gap-4"
+            className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-4 px-2"
           >
             {NAV_BUTTONS.map((btn, i) => (
               <motion.div
@@ -222,158 +229,198 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── How it works ── */}
-      <section className="relative z-10 w-full px-4 pb-28 md:pb-36">
-
-        {/* Decorative divider */}
-        <div className="max-w-3xl mx-auto mb-14">
-          <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent" />
-        </div>
-
+      {/* ── How it works — always dark section ── */}
+      <motion.section
+        className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24 md:pb-32 bg-slate-950"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div className="max-w-3xl mx-auto">
 
-          {/* Section label + heading */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent mb-10" />
+
+          {/* Toggle header */}
+          <motion.button
+            onClick={() => setHowOpen(o => !o)}
+            initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="text-center mb-10"
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full flex items-center justify-between gap-4 group text-white"
+            aria-expanded={howOpen}
           >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-4 font-inter">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
-              {t('Get started')}
-            </span>
-            <h2 className="font-poppins font-bold text-slate-900 dark:text-white text-2xl sm:text-[1.85rem] mt-1">
-              {t('How to create your account?')}
-            </h2>
-          </motion.div>
-
-          {/* Cards grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-            {/* ── Freelancer card ── */}
-            <motion.div
-              initial={{ opacity: 0, y: 32 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="group relative bg-white dark:bg-slate-900/70 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-900/30 transition-all duration-500 overflow-hidden"
+            <div className="text-left">
+              <h2 className="font-poppins font-bold text-white text-xl sm:text-2xl">
+                {t('How to create your account?')}
+              </h2>
+            </div>
+            <motion.span
+              animate={{ rotate: howOpen ? 180 : 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="w-9 h-9 rounded-full bg-indigo-900/30 border border-indigo-800 flex items-center justify-center text-indigo-400 shrink-0 group-hover:bg-indigo-900/50 transition-colors duration-200"
             >
-              {/* Top accent bar */}
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-indigo-600 to-violet-600" />
-              {/* Hover glow layer */}
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/0 to-violet-500/0 group-hover:from-indigo-500/[0.03] group-hover:to-violet-500/[0.03] transition-all duration-500 rounded-2xl pointer-events-none" />
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </motion.span>
+          </motion.button>
 
-              {/* Card header */}
-              <div className="flex items-center justify-between mb-6 mt-2">
-                <div className="flex items-center gap-3">
-                  <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/50 dark:to-violet-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 shadow-sm">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                  </span>
-                  <span className="font-poppins font-bold text-slate-900 dark:text-white text-[15px]">Freelancer</span>
-                </div>
-                <span className="text-[10.5px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 px-2.5 py-1 rounded-full">
-                  {t('4 steps')}
-                </span>
-              </div>
+          {/* Collapsible cards */}
+          <AnimatePresence initial={false}>
+            {howOpen && (
+              <motion.div
+                key="steps"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8">
 
-              {/* Steps with connector line */}
-              <ol className="relative space-y-0">
-                {[
-                  { title: t('Fill in your info'),     sub: t('steps.freelancer.sub1') },
-                  { title: t('Add your skills & bio'), sub: t('steps.freelancer.sub2') },
-                  { title: t('Upload your CIN'),       sub: t('steps.freelancer.sub3') },
-                  { title: t('Get approved & start!'), sub: t('steps.freelancer.sub4') },
-                ].map((s, i, arr) => (
-                  <li key={i} className="relative flex items-start gap-3 pb-4 last:pb-0">
-                    {i < arr.length - 1 && (
-                      <span className="absolute left-[10px] top-6 bottom-0 w-px bg-gradient-to-b from-indigo-200 dark:from-indigo-800/70 to-transparent" />
-                    )}
-                    <span className="relative mt-[2px] w-[22px] h-[22px] rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-md shadow-indigo-400/30 dark:shadow-indigo-900/60 group-hover:scale-110 transition-transform duration-300">
-                      {i + 1}
-                    </span>
-                    <div className="pt-[2px]">
-                      <p className="font-inter font-semibold text-[13px] text-slate-800 dark:text-slate-100 leading-snug">{s.title}</p>
-                      <p className="text-[11.5px] text-slate-400 dark:text-slate-500 mt-[3px] leading-snug">{s.sub}</p>
+                  {/* ── Freelancer card ── */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-40px' }}
+                    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -4, transition: { duration: 0.25 } }}
+                    className="group relative rounded-2xl overflow-hidden border border-indigo-500/20 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/60 shadow-xl shadow-indigo-900/20 hover:shadow-2xl hover:shadow-indigo-500/25 transition-shadow duration-500"
+                  >
+                    {/* top glow bar */}
+                    <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+                    {/* ambient glow */}
+                    <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none group-hover:bg-indigo-500/20 transition-colors duration-700" />
+
+                    <div className="relative p-6">
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-600/40">
+                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-poppins font-bold text-white text-[15px] leading-none">{t('Freelancer')}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 rounded-full tracking-wide uppercase">
+                          {t('6 steps')}
+                        </span>
+                      </div>
+
+                      {/* Steps */}
+                      <ol className="relative space-y-0">
+                        {[
+                          { title: t("Choose 'Freelancer' at signup"), sub: t('steps.client.sub1') },
+                          { title: t('Fill in your info'),             sub: t('steps.freelancer.sub1') },
+                          { title: t('Upload your CIN'),               sub: t('steps.freelancer.sub3') },
+                          { title: t('Add your skills & bio'),         sub: t('steps.freelancer.sub2') },
+                          { title: t('Get Approved or Rejected !'),    sub: t('steps.freelancer.sub4') },
+                          { title: t("You're in — start working!"),    sub: t('steps.freelancer.sub5') },
+                        ].map((s, i, arr) => (
+                          <li key={i} className="relative flex items-start gap-3.5 pb-4 last:pb-0">
+                            {i < arr.length - 1 && (
+                              <span className="absolute left-[13px] top-7 bottom-0 w-px bg-gradient-to-b from-indigo-500/40 to-transparent" />
+                            )}
+                            <span className="mt-0.5 w-[26px] h-[26px] rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-[11px] font-extrabold flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/40 ring-2 ring-indigo-500/20">
+                              {i + 1}
+                            </span>
+                            <div className="pt-[3px]">
+                              <p className="font-inter font-semibold text-[13px] text-slate-100 leading-snug">{s.title}</p>
+                              <p className="text-[11px] text-slate-500 mt-[3px] leading-relaxed">{s.sub}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+
+                      {/* Footer */}
+                      <div className="mt-5 pt-4 border-t border-indigo-500/15 flex items-center gap-2 text-[11px] text-indigo-400/80 font-inter">
+                        <svg className="w-3.5 h-3.5 shrink-0 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {t('steps.cin_note')}
+                      </div>
                     </div>
-                  </li>
-                ))}
-              </ol>
+                  </motion.div>
 
-              {/* Footer note */}
-              <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500 font-inter">
-                <svg className="w-3.5 h-3.5 shrink-0 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                {t('steps.cin_note')}
-              </div>
-            </motion.div>
+                  {/* ── Client card ── */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-40px' }}
+                    transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -4, transition: { duration: 0.25 } }}
+                    className="group relative rounded-2xl overflow-hidden border border-violet-500/20 bg-gradient-to-br from-slate-900 via-slate-900 to-violet-950/60 shadow-xl shadow-violet-900/20 hover:shadow-2xl hover:shadow-violet-500/25 transition-shadow duration-500"
+                  >
+                    {/* top glow bar */}
+                    <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
+                    {/* ambient glow */}
+                    <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-violet-600/10 blur-3xl pointer-events-none group-hover:bg-violet-500/20 transition-colors duration-700" />
 
-            {/* ── Client card ── */}
-            <motion.div
-              initial={{ opacity: 0, y: 32 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.55, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="group relative bg-white dark:bg-slate-900/70 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-2xl hover:shadow-violet-500/10 dark:hover:shadow-violet-900/30 transition-all duration-500 overflow-hidden"
-            >
-              {/* Top accent bar */}
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-violet-600 to-purple-600" />
-              {/* Hover glow layer */}
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/0 to-purple-500/0 group-hover:from-violet-500/[0.03] group-hover:to-purple-500/[0.03] transition-all duration-500 rounded-2xl pointer-events-none" />
+                    <div className="relative p-6">
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-600/40">
+                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-poppins font-bold text-white text-[15px] leading-none">{t('Client')}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold text-violet-300 bg-violet-500/15 border border-violet-500/30 px-2.5 py-1 rounded-full tracking-wide uppercase">
+                          {t('5 steps')}
+                        </span>
+                      </div>
 
-              {/* Card header */}
-              <div className="flex items-center justify-between mb-6 mt-2">
-                <div className="flex items-center gap-3">
-                  <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/50 dark:to-purple-900/50 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0 shadow-sm">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                    </svg>
-                  </span>
-                  <span className="font-poppins font-bold text-slate-900 dark:text-white text-[15px]">Client</span>
-                </div>
-                <span className="text-[10.5px] font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/60 border border-violet-100 dark:border-violet-800 px-2.5 py-1 rounded-full">
-                  {t('3 steps')}
-                </span>
-              </div>
+                      {/* Steps */}
+                      <ol className="relative space-y-0">
+                        {[
+                          { title: t("Choose 'Client' at signup"),  sub: t('steps.client.sub1') },
+                          { title: t('Fill in your info'),          sub: t('steps.client.sub2') },
+                          { title: t('Upload your CIN'),            sub: t('steps.freelancer.sub3') },
+                          { title: t('Get Approved or Rejected !'), sub: t('steps.client.sub4') },
+                          { title: t("You're in — start hiring!"),  sub: t('steps.client.sub3') },
+                        ].map((s, i, arr) => (
+                          <li key={i} className="relative flex items-start gap-3.5 pb-4 last:pb-0">
+                            {i < arr.length - 1 && (
+                              <span className="absolute left-[13px] top-7 bottom-0 w-px bg-gradient-to-b from-violet-500/40 to-transparent" />
+                            )}
+                            <span className="mt-0.5 w-[26px] h-[26px] rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-[11px] font-extrabold flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/40 ring-2 ring-violet-500/20">
+                              {i + 1}
+                            </span>
+                            <div className="pt-[3px]">
+                              <p className="font-inter font-semibold text-[13px] text-slate-100 leading-snug">{s.title}</p>
+                              <p className="text-[11px] text-slate-500 mt-[3px] leading-relaxed">{s.sub}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
 
-              {/* Steps with connector line */}
-              <ol className="relative space-y-0">
-                {[
-                  { title: t("Choose 'Client' at signup"), sub: t('steps.client.sub1') },
-                  { title: t('Sign up in seconds'),        sub: t('steps.client.sub2') },
-                  { title: t("You're in — start hiring!"), sub: t('steps.client.sub3') },
-                ].map((s, i, arr) => (
-                  <li key={i} className="relative flex items-start gap-3 pb-4 last:pb-0">
-                    {i < arr.length - 1 && (
-                      <span className="absolute left-[10px] top-6 bottom-0 w-px bg-gradient-to-b from-violet-200 dark:from-violet-800/70 to-transparent" />
-                    )}
-                    <span className="relative mt-[2px] w-[22px] h-[22px] rounded-full bg-gradient-to-br from-violet-600 to-purple-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-md shadow-violet-400/30 dark:shadow-violet-900/60 group-hover:scale-110 transition-transform duration-300">
-                      {i + 1}
-                    </span>
-                    <div className="pt-[2px]">
-                      <p className="font-inter font-semibold text-[13px] text-slate-800 dark:text-slate-100 leading-snug">{s.title}</p>
-                      <p className="text-[11.5px] text-slate-400 dark:text-slate-500 mt-[3px] leading-snug">{s.sub}</p>
+                      {/* Footer */}
+                      <div className="mt-5 pt-4 border-t border-violet-500/15 flex items-center gap-2 text-[11px] text-violet-400/80 font-inter">
+                        <svg className="w-3.5 h-3.5 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {t('steps.cin_note')}
+                      </div>
                     </div>
-                  </li>
-                ))}
-              </ol>
+                  </motion.div>
 
-              {/* Footer note */}
-              <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500 font-inter">
-                <svg className="w-3.5 h-3.5 shrink-0 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-                </svg>
-                {t('steps.instant_note')}
-              </div>
-            </motion.div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          </div>
         </div>
-      </section>
+      </motion.section>
 
     </div>
   );
