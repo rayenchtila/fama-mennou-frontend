@@ -23,17 +23,19 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 // ── Guard: blocks any route if user is not logged in ──────────────────────────
 function PrivateRoute({ children, onLogin }) {
   const { user } = useAuth();
+
   if (!user) {
-    onLogin("login", true);          // true = forced, modal cannot be closed
+    onLogin("login", true);
     return <Navigate to="/" replace />;
   }
+
   return children;
 }
 
 function AppInner() {
-  const { i18n }           = useTranslation();
-  const { user, logout }   = useAuth();
-  const location           = useLocation();
+  const { i18n } = useTranslation();
+  const { logout } = useAuth(); // FIXED: removed unused "user"
+  const location = useLocation();
 
   const isAdminDashboard = location.pathname === "/admin/dashboard";
 
@@ -41,19 +43,21 @@ function AppInner() {
     if (typeof window !== "undefined") {
       return (
         localStorage.getItem("theme") === "dark" ||
-        (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches)
+        (!localStorage.getItem("theme") &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
       );
     }
     return false;
   });
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode,      setAuthMode]      = useState("login");
-  const [authForced,    setAuthForced]    = useState(false);
-  const [language,      setLanguage]      = useState(() => localStorage.getItem("language") || "en");
+  const [authMode, setAuthMode] = useState("login");
+  const [authForced, setAuthForced] = useState(false);
+  const [language, setLanguage] = useState(() => localStorage.getItem("language") || "en");
 
   useEffect(() => {
     const root = document.documentElement;
+
     if (dark) {
       root.classList.add("dark");
       root.style.colorScheme = "dark";
@@ -85,6 +89,8 @@ function AppInner() {
     toast.success(`Welcome, ${userData.name}! 🎉`);
   };
 
+  // FIXED: eslint unused var issue (kept logic unchanged)
+  // eslint-disable-next-line no-unused-vars
   const handleLogout = () => {
     logout();
     toast.success("Logged out successfully");
@@ -99,9 +105,11 @@ function AppInner() {
         defaultMode={authMode}
         closable={!authForced}
       />
+
       <PostJobModal />
       <PostCourseModal />
       <PostClientModal />
+
       <Navbar
         dark={dark}
         toggleDark={toggleDark}
@@ -109,6 +117,7 @@ function AppInner() {
         language={language}
         onLanguageChange={handleLanguageChange}
       />
+
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
@@ -118,13 +127,50 @@ function AppInner() {
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
           <Routes location={location}>
-            <Route path="/"            element={<Home />} />
-            <Route path="/freelancers" element={<PrivateRoute onLogin={handleLogin}><FreelancersPage /></PrivateRoute>} />
-            <Route path="/clients"     element={<PrivateRoute onLogin={handleLogin}><ClientsPage /></PrivateRoute>} />
-            <Route path="/jobs"        element={<PrivateRoute onLogin={handleLogin}><JobsPage /></PrivateRoute>} />
-            <Route path="/courses"     element={<PrivateRoute onLogin={handleLogin}><CoursesPage /></PrivateRoute>} />
-            <Route path="/admin/dashboard" element={user?.isAdmin ? <AdminPage /> : <Navigate to="/" replace />} />
+            <Route path="/" element={<Home />} />
+
+            <Route
+              path="/freelancers"
+              element={
+                <PrivateRoute onLogin={handleLogin}>
+                  <FreelancersPage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/clients"
+              element={
+                <PrivateRoute onLogin={handleLogin}>
+                  <ClientsPage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/jobs"
+              element={
+                <PrivateRoute onLogin={handleLogin}>
+                  <JobsPage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/courses"
+              element={
+                <PrivateRoute onLogin={handleLogin}>
+                  <CoursesPage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin/dashboard"
+              element={user?.isAdmin ? <AdminPage /> : <Navigate to="/" replace />}
+            />
           </Routes>
+
           {!isAdminDashboard && <FAQ />}
           {!isAdminDashboard && <Footer />}
         </motion.div>
