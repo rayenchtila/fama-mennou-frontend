@@ -12,17 +12,17 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-slate-950 dark:bg-slate-950 text-slate-300 mt-20">
+    <footer className="bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-300 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10">
           {/* Brand col */}
           <div className="col-span-2 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <span className="font-extrabold text-lg tracking-tight text-white">
-                Fama<span className="text-indigo-400">Mennou</span>
+              <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">
+                Fama<span className="text-indigo-600 dark:text-indigo-400">Mennou</span>
               </span>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed mb-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
               {t("The all-in-one platform connecting professionals, clients, and learners worldwide.")}
             </p>
             {/* Social icons */}
@@ -36,7 +36,7 @@ export default function Footer() {
                   key={s.label}
                   href="/"
                   aria-label={s.label}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors duration-150"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors duration-150"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={s.path} />
@@ -49,13 +49,13 @@ export default function Footer() {
           {/* Link columns */}
           {Object.entries(LINKS).map(([group, links]) => (
             <div key={group}>
-              <h3 className="text-xs font-bold text-white uppercase tracking-widest mb-4">{group}</h3>
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-widest mb-4">{group}</h3>
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link}>
                     <a
                       href="/"
-                      className="text-sm text-slate-400 hover:text-white transition-colors duration-150 hover:translate-x-0.5 inline-block"
+                      className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-150 hover:translate-x-0.5 inline-block"
                     >
                       {t(link)}
                     </a>
@@ -67,7 +67,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-slate-500">
             © {new Date().getFullYear()} FamaMennou. {t("All rights reserved.")}
           </p>

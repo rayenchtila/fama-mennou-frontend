@@ -16,6 +16,63 @@ const LANGUAGES = [
   { code: "ar", label: "العربية",  flag: "https://flagcdn.com/w40/tn.png" },
 ];
 
+// ─── Global search data ───────────────────────────────────────────────────────
+const SEARCH_GROUPS = [
+  {
+    key: "freelancers", label: "Freelancers", icon: "👤", path: "/freelancers",
+    data: [
+      { name: "Amira Bensalem", sub: "Brand Designer",  tags: ["Branding","Figma","Illustration"] },
+      { name: "Youssef Khalil", sub: "Full-Stack Dev",   tags: ["React","Node","MongoDB"] },
+      { name: "Sofia Martins",  sub: "SEO Specialist",   tags: ["SEO","Content","Analytics"] },
+      { name: "Karim Dridi",    sub: "Motion Designer",  tags: ["After Effects","Lottie","Cinema4D"] },
+      { name: "Elena Russo",    sub: "Copywriter",       tags: ["B2B Copy","Email","Landing Pages"] },
+      { name: "Mehdi Toumi",    sub: "Mobile Dev",       tags: ["React Native","Flutter","iOS"] },
+    ],
+  },
+  {
+    key: "jobs", label: "Jobs", icon: "💼", path: "/jobs",
+    data: [
+      { name: "Senior React Developer", sub: "TechFlow Inc.",  tags: ["React","TypeScript","Node.js"] },
+      { name: "UI/UX Designer",         sub: "CreativeStudio", tags: ["Figma","Tailwind","Motion"] },
+      { name: "Digital Marketing Lead", sub: "GrowthLab",      tags: ["SEO","Paid Ads","Analytics"] },
+      { name: "Full-Stack Engineer",    sub: "NovaSaaS",       tags: ["Next.js","PostgreSQL","AWS"] },
+      { name: "Content Strategist",     sub: "BrandVoice",     tags: ["Copywriting","Strategy","SEO"] },
+      { name: "DevOps Engineer",        sub: "CloudNine",      tags: ["Kubernetes","Terraform","CI/CD"] },
+    ],
+  },
+  {
+    key: "courses", label: "Courses", icon: "📚", path: "/courses",
+    data: [
+      { name: "Advanced React Patterns",    sub: "Youssef Khalil", tags: ["React","Architecture","Performance"] },
+      { name: "Brand Identity from Zero",   sub: "Amira Bensalem", tags: ["Figma","Design","Branding"] },
+      { name: "SEO Mastery 2024",           sub: "Sofia Martins",  tags: ["SEO","Google","Content"] },
+      { name: "Motion Design Fundamentals", sub: "Karim Dridi",    tags: ["After Effects","Animation","Lottie"] },
+      { name: "High-Converting Copy",       sub: "Elena Russo",    tags: ["Copywriting","Marketing","Email"] },
+      { name: "Mobile App Architecture",    sub: "Mehdi Toumi",    tags: ["Mobile","Flutter","React Native"] },
+    ],
+  },
+  {
+    key: "clients", label: "Clients", icon: "🏢", path: "/clients",
+    data: [
+      { name: "TechFlow Inc.",  sub: "Technology", tags: ["React","TypeScript","SaaS"] },
+      { name: "CreativeStudio", sub: "Design",     tags: ["Branding","UI/UX","Motion"] },
+      { name: "GrowthLab",      sub: "Marketing",  tags: ["SEO","Paid Ads","Analytics"] },
+      { name: "NovaSaaS",       sub: "Technology", tags: ["Next.js","PostgreSQL","AWS"] },
+      { name: "BrandVoice",     sub: "Writing",    tags: ["Copywriting","Strategy","Content"] },
+      { name: "CloudNine",      sub: "Technology", tags: ["Kubernetes","Terraform","CI/CD"] },
+    ],
+  },
+];
+
+function filterGroup(data, q) {
+  const lower = q.toLowerCase();
+  return data.filter(item =>
+    item.name.toLowerCase().includes(lower) ||
+    item.sub.toLowerCase().includes(lower) ||
+    item.tags.some(t => t.toLowerCase().includes(lower))
+  );
+}
+
 function getInitials(name = "") {
   return name.trim().split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 }
@@ -122,6 +179,8 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
   const [profOpen,   setProfOpen]   = useState(false);
   const [notifOpen,  setNotifOpen]  = useState(false);
   const [search,     setSearch]     = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef(null);
 
   const { t }          = useTranslation();
   const location       = useLocation();
@@ -151,7 +210,23 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
     setLangOpen(false);
     setProfOpen(false);
     setNotifOpen(false);
+    setSearch("");
+    setSearchOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") { setSearchOpen(false); setSearch(""); } };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    const onClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -166,6 +241,16 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
 
   const planStyle = user ? getPlanColor(user.plan) : null;
   const roleStyle = user ? getRoleColor(user.role) : null;
+
+  const searchGroups = search.trim()
+    ? SEARCH_GROUPS.map(g => ({ ...g, results: filterGroup(g.data, search).slice(0, 3) })).filter(g => g.results.length > 0)
+    : [];
+
+  const handleSearchNavigate = (path, q) => {
+    navigate(`${path}?q=${encodeURIComponent(q)}`);
+    setSearch("");
+    setSearchOpen(false);
+  };
 
   return (
     <>
@@ -213,8 +298,48 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
               })}
             </nav>
 
-            <div className="flex-1 hidden md:block max-w-sm mx-auto">
-              <Searchbar value={search} onChange={setSearch} placeholder={t("Search…")} compact />
+            <div className="flex-1 hidden md:block max-w-sm mx-auto relative" ref={searchRef}>
+              <Searchbar
+                value={search}
+                onChange={(v) => { setSearch(v); setSearchOpen(!!v.trim()); }}
+                onSearch={(v) => { if (v.trim()) handleSearchNavigate(searchGroups[0]?.path || "/freelancers", v); }}
+                placeholder={t("Search…")}
+                compact
+              />
+              <AnimatePresence>
+                {searchOpen && search.trim() && (
+                  <motion.div
+                    key="search-dropdown"
+                    initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-[420px] overflow-y-auto"
+                  >
+                    {searchGroups.length === 0 ? (
+                      <div className="px-5 py-6 text-center text-sm text-slate-400">No results for "{search}"</div>
+                    ) : (
+                      searchGroups.map(group => (
+                        <div key={group.key} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+                          <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{group.icon} {group.label}</span>
+                            <button onClick={() => handleSearchNavigate(group.path, search)} className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">See all →</button>
+                          </div>
+                          {group.results.map((item, i) => (
+                            <button key={i} onClick={() => handleSearchNavigate(group.path, item.name)} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left group/item">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate group-hover/item:text-indigo-600 dark:group-hover/item:text-indigo-400 transition-colors">{item.name}</p>
+                                <p className="text-xs text-slate-400 truncate">{item.sub}</p>
+                              </div>
+                              <svg className="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                          ))}
+                        </div>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="flex items-center gap-2 ml-auto">
@@ -465,7 +590,38 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
 
             {/* Search */}
             <div className="px-5 pt-4 pb-2">
-              <Searchbar value={search} onChange={setSearch} placeholder={t("Search…")} compact />
+              <Searchbar
+                value={search}
+                onChange={(v) => { setSearch(v); setSearchOpen(!!v.trim()); }}
+                onSearch={(v) => { if (v.trim()) { handleSearchNavigate(searchGroups[0]?.path || "/freelancers", v); setMenuOpen(false); }}}
+                placeholder={t("Search…")}
+                compact
+              />
+              {searchOpen && search.trim() && (
+                <div className="mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+                  {searchGroups.length === 0 ? (
+                    <div className="px-5 py-4 text-center text-sm text-slate-400">No results for "{search}"</div>
+                  ) : (
+                    searchGroups.map(group => (
+                      <div key={group.key} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+                        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{group.icon} {group.label}</span>
+                          <button onClick={() => { handleSearchNavigate(group.path, search); setMenuOpen(false); }} className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">See all →</button>
+                        </div>
+                        {group.results.map((item, i) => (
+                          <button key={i} onClick={() => { handleSearchNavigate(group.path, item.name); setMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{item.name}</p>
+                              <p className="text-xs text-slate-400 truncate">{item.sub}</p>
+                            </div>
+                            <svg className="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+                          </button>
+                        ))}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Nav links */}

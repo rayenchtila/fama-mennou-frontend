@@ -231,7 +231,7 @@ const Home = () => {
 
       {/* ── How it works — always dark section ── */}
       <motion.section
-        className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24 md:pb-32 bg-slate-950"
+        className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24 md:pb-32 bg-slate-100 dark:bg-slate-950"
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-60px" }}
@@ -240,7 +240,7 @@ const Home = () => {
         <div className="max-w-3xl mx-auto">
 
           {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent mb-10" />
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-700 to-transparent mb-10" />
 
           {/* Toggle header */}
           <motion.button
@@ -249,18 +249,18 @@ const Home = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full flex items-center justify-between gap-4 group text-white"
+            className="w-full flex items-center justify-between gap-4 group text-slate-900 dark:text-white"
             aria-expanded={howOpen}
           >
             <div className="text-left">
-              <h2 className="font-poppins font-bold text-white text-xl sm:text-2xl">
+              <h2 className="font-poppins font-bold text-slate-900 dark:text-white text-xl sm:text-2xl">
                 {t('How to create your account?')}
               </h2>
             </div>
             <motion.span
               animate={{ rotate: howOpen ? 180 : 0 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="w-9 h-9 rounded-full bg-indigo-900/30 border border-indigo-800 flex items-center justify-center text-indigo-400 shrink-0 group-hover:bg-indigo-900/50 transition-colors duration-200"
+              className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900/50 transition-colors duration-200"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
@@ -288,7 +288,7 @@ const Home = () => {
                     viewport={{ once: true, margin: '-40px' }}
                     transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                     whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                    className="group relative rounded-2xl overflow-hidden border border-indigo-500/20 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/60 shadow-xl shadow-indigo-900/20 hover:shadow-2xl hover:shadow-indigo-500/25 transition-shadow duration-500"
+                    className="group relative rounded-2xl overflow-hidden border border-indigo-200 dark:border-indigo-500/20 bg-gradient-to-br from-white via-white to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/60 shadow-xl shadow-indigo-100/50 dark:shadow-indigo-900/20 hover:shadow-2xl hover:shadow-indigo-200/60 dark:hover:shadow-indigo-500/25 transition-shadow duration-500"
                   >
                     {/* top glow bar */}
                     <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
@@ -305,10 +305,10 @@ const Home = () => {
                             </svg>
                           </div>
                           <div>
-                            <p className="font-poppins font-bold text-white text-[15px] leading-none">{t('Freelancer')}</p>
+                            <p className="font-poppins font-bold text-slate-900 dark:text-white text-[15px] leading-none">{t('Freelancer')}</p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 rounded-full tracking-wide uppercase">
+                        <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-500/15 border border-indigo-300 dark:border-indigo-500/30 px-2.5 py-1 rounded-full tracking-wide uppercase">
                           {t('6 steps')}
                         </span>
                       </div>
@@ -325,22 +325,22 @@ const Home = () => {
                         ].map((s, i, arr) => (
                           <li key={i} className="relative flex items-start gap-3.5 pb-4 last:pb-0">
                             {i < arr.length - 1 && (
-                              <span className="absolute left-[13px] top-7 bottom-0 w-px bg-gradient-to-b from-indigo-500/40 to-transparent" />
+                              <span className="absolute left-[13px] top-7 bottom-0 w-px bg-gradient-to-b from-indigo-300 dark:from-indigo-500/40 to-transparent" />
                             )}
                             <span className="mt-0.5 w-[26px] h-[26px] rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-[11px] font-extrabold flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/40 ring-2 ring-indigo-500/20">
                               {i + 1}
                             </span>
                             <div className="pt-[3px]">
-                              <p className="font-inter font-semibold text-[13px] text-slate-100 leading-snug">{s.title}</p>
-                              <p className="text-[11px] text-slate-500 mt-[3px] leading-relaxed">{s.sub}</p>
+                              <p className="font-inter font-semibold text-[13px] text-slate-800 dark:text-slate-100 leading-snug">{s.title}</p>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-[3px] leading-relaxed">{s.sub}</p>
                             </div>
                           </li>
                         ))}
                       </ol>
 
                       {/* Footer */}
-                      <div className="mt-5 pt-4 border-t border-indigo-500/15 flex items-center gap-2 text-[11px] text-indigo-400/80 font-inter">
-                        <svg className="w-3.5 h-3.5 shrink-0 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <div className="mt-5 pt-4 border-t border-indigo-200 dark:border-indigo-500/15 flex items-center gap-2 text-[11px] text-indigo-600/80 dark:text-indigo-400/80 font-inter">
+                        <svg className="w-3.5 h-3.5 shrink-0 text-indigo-600 dark:text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         {t('steps.cin_note')}
@@ -355,7 +355,7 @@ const Home = () => {
                     viewport={{ once: true, margin: '-40px' }}
                     transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
                     whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                    className="group relative rounded-2xl overflow-hidden border border-violet-500/20 bg-gradient-to-br from-slate-900 via-slate-900 to-violet-950/60 shadow-xl shadow-violet-900/20 hover:shadow-2xl hover:shadow-violet-500/25 transition-shadow duration-500"
+                    className="group relative rounded-2xl overflow-hidden border border-violet-200 dark:border-violet-500/20 bg-gradient-to-br from-white via-white to-violet-50 dark:from-slate-900 dark:via-slate-900 dark:to-violet-950/60 shadow-xl shadow-violet-100/50 dark:shadow-violet-900/20 hover:shadow-2xl hover:shadow-violet-200/60 dark:hover:shadow-violet-500/25 transition-shadow duration-500"
                   >
                     {/* top glow bar */}
                     <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
@@ -372,10 +372,10 @@ const Home = () => {
                             </svg>
                           </div>
                           <div>
-                            <p className="font-poppins font-bold text-white text-[15px] leading-none">{t('Client')}</p>
+                            <p className="font-poppins font-bold text-slate-900 dark:text-white text-[15px] leading-none">{t('Client')}</p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-bold text-violet-300 bg-violet-500/15 border border-violet-500/30 px-2.5 py-1 rounded-full tracking-wide uppercase">
+                        <span className="text-[10px] font-bold text-violet-700 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/15 border border-violet-300 dark:border-violet-500/30 px-2.5 py-1 rounded-full tracking-wide uppercase">
                           {t('5 steps')}
                         </span>
                       </div>
@@ -391,22 +391,22 @@ const Home = () => {
                         ].map((s, i, arr) => (
                           <li key={i} className="relative flex items-start gap-3.5 pb-4 last:pb-0">
                             {i < arr.length - 1 && (
-                              <span className="absolute left-[13px] top-7 bottom-0 w-px bg-gradient-to-b from-violet-500/40 to-transparent" />
+                              <span className="absolute left-[13px] top-7 bottom-0 w-px bg-gradient-to-b from-violet-300 dark:from-violet-500/40 to-transparent" />
                             )}
                             <span className="mt-0.5 w-[26px] h-[26px] rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-[11px] font-extrabold flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/40 ring-2 ring-violet-500/20">
                               {i + 1}
                             </span>
                             <div className="pt-[3px]">
-                              <p className="font-inter font-semibold text-[13px] text-slate-100 leading-snug">{s.title}</p>
-                              <p className="text-[11px] text-slate-500 mt-[3px] leading-relaxed">{s.sub}</p>
+                              <p className="font-inter font-semibold text-[13px] text-slate-800 dark:text-slate-100 leading-snug">{s.title}</p>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-[3px] leading-relaxed">{s.sub}</p>
                             </div>
                           </li>
                         ))}
                       </ol>
 
                       {/* Footer */}
-                      <div className="mt-5 pt-4 border-t border-violet-500/15 flex items-center gap-2 text-[11px] text-violet-400/80 font-inter">
-                        <svg className="w-3.5 h-3.5 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <div className="mt-5 pt-4 border-t border-violet-200 dark:border-violet-500/15 flex items-center gap-2 text-[11px] text-violet-600/80 dark:text-violet-400/80 font-inter">
+                        <svg className="w-3.5 h-3.5 shrink-0 text-violet-600 dark:text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         {t('steps.cin_note')}

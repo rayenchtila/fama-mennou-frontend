@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import FilterBar from '../components/FilterBar';
 import Coursecard from '../components/Coursecard';
 import Searchbar from '../components/Searchbar';
@@ -15,7 +16,8 @@ const COURSES_DATA = [
 
 const CoursesPage = () => {
   const { t } = useTranslation();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [activeCategory, setActiveCategory] = useState('All');
 
   const categories = ['All', 'Development', 'Design', 'SEO', 'Video', 'Writing'];
