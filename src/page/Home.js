@@ -1,8 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+
+function GoldBadge({ text }) {
+  const words = text.split(' ');
+  const [activeIdx, setActiveIdx] = useState(-1);
+
+  useEffect(() => {
+    let i = 0;
+    const run = () => {
+      setActiveIdx(i);
+      i++;
+      if (i < words.length) {
+        setTimeout(run, 260);
+      } else {
+        setTimeout(() => {
+          setActiveIdx(-1);
+          setTimeout(() => { i = 0; run(); }, 1400);
+        }, 400);
+      }
+    };
+    const init = setTimeout(run, 800);
+    return () => clearTimeout(init);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className={[
+        'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest mb-6 sm:mb-10 font-inter relative overflow-hidden',
+        /* light */ 'border border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50',
+        /* dark  */ 'dark:border-amber-500/50 dark:bg-gradient-to-r dark:from-amber-950/40 dark:via-yellow-900/30 dark:to-amber-950/40',
+      ].join(' ')}
+      style={{
+        boxShadow: '0 0 0 1px rgba(251,191,36,0.25), 0 2px 12px rgba(251,191,36,0.12)',
+      }}
+    >
+      {/* dot */}
+      <span
+        className="relative w-1.5 h-1.5 rounded-full shrink-0"
+        style={{
+          background: 'radial-gradient(circle, #fbbf24 40%, #f59e0b 100%)',
+          boxShadow: '0 0 6px 2px rgba(251,191,36,0.6)',
+          animation: 'dotPulse 1.6s ease-in-out infinite',
+        }}
+      />
+
+      {/* words */}
+      <span className="relative flex gap-[0.35em] flex-wrap justify-center">
+        {words.map((w, i) => (
+          <span
+            key={i}
+            style={{
+              transition: 'color 0.18s ease, text-shadow 0.18s ease',
+              color: activeIdx === i
+                ? 'var(--gold-flash)'
+                : 'var(--gold-base)',
+              textShadow: activeIdx === i
+                ? '0 0 10px rgba(251,191,36,0.9), 0 0 20px rgba(251,191,36,0.5)'
+                : 'none',
+            }}
+          >
+            {w}
+          </span>
+        ))}
+      </span>
+
+      <style>{`
+        :root {
+          --gold-base: #92690a;
+          --gold-flash: #f59e0b;
+        }
+        html.dark {
+          --gold-base: #d4a017;
+          --gold-flash: #fde68a;
+        }
+        @keyframes dotPulse {
+          0%, 100% { box-shadow: 0 0 4px 1px rgba(251,191,36,0.5); }
+          50%       { box-shadow: 0 0 10px 4px rgba(251,191,36,0.9); }
+        }
+      `}</style>
+    </motion.div>
+  );
+}
 
 const wordVariant = {
   hidden:  { opacity: 0, y: 22, filter: 'blur(6px)' },
@@ -97,15 +182,7 @@ const Home = () => {
         <div className="max-w-5xl mx-auto text-center">
 
           {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-6 sm:mb-10 font-inter"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
-            {t('hero.badge')}
-          </motion.div>
+          <GoldBadge text={t('hero.badge')} />
 
           {/* Headline — word by word */}
           <h1 className="font-poppins font-extrabold text-slate-900 dark:text-white leading-[1.15] tracking-tight mb-7
