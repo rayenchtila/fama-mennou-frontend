@@ -127,12 +127,6 @@ function ForgotPasswordScreen({ onBack, onSent, accounts }) {
 // ── Password Found Screen ─────────────────────────────────────────────────────
 function PasswordFoundScreen({ email, password, onBack }) {
   const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  function handleCopy() {
-    navigator.clipboard.writeText(password);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
   return (
     <div className="flex flex-col items-center py-6 px-2 text-center">
       <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
@@ -145,10 +139,7 @@ function PasswordFoundScreen({ email, password, onBack }) {
       <div className="w-full max-w-xs mt-4 mb-5">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Your password")}</p>
         <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
-          <span className="flex-1 font-mono text-sm font-bold text-slate-900 dark:text-white text-left">{password}</span>
-          <button onClick={handleCopy} className={["px-3 py-1.5 rounded-lg text-xs font-bold transition-colors", copied ? "bg-emerald-500 text-white" : "bg-indigo-600 hover:bg-indigo-700 text-white"].join(" ")}>
-            {copied ? t("Copied!") : t("Copy")}
-          </button>
+          <span className="flex-1 font-mono text-sm font-bold text-slate-900 dark:text-white text-left select-none pointer-events-none">{password}</span>
         </div>
       </div>
       <button onClick={onBack} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-opacity">
@@ -289,8 +280,8 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const [loading, setLoading] = useState(false);
   const [errors,  setErrors]  = useState({});
   const [form,    setForm]    = useState({
-    name: "", email: "", password: "", confirmPassword: "",
-    skills: "", bio: "", dob: "", region: "", gender: "",   // ← gender added
+    lastName: "", firstName: "", email: "", password: "", confirmPassword: "",
+    skills: "", bio: "", dob: "", region: "", gender: "",
   });
 
   // screen: "form" | "pending" | "status" | "forgot" | "passwordFound"
@@ -371,7 +362,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
   useEffect(() => {
     setMode(defaultMode);
-    setForm({ name: "", email: "", password: "", confirmPassword: "", skills: "", bio: "", dob: "", region: "", gender: "" });
+    setForm({ lastName: "", firstName: "", email: "", password: "", confirmPassword: "", skills: "", bio: "", dob: "", region: "", gender: "" });
     setErrors({});
     setRole("freelancer");
     resetCIN();
@@ -404,8 +395,10 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
   function validate() {
     const errs = {};
-    if (mode === "signup" && !form.name.trim())
-      errs.name = t("Name is required");
+    if (mode === "signup" && !form.lastName.trim())
+      errs.lastName = t("Last name is required");
+    if (mode === "signup" && !form.firstName.trim())
+      errs.firstName = t("First name is required");
     if (!form.email.trim())
       errs.email = t("Email is required");
     else if (!/\S+@\S+\.\S+/.test(form.email))
@@ -449,26 +442,24 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         if (cinBackFile)  cinBackB64  = await fileToBase64(cinBackFile);
 
         register({
-          name:        form.name,
+          name:        form.firstName + " " + form.lastName,
           email:       form.email,
           password:    form.password,
+          plan:        "free",
           role,
           dob:         form.dob,
           region:      form.region,
-          gender:      form.gender,    // ← NEW
+          gender:      form.gender,
+          skills:      form.skills,
+          bio:         form.bio,
           cin:         "",
           cinFront:    cinFrontB64,
           cinBack:     cinBackB64,
           cinVerified: false,
         });
 
-        if (role === "freelancer") {
-  setPendingName(form.name);
-  setScreen("pending");
-} else {
-  onAuth?.({ name: form.name, email: form.email, role, isAdmin: false });
-  onClose?.();
-}
+        setPendingName(form.firstName + " " + form.lastName);
+        setScreen("pending");
 return;
       }
 
@@ -487,8 +478,8 @@ return;
         return;
       }
 
-      // ── FIX 1: handle freelancer login by cinStatus ──
-      if (result.user.role === "freelancer") {
+      // ── handle login by cinStatus for both freelancers and clients ──
+      if (result.user.role === "freelancer" || result.user.role === "client") {
         if (result.user.cinStatus === "approved" || result.user.cinStatus === "rejected") {
           setStatusUser(result.user);
           setScreen("status");
@@ -701,15 +692,21 @@ return;
           {/* Form fields */}
           <div className="space-y-3" onKeyDown={handleKey}>
             {mode === "signup" && (
-              <Input
-                label={t("Full name")} placeholder={t("Your full name")}
-                value={form.name} onChange={set("name")} error={errors.name} required
-                leftIcon={
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                  </svg>
-                }
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label={t("Last Name")} placeholder={t("Your last name")}
+                  value={form.lastName} onChange={set("lastName")} error={errors.lastName} required
+                  leftIcon={
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                  }
+                />
+                <Input
+                  label={t("First Name")} placeholder={t("Your first name")}
+                  value={form.firstName} onChange={set("firstName")} error={errors.firstName} required
+                />
+              </div>
             )}
             <Input
               label={t("Email address")} type="email" placeholder={t("you@example.com")}

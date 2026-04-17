@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 
 const wordVariant = {
   hidden:  { opacity: 0, y: 22, filter: 'blur(6px)' },
@@ -68,8 +69,13 @@ const NAV_BUTTONS = [
 
 const Home = () => {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const isAr = i18n.language === 'ar';
   const [howOpen, setHowOpen] = useState(true);
+
+  if (user?.isAdmin) {
+    return <div className="relative overflow-x-hidden min-h-screen bg-white dark:bg-slate-900" />;
+  }
 
   // Split highlighted words so each animates independently
   const words1 = t('hero.title.highlight1').split(/,\s*/); // ["Freelancers", "Clients"]

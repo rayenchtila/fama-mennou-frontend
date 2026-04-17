@@ -31,7 +31,7 @@ function PrivateRoute({ children, onLogin }) {
   const { user } = useAuth();
 
   if (!user) {
-    onLogin("login", true);
+    onLogin("login", false);
     return <Navigate to="/" replace />;
   }
 
@@ -178,7 +178,7 @@ function AppInner() {
             />
           </Routes>
 
-          {!isAdminDashboard && <FAQ />}
+          {!isAdminDashboard && !user?.isAdmin && <FAQ />}
           {!isAdminDashboard && <Footer />}
         </motion.div>
       </AnimatePresence>

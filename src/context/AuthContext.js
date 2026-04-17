@@ -68,7 +68,11 @@ export function AuthProvider({ children }) {
     if (
       account.cinStatus !== user.cinStatus ||
       account.cinRejectionReason !== user.cinRejectionReason ||
-      account.cinApprovalReason !== user.cinApprovalReason
+      account.cinApprovalReason !== user.cinApprovalReason ||
+      account.photo !== user.photo ||
+      account.skills !== user.skills ||
+      account.bio !== user.bio ||
+      account.portfolio !== user.portfolio
     ) {
       setUser({
         name:               account.name,
@@ -77,7 +81,11 @@ export function AuthProvider({ children }) {
         role:               account.role,
         dob:                account.dob,
         region:             account.region,
-        gender:             account.gender ?? null,
+        gender:             account.gender    ?? null,
+        photo:              account.photo     ?? null,
+        skills:             account.skills    ?? null,
+        bio:                account.bio       ?? null,
+        portfolio:          account.portfolio ?? null,
         cinVerified:        account.cinVerified,
         cinStatus:          account.cinStatus,
         cinRejectionReason: account.cinRejectionReason ?? null,
@@ -104,6 +112,9 @@ export function AuthProvider({ children }) {
       dob:         userData.dob,
       region:      userData.region,
       gender:      userData.gender ?? null,
+      skills:      userData.skills ?? existing?.skills ?? null,
+      bio:         userData.bio    ?? existing?.bio    ?? null,
+      portfolio:   existing?.portfolio ?? null,
       cin:         userData.cin,
       cinFront:    userData.cinFront,
       cinBack:     userData.cinBack,
@@ -115,8 +126,8 @@ export function AuthProvider({ children }) {
     };
     setAccounts(prev => ({ ...prev, [key]: entry }));
 
-    // Notify admin of new freelancer registration
-    if (userData.role === "freelancer") {
+    // Notify admin of new freelancer or client registration
+    if (userData.role === "freelancer" || userData.role === "client") {
       addNotification({
         type: "admin",
         kind: "new_submission",
@@ -148,7 +159,10 @@ export function AuthProvider({ children }) {
       role:               account.role,
       dob:                account.dob,
       region:             account.region,
-      gender:             account.gender ?? null,
+      gender:             account.gender    ?? null,
+      skills:             account.skills    ?? null,
+      bio:                account.bio       ?? null,
+      portfolio:          account.portfolio ?? null,
       cinVerified:        account.cinVerified,
       cinStatus:          account.cinStatus ?? "pending",
       cinRejectionReason: account.cinRejectionReason ?? null,
