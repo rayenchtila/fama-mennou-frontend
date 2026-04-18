@@ -1,4 +1,10 @@
 node_modules
+index.js
+server.js
+db.js
+routes/
+controllers/
+models/
 .env
 .env.local
 .env.development.local

@@ -542,6 +542,7 @@ function StatisticsPanel({ allUsers }) {
 export default function AdminPage() {
   const { user, users, updateUser, logout, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchAccounts, fetchNotifications } = useAuth();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchAccounts(); fetchNotifications(); }, []);
 
   // ── main tab: "cin" | "allusers" ──
