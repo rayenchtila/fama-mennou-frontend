@@ -479,6 +479,7 @@ return;
       }
 
       // ── handle login by cinStatus for both freelancers and clients ──
+      if (!result.user) { setErrors({ email: t("Login failed. Please try again.") }); return; }
       if (result.user.role === "freelancer" || result.user.role === "client") {
         if ((result.user.cinStatus === "approved" || result.user.cinStatus === "rejected") && !result.user.statusSeen) {
           setStatusUser(result.user);
