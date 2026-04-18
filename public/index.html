@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Web site created using create-react-app" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <title>FamaMennou</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId: '1905181056828751',
+          cookie: true,
+          xfbml: true,
+          version: 'v19.0'
+        });
+      };
+      (function(d,s,id){
+        var js,fjs=d.getElementsByTagName(s)[0];
+        if(d.getElementById(id)){return;}
+        js=d.createElement(s);js.id=id;
+        js.src="https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js,fjs);
+      }(document,'script','facebook-jssdk'));
+    </script>
+  </body>
+</html>
