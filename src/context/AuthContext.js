@@ -1,8 +1,9 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect } from "react";
- 
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+
 const AuthContext = createContext(null);
- 
+const API = "https://famamennou-server.onrender.com/api";
+
 const ADMIN_CREDENTIALS = {
   email: "admin@famamennou.com",
   password: "rayen kast 001",
@@ -11,31 +12,7 @@ const ADMIN_CREDENTIALS = {
   plan: "premium",
   isAdmin: true,
 };
- 
-function loadAccounts() {
-  try {
-    const raw = localStorage.getItem("fm_accounts");
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
-}
- 
-function saveAccounts(accounts) {
-  try { localStorage.setItem("fm_accounts", JSON.stringify(accounts)); } catch {}
-}
 
-// ── Notifications helpers ────────────────────────────────────────────────────
-
-function loadNotifications() {
-  try {
-    const raw = localStorage.getItem("fm_notifications");
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
-function saveNotifications(notifs) {
-  try { localStorage.setItem("fm_notifications", JSON.stringify(notifs)); } catch {}
-}
- 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
@@ -43,24 +20,52 @@ export function AuthProvider({ children }) {
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   });
-  const [accounts, setAccounts] = useState(() => {
-  const stored = loadAccounts();
-  return stored;
-});
-  const [notifications, setNotifications] = useState(loadNotifications);
- 
+  const [accounts, setAccounts] = useState({});
+  const [notifications, setNotifications] = useState([]);
+
+  // ── Persist logged-in user in localStorage (session only) ──
   useEffect(() => {
     if (user) localStorage.setItem("fm_user", JSON.stringify(user));
     else localStorage.removeItem("fm_user");
   }, [user]);
- 
-  useEffect(() => {
-  if (Object.keys(accounts).length > 0) saveAccounts(accounts);
-}, [accounts]);
 
-  useEffect(() => { saveNotifications(notifications); }, [notifications]);
- 
-  // keep logged-in user in sync when admin updates their account
+  // ── Load users and notifications from backend on mount ──
+  const fetchAccounts = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/users`);
+      const rows = await res.json();
+      const map = {};
+      if (Array.isArray(rows)) {
+        rows.forEach(r => { if (r?.email) map[r.email.toLowerCase()] = normalizeUser(r); });
+      }
+      setAccounts(map);
+    } catch {}
+  }, []);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/notifications`);
+      const rows = await res.json();
+      setNotifications(rows.map(n => ({
+        id: n.id,
+        type: n.type,
+        kind: n.kind,
+        title: n.title,
+        message: n.message,
+        email: n.email,
+        name: n.name,
+        read: n.read,
+        createdAt: n.created_at,
+      })));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchAccounts();
+    fetchNotifications();
+  }, [fetchAccounts, fetchNotifications]);
+
+  // ── Keep logged-in user in sync when admin updates their account ──
   useEffect(() => {
     if (!user || user.isAdmin) return;
     const account = accounts[user.email?.toLowerCase()];
@@ -72,76 +77,81 @@ export function AuthProvider({ children }) {
       account.photo !== user.photo ||
       account.skills !== user.skills ||
       account.bio !== user.bio ||
-      account.portfolio !== user.portfolio
+      account.portfolio !== user.portfolio ||
+      account.statusSeen !== user.statusSeen
     ) {
-      setUser({
-        name:               account.name,
-        email:              account.email,
-        plan:               account.plan,
-        role:               account.role,
-        dob:                account.dob,
-        region:             account.region,
-        gender:             account.gender    ?? null,
-        photo:              account.photo     ?? null,
-        skills:             account.skills    ?? null,
-        bio:                account.bio       ?? null,
-        portfolio:          account.portfolio ?? null,
-        cinVerified:        account.cinVerified,
-        cinStatus:          account.cinStatus,
-        cinRejectionReason: account.cinRejectionReason ?? null,
-        cinApprovalReason:  account.cinApprovalReason  ?? null,
-        isAdmin:            false,
-      });
+      setUser({ ...account, isAdmin: false });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accounts]);
- 
-  function register(userData) {
-    const key = userData.email.toLowerCase();
-    const existing = accounts[key];
 
-    const entry = {
-      // ── keep original password & registeredAt if account already exists ──
-      password:     existing ? existing.password    : userData.password,
-      registeredAt: existing ? existing.registeredAt : new Date().toISOString(),
-      // ── always update everything else ──
-      name:        userData.name,
-      email:       userData.email,
-      plan:        userData.plan,
-      role:        userData.role,
-      dob:         userData.dob,
-      region:      userData.region,
-      gender:      userData.gender ?? null,
-      skills:      userData.skills ?? existing?.skills ?? null,
-      bio:         userData.bio    ?? existing?.bio    ?? null,
-      portfolio:   existing?.portfolio ?? null,
-      cin:         userData.cin,
-      cinFront:    userData.cinFront,
-      cinBack:     userData.cinBack,
-      cinVerified: false,
-      // ── FIX: always reset to pending so it shows as new demande ──
-      cinStatus:          "pending",
-      cinRejectionReason: null,
-      cinApprovalReason:  null,
+  function normalizeUser(r) {
+    return {
+      email:              r.email,
+      password:           r.password,
+      name:               r.name,
+      plan:               r.plan,
+      role:               r.role,
+      dob:                r.dob,
+      region:             r.region,
+      gender:             r.gender     ?? null,
+      photo:              r.photo      ?? null,
+      skills:             r.skills     ?? null,
+      bio:                r.bio        ?? null,
+      portfolio:          r.portfolio  ?? [],
+      cin:                r.cin,
+      cinFront:           r.cin_front,
+      cinBack:            r.cin_back,
+      cinVerified:        r.cin_verified,
+      cinStatus:          r.cin_status ?? "pending",
+      cinRejectionReason: r.cin_rejection_reason ?? null,
+      cinApprovalReason:  r.cin_approval_reason  ?? null,
+      statusSeen:         r.status_seen ?? false,
+      registeredAt:       r.registered_at,
+      isAdmin:            false,
     };
-    setAccounts(prev => ({ ...prev, [key]: entry }));
+  }
 
-    // Notify admin of new freelancer or client registration
-    if (userData.role === "freelancer" || userData.role === "client") {
-      addNotification({
-        type: "admin",
-        kind: "new_submission",
-        title: "Nouvelle demande de vérification",
-        message: `${userData.name} a soumis une demande de vérification CIN.`,
-        email: userData.email,
-        name: userData.name,
-        createdAt: new Date().toISOString(),
-        read: false,
+  async function register(userData) {
+    try {
+      await fetch(`${API}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email:    userData.email.toLowerCase(),
+          password: userData.password,
+          name:     userData.name,
+          plan:     userData.plan,
+          role:     userData.role,
+          dob:      userData.dob,
+          region:   userData.region,
+          gender:   userData.gender ?? null,
+          skills:   userData.skills ?? null,
+          bio:      userData.bio    ?? null,
+          cin:      userData.cin,
+          cinFront: userData.cinFront,
+          cinBack:  userData.cinBack,
+        }),
       });
+
+      if (userData.role === "freelancer" || userData.role === "client") {
+        await addNotification({
+          type:    "admin",
+          kind:    "new_submission",
+          title:   "Nouvelle demande de vérification",
+          message: `${userData.name} a soumis une demande de vérification CIN.`,
+          email:   userData.email,
+          name:    userData.name,
+        });
+      }
+
+      await fetchAccounts();
+    } catch (e) {
+      console.error("register error", e);
     }
   }
- 
-  function login(email, password) {
+
+  async function login(email, password) {
     if (
       email.toLowerCase() === ADMIN_CREDENTIALS.email &&
       password === ADMIN_CREDENTIALS.password
@@ -149,28 +159,22 @@ export function AuthProvider({ children }) {
       setUser(ADMIN_CREDENTIALS);
       return { success: true, user: ADMIN_CREDENTIALS };
     }
-    const account = accounts[email.toLowerCase()];
-    if (!account)                      return { error: "noAccount" };
-    if (account.password !== password) return { error: "wrongPassword" };
-    const loggedUser = {
-      name:               account.name,
-      email:              email.toLowerCase(),
-      plan:               account.plan,
-      role:               account.role,
-      dob:                account.dob,
-      region:             account.region,
-      gender:             account.gender    ?? null,
-      skills:             account.skills    ?? null,
-      bio:                account.bio       ?? null,
-      portfolio:          account.portfolio ?? null,
-      cinVerified:        account.cinVerified,
-      cinStatus:          account.cinStatus ?? "pending",
-      cinRejectionReason: account.cinRejectionReason ?? null,
-      cinApprovalReason:  account.cinApprovalReason  ?? null,
-      isAdmin:            false,
-    };
-    setUser(loggedUser);
-    return { success: true, user: loggedUser };
+
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.toLowerCase(), password }),
+      });
+      const data = await res.json();
+      if (data.error) return { error: data.error };
+
+      const loggedUser = normalizeUser(data.user);
+      setUser(loggedUser);
+      return { success: true, user: loggedUser };
+    } catch {
+      return { error: "serverError" };
+    }
   }
 
   // ── Google login ──
@@ -191,113 +195,141 @@ export function AuthProvider({ children }) {
 
   // ── Facebook login ──
   function loginWithFacebook(profile) {
-  const fbUser = {
-    name:      profile?.name    || "Facebook User",
-    email:     profile?.email   || "facebook_user@facebook.com",
-    picture:   profile?.picture?.data?.url || null,
-    plan:      "free",
-    role:      "client",
-    isAdmin:   false,
-    cinStatus: "approved",
-    provider:  "facebook",
-  };
-  setUser(fbUser);
-  return { success: true, user: fbUser };
-}
- 
+    const fbUser = {
+      name:      profile?.name    || "Facebook User",
+      email:     profile?.email   || "facebook_user@facebook.com",
+      picture:   profile?.picture?.data?.url || null,
+      plan:      "free",
+      role:      "client",
+      isAdmin:   false,
+      cinStatus: "approved",
+      provider:  "facebook",
+    };
+    setUser(fbUser);
+    return { success: true, user: fbUser };
+  }
+
   function logout() { setUser(null); }
- 
+
   const users = Object.values(accounts);
- 
-  function updateUser(email, patch) {
+
+  async function updateUser(email, patch) {
     const key = email.toLowerCase();
     const account = accounts[key];
     if (!account) return;
 
-    setAccounts(prev => ({
-      ...prev,
-      [key]: { ...prev[key], ...patch },
-    }));
+    const extra = (patch.cinStatus === "approved" || patch.cinStatus === "rejected")
+      ? { statusSeen: false }
+      : {};
 
-    // ── Send notification to the freelancer when admin approves or rejects ──
-    if (patch.cinStatus === "approved") {
-      addNotification({
-        type: "user",
-        kind: "approved",
-        title: "Compte approuvé ✅",
-        message: patch.cinApprovalReason || "Votre vérification a été acceptée.",
-        email: key,
-        name: account.name,
-        createdAt: new Date().toISOString(),
-        read: false,
+    const dbPatch = {};
+    if (patch.cinStatus          !== undefined) dbPatch.cin_status           = patch.cinStatus;
+    if (patch.cinRejectionReason !== undefined) dbPatch.cin_rejection_reason = patch.cinRejectionReason;
+    if (patch.cinApprovalReason  !== undefined) dbPatch.cin_approval_reason  = patch.cinApprovalReason;
+    if (patch.cinVerified        !== undefined) dbPatch.cin_verified         = patch.cinVerified;
+    if (patch.statusSeen         !== undefined) dbPatch.status_seen          = patch.statusSeen;
+    if (patch.photo              !== undefined) dbPatch.photo                = patch.photo;
+    if (patch.skills             !== undefined) dbPatch.skills               = patch.skills;
+    if (patch.bio                !== undefined) dbPatch.bio                  = patch.bio;
+    if (patch.portfolio          !== undefined) dbPatch.portfolio            = patch.portfolio;
+    if (extra.statusSeen         !== undefined) dbPatch.status_seen          = extra.statusSeen;
+
+    try {
+      await fetch(`${API}/users/${encodeURIComponent(key)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dbPatch),
       });
-    } else if (patch.cinStatus === "rejected") {
-      addNotification({
-        type: "user",
-        kind: "rejected",
-        title: "Compte refusé ❌",
-        message: patch.cinRejectionReason || "Votre vérification n'a pas été acceptée.",
-        email: key,
-        name: account.name,
-        createdAt: new Date().toISOString(),
-        read: false,
-      });
+
+      if (patch.cinStatus === "approved") {
+        await addNotification({
+          type:    "user",
+          kind:    "approved",
+          title:   "Compte approuvé ✅",
+          message: patch.cinApprovalReason || "Votre vérification a été acceptée.",
+          email:   key,
+          name:    account.name,
+        });
+      } else if (patch.cinStatus === "rejected") {
+        await addNotification({
+          type:    "user",
+          kind:    "rejected",
+          title:   "Compte refusé ❌",
+          message: patch.cinRejectionReason || "Votre vérification n'a pas été acceptée.",
+          email:   key,
+          name:    account.name,
+        });
+      }
+
+      await fetchAccounts();
+    } catch (e) {
+      console.error("updateUser error", e);
     }
   }
 
-  // ── deleteUser: only used when explicitly needed (NOT on rejection) ──
-  function deleteUser(email) {
-    setAccounts(prev => {
-      const key = email.toLowerCase();
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
+  async function deleteUser(email) {
+    const key = email.toLowerCase();
+    try {
+      await fetch(`${API}/users/${encodeURIComponent(key)}`, { method: "DELETE" });
+      await fetchAccounts();
+    } catch (e) {
+      console.error("deleteUser error", e);
+    }
   }
 
   // ── Notification helpers ──────────────────────────────────────────────────
 
-  function addNotification(notif) {
-    const newNotif = { ...notif, id: Date.now() + Math.random() };
-    setNotifications(prev => [newNotif, ...prev]);
+  async function addNotification(notif) {
+    try {
+      await fetch(`${API}/notifications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(notif),
+      });
+      await fetchNotifications();
+    } catch {}
   }
 
-  // Get notifications for admin (all admin-type)
   function getAdminNotifications() {
     return notifications.filter(n => n.type === "admin");
   }
 
-  // Get notifications for a specific user email
   function getUserNotifications(email) {
     return notifications.filter(n => n.type === "user" && n.email === email?.toLowerCase());
   }
 
-  function markNotificationRead(id) {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
+  async function markNotificationRead(id) {
+    try {
+      await fetch(`${API}/notifications/${id}/read`, { method: "PATCH" });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    } catch {}
   }
 
-  function markAllNotificationsRead(targetType, email) {
-    setNotifications(prev =>
-      prev.map(n => {
+  async function markAllNotificationsRead(targetType, email) {
+    try {
+      const targets = notifications.filter(n => {
+        if (targetType === "admin") return n.type === "admin" && !n.read;
+        return n.type === "user" && n.email === email?.toLowerCase() && !n.read;
+      });
+      await Promise.all(targets.map(n => fetch(`${API}/notifications/${n.id}/read`, { method: "PATCH" })));
+      setNotifications(prev => prev.map(n => {
         if (targetType === "admin" && n.type === "admin") return { ...n, read: true };
         if (targetType === "user" && n.type === "user" && n.email === email?.toLowerCase()) return { ...n, read: true };
         return n;
-      })
-    );
+      }));
+    } catch {}
   }
 
-  function clearNotifications(targetType, email) {
-    setNotifications(prev =>
-      prev.filter(n => {
-        if (targetType === "admin") return n.type !== "admin";
-        if (targetType === "user") return !(n.type === "user" && n.email === email?.toLowerCase());
-        return true;
-      })
-    );
+  async function clearNotifications(targetType, email) {
+    try {
+      const url = targetType === "admin"
+        ? `${API}/notifications?type=admin`
+        : `${API}/notifications?type=user&email=${encodeURIComponent(email)}`;
+      await fetch(url, { method: "DELETE" });
+      await fetchNotifications();
+    } catch {}
   }
- 
+
   return (
     <AuthContext.Provider value={{
       user, accounts, users, register, login, logout, updateUser, deleteUser,
@@ -314,5 +346,5 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
- 
+
 export function useAuth() { return useContext(AuthContext); }

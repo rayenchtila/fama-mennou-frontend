@@ -302,7 +302,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const [cinBackPreview,  setCinBackPreview]  = useState(null);
 
   const { t }                        = useTranslation();
-  const { register, login, logout, accounts, loginWithGoogle, loginWithFacebook } = useAuth();
+  const { register, login, logout, accounts, updateUser, loginWithGoogle, loginWithFacebook } = useAuth();
 
   // ── Real Google login ──
   const googleLogin = useGoogleLogin({
@@ -441,7 +441,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         if (cinFrontFile) cinFrontB64 = await fileToBase64(cinFrontFile);
         if (cinBackFile)  cinBackB64  = await fileToBase64(cinBackFile);
 
-        register({
+        await register({
           name:        form.firstName + " " + form.lastName,
           email:       form.email,
           password:    form.password,
@@ -464,7 +464,7 @@ return;
       }
 
       // LOGIN
-      const result = login(form.email, form.password);
+      const result = await login(form.email, form.password);
       if (result.error === "noAccount") {
         setErrors({ email: t("No account found with this email") });
         recaptchaRef.current?.reset();
@@ -480,7 +480,7 @@ return;
 
       // ── handle login by cinStatus for both freelancers and clients ──
       if (result.user.role === "freelancer" || result.user.role === "client") {
-        if (result.user.cinStatus === "approved" || result.user.cinStatus === "rejected") {
+        if ((result.user.cinStatus === "approved" || result.user.cinStatus === "rejected") && !result.user.statusSeen) {
           setStatusUser(result.user);
           setScreen("status");
           return;
@@ -561,6 +561,7 @@ return;
         <CINStatusScreen
           user={statusUser}
           onClose={() => {
+            updateUser(statusUser.email, { statusSeen: true });
             if (statusUser.cinStatus === "approved") {
               onAuth?.(statusUser);
               onClose?.();
@@ -569,6 +570,7 @@ return;
             }
           }}
           onLogout={() => {
+            updateUser(statusUser.email, { statusSeen: true });
             logout();
             setScreen("form");
             setStatusUser(null);

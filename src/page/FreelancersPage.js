@@ -1,20 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import FilterBar from '../components/FilterBar';
 import Searchbar from '../components/Searchbar';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
-function loadReviews() {
-  try {
-    const raw = localStorage.getItem('fm_reviews');
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
-}
-
-function saveReviews(r) {
-  try { localStorage.setItem('fm_reviews', JSON.stringify(r)); } catch {}
-}
+const API = "https://famamennou-server.onrender.com/api";
 
 const AVATAR_COLORS = [
   'bg-indigo-500','bg-emerald-500','bg-rose-500',
@@ -387,11 +378,37 @@ const FreelancersPage = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [activeCategory, setActiveCategory] = useState('All');
-  const [reviews, setReviews] = useState(loadReviews);
+  const [reviews, setReviews] = useState({});
 
   const categories = ['All', 'Design', 'Development', 'Marketing', 'Writing', 'Video'];
 
-  const approvedFreelancers = users.filter(u => u.role === 'freelancer' && u.cinStatus === 'approved');
+  const fetchAllReviews = useCallback(async () => {
+    try {
+      const approvedEmails = users
+        .filter(u => u && u.role === 'freelancer' && u.cinStatus === 'approved')
+        .map(u => u.email);
+      const results = await Promise.all(
+        approvedEmails.map(email =>
+          fetch(`${API}/reviews/${encodeURIComponent(email)}`).then(r => r.json())
+        )
+      );
+      const map = {};
+      approvedEmails.forEach((email, i) => {
+        map[email.toLowerCase()] = results[i].map(r => ({
+          clientName:  r.client_name,
+          clientEmail: r.client_email,
+          rating:      r.rating,
+          comment:     r.comment,
+          createdAt:   r.created_at,
+        }));
+      });
+      setReviews(map);
+    } catch {}
+  }, [users]);
+
+  useEffect(() => { fetchAllReviews(); }, [fetchAllReviews]);
+
+  const approvedFreelancers = users.filter(u => u && u.role === 'freelancer' && u.cinStatus === 'approved');
 
   const filteredReal = approvedFreelancers.filter(f => {
     const q = searchQuery.toLowerCase();
@@ -405,12 +422,21 @@ const FreelancersPage = () => {
     return matchesSearch && matchesCategory;
   });
 
-  function handleAddReview(freelancerKey, review) {
-    setReviews(prev => {
-      const updated = { ...prev, [freelancerKey]: [...(prev[freelancerKey] || []), review] };
-      saveReviews(updated);
-      return updated;
-    });
+  async function handleAddReview(freelancerKey, review) {
+    try {
+      await fetch(`${API}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          freelancerEmail: freelancerKey,
+          clientEmail:     review.clientEmail,
+          clientName:      review.clientName,
+          rating:          review.rating,
+          comment:         review.comment,
+        }),
+      });
+      await fetchAllReviews();
+    } catch {}
   }
 
   return (
