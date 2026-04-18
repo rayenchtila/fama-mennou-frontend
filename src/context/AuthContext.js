@@ -14,6 +14,11 @@ const ADMIN_CREDENTIALS = {
 };
 
 export function AuthProvider({ children }) {
+  // ── Clean up old localStorage keys from pre-backend version ──
+  localStorage.removeItem("fm_accounts");
+  localStorage.removeItem("fm_notifications");
+  localStorage.removeItem("fm_reviews");
+
   const [user, setUser] = useState(() => {
     try {
       const raw = localStorage.getItem("fm_user");
@@ -39,7 +44,7 @@ export function AuthProvider({ children }) {
         rows.forEach(r => { if (r?.email) map[r.email.toLowerCase()] = normalizeUser(r); });
       }
       setAccounts(map);
-    } catch {}
+    } catch (e) { console.error("fetchAccounts error:", e); }
   }, []);
 
   const fetchNotifications = useCallback(async () => {
