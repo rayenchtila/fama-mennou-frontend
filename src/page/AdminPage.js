@@ -1,5 +1,5 @@
 // src/page/AdminPage.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -540,7 +540,9 @@ function StatisticsPanel({ allUsers }) {
 // ─── main AdminPage ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
-  const { user, users, updateUser, logout, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications } = useAuth();
+  const { user, users, updateUser, logout, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchAccounts, fetchNotifications } = useAuth();
+
+  useEffect(() => { fetchAccounts(); fetchNotifications(); }, []);
 
   // ── main tab: "cin" | "allusers" ──
   const [mainTab,   setMainTab]   = useState("cin");

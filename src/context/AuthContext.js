@@ -341,6 +341,8 @@ export function AuthProvider({ children }) {
       markAllNotificationsRead,
       clearNotifications,
       addNotification,
+      fetchAccounts,
+      fetchNotifications,
     }}>
       {children}
     </AuthContext.Provider>
