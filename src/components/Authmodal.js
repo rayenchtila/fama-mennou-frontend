@@ -82,7 +82,7 @@ function ForgotPasswordScreen({ onBack, onSent, accounts }) {
     if (!email.trim()) { setError("Email is required"); return; }
     if (!/\S+@\S+\.\S+/.test(email)) { setError("Enter a valid email"); return; }
     const account = accounts[email.toLowerCase()];
-    if (!account) { setError("No account found with this email"); return; }
+    if (!account) { setError(t("No account found with this email")); return; }
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -127,6 +127,15 @@ function ForgotPasswordScreen({ onBack, onSent, accounts }) {
 // ── Password Found Screen ─────────────────────────────────────────────────────
 function PasswordFoundScreen({ email, password, onBack }) {
   const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(password).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
   return (
     <div className="flex flex-col items-center py-6 px-2 text-center">
       <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
@@ -139,7 +148,23 @@ function PasswordFoundScreen({ email, password, onBack }) {
       <div className="w-full max-w-xs mt-4 mb-5">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Your password")}</p>
         <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
-          <span className="flex-1 font-mono text-sm font-bold text-slate-900 dark:text-white text-left select-none pointer-events-none">{password}</span>
+          <span className="flex-1 font-mono text-sm font-bold text-slate-900 dark:text-white text-left">{password}</span>
+          <button
+            onClick={handleCopy}
+            className={["flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200", copied ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400"].join(" ")}
+          >
+            {copied ? (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                {t("Copied!")}
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                {t("Copy")}
+              </>
+            )}
+          </button>
         </div>
       </div>
       <button onClick={onBack} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-opacity">
