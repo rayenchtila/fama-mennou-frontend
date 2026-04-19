@@ -559,7 +559,7 @@ export default function AdminPage() {
     const interval = setInterval(() => {
       fetchAccounts();
       fetchNotifications();
-    }, 5000);
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
