@@ -428,12 +428,12 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     return errs;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
 
-    setTimeout(async () => {
+    {
       setLoading(false);
 
       if (mode === "signup") {
@@ -496,7 +496,7 @@ return;
 
       onAuth?.(result.user);
       onClose?.();
-    }, 1000);
+    }
   }
 
   function handleKey(e) {
