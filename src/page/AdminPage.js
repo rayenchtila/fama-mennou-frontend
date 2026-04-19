@@ -331,7 +331,7 @@ function AllUsersTable({ allUsers, search }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-0.5">
                   <p className="font-bold text-slate-900 dark:text-white text-sm">{u.name}</p>
-                  {u.role === "freelancer" && <StatusBadge status={status} />}
+                  {(u.role === "freelancer" || u.role === "client") && <StatusBadge status={status} />}
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${u.role === "client" ? "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800" : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"}`}>
                     {u.role === "client" ? "💼 Client" : "🚀 Freelancer"}
                   </span>
@@ -353,7 +353,7 @@ function AllUsersTable({ allUsers, search }) {
                     { label: t("admin.table.skills"),        value: u.skills,  icon: "🛠️" },
                     { label: t("admin.card.bio"),            value: u.bio,     icon: "📝" },
                     { label: t("admin.table.registered"),    value: u.registeredAt ? new Date(u.registeredAt).toLocaleDateString("fr-TN") : null, icon: "📅" },
-                    { label: t("admin.table.cin_status"),    value: u.role === "freelancer" ? status : null, icon: "🪪" },
+                    { label: t("admin.table.cin_status"),    value: (u.role === "freelancer" || u.role === "client") ? status : null, icon: "🪪" },
                     { label: t("admin.table.reject_reason"), value: u.cinRejectionReason ?? null, icon: "❌" },
                     { label: t("admin.table.approve_msg"),   value: u.cinApprovalReason ?? null, icon: "✅" },
                   ].filter(f => f.value).map(({ label, value, icon }) => (
@@ -568,17 +568,17 @@ export default function AdminPage() {
   const adminNotifications = getAdminNotifications();
   const unreadCount = adminNotifications.filter(n => !n.read).length;
 
-  const freelancers = (users ?? []).filter(u => u.role === "freelancer" && (u.cinFront || u.cinBack));
-  const getStatus   = u => u.cinStatus ?? (u.cinVerified ? "approved" : "pending");
+  const cinUsers  = (users ?? []).filter(u => u.role === "freelancer" || u.role === "client");
+  const getStatus = u => u.cinStatus ?? (u.cinVerified ? "approved" : "pending");
 
   const counts = {
-    all:      freelancers.length,
-    pending:  freelancers.filter(u => getStatus(u) === "pending").length,
-    approved: freelancers.filter(u => getStatus(u) === "approved").length,
-    rejected: freelancers.filter(u => getStatus(u) === "rejected").length,
+    all:      cinUsers.length,
+    pending:  cinUsers.filter(u => getStatus(u) === "pending").length,
+    approved: cinUsers.filter(u => getStatus(u) === "approved").length,
+    rejected: cinUsers.filter(u => getStatus(u) === "rejected").length,
   };
 
-  const filtered = freelancers.filter(u => {
+  const filtered = cinUsers.filter(u => {
     const matchFilter = filter === "all" || getStatus(u) === filter;
     const matchSearch = !search.trim() ||
       u.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -739,6 +739,7 @@ export default function AdminPage() {
                     justActed={justActed}
                   />
                 ))}
+
               </div>
             )}
           </>
