@@ -72,22 +72,37 @@ function ImageUploadBox({ label, hint, preview, onFile, side }) {
 }
 
 // ── Forgot Password Screen ────────────────────────────────────────────────────
-function ForgotPasswordScreen({ onBack, onSent, accounts }) {
-  const { t } = useTranslation();
-  const [email, setEmail]   = useState("");
-  const [error, setError]   = useState("");
-  const [loading, setLoading] = useState(false);
+const API = "https://famamennou-server.onrender.com/api";
 
-  function handleSend() {
-    if (!email.trim()) { setError("Email is required"); return; }
-    if (!/\S+@\S+\.\S+/.test(email)) { setError("Enter a valid email"); return; }
-    const account = accounts[email.toLowerCase()];
-    if (!account) { setError(t("No account found with this email")); return; }
+function ForgotPasswordScreen({ onBack, onSent }) {
+  const { t } = useTranslation();
+  const [email,           setEmail]           = useState("");
+  const [newPassword,     setNewPassword]     = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error,           setError]           = useState("");
+  const [loading,         setLoading]         = useState(false);
+
+  async function handleSend() {
+    if (!email.trim())                        { setError(t("Email is required"));        return; }
+    if (!/\S+@\S+\.\S+/.test(email))         { setError(t("Enter a valid email"));      return; }
+    if (!newPassword)                         { setError(t("Password is required"));     return; }
+    if (newPassword.length < 6)              { setError(t("At least 6 characters"));    return; }
+    if (newPassword !== confirmPassword)      { setError(t("Passwords do not match"));   return; }
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res  = await fetch(`${API}/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.toLowerCase(), newPassword }),
+      });
+      const data = await res.json();
+      if (data.error === "noAccount") { setError(t("No account found with this email")); return; }
+      onSent(email);
+    } catch {
+      setError(t("Network error. Please try again."));
+    } finally {
       setLoading(false);
-      onSent(email, account.password);
-    }, 1000);
+    }
   }
 
   return (
@@ -102,40 +117,38 @@ function ForgotPasswordScreen({ onBack, onSent, accounts }) {
         </svg>
       </div>
       <h2 className="text-lg font-extrabold text-slate-900 dark:text-white text-center mb-1">{t("Forgot your password?")}</h2>
-      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">{t("Enter your email and we'll show you your password")}</p>
-      <Input
-        label="Email address"
-        type="email"
-        placeholder="you@example.com"
-        value={email}
-        onChange={e => { setEmail(e.target.value); setError(""); }}
-        error={error}
-        required
-        leftIcon={
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-          </svg>
-        }
-      />
+      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">{t("reset.subtitle")}</p>
+      <div className="space-y-3">
+        <Input
+          label={t("Email address")} type="email" placeholder={t("you@example.com")}
+          value={email} onChange={e => { setEmail(e.target.value); setError(""); }} required
+          leftIcon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>}
+        />
+        <Input
+          label={t("reset.new_password")} type="password" placeholder={t("Min 6 characters")}
+          value={newPassword} onChange={e => { setNewPassword(e.target.value); setError(""); }} required
+        />
+        <Input
+          label={t("Confirm password")} type="password" placeholder={t("Repeat your password")}
+          value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setError(""); }} required
+        />
+      </div>
+      {error && (
+        <div className="mt-3 flex items-center gap-2 p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl">
+          <svg className="w-4 h-4 text-rose-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
+          <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">{error}</p>
+        </div>
+      )}
       <Button variant="primary" size="lg" fullWidth className="mt-4" loading={loading} onClick={handleSend}>
-        {loading ? t("Searching…") : t("Find my password")}
+        {loading ? t("Processing…") : t("reset.btn")}
       </Button>
     </div>
   );
 }
 
-// ── Password Found Screen ─────────────────────────────────────────────────────
-function PasswordFoundScreen({ email, password, onBack }) {
+// ── Password Reset Success Screen ────────────────────────────────────────────
+function PasswordFoundScreen({ email, onBack }) {
   const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-
-  function handleCopy() {
-    navigator.clipboard.writeText(password).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
-
   return (
     <div className="flex flex-col items-center py-6 px-2 text-center">
       <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
@@ -143,30 +156,9 @@ function PasswordFoundScreen({ email, password, onBack }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1">{t("Password found! 🎉")}</h2>
+      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">{t("reset.success_title")}</h2>
       <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("Account:")} <span className="font-bold text-slate-700 dark:text-slate-200">{email}</span></p>
-      <div className="w-full max-w-xs mt-4 mb-5">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{t("Your password")}</p>
-        <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
-          <span className="flex-1 font-mono text-sm font-bold text-slate-900 dark:text-white text-left">{password}</span>
-          <button
-            onClick={handleCopy}
-            className={["flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200", copied ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400"].join(" ")}
-          >
-            {copied ? (
-              <>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                {t("Copied!")}
-              </>
-            ) : (
-              <>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                {t("Copy")}
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 mb-6 max-w-xs leading-relaxed">{t("reset.success_msg")}</p>
       <button onClick={onBack} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-opacity">
         {t("Back to login")}
       </button>
@@ -606,11 +598,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       {/* ── FORGOT PASSWORD SCREEN ── */}
       {screen === "forgot" && (
         <ForgotPasswordScreen
-          accounts={accounts}
           onBack={() => setScreen("form")}
-          onSent={(email, password) => {
+          onSent={(email) => {
             setFoundEmail(email);
-            setFoundPassword(password);
             setScreen("passwordFound");
           }}
         />
@@ -620,7 +610,6 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       {screen === "passwordFound" && (
         <PasswordFoundScreen
           email={foundEmail}
-          password={foundPassword}
           onBack={() => setScreen("form")}
         />
       )}

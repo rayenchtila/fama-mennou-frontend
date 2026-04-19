@@ -312,6 +312,13 @@ i18n
           "admin.table.reject_reason": "Reject reason",
           "admin.table.approve_msg": "Approval message",
           "admin.years": "yrs",
+          "reset.subtitle": "Enter your email and choose a new password",
+          "reset.new_password": "New password",
+          "reset.btn": "Reset password",
+          "reset.success_title": "Password reset! 🎉",
+          "reset.success_msg": "Your password has been updated. You can now log in with your new password.",
+          "Network error. Please try again.": "Network error. Please try again.",
+          "No account found with this email": "No account found with this email",
         }
       },
       fr: {
@@ -618,6 +625,13 @@ i18n
           "admin.table.reject_reason": "Raison rejet",
           "admin.table.approve_msg": "Message approbation",
           "admin.years": "ans",
+          "reset.subtitle": "Entrez votre e-mail et choisissez un nouveau mot de passe",
+          "reset.new_password": "Nouveau mot de passe",
+          "reset.btn": "Réinitialiser le mot de passe",
+          "reset.success_title": "Mot de passe réinitialisé ! 🎉",
+          "reset.success_msg": "Votre mot de passe a été mis à jour. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+          "Network error. Please try again.": "Erreur réseau. Veuillez réessayer.",
+          "No account found with this email": "Aucun compte trouvé avec cet e-mail",
         }
       },
       ar: {
@@ -927,6 +941,13 @@ i18n
           "admin.table.reject_reason": "سبب الرفض",
           "admin.table.approve_msg": "رسالة الموافقة",
           "admin.years": "سنة",
+          "reset.subtitle": "أدخل بريدك الإلكتروني واختر كلمة مرور جديدة",
+          "reset.new_password": "كلمة المرور الجديدة",
+          "reset.btn": "إعادة تعيين كلمة المرور",
+          "reset.success_title": "تم إعادة تعيين كلمة المرور! 🎉",
+          "reset.success_msg": "تم تحديث كلمة المرور. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+          "Network error. Please try again.": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
+          "No account found with this email": "لا يوجد حساب بهذا البريد الإلكتروني",
         }
       }
     },
