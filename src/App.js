@@ -188,7 +188,7 @@ function AppInner() {
 
 function App() {
   return (
-    <GoogleOAuthProvider clientId="369601994852-6e5d6gqqtgvs1a7jl0rtve82emcbaa3q.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="315427253338-10dlpebi8btbc6b0is4vncq2n72796cq.apps.googleusercontent.com">
       <Router>
         <AuthProvider>
           <AppInner />
