@@ -432,10 +432,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
-
-    {
-      setLoading(false);
-
+    try {
       if (mode === "signup") {
         let cinFrontB64 = null, cinBackB64 = null;
         if (cinFrontFile) cinFrontB64 = await fileToBase64(cinFrontFile);
@@ -460,7 +457,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
         setPendingName(form.firstName + " " + form.lastName);
         setScreen("pending");
-return;
+        return;
       }
 
       // LOGIN
@@ -496,6 +493,8 @@ return;
 
       onAuth?.(result.user);
       onClose?.();
+    } finally {
+      setLoading(false);
     }
   }
 
