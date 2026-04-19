@@ -93,7 +93,7 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
 
   function handleAddPortfolioLink() {
     if (!portfolioUrl.trim()) return;
-    const item = { type: 'link', url: portfolioUrl.trim(), label: portfolioLabel.trim() || portfolioUrl.trim() };
+    const item = { type: portfolioType, url: portfolioUrl.trim(), label: portfolioLabel.trim() || portfolioUrl.trim() };
     updateUser(freelancer.email, { portfolio: [...portfolio, item] });
     setPortfolioUrl('');
     setPortfolioLabel('');
@@ -159,7 +159,7 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
               )}
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{freelancer.name}</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{freelancer.name?.split(' ')[0]}</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{freelancer.region || 'Tunisie'}</p>
             </div>
           </div>
@@ -216,25 +216,42 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
             {/* Add portfolio form (own card only) */}
             {showPortfolioForm && isOwnCard && (
               <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 mb-2 space-y-2">
-                <div className="flex gap-1 p-0.5 bg-slate-200 dark:bg-slate-700 rounded-lg">
-                  {['link', 'image'].map(t => (
+                <div className="flex gap-0.5 p-0.5 bg-slate-200 dark:bg-slate-700 rounded-lg">
+                  {[
+                    { id: 'link', icon: '🔗', label: 'Lien' },
+                    { id: 'image', icon: '🖼', label: 'Image' },
+                    { id: 'video', icon: '🎬', label: 'Vidéo' },
+                    { id: 'audio', icon: '🎵', label: 'Audio' },
+                  ].map(tab => (
                     <button
-                      key={t}
+                      key={tab.id}
                       type="button"
-                      onClick={() => setPortfolioType(t)}
-                      className={['flex-1 py-1 text-xs font-semibold rounded-md transition-all', portfolioType === t ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'].join(' ')}
+                      onClick={() => setPortfolioType(tab.id)}
+                      className={['flex-1 py-1 text-[10px] font-semibold rounded-md transition-all', portfolioType === tab.id ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'].join(' ')}
                     >
-                      {t === 'link' ? '🔗 Lien' : '🖼 Image'}
+                      {tab.icon} {tab.label}
                     </button>
                   ))}
                 </div>
-                {portfolioType === 'link' ? (
+                {portfolioType === 'image' ? (
+                  <button
+                    type="button"
+                    onClick={() => portfolioImgRef.current?.click()}
+                    className="w-full text-xs font-semibold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    📂 Choisir une image
+                  </button>
+                ) : (
                   <>
                     <input
                       type="url"
                       value={portfolioUrl}
                       onChange={e => setPortfolioUrl(e.target.value)}
-                      placeholder="https://github.com/..."
+                      placeholder={
+                        portfolioType === 'link' ? 'https://github.com/...' :
+                        portfolioType === 'video' ? 'https://youtube.com/...' :
+                        'https://soundcloud.com/...'
+                      }
                       className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <input
@@ -250,17 +267,9 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
                       disabled={!portfolioUrl.trim()}
                       className="w-full text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg transition-colors"
                     >
-                      Ajouter le lien
+                      Ajouter
                     </button>
                   </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => portfolioImgRef.current?.click()}
-                    className="w-full text-xs font-semibold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-lg transition-colors"
-                  >
-                    📂 Choisir une image
-                  </button>
                 )}
                 <input ref={portfolioImgRef} type="file" accept="image/*" className="hidden" onChange={handlePortfolioImage} />
               </div>
@@ -271,27 +280,35 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
               <div className="space-y-1.5">
                 {portfolio.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2 group/p">
-                    {item.type === 'link' ? (
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline truncate"
-                      >
+                    {item.type === 'link' && (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer"
+                        className="flex-1 flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline truncate">
                         <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
                         <span className="truncate">{item.label || item.url}</span>
                       </a>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setLightboxImg(item.data)}
-                        className="flex-1 flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-left"
-                      >
+                    )}
+                    {item.type === 'image' && (
+                      <button type="button" onClick={() => setLightboxImg(item.data)}
+                        className="flex-1 flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-left">
                         <img src={item.data} alt="portfolio" className="w-8 h-6 object-cover rounded" />
-                        <span className="truncate">Capture d'écran</span>
+                        <span className="truncate">{item.label || "Image"}</span>
                       </button>
+                    )}
+                    {item.type === 'video' && (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer"
+                        className="flex-1 flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:underline truncate">
+                        <span className="text-sm shrink-0">🎬</span>
+                        <span className="truncate">{item.label || item.url}</span>
+                      </a>
+                    )}
+                    {item.type === 'audio' && (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer"
+                        className="flex-1 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline truncate">
+                        <span className="text-sm shrink-0">🎵</span>
+                        <span className="truncate">{item.label || item.url}</span>
+                      </a>
                     )}
                     {isOwnCard && (
                       <button
@@ -340,6 +357,11 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
             </button>
           )}
           {alreadyReviewed && <p className="text-xs text-slate-400">Vous avez déjà laissé un avis.</p>}
+          {isOwnCard && portfolio.length === 0 && (
+            <p className="text-xs font-semibold text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-1.5 rounded-lg mb-1">
+              ⚠️ Portfolio obligatoire — ajoutez au moins un élément.
+            </p>
+          )}
           {isOwnCard && <p className="text-xs text-slate-400">Votre profil — survolez la photo pour la modifier.</p>}
           {!currentUser && <p className="text-xs text-slate-400">Connectez-vous pour laisser un avis.</p>}
           {showForm && (
