@@ -26,13 +26,68 @@ function ScrollToTop() {
   return null;
 }
 
-// ── Guard: blocks any route if user is not logged in ──────────────────────────
+// ── Guard: blocks any route if user is not logged in or not yet approved ──────
 function PrivateRoute({ children, onLogin }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   if (!user) {
     onLogin("login", false);
     return <Navigate to="/" replace />;
+  }
+
+  if (!user.isAdmin && user.cinStatus === "pending") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Compte en attente</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+            Votre compte est en cours de vérification par l'administrateur.<br />
+            Vous serez notifié dès que votre compte sera approuvé.
+          </p>
+          <button
+            onClick={logout}
+            className="text-xs text-slate-400 hover:text-rose-500 transition-colors"
+          >
+            Se déconnecter
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user.isAdmin && user.cinStatus === "rejected") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-800/50 shadow-xl p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Compte refusé</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+            Votre demande de vérification a été refusée par l'administrateur.
+          </p>
+          {user.cinRejectionReason && (
+            <p className="text-xs bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-xl px-4 py-3 mb-6">
+              Raison : {user.cinRejectionReason}
+            </p>
+          )}
+          <button
+            onClick={logout}
+            className="text-xs text-slate-400 hover:text-rose-500 transition-colors"
+          >
+            Se déconnecter
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return children;
