@@ -329,17 +329,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
         });
         const profile = await res.json();
-
-        // ── BLOCK login if no account registered with this Google email ──
-        if (mode === "login") {
-          const emailKey = profile.email?.toLowerCase();
-          if (!emailKey || !accounts[emailKey]) {
-            setErrors({ email: t("No account found. Please sign up first.") });
-            return;
-          }
+        const result = await loginWithGoogle(profile, mode);
+        if (result?.error === "noAccount") {
+          setErrors({ email: t("No account found. Please sign up first.") });
+          return;
         }
-
-        const result = loginWithGoogle(profile);
         if (result?.success) {
           onAuth?.(result.user);
           onClose?.();
@@ -522,26 +516,28 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   function handleGoogleLogin() { googleLogin(); }
 
   function handleFacebookLogin() {
-  window.FB.login(function(response) {
-    if (response.authResponse) {
-      window.FB.api('/me', { fields: 'name,email,picture' }, function(profile) {
-        if (mode === "login") {
-          const emailKey = profile.email?.toLowerCase();
-          if (!emailKey || !accounts[emailKey]) {
+    window.FB.login(function(response) {
+      if (response.authResponse) {
+        window.FB.api('/me', { fields: 'name,email,picture' }, async function(profile) {
+          const result = await loginWithFacebook(profile, mode);
+          if (result?.error === "noAccount") {
             setErrors({ email: t("No account found. Please sign up first.") });
             window.FB.logout(() => {});
             return;
           }
-        }
-        const result = loginWithFacebook(profile);
-        if (result?.success) {
-          onAuth?.(result.user);
-          onClose?.();
-        }
-      });
-    }
-  }, { scope: 'public_profile,email' });
-}
+          if (result?.error === "noEmail") {
+            setErrors({ email: t("Facebook did not provide an email. Please use another method.") });
+            window.FB.logout(() => {});
+            return;
+          }
+          if (result?.success) {
+            onAuth?.(result.user);
+            onClose?.();
+          }
+        });
+      }
+    }, { scope: 'public_profile,email' });
+  }
 
   const isClient     = role === "client";
   const isFreelancer = role === "freelancer" && mode === "signup";

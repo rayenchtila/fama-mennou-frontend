@@ -183,35 +183,39 @@ export function AuthProvider({ children }) {
   }
 
   // ── Google login ──
-  function loginWithGoogle(profile) {
-    const googleUser = {
-      name:      profile.name,
-      email:     profile.email,
-      picture:   profile.picture,
-      plan:      "free",
-      role:      "client",
-      isAdmin:   false,
-      cinStatus: "approved",
-      provider:  "google",
-    };
-    setUser(googleUser);
-    return { success: true, user: googleUser };
+  async function loginWithGoogle(profile, mode = "signup") {
+    try {
+      const res  = await fetch(`${API}/auth/social`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email: profile.email, name: profile.name, photo: profile.picture, role: "client", mode }),
+      });
+      const data = await res.json();
+      if (data.error) return { error: data.error };
+      const loggedUser = normalizeUser(data.user);
+      setUser(loggedUser);
+      await fetchAccounts();
+      return { success: true, user: loggedUser };
+    } catch { return { success: false }; }
   }
 
   // ── Facebook login ──
-  function loginWithFacebook(profile) {
-    const fbUser = {
-      name:      profile?.name    || "Facebook User",
-      email:     profile?.email   || "facebook_user@facebook.com",
-      picture:   profile?.picture?.data?.url || null,
-      plan:      "free",
-      role:      "client",
-      isAdmin:   false,
-      cinStatus: "approved",
-      provider:  "facebook",
-    };
-    setUser(fbUser);
-    return { success: true, user: fbUser };
+  async function loginWithFacebook(profile, mode = "signup") {
+    const email = profile?.email;
+    if (!email) return { error: "noEmail" };
+    try {
+      const res  = await fetch(`${API}/auth/social`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email, name: profile.name || "Facebook User", photo: profile?.picture?.data?.url || null, role: "client", mode }),
+      });
+      const data = await res.json();
+      if (data.error) return { error: data.error };
+      const loggedUser = normalizeUser(data.user);
+      setUser(loggedUser);
+      await fetchAccounts();
+      return { success: true, user: loggedUser };
+    } catch { return { success: false }; }
   }
 
   function logout() { setUser(null); }
