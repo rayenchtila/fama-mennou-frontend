@@ -150,7 +150,7 @@ export function AuthProvider({ children }) {
         });
       }
 
-      await fetchAccounts();
+      fetchAccounts(); // non-blocking — user already sees pending screen
     } catch (e) {
       console.error("register error", e);
     }
@@ -231,6 +231,10 @@ export function AuthProvider({ children }) {
       ? { statusSeen: false }
       : {};
 
+    // Optimistic update — UI reflects change immediately on first click
+    const updated = { ...account, ...patch, ...extra };
+    setAccounts(prev => ({ ...prev, [key]: updated }));
+
     const dbPatch = {};
     if (patch.cinStatus          !== undefined) dbPatch.cin_status           = patch.cinStatus;
     if (patch.cinRejectionReason !== undefined) dbPatch.cin_rejection_reason = patch.cinRejectionReason;
@@ -244,14 +248,14 @@ export function AuthProvider({ children }) {
     if (extra.statusSeen         !== undefined) dbPatch.status_seen          = extra.statusSeen;
 
     try {
-      await fetch(`${API}/users/${encodeURIComponent(key)}`, {
+      fetch(`${API}/users/${encodeURIComponent(key)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dbPatch),
       });
 
       if (patch.cinStatus === "approved") {
-        await addNotification({
+        addNotification({
           type:    "user",
           kind:    "approved",
           title:   "Compte approuvé ✅",
@@ -260,7 +264,7 @@ export function AuthProvider({ children }) {
           name:    account.name,
         });
       } else if (patch.cinStatus === "rejected") {
-        await addNotification({
+        addNotification({
           type:    "user",
           kind:    "rejected",
           title:   "Compte refusé ❌",
@@ -269,8 +273,6 @@ export function AuthProvider({ children }) {
           name:    account.name,
         });
       }
-
-      await fetchAccounts();
     } catch (e) {
       console.error("updateUser error", e);
     }
