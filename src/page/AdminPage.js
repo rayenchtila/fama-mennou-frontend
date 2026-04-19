@@ -553,7 +553,15 @@ export default function AdminPage() {
   const { user, users, updateUser, logout, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchAccounts, fetchNotifications } = useAuth();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchAccounts(); fetchNotifications(); }, []);
+  useEffect(() => {
+    fetchAccounts();
+    fetchNotifications();
+    const interval = setInterval(() => {
+      fetchAccounts();
+      fetchNotifications();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // ── main tab: "cin" | "allusers" ──
   const [mainTab,   setMainTab]   = useState("cin");
