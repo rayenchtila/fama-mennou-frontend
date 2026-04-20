@@ -119,6 +119,7 @@ export function AuthProvider({ children }) {
       cinApprovalReason:  r.cin_approval_reason  ?? null,
       statusSeen:         r.status_seen ?? false,
       availability:       r.availability ?? 'available',
+      company:            r.company      ?? null,
       registeredAt:       r.registered_at,
       isAdmin:            false,
     };
@@ -221,6 +222,7 @@ export function AuthProvider({ children }) {
     if (patch.gender             !== undefined) dbPatch.gender               = patch.gender;
     if (patch.dob                !== undefined) dbPatch.dob                  = patch.dob;
     if (patch.availability       !== undefined) dbPatch.availability         = patch.availability;
+    if (patch.company            !== undefined) dbPatch.company              = patch.company;
     if (extra.statusSeen         !== undefined) dbPatch.status_seen          = extra.statusSeen;
 
     try {
