@@ -21,8 +21,20 @@ const TUNISIAN_REGIONS = [
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload  = () => resolve(reader.result.split(",")[1]);
     reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 800;
+        const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width  = img.width  * ratio;
+        canvas.height = img.height * ratio;
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.7).split(",")[1]);
+      };
+      img.src = e.target.result;
+    };
     reader.readAsDataURL(file);
   });
 }

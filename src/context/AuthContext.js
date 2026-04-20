@@ -25,7 +25,12 @@ export function AuthProvider({ children }) {
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   });
-  const [accounts, setAccounts] = useState({});
+  const [accounts, setAccounts] = useState(() => {
+    try {
+      const cached = localStorage.getItem("fm_accounts");
+      return cached ? JSON.parse(cached) : {};
+    } catch { return {}; }
+  });
   const [notifications, setNotifications] = useState([]);
 
   // ── Persist logged-in user in localStorage (session only) ──
@@ -44,6 +49,7 @@ export function AuthProvider({ children }) {
         rows.forEach(r => { if (r?.email) map[r.email.toLowerCase()] = normalizeUser(r); });
       }
       setAccounts(map);
+      localStorage.setItem("fm_accounts", JSON.stringify(map));
     } catch (e) { console.error("fetchAccounts error:", e); }
   }, []);
 
