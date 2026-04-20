@@ -238,11 +238,13 @@ function AppInner() {
             <Route
               path="/dashboard"
               element={
-                <PrivateRoute onLogin={handleLogin}>
-                  {user?.role === "freelancer"
-                    ? <FreelancerDashboard />
-                    : <ClientDashboard />}
-                </PrivateRoute>
+                user?.isAdmin
+                  ? <Navigate to="/admin/dashboard" replace />
+                  : <PrivateRoute onLogin={handleLogin}>
+                      {user?.role === "freelancer"
+                        ? <FreelancerDashboard />
+                        : <ClientDashboard />}
+                    </PrivateRoute>
               }
             />
           </Routes>

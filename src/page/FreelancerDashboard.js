@@ -828,7 +828,7 @@ function SettingsTab({ user, logout, updateUser }) {
         <div className="space-y-3">
           {[
             { label: 'Email', value: user.email },
-            { label: 'Rôle', value: 'Freelancer' },
+            { label: 'Rôle', value: user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Freelancer' },
             { label: 'Plan', value: user.plan === 'premium' ? 'Premium ✦' : 'Free' },
             { label: 'Membre depuis', value: user.registeredAt ? new Date(user.registeredAt).toLocaleDateString('fr-TN', { year: 'numeric', month: 'long', day: 'numeric' }) : '—' },
           ].map(item => (
