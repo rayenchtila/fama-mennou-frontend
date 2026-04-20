@@ -76,6 +76,15 @@ export function AuthProvider({ children }) {
     fetchNotifications();
   }, [fetchAccounts, fetchNotifications]);
 
+  // ── Ping last_seen every 60s so other users see online status ──
+  useEffect(() => {
+    if (!user || user.isAdmin) return;
+    const ping = () => fetch(`${API}/users/${encodeURIComponent(user.email)}/ping`, { method: 'PATCH' }).catch(() => {});
+    ping();
+    const id = setInterval(ping, 60000);
+    return () => clearInterval(id);
+  }, [user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Keep logged-in user in sync when admin updates their account ──
   useEffect(() => {
     if (!user || user.isAdmin) return;
@@ -121,6 +130,7 @@ export function AuthProvider({ children }) {
       availability:       r.availability ?? 'available',
       company:            r.company      ?? null,
       registeredAt:       r.registered_at,
+      lastSeen:           r.last_seen    ?? null,
       isAdmin:            false,
     };
   }
