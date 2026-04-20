@@ -188,42 +188,6 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ── Google login ──
-  async function loginWithGoogle(profile, mode = "signup") {
-    try {
-      const res  = await fetch(`${API}/auth/social`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ email: profile.email, name: profile.name, photo: profile.picture, role: "client", mode }),
-      });
-      const data = await res.json();
-      if (data.error) return { error: data.error };
-      const loggedUser = normalizeUser(data.user);
-      setUser(loggedUser);
-      await fetchAccounts();
-      return { success: true, user: loggedUser };
-    } catch { return { success: false }; }
-  }
-
-  // ── Facebook login ──
-  async function loginWithFacebook(profile, mode = "signup") {
-    const email = profile?.email;
-    if (!email) return { error: "noEmail" };
-    try {
-      const res  = await fetch(`${API}/auth/social`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ email, name: profile.name || "Facebook User", photo: profile?.picture?.data?.url || null, role: "client", mode }),
-      });
-      const data = await res.json();
-      if (data.error) return { error: data.error };
-      const loggedUser = normalizeUser(data.user);
-      setUser(loggedUser);
-      await fetchAccounts();
-      return { success: true, user: loggedUser };
-    } catch { return { success: false }; }
-  }
-
   function logout() { setUser(null); }
 
   const users = Object.values(accounts);
@@ -350,7 +314,6 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, accounts, users, register, login, logout, updateUser, deleteUser,
-      loginWithGoogle, loginWithFacebook,
       notifications,
       getAdminNotifications,
       getUserNotifications,
