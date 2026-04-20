@@ -34,22 +34,36 @@ function getOnlineStatus(lastSeen) {
   return { online: false, text: new Date(lastSeen).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short' }) };
 }
 
-// Read receipt icon — shown on sent messages only
-function ReadReceipt({ isRead }) {
+// Read receipt:
+//  ✓✓ green        = isRead true (receiver read the message)
+//  ✓✓ no color     = isRead false + receiver is online now (delivered, not yet read)
+//  ✓  no color     = isRead false + receiver is offline
+function ReadReceipt({ isRead, isReceiverOnline }) {
+  if (isRead) {
+    return (
+      <span className="ml-1 inline-flex items-center" title="Lu">
+        <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 10" fill="none">
+          <path d="M1 5l3.5 3.5L12 1"         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M7 5l3.5 3.5L18 1"         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </span>
+    );
+  }
+  if (isReceiverOnline) {
+    return (
+      <span className="ml-1 inline-flex items-center" title="Envoyé — en ligne">
+        <svg className="w-4 h-4 text-white/50" viewBox="0 0 20 10" fill="none">
+          <path d="M1 5l3.5 3.5L12 1"         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M7 5l3.5 3.5L18 1"         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </span>
+    );
+  }
   return (
-    <span className="ml-1 inline-flex items-center">
-      {isRead ? (
-        // Double check blue = read
-        <svg className="w-3.5 h-3.5 text-blue-300" viewBox="0 0 16 10" fill="none">
-          <path d="M1 5l3.5 3.5L13 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M5 5l3.5 3.5L13 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" transform="translate(2,0)"/>
-        </svg>
-      ) : (
-        // Single check grey = sent, not read
-        <svg className="w-3 h-3 text-indigo-300" viewBox="0 0 12 10" fill="none">
-          <path d="M1 5l3.5 3.5L11 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      )}
+    <span className="ml-1 inline-flex items-center" title="Envoyé">
+      <svg className="w-3.5 h-3.5 text-white/50" viewBox="0 0 14 10" fill="none">
+        <path d="M1 5l3.5 3.5L13 1"           stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
     </span>
   );
 }
@@ -300,7 +314,7 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
                       <p className="text-[10px] text-slate-400">
                         {new Date(m.created_at).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                      {isMine && <ReadReceipt isRead={m.is_read} />}
+                      {isMine && <ReadReceipt isRead={m.is_read} isReceiverOnline={otherStatus?.online} />}
                     </div>
                   </div>
                 </div>
