@@ -15,7 +15,9 @@ import FreelancersPage from "./page/FreelancersPage";
 import JobsPage from "./page/JobsPage";
 import CoursesPage from "./page/CoursesPage";
 import ClientsPage from "./page/ClientsPage";
-import AdminPage from "./page/AdminPage"; 
+import AdminPage from "./page/AdminPage";
+import ClientDashboard from "./page/ClientDashboard";
+import FreelancerDashboard from "./page/FreelancerDashboard";
 import { useTranslation } from "react-i18next";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -99,6 +101,7 @@ function AppInner() {
   const location = useLocation();
 
   const isAdminDashboard = location.pathname === "/admin/dashboard";
+  const isUserDashboard  = location.pathname === "/dashboard";
 
   const [dark, setDark] = useState(() => {
     if (typeof window !== "undefined") {
@@ -231,10 +234,21 @@ function AppInner() {
               path="/admin/dashboard"
               element={user?.isAdmin ? <AdminPage /> : <Navigate to="/" replace />}
             />
+
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute onLogin={handleLogin}>
+                  {user?.role === "freelancer"
+                    ? <FreelancerDashboard />
+                    : <ClientDashboard />}
+                </PrivateRoute>
+              }
+            />
           </Routes>
 
-          {!isAdminDashboard && !user?.isAdmin && <FAQ />}
-          {!isAdminDashboard && <Footer />}
+          {!isAdminDashboard && !isUserDashboard && !user?.isAdmin && <FAQ />}
+          {!isAdminDashboard && !isUserDashboard && <Footer />}
         </motion.div>
       </AnimatePresence>
     </ToastProvider>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import FilterBar from '../components/FilterBar';
 import Searchbar from '../components/Searchbar';
 import { useTranslation } from 'react-i18next';
@@ -37,18 +37,19 @@ function StarRating({ value, onChange, readonly = false }) {
   );
 }
 
-function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, updateUser }) {
+function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, updateUser, completedWith, onMarkComplete, allUsers, onMessage }) {
   const [showForm, setShowForm] = useState(false);
   const [newRating, setNewRating] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
-  const [portfolioType, setPortfolioType] = useState('link');
-  const [portfolioUrl, setPortfolioUrl] = useState('');
+  const [portfolioType, setPortfolioType] = useState('image');
   const [portfolioLabel, setPortfolioLabel] = useState('');
   const [lightboxImg, setLightboxImg] = useState(null);
+  const [markingComplete, setMarkingComplete] = useState(false);
   const fileRef = useRef();
   const portfolioImgRef = useRef();
+  const portfolioFileRef = useRef();
 
   const key = freelancer.email?.toLowerCase();
   const myReviews = reviews[key] || [];
@@ -57,8 +58,9 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
     : 0;
 
   const isOwnCard = currentUser?.email?.toLowerCase() === key;
-  const isClient = currentUser && (currentUser.role === 'client' || currentUser.provider === 'google' || currentUser.provider === 'facebook');
+  const isClient = currentUser?.role === 'client';
   const alreadyReviewed = currentUser && myReviews.some(r => r.clientEmail === currentUser.email?.toLowerCase());
+  const hasCompletedTask = completedWith?.includes(key);
   const colorIndex = (key?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length;
   const displayedReviews = showAllReviews ? myReviews : myReviews.slice(0, 2);
 
@@ -67,6 +69,12 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
     : [];
 
   const portfolio = freelancer.portfolio || [];
+
+  async function handleMarkComplete() {
+    setMarkingComplete(true);
+    await onMarkComplete(key);
+    setMarkingComplete(false);
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -91,23 +99,18 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
     reader.readAsDataURL(file);
   }
 
-  function handleAddPortfolioLink() {
-    if (!portfolioUrl.trim()) return;
-    const item = { type: portfolioType, url: portfolioUrl.trim(), label: portfolioLabel.trim() || portfolioUrl.trim() };
-    updateUser(freelancer.email, { portfolio: [...portfolio, item] });
-    setPortfolioUrl('');
-    setPortfolioLabel('');
-    setShowPortfolioForm(false);
-  }
-
-  function handlePortfolioImage(e) {
+  function handlePortfolioFile(e, type) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = ev => {
-      updateUser(freelancer.email, { portfolio: [...portfolio, { type: 'image', data: ev.target.result }] });
+      const item = type === 'image'
+        ? { type: 'image', data: ev.target.result, label: file.name }
+        : { type: 'file', data: ev.target.result, label: portfolioLabel.trim() || file.name, filename: file.name };
+      updateUser(freelancer.email, { portfolio: [...portfolio, item] });
     };
     reader.readAsDataURL(file);
+    setPortfolioLabel('');
     setShowPortfolioForm(false);
   }
 
@@ -118,12 +121,8 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
 
   return (
     <>
-      {/* Lightbox */}
       {lightboxImg && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setLightboxImg(null)}
-        >
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxImg(null)}>
           <img src={lightboxImg} alt="portfolio" className="max-w-full max-h-full rounded-xl shadow-2xl" />
         </div>
       )}
@@ -143,12 +142,8 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
               )}
               {isOwnCard && (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover/av:opacity-100 flex items-center justify-center transition-opacity"
-                    title="Changer la photo"
-                  >
+                  <button type="button" onClick={() => fileRef.current?.click()}
+                    className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover/av:opacity-100 flex items-center justify-center transition-opacity" title="Changer la photo">
                     <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -159,8 +154,14 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
               )}
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{freelancer.name?.split(' ')[0]}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{freelancer.region || 'Tunisie'}</p>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{freelancer.name}</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                {freelancer.region || 'Tunisie'}
+              </p>
             </div>
           </div>
           <span className="text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-full whitespace-nowrap">
@@ -175,17 +176,17 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
           </p>
         )}
 
-        {/* Skills */}
+        {/* Skills / Tags */}
         {skillTags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {skillTags.slice(0, 5).map((tag, i) => (
-              <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/40">
-                {tag}
-              </span>
-            ))}
-            {skillTags.length > 5 && (
-              <span className="text-[11px] text-slate-400">+{skillTags.length - 5}</span>
-            )}
+          <div className="mb-3">
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Compétences & Tags</p>
+            <div className="flex flex-wrap gap-1.5">
+              {skillTags.map((tag, i) => (
+                <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/40">
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 
@@ -204,119 +205,93 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Portfolio</span>
               {isOwnCard && (
-                <button
-                  onClick={() => setShowPortfolioForm(v => !v)}
-                  className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
-                >
+                <button onClick={() => setShowPortfolioForm(v => !v)} className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline">
                   {showPortfolioForm ? 'Annuler' : '+ Ajouter'}
                 </button>
               )}
             </div>
 
-            {/* Add portfolio form (own card only) */}
             {showPortfolioForm && isOwnCard && (
               <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 mb-2 space-y-2">
                 <div className="flex gap-0.5 p-0.5 bg-slate-200 dark:bg-slate-700 rounded-lg">
                   {[
-                    { id: 'link', icon: '🔗', label: 'Lien' },
                     { id: 'image', icon: '🖼', label: 'Image' },
+                    { id: 'file',  icon: '📄', label: 'Fichier' },
                     { id: 'video', icon: '🎬', label: 'Vidéo' },
                     { id: 'audio', icon: '🎵', label: 'Audio' },
                   ].map(tab => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setPortfolioType(tab.id)}
-                      className={['flex-1 py-1 text-[10px] font-semibold rounded-md transition-all', portfolioType === tab.id ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'].join(' ')}
-                    >
+                    <button key={tab.id} type="button" onClick={() => setPortfolioType(tab.id)}
+                      className={['flex-1 py-1 text-[10px] font-semibold rounded-md transition-all', portfolioType === tab.id ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'].join(' ')}>
                       {tab.icon} {tab.label}
                     </button>
                   ))}
                 </div>
-                {portfolioType === 'image' ? (
-                  <button
-                    type="button"
-                    onClick={() => portfolioImgRef.current?.click()}
-                    className="w-full text-xs font-semibold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-lg transition-colors"
-                  >
+
+                {portfolioType === 'image' && (
+                  <button type="button" onClick={() => portfolioImgRef.current?.click()}
+                    className="w-full text-xs font-semibold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-lg transition-colors">
                     📂 Choisir une image
                   </button>
-                ) : (
-                  <>
-                    <input
-                      type="url"
-                      value={portfolioUrl}
-                      onChange={e => setPortfolioUrl(e.target.value)}
-                      placeholder={
-                        portfolioType === 'link' ? 'https://github.com/...' :
-                        portfolioType === 'video' ? 'https://youtube.com/...' :
-                        'https://soundcloud.com/...'
-                      }
-                      className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <input
-                      type="text"
-                      value={portfolioLabel}
-                      onChange={e => setPortfolioLabel(e.target.value)}
-                      placeholder="Label (optionnel)"
-                      className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddPortfolioLink}
-                      disabled={!portfolioUrl.trim()}
-                      className="w-full text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg transition-colors"
-                    >
-                      Ajouter
-                    </button>
-                  </>
                 )}
-                <input ref={portfolioImgRef} type="file" accept="image/*" className="hidden" onChange={handlePortfolioImage} />
+
+                {portfolioType === 'file' && (
+                  <div className="space-y-2">
+                    <input type="text" value={portfolioLabel} onChange={e => setPortfolioLabel(e.target.value)}
+                      placeholder="Titre du fichier (ex: CV, Devis...)"
+                      className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <button type="button" onClick={() => portfolioFileRef.current?.click()}
+                      className="w-full text-xs font-semibold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-lg transition-colors">
+                      📄 Choisir un fichier (PDF, DOC...)
+                    </button>
+                  </div>
+                )}
+
+                {(portfolioType === 'video' || portfolioType === 'audio') && (
+                  <p className="text-xs text-slate-400 text-center py-2">
+                    Fonctionnalité bientôt disponible
+                  </p>
+                )}
+
+                <input ref={portfolioImgRef} type="file" accept="image/*" className="hidden"
+                  onChange={e => handlePortfolioFile(e, 'image')} />
+                <input ref={portfolioFileRef} type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" className="hidden"
+                  onChange={e => handlePortfolioFile(e, 'file')} />
               </div>
             )}
 
-            {/* Portfolio items */}
             {portfolio.length > 0 && (
               <div className="space-y-1.5">
                 {portfolio.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2 group/p">
-                    {item.type === 'link' && (
-                      <a href={item.url} target="_blank" rel="noopener noreferrer"
-                        className="flex-1 flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline truncate">
-                        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        <span className="truncate">{item.label || item.url}</span>
-                      </a>
-                    )}
                     {item.type === 'image' && (
                       <button type="button" onClick={() => setLightboxImg(item.data)}
                         className="flex-1 flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-left">
                         <img src={item.data} alt="portfolio" className="w-8 h-6 object-cover rounded" />
-                        <span className="truncate">{item.label || "Image"}</span>
+                        <span className="truncate">{item.label || 'Image'}</span>
                       </button>
                     )}
-                    {item.type === 'video' && (
-                      <a href={item.url} target="_blank" rel="noopener noreferrer"
-                        className="flex-1 flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:underline truncate">
-                        <span className="text-sm shrink-0">🎬</span>
-                        <span className="truncate">{item.label || item.url}</span>
+                    {item.type === 'file' && (
+                      <a href={item.data} download={item.filename || item.label || 'fichier'}
+                        className="flex-1 flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline truncate">
+                        <span className="text-sm shrink-0">📄</span>
+                        <span className="truncate">{item.label || item.filename || 'Fichier'}</span>
                       </a>
+                    )}
+                    {item.type === 'video' && (
+                      <span className="flex-1 flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 truncate">
+                        <span className="text-sm shrink-0">🎬</span>
+                        <span className="truncate">{item.label || 'Vidéo'}</span>
+                      </span>
                     )}
                     {item.type === 'audio' && (
-                      <a href={item.url} target="_blank" rel="noopener noreferrer"
-                        className="flex-1 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline truncate">
+                      <span className="flex-1 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 truncate">
                         <span className="text-sm shrink-0">🎵</span>
-                        <span className="truncate">{item.label || item.url}</span>
-                      </a>
+                        <span className="truncate">{item.label || 'Audio'}</span>
+                      </span>
                     )}
                     {isOwnCard && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemovePortfolio(idx)}
-                        className="opacity-0 group-hover/p:opacity-100 text-rose-400 hover:text-rose-600 transition-opacity"
-                        title="Supprimer"
-                      >
+                      <button type="button" onClick={() => handleRemovePortfolio(idx)}
+                        className="opacity-0 group-hover/p:opacity-100 text-rose-400 hover:text-rose-600 transition-opacity" title="Supprimer">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -332,15 +307,25 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
         {/* Reviews */}
         {myReviews.length > 0 && (
           <div className="mb-3 space-y-2">
-            {displayedReviews.map((r, i) => (
+            {displayedReviews.map((r, i) => {
+              const reviewer = allUsers?.find(u => u.email?.toLowerCase() === r.clientEmail?.toLowerCase());
+              return (
               <div key={i} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">
+                  {reviewer?.photo ? (
+                    <img src={reviewer.photo} alt={r.clientName} className="w-6 h-6 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+                      {r.clientName?.slice(0,2).toUpperCase()}
+                    </div>
+                  )}
                   <StarRating value={r.rating} readonly />
                   <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{r.clientName}</span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{r.comment}</p>
               </div>
-            ))}
+              );
+            })}
             {myReviews.length > 2 && (
               <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
                 {showAllReviews ? 'Voir moins' : `Voir ${myReviews.length - 2} avis de plus`}
@@ -351,12 +336,37 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
 
         {/* Review form / CTA */}
         <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800">
-          {isClient && !isOwnCard && !alreadyReviewed && !showForm && (
+
+          {/* Client: mark task complete first */}
+          {isClient && !isOwnCard && !hasCompletedTask && (
+            <button onClick={handleMarkComplete} disabled={markingComplete}
+              className="w-full text-xs font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-3 py-2 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors disabled:opacity-50 mb-2">
+              {markingComplete ? '...' : '✓ J\'ai travaillé avec ce freelancer'}
+            </button>
+          )}
+
+          {/* Review button — only after task completed */}
+          {isClient && !isOwnCard && hasCompletedTask && !alreadyReviewed && !showForm && (
             <button onClick={() => setShowForm(true)} className="w-full text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-left">
               + Laisser un avis
             </button>
           )}
-          {alreadyReviewed && <p className="text-xs text-slate-400">Vous avez déjà laissé un avis.</p>}
+
+          {isClient && !isOwnCard && hasCompletedTask && alreadyReviewed && (
+            <p className="text-xs text-slate-400">Vous avez déjà laissé un avis.</p>
+          )}
+
+          {/* Message button for clients */}
+          {currentUser && !isOwnCard && (
+            <button onClick={() => onMessage(key)}
+              className="w-full flex items-center justify-center gap-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-colors mb-2">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              Envoyer un message
+            </button>
+          )}
+
           {isOwnCard && portfolio.length === 0 && (
             <p className="text-xs font-semibold text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-1.5 rounded-lg mb-1">
               ⚠️ Portfolio obligatoire — ajoutez au moins un élément.
@@ -364,6 +374,7 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
           )}
           {isOwnCard && <p className="text-xs text-slate-400">Votre profil — survolez la photo pour la modifier.</p>}
           {!currentUser && <p className="text-xs text-slate-400">Connectez-vous pour laisser un avis.</p>}
+
           {showForm && (
             <form onSubmit={handleSubmit} className="space-y-2">
               <div className="flex items-center gap-2">
@@ -379,10 +390,12 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
                 required
               />
               <div className="flex gap-2">
-                <button type="submit" disabled={!newRating || !newComment.trim()} className="flex-1 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                <button type="submit" disabled={!newRating || !newComment.trim()}
+                  className="flex-1 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
                   Envoyer
                 </button>
-                <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); }} className="flex-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg transition-colors">
+                <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); }}
+                  className="flex-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg transition-colors">
                   Annuler
                 </button>
               </div>
@@ -398,9 +411,11 @@ const FreelancersPage = () => {
   const { t } = useTranslation();
   const { users, user, updateUser } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [activeCategory, setActiveCategory] = useState('All');
   const [reviews, setReviews] = useState({});
+  const [completedWith, setCompletedWith] = useState([]);
 
   const categories = ['All', 'Design', 'Development', 'Marketing', 'Writing', 'Video'];
 
@@ -428,7 +443,17 @@ const FreelancersPage = () => {
     } catch {}
   }, [users]);
 
+  const fetchCompletedTasks = useCallback(async () => {
+    if (!user || user.role !== 'client') return;
+    try {
+      const res = await fetch(`${API}/tasks/${encodeURIComponent(user.email.toLowerCase())}`);
+      const data = await res.json();
+      if (Array.isArray(data)) setCompletedWith(data);
+    } catch {}
+  }, [user]);
+
   useEffect(() => { fetchAllReviews(); }, [fetchAllReviews]);
+  useEffect(() => { fetchCompletedTasks(); }, [fetchCompletedTasks]);
 
   const approvedFreelancers = users.filter(u => u && u.role === 'freelancer' && u.cinStatus === 'approved');
 
@@ -461,6 +486,22 @@ const FreelancersPage = () => {
     } catch {}
   }
 
+  async function handleMarkComplete(freelancerEmail) {
+    if (!user) return;
+    try {
+      await fetch(`${API}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientEmail: user.email, freelancerEmail }),
+      });
+      setCompletedWith(prev => [...prev, freelancerEmail]);
+    } catch {}
+  }
+
+  function handleMessage(freelancerEmail) {
+    navigate(`/dashboard?tab=messages&with=${encodeURIComponent(freelancerEmail)}`);
+  }
+
   return (
     <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -486,6 +527,10 @@ const FreelancersPage = () => {
                   onAddReview={handleAddReview}
                   currentUser={user}
                   updateUser={updateUser}
+                  completedWith={completedWith}
+                  onMarkComplete={handleMarkComplete}
+                  allUsers={users}
+                  onMessage={handleMessage}
                 />
               ))}
             </div>
