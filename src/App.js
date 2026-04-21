@@ -16,6 +16,12 @@ import JobsPage from "./page/JobsPage";
 import CoursesPage from "./page/CoursesPage";
 import ClientsPage from "./page/ClientsPage";
 import AdminPage from "./page/AdminPage";
+import ProfilePage from "./page/ProfilePage";
+import ProjectsPage from "./page/ProjectsPage";
+import MessagesPage from "./page/MessagesPage";
+import SettingsPage from "./page/SettingsPage";
+import ClientDashboard from "./page/ClientDashboard";
+import FreelancerDashboard from "./page/FreelancerDashboard";
 import ClientDashboard from "./page/ClientDashboard";
 import FreelancerDashboard from "./page/FreelancerDashboard";
 import { useTranslation } from "react-i18next";
@@ -230,6 +236,30 @@ function AppInner() {
               }
             />
 
+            <Route
+              path="/profile"
+              element={<PrivateRoute onLogin={handleLogin}><ProfilePage /></PrivateRoute>}
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute onLogin={handleLogin}>
+                  {user?.role === "client" ? <ClientDashboard /> : <FreelancerDashboard />}
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/projects"
+              element={<PrivateRoute onLogin={handleLogin}><ProjectsPage /></PrivateRoute>}
+            />
+            <Route
+              path="/messages"
+              element={<PrivateRoute onLogin={handleLogin}><MessagesPage /></PrivateRoute>}
+            />
+            <Route
+              path="/settings"
+              element={<PrivateRoute onLogin={handleLogin}><SettingsPage /></PrivateRoute>}
+            />
             <Route
               path="/admin/dashboard"
               element={user?.isAdmin ? <AdminPage /> : <Navigate to="/" replace />}
