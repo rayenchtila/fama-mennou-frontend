@@ -277,7 +277,6 @@ function AppInner() {
             />
           </Routes>
 
-          {!isAdminDashboard && !isUserDashboard && !user?.isAdmin && <FAQ />}
           {!isAdminDashboard && !isUserDashboard && <Footer />}
         </motion.div>
       </AnimatePresence>

@@ -75,6 +75,8 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
   const [newMsg, setNewMsg]               = useState('');
   const [showPicker, setShowPicker]       = useState(false);
   const [search, setSearch]               = useState('');
+  const [editingId, setEditingId]         = useState(null);
+  const [editText, setEditText]           = useState('');
   // local users map refreshed every 30s for live online status
   const [usersMap, setUsersMap]           = useState({});
 
@@ -150,6 +152,27 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ senderEmail: user.email, receiverEmail: selectedChat, content }),
+    });
+    fetchMsgs(selectedChat);
+    fetchConvs();
+  }
+
+  async function editMsg(id, content) {
+    if (!content.trim()) return;
+    await fetch(`${API}/messages/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderEmail: user.email, content }),
+    });
+    setEditingId(null);
+    fetchMsgs(selectedChat);
+  }
+
+  async function deleteMsg(id) {
+    await fetch(`${API}/messages/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderEmail: user.email }),
     });
     fetchMsgs(selectedChat);
     fetchConvs();
@@ -301,18 +324,53 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
                     </div>
                   )}
 
-                  <div className={`max-w-[72%] flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                    <div className={`px-3.5 py-2.5 rounded-2xl text-sm shadow-sm ${
-                      isMine
-                        ? 'bg-indigo-600 text-white rounded-br-sm'
-                        : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-sm border border-slate-100 dark:border-slate-700'
-                    }`}>
-                      <p className="leading-relaxed break-words">{m.content}</p>
-                    </div>
+                  <div className={`max-w-[72%] flex flex-col ${isMine ? 'items-end' : 'items-start'} group/msg`}>
+                    {/* Edit/delete buttons — own messages only */}
+                    {isMine && editingId !== m.id && (
+                      <div className="flex items-center gap-1 mb-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => { setEditingId(m.id); setEditText(m.content); }}
+                          className="text-[10px] text-slate-400 hover:text-indigo-500 px-1.5 py-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >✏️ Modifier</button>
+                        <button
+                          onClick={() => deleteMsg(m.id)}
+                          className="text-[10px] text-slate-400 hover:text-rose-500 px-1.5 py-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >🗑️ Supprimer</button>
+                      </div>
+                    )}
+
+                    {editingId === m.id ? (
+                      <div className="flex gap-2 items-center w-full max-w-xs">
+                        <input
+                          autoFocus
+                          value={editText}
+                          onChange={e => setEditText(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') editMsg(m.id, editText);
+                            if (e.key === 'Escape') setEditingId(null);
+                          }}
+                          className="flex-1 text-sm rounded-xl border border-indigo-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                        <button onClick={() => editMsg(m.id, editText)} className="text-xs font-bold text-indigo-600 hover:underline">✓</button>
+                        <button onClick={() => setEditingId(null)} className="text-xs text-slate-400 hover:text-slate-600">✕</button>
+                      </div>
+                    ) : (
+                      <div className={`px-3.5 py-2.5 rounded-2xl text-sm shadow-sm ${
+                        isMine
+                          ? 'bg-indigo-600 text-white rounded-br-sm'
+                          : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-sm border border-slate-100 dark:border-slate-700'
+                      }`}>
+                        <p className="leading-relaxed break-words">{m.content}</p>
+                        {m.edited_at && <p className="text-[10px] opacity-60 mt-0.5 italic">modifié</p>}
+                      </div>
+                    )}
+
                     {/* Timestamp + read receipt */}
                     <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
                       <p className="text-[10px] text-slate-400">
                         {new Date(m.created_at).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit' })}
+                        {' · '}
+                        {new Date(m.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short' })}
                       </p>
                       {isMine && <ReadReceipt isRead={m.is_read} isReceiverOnline={otherStatus?.online} />}
                     </div>
