@@ -22,8 +22,6 @@ import MessagesPage from "./page/MessagesPage";
 import SettingsPage from "./page/SettingsPage";
 import ClientDashboard from "./page/ClientDashboard";
 import FreelancerDashboard from "./page/FreelancerDashboard";
-import ClientDashboard from "./page/ClientDashboard";
-import FreelancerDashboard from "./page/FreelancerDashboard";
 import { useTranslation } from "react-i18next";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
