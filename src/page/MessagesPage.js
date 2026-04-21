@@ -11,7 +11,7 @@ export default function MessagesPage() {
     <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">💬 {t('Messages')}</h1>
-        <MessagesTab currentUser={user} />
+        <MessagesTab user={user} />
       </div>
     </div>
   );
