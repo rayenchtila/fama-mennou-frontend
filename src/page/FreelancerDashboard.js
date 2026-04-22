@@ -655,7 +655,6 @@ function SettingsTab({ user, logout, updateUser }) {
           {[
             { label: 'Email', value: user.email },
             { label: 'Rôle', value: user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Freelancer' },
-            { label: 'Plan', value: user.plan === 'premium' ? 'Premium ✦' : 'Free' },
             { label: 'Membre depuis', value: user.registeredAt ? new Date(user.registeredAt).toLocaleDateString('fr-TN', { year: 'numeric', month: 'long', day: 'numeric' }) : '—' },
           ].map(item => (
             <div key={item.label} className="flex items-center justify-between py-2 border-b border-slate-50 dark:border-slate-800 last:border-0">

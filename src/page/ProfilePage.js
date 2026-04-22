@@ -56,7 +56,6 @@ export default function ProfilePage() {
               <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
               <div className="flex gap-2 mt-2">
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 capitalize">{user.role}</span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 capitalize">{user.plan}</span>
               </div>
             </div>
           </div>

@@ -453,11 +453,6 @@ export default function AdminCINReview() {
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <p className="font-bold text-slate-900 dark:text-white text-sm truncate">{user.name}</p>
                           <Badge status={status} />
-                          {user.plan === "premium" && (
-                            <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
-                              Premium
-                            </span>
-                          )}
                         </div>
                         <p className="text-xs text-slate-500 mb-2">{user.email}</p>
  

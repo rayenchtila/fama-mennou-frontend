@@ -20,6 +20,7 @@ import ProfilePage from "./page/ProfilePage";
 import ProjectsPage from "./page/ProjectsPage";
 import MessagesPage from "./page/MessagesPage";
 import SettingsPage from "./page/SettingsPage";
+import PaymentsPage from "./page/PaymentsPage";
 import ClientDashboard from "./page/ClientDashboard";
 import FreelancerDashboard from "./page/FreelancerDashboard";
 import { useTranslation } from "react-i18next";
@@ -241,9 +242,11 @@ function AppInner() {
             <Route
               path="/dashboard"
               element={
-                <PrivateRoute onLogin={handleLogin}>
-                  {user?.role === "client" ? <ClientDashboard /> : <FreelancerDashboard />}
-                </PrivateRoute>
+                user?.isAdmin
+                  ? <Navigate to="/admin/dashboard" replace />
+                  : <PrivateRoute onLogin={handleLogin}>
+                      {user?.role === "freelancer" ? <FreelancerDashboard /> : <ClientDashboard />}
+                    </PrivateRoute>
               }
             />
             <Route
@@ -255,6 +258,10 @@ function AppInner() {
               element={<PrivateRoute onLogin={handleLogin}><MessagesPage /></PrivateRoute>}
             />
             <Route
+              path="/payments"
+              element={<PrivateRoute onLogin={handleLogin}><PaymentsPage /></PrivateRoute>}
+            />
+            <Route
               path="/settings"
               element={<PrivateRoute onLogin={handleLogin}><SettingsPage /></PrivateRoute>}
             />
@@ -262,21 +269,9 @@ function AppInner() {
               path="/admin/dashboard"
               element={user?.isAdmin ? <AdminPage /> : <Navigate to="/" replace />}
             />
-
-            <Route
-              path="/dashboard"
-              element={
-                user?.isAdmin
-                  ? <Navigate to="/admin/dashboard" replace />
-                  : <PrivateRoute onLogin={handleLogin}>
-                      {user?.role === "freelancer"
-                        ? <FreelancerDashboard />
-                        : <ClientDashboard />}
-                    </PrivateRoute>
-              }
-            />
           </Routes>
 
+          {!isAdminDashboard && !isUserDashboard && <FAQ />}
           {!isAdminDashboard && !isUserDashboard && <Footer />}
         </motion.div>
       </AnimatePresence>

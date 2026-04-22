@@ -77,12 +77,6 @@ function getInitials(name = "") {
   return name.trim().split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
-function getPlanColor(plan) {
-  return plan === "premium"
-    ? { bg: "bg-amber-100 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-400", label: "Premium ✦" }
-    : { bg: "bg-slate-100 dark:bg-slate-700",    text: "text-slate-500 dark:text-slate-400",  label: "Free" };
-}
-
 function getRoleColor(role) {
   return role === "client"
     ? { bg: "bg-sky-100 dark:bg-sky-900/30",     text: "text-sky-700 dark:text-sky-400",       label: "Client" }
@@ -173,13 +167,14 @@ function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear,
 }
 
 export default function Navbar({ dark, toggleDark, onLogin, language = "en", onLanguageChange }) {
-  const [scrolled,   setScrolled]   = useState(false);
-  const [menuOpen,   setMenuOpen]   = useState(false);
-  const [langOpen,   setLangOpen]   = useState(false);
-  const [profOpen,   setProfOpen]   = useState(false);
-  const [notifOpen,  setNotifOpen]  = useState(false);
-  const [search,     setSearch]     = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [scrolled,      setScrolled]      = useState(false);
+  const [menuOpen,      setMenuOpen]      = useState(false);
+  const [langOpen,      setLangOpen]      = useState(false);
+  const [profOpen,      setProfOpen]      = useState(false);
+  const [notifOpen,     setNotifOpen]     = useState(false);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const [search,        setSearch]        = useState("");
+  const [searchOpen,    setSearchOpen]    = useState(false);
   const searchRef = useRef(null);
 
   const { t }          = useTranslation();
@@ -239,7 +234,6 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const planStyle = user ? getPlanColor(user.plan) : null;
   const roleStyle = user ? getRoleColor(user.role) : null;
 
   const searchGroups = search.trim()
@@ -461,7 +455,11 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                                 <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
                                 <p className="text-xs text-slate-400 truncate">{user.email}</p>
                                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                                  {user.role && (
+                                  {user.isAdmin ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400">
+                                      Admin
+                                    </span>
+                                  ) : user.role && (
                                     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${roleStyle.bg} ${roleStyle.text}`}>
                                       {roleStyle.label}
                                     </span>
@@ -473,6 +471,7 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
 
                           {/* Menu items */}
                           <div className="py-1.5">
+
                             {(user.isAdmin
                               ? [
                                   {
@@ -483,6 +482,11 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                       </svg>
                                     ),
+                                  },
+                                  {
+                                    label: t("Log out"),
+                                    logout: true,
+                                    emoji: "🚪",
                                   },
                                 ]
                               : [
@@ -507,6 +511,11 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                                     emoji: "💬",
                                   },
                                   {
+                                    label: t("Paiements"),
+                                    to: "/payments",
+                                    emoji: "💳",
+                                  },
+                                  {
                                     label: t("Paramètres"),
                                     to: "/settings",
                                     emoji: "⚙️",
@@ -515,13 +524,31 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                             ).map(item => (
                               <button
                                 key={item.label}
-                                onClick={() => { setProfOpen(false); if (item.to) navigate(item.to); }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+                                onClick={() => {
+                                  setProfOpen(false);
+                                  if (item.logout) setLogoutConfirm(true);
+                                  else if (item.to) navigate(item.to);
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
+                                  item.logout
+                                    ? "font-bold bg-rose-600 hover:bg-rose-700 text-white"
+                                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                                }`}
                               >
                                 <span className="text-base w-5 text-center">{item.emoji || item.icon}</span>
                                 {item.label}
                               </button>
                             ))}
+
+                            {!user.isAdmin && (
+                              <button
+                                onClick={() => { setProfOpen(false); setLogoutConfirm(true); }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white transition-colors rounded-none"
+                              >
+                                <span className="text-base w-5 text-center">🚪</span>
+                                {t("Log out")}
+                              </button>
+                            )}
                           </div>
 
                         </motion.div>
@@ -638,8 +665,8 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                     </div>
                   </div>
                   <button
-                    onClick={() => { logout(); setMenuOpen(false); }}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 font-semibold text-sm"
+                    onClick={() => { setMenuOpen(false); setLogoutConfirm(true); }}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -678,6 +705,54 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
           onClose={() => setNotifOpen(false)}
         />
       )}
+
+      {/* ── Logout Confirmation Modal ── */}
+      <AnimatePresence>
+        {logoutConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.4)' }}
+            onClick={() => setLogoutConfirm(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 12 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm p-6 text-center"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-2xl mx-auto mb-4">
+                🚪
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">
+                {t("Se déconnecter ?")}
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                {t("Vous serez redirigé vers la page d'accueil.")}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setLogoutConfirm(false)}
+                  className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  {t("Annuler")}
+                </button>
+                <button
+                  onClick={() => { logout(); setLogoutConfirm(false); }}
+                  className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-sm font-bold text-white transition-colors shadow-sm shadow-rose-500/30"
+                >
+                  {t("Oui, déconnecter")}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

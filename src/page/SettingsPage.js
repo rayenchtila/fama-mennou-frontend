@@ -47,7 +47,6 @@ export default function SettingsPage() {
               { label: t('Name'), value: user.name },
               { label: t('Email'), value: user.email },
               { label: t('Role'), value: user.role },
-              { label: t('Plan'), value: user.plan },
             ].map(({ label, value }) => (
               <div key={label} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
                 <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
@@ -87,14 +86,13 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Logout */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/50 p-6">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">{t('Danger Zone')}</p>
+        {/* Log out */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
           <button
             onClick={logout}
-            className="w-full py-2.5 rounded-xl text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white transition-colors"
+            className="w-full py-2.5 rounded-xl text-sm font-bold border-2 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center justify-center gap-2"
           >
-            {t('Log out')}
+            🚪 {t('Log out')}
           </button>
         </div>
       </div>

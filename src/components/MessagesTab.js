@@ -11,7 +11,9 @@ function Avatar({ user, size = 'md', showOnline = false, online = false }) {
     <div className="relative shrink-0">
       {user?.photo
         ? <img src={user.photo} alt={user.name} className={`${sz} rounded-2xl object-cover`} />
-        : <div className={`${sz} ${color} rounded-2xl flex items-center justify-center text-white font-bold`}>{user?.name?.slice(0,2).toUpperCase()}</div>
+        : <div className={`${sz} ${color} rounded-2xl flex items-center justify-center text-white font-bold`}>
+            {user?.name?.slice(0,2).toUpperCase()}
+          </div>
       }
       {showOnline && (
         <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 ${online ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -20,7 +22,6 @@ function Avatar({ user, size = 'md', showOnline = false, online = false }) {
   );
 }
 
-// Returns { online, text } based on last_seen timestamp
 function getOnlineStatus(lastSeen) {
   if (!lastSeen) return { online: false, text: 'Hors ligne' };
   const diffMs  = Date.now() - new Date(lastSeen).getTime();
@@ -34,62 +35,102 @@ function getOnlineStatus(lastSeen) {
   return { online: false, text: new Date(lastSeen).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short' }) };
 }
 
-// Read receipt:
-//  ✓✓ green        = isRead true (receiver read the message)
-//  ✓✓ no color     = isRead false + receiver is online now (delivered, not yet read)
-//  ✓  no color     = isRead false + receiver is offline
 function ReadReceipt({ isRead, isReceiverOnline }) {
-  if (isRead) {
-    return (
-      <span className="ml-1 inline-flex items-center" title="Lu">
-        <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 10" fill="none">
-          <path d="M1 5l3.5 3.5L12 1"         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M7 5l3.5 3.5L18 1"         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </span>
-    );
-  }
-  if (isReceiverOnline) {
-    return (
-      <span className="ml-1 inline-flex items-center" title="Envoyé — en ligne">
-        <svg className="w-4 h-4 text-white/50" viewBox="0 0 20 10" fill="none">
-          <path d="M1 5l3.5 3.5L12 1"         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M7 5l3.5 3.5L18 1"         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </span>
-    );
-  }
+  if (isRead) return (
+    <span className="inline-flex items-center" title="Lu">
+      <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 10" fill="none">
+        <path d="M1 5l3.5 3.5L12 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M7 5l3.5 3.5L18 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </span>
+  );
+  if (isReceiverOnline) return (
+    <span className="inline-flex items-center" title="Envoyé">
+      <svg className="w-4 h-4 text-white/50" viewBox="0 0 20 10" fill="none">
+        <path d="M1 5l3.5 3.5L12 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M7 5l3.5 3.5L18 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </span>
+  );
   return (
-    <span className="ml-1 inline-flex items-center" title="Envoyé">
+    <span className="inline-flex items-center" title="Envoyé">
       <svg className="w-3.5 h-3.5 text-white/50" viewBox="0 0 14 10" fill="none">
-        <path d="M1 5l3.5 3.5L13 1"           stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M1 5l3.5 3.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     </span>
   );
 }
 
+/* Messenger-style floating action menu — appears above the bubble on click */
+function MessageMenu({ isMine, onEdit, onDelete, onClose, align }) {
+  const ref = useRef();
+
+  useEffect(() => {
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) onClose();
+    }
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      className={`absolute top-full mt-1 z-30 flex flex-col gap-0.5 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden min-w-[160px] ${align === 'right' ? 'right-0' : 'left-0'}`}
+    >
+      {isMine && (
+        <button
+          onMouseDown={e => { e.stopPropagation(); onEdit(); }}
+          className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-left"
+        >
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          Modifier
+        </button>
+      )}
+      {isMine && (
+        <button
+          onMouseDown={e => { e.stopPropagation(); onDelete(); }}
+          className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-left"
+        >
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Supprimer
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function MessagesTab({ user, allUsers: allUsersProp, initialChat }) {
   const [conversations, setConversations] = useState([]);
-  const [selectedChat, setSelectedChat]   = useState(initialChat || null);
-  const [messages, setMessages]           = useState([]);
-  const [newMsg, setNewMsg]               = useState('');
-  const [showPicker, setShowPicker]       = useState(false);
-  const [search, setSearch]               = useState('');
-  const [editingId, setEditingId]         = useState(null);
-  const [editText, setEditText]           = useState('');
-  // local users map refreshed every 30s for live online status
-  const [usersMap, setUsersMap]           = useState({});
+  const [selectedChat,  setSelectedChat]  = useState(initialChat || null);
+  const [messages,      setMessages]      = useState([]);
+  const [newMsg,        setNewMsg]        = useState('');
+  const [showPicker,    setShowPicker]    = useState(false);
+  const [search,        setSearch]        = useState('');
+  const [editingId,     setEditingId]     = useState(null);
+  const [editText,      setEditText]      = useState('');
+  const [openMenuId,    setOpenMenuId]    = useState(null);
+  const [usersMap,      setUsersMap]      = useState({});
 
-  const chatEndRef  = useRef();
-  const pollRef     = useRef();
-  const msgPollRef  = useRef();
-  const usersPollRef = useRef();
+  const messagesBoxRef  = useRef();
+  const prevChatRef     = useRef(null);
+  const pollRef         = useRef();
+  const msgPollRef      = useRef();
+  const usersPollRef    = useRef();
+  const inputRef        = useRef();
 
-  // ── Fetch / refresh users for online status ──────────────────────────────
+  // ── Users (for online status) ─────────────────────────────────────────────
   const refreshUsers = useCallback(async () => {
     try {
-      const res  = await fetch(`${API}/users`);
-      const data = await res.json();
+      const data = await fetch(`${API}/users`).then(r => r.json());
       if (Array.isArray(data)) {
         const map = {};
         data.forEach(u => { if (u.email) map[u.email.toLowerCase()] = u; });
@@ -104,11 +145,10 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
     return () => clearInterval(usersPollRef.current);
   }, [refreshUsers]);
 
-  // ── Conversations polling ─────────────────────────────────────────────────
+  // ── Conversations ─────────────────────────────────────────────────────────
   const fetchConvs = useCallback(async () => {
     try {
-      const res  = await fetch(`${API}/messages/conversations/${encodeURIComponent(user.email)}`);
-      const data = await res.json();
+      const data = await fetch(`${API}/messages/conversations/${encodeURIComponent(user.email)}`).then(r => r.json());
       if (Array.isArray(data)) setConversations(data);
     } catch {}
   }, [user.email]);
@@ -119,14 +159,12 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
     return () => clearInterval(pollRef.current);
   }, [fetchConvs]);
 
-  // ── Messages polling ──────────────────────────────────────────────────────
+  // ── Messages ──────────────────────────────────────────────────────────────
   const fetchMsgs = useCallback(async (otherEmail) => {
     try {
-      const res  = await fetch(`${API}/messages/${encodeURIComponent(user.email)}/${encodeURIComponent(otherEmail)}`);
-      const data = await res.json();
+      const data = await fetch(`${API}/messages/${encodeURIComponent(user.email)}/${encodeURIComponent(otherEmail)}`).then(r => r.json());
       if (Array.isArray(data)) setMessages(data);
-      // mark received messages as read
-      await fetch(`${API}/messages/read/${encodeURIComponent(otherEmail)}/${encodeURIComponent(user.email)}`, { method: 'PATCH' });
+      fetch(`${API}/messages/read/${encodeURIComponent(otherEmail)}/${encodeURIComponent(user.email)}`, { method: 'PATCH' });
     } catch {}
   }, [user.email]);
 
@@ -138,12 +176,15 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
     return () => clearInterval(msgPollRef.current);
   }, [selectedChat, fetchMsgs]);
 
-  // ── Scroll to bottom ──────────────────────────────────────────────────────
+  // ── Scroll (container only, never the page) ───────────────────────────────
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    const box = messagesBoxRef.current;
+    if (!box) return;
+    prevChatRef.current = selectedChat;
+    box.scrollTop = box.scrollHeight;
+  }, [messages, selectedChat]);
 
-  // ── Send message ──────────────────────────────────────────────────────────
+  // ── Actions ───────────────────────────────────────────────────────────────
   async function sendMsg() {
     if (!newMsg.trim() || !selectedChat) return;
     const content = newMsg.trim();
@@ -165,10 +206,12 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
       body: JSON.stringify({ senderEmail: user.email, content }),
     });
     setEditingId(null);
+    setOpenMenuId(null);
     fetchMsgs(selectedChat);
   }
 
   async function deleteMsg(id) {
+    setOpenMenuId(null);
     await fetch(`${API}/messages/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -178,12 +221,7 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
     fetchConvs();
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-  const getUser = (email) => {
-    const e = email?.toLowerCase();
-    return usersMap[e] || allUsersProp?.find(u => u.email?.toLowerCase() === e) || null;
-  };
-
+  const getUser     = email => usersMap[email?.toLowerCase()] || allUsersProp?.find(u => u.email?.toLowerCase() === email?.toLowerCase()) || null;
   const otherUser   = selectedChat ? getUser(selectedChat) : null;
   const otherStatus = otherUser ? getOnlineStatus(otherUser.last_seen || otherUser.lastSeen) : null;
   const unreadCount = conversations.filter(c => !c.is_read && c.sender_email !== user.email?.toLowerCase()).length;
@@ -193,12 +231,18 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
     (u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()))
   );
 
+  function formatTime(ts) {
+    return new Date(ts).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit' });
+  }
+  function formatDate(ts) {
+    return new Date(ts).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short' });
+  }
+
   return (
     <div className="flex h-[calc(100vh-200px)] min-h-[500px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
 
       {/* ── LEFT: Conversation list ──────────────────────────────────────── */}
       <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-72 lg:w-80 border-r border-slate-100 dark:border-slate-800 shrink-0`}>
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
           <h3 className="font-bold text-slate-900 dark:text-white text-sm">
             Messages
@@ -206,10 +250,12 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
               <span className="ml-1.5 px-1.5 py-0.5 bg-indigo-600 text-white text-[10px] font-extrabold rounded-full">{unreadCount}</span>
             )}
           </h3>
-          <button onClick={() => setShowPicker(!showPicker)} className="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-lg font-bold hover:bg-indigo-700 transition-colors">+</button>
+          <button
+            onClick={() => setShowPicker(!showPicker)}
+            className="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-lg font-bold hover:bg-indigo-700 transition-colors"
+          >+</button>
         </div>
 
-        {/* New chat picker */}
         {showPicker && (
           <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
             <input
@@ -237,7 +283,6 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
           </div>
         )}
 
-        {/* Conversation list */}
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-slate-400 p-4 text-center">
@@ -264,9 +309,7 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
                     </p>
                     {status.online
                       ? <span className="text-[9px] font-bold text-emerald-500 shrink-0">En ligne</span>
-                      : <span className="text-[9px] text-slate-400 shrink-0 hidden sm:block">
-                          {getOnlineStatus(other?.last_seen || other?.lastSeen).text}
-                        </span>
+                      : <span className="text-[9px] text-slate-400 shrink-0 hidden sm:block">{status.text}</span>
                     }
                   </div>
                   <div className="flex items-center gap-1">
@@ -300,7 +343,11 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-1.5 bg-slate-50 dark:bg-slate-950">
+          <div
+            ref={messagesBoxRef}
+            className="flex-1 overflow-y-auto px-4 py-4 bg-slate-50 dark:bg-slate-950"
+            onClick={() => setOpenMenuId(null)}
+          >
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-slate-400">
                 <p className="text-3xl mb-2">👋</p>
@@ -309,96 +356,133 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
               </div>
             )}
 
-            {messages.map((m, idx) => {
-              const isMine = m.sender_email === user.email?.toLowerCase();
-              const prevMsg = messages[idx - 1];
-              const sameGroup = prevMsg && prevMsg.sender_email === m.sender_email &&
-                (new Date(m.created_at) - new Date(prevMsg.created_at)) < 120000; // 2 min gap = new group
+            <div className="space-y-[2px]">
+              {messages.map((m, idx) => {
+                const isMine        = m.sender_email === user.email?.toLowerCase();
+                const prevMsg       = messages[idx - 1];
+                const nextMsg       = messages[idx + 1];
+                const samePrev      = prevMsg && prevMsg.sender_email === m.sender_email && (new Date(m.created_at) - new Date(prevMsg.created_at)) < 120000;
+                const sameNext      = nextMsg && nextMsg.sender_email === m.sender_email && (new Date(nextMsg.created_at) - new Date(m.created_at)) < 120000;
+                const isFirst       = !samePrev;
+                const isLast        = !sameNext;
+                const isMenuOpen    = openMenuId === m.id;
+                const isEditing     = editingId === m.id;
 
-              return (
-                <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${sameGroup ? 'mt-0.5' : 'mt-3'}`}>
-                  {/* Avatar for received — only show on last of group */}
-                  {!isMine && (
-                    <div className={`mr-2 mt-auto ${sameGroup ? 'opacity-0 pointer-events-none' : ''}`}>
-                      <Avatar user={otherUser || { email: selectedChat }} size="sm" />
-                    </div>
-                  )}
+                const bubbleRadius  = isMine
+                  ? `rounded-2xl ${isFirst ? 'rounded-tr-md' : ''} ${isLast ? 'rounded-br-md' : ''}`
+                  : `rounded-2xl ${isFirst ? 'rounded-tl-md' : ''} ${isLast ? 'rounded-bl-md' : ''}`;
 
-                  <div className={`max-w-[72%] flex flex-col ${isMine ? 'items-end' : 'items-start'} group/msg`}>
-                    {/* Edit/delete buttons — own messages only */}
-                    {isMine && editingId !== m.id && (
-                      <div className="flex items-center gap-1 mb-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => { setEditingId(m.id); setEditText(m.content); }}
-                          className="text-[10px] text-slate-400 hover:text-indigo-500 px-1.5 py-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        >✏️ Modifier</button>
-                        <button
-                          onClick={() => deleteMsg(m.id)}
-                          className="text-[10px] text-slate-400 hover:text-rose-500 px-1.5 py-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        >🗑️ Supprimer</button>
+                return (
+                  <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${isFirst ? 'mt-3' : 'mt-0.5'}`}>
+
+                    {/* Received avatar — show on last of group */}
+                    {!isMine && (
+                      <div className={`mr-2 self-end mb-1 ${!isLast ? 'opacity-0 pointer-events-none' : ''}`}>
+                        <Avatar user={otherUser || { email: selectedChat }} size="sm" />
                       </div>
                     )}
 
-                    {editingId === m.id ? (
-                      <div className="flex gap-2 items-center w-full max-w-xs">
-                        <input
-                          autoFocus
-                          value={editText}
-                          onChange={e => setEditText(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') editMsg(m.id, editText);
-                            if (e.key === 'Escape') setEditingId(null);
-                          }}
-                          className="flex-1 text-sm rounded-xl border border-indigo-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <button onClick={() => editMsg(m.id, editText)} className="text-xs font-bold text-indigo-600 hover:underline">✓</button>
-                        <button onClick={() => setEditingId(null)} className="text-xs text-slate-400 hover:text-slate-600">✕</button>
-                      </div>
-                    ) : (
-                      <div className={`px-3.5 py-2.5 rounded-2xl text-sm shadow-sm ${
-                        isMine
-                          ? 'bg-indigo-600 text-white rounded-br-sm'
-                          : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-sm border border-slate-100 dark:border-slate-700'
-                      }`}>
-                        <p className="leading-relaxed break-words">{m.content}</p>
-                        {m.edited_at && <p className="text-[10px] opacity-60 mt-0.5 italic">modifié</p>}
-                      </div>
-                    )}
+                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[70%]`}>
 
-                    {/* Timestamp + read receipt */}
-                    <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
-                      <p className="text-[10px] text-slate-400">
-                        {new Date(m.created_at).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit' })}
-                        {' · '}
-                        {new Date(m.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short' })}
-                      </p>
-                      {isMine && <ReadReceipt isRead={m.is_read} isReceiverOnline={otherStatus?.online} />}
+                      {/* Sender name — received, first of group */}
+                      {!isMine && isFirst && (
+                        <p className="text-[10px] font-bold text-slate-400 mb-1 ml-1">
+                          {otherUser?.name?.split(' ')[0] || selectedChat}
+                        </p>
+                      )}
+
+                      {/* Edit mode */}
+                      {isEditing ? (
+                        <div className="flex gap-2 items-center w-full min-w-[200px] max-w-xs">
+                          <input
+                            autoFocus
+                            value={editText}
+                            onChange={e => setEditText(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') editMsg(m.id, editText);
+                              if (e.key === 'Escape') { setEditingId(null); setOpenMenuId(null); }
+                            }}
+                            className="flex-1 text-sm rounded-xl border-2 border-indigo-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                          <button
+                            onClick={() => editMsg(m.id, editText)}
+                            className="w-8 h-8 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shrink-0"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                          </button>
+                          <button
+                            onClick={() => { setEditingId(null); setOpenMenuId(null); }}
+                            className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors shrink-0"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                          </button>
+                        </div>
+                      ) : (
+                        /* Clickable bubble + floating menu */
+                        <div className="relative">
+                          {/* Floating action menu — only for own messages */}
+                          {isMenuOpen && isMine && (
+                            <MessageMenu
+                              isMine={isMine}
+                              align={isMine ? 'right' : 'left'}
+                              onEdit={() => { setEditingId(m.id); setEditText(m.content); setOpenMenuId(null); }}
+                              onDelete={() => deleteMsg(m.id)}
+                              onClose={() => setOpenMenuId(null)}
+                            />
+                          )}
+
+                          {/* Bubble — click only opens menu for own messages */}
+                          <button
+                            onClick={e => { e.stopPropagation(); if (isMine) setOpenMenuId(isMenuOpen ? null : m.id); setEditingId(null); }}
+                            className={`text-sm px-3.5 py-2.5 shadow-sm text-left transition-opacity active:opacity-70 select-text ${isMine ? 'cursor-pointer' : 'cursor-default'} ${bubbleRadius} ${
+                              isMine
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-700'
+                            } ${isMenuOpen && isMine ? 'ring-2 ring-indigo-300 dark:ring-indigo-700' : ''}`}
+                          >
+                            <span className="break-words leading-relaxed">{m.content}</span>
+                            {m.edited_at && (
+                              <span className={`block text-[10px] italic mt-0.5 ${isMine ? 'text-white/60' : 'text-slate-400'}`}>modifié</span>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Timestamp + receipt — only on last of group */}
+                      {isLast && !isEditing && (
+                        <div className={`flex items-center gap-1 mt-1 px-1 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <span className="text-[10px] text-slate-400 tabular-nums">
+                            {formatTime(m.created_at)} · {formatDate(m.created_at)}
+                          </span>
+                          {isMine && <ReadReceipt isRead={m.is_read} isReceiverOnline={otherStatus?.online} />}
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
-            <div ref={chatEndRef} />
+                );
+              })}
+            </div>
           </div>
 
           {/* Input */}
           <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2 items-end">
             <input
+              ref={inputRef}
               value={newMsg}
               onChange={e => setNewMsg(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMsg()}
-              placeholder="Votre message..."
-              className="flex-1 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
+              onClick={() => setOpenMenuId(null)}
+              placeholder="Aa"
+              className="flex-1 text-sm rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
             <button
               onClick={sendMsg}
               disabled={!newMsg.trim()}
-              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm disabled:opacity-40 transition-colors shrink-0 flex items-center gap-1.5"
+              className="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-full transition-all shrink-0 shadow-sm shadow-indigo-500/30"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4 translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
               </svg>
-              <span className="hidden sm:inline">Envoyer</span>
             </button>
           </div>
         </div>

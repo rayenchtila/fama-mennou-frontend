@@ -203,9 +203,6 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
             <div className="flex items-center gap-2 flex-wrap mb-0.5">
               <p className="font-bold text-slate-900 dark:text-white text-sm">{user.name}</p>
               <StatusBadge status={status} />
-              {user.plan === "premium" && (
-                <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">Premium ✦</span>
-              )}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{user.email}</p>
 
@@ -216,7 +213,6 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
                 { label: t("admin.card.dob"),           value: user.dob,      icon: "🎂" },
                 { label: t("admin.card.gender"),        value: user.gender === "male" ? t("admin.card.male") : user.gender === "female" ? t("admin.card.female") : null, icon: "⚥" },
                 { label: t("admin.card.region"),        value: user.region,   icon: "📍" },
-                { label: t("admin.card.plan"),          value: user.plan,     icon: "💳" },
                 { label: t("admin.card.role"),          value: user.role,     icon: "🏷️" },
                 { label: t("admin.card.skills"),        value: user.skills,   icon: "🛠️" },
                 { label: t("admin.card.bio"),           value: user.bio,      icon: "📝" },
@@ -335,9 +331,6 @@ function AllUsersTable({ allUsers, search }) {
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${u.role === "client" ? "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800" : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"}`}>
                     {u.role === "client" ? "💼 Client" : "🚀 Freelancer"}
                   </span>
-                  {u.plan === "premium" && (
-                    <span className="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">Premium ✦</span>
-                  )}
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{u.email}</p>
 
@@ -346,7 +339,6 @@ function AllUsersTable({ allUsers, search }) {
                     { label: t("admin.table.name"),          value: u.name,    icon: "👤" },
                     { label: t("admin.card.email"),          value: u.email,   icon: "📧" },
                     { label: t("admin.card.role"),           value: u.role,    icon: "🏷️" },
-                    { label: t("admin.card.plan"),           value: u.plan,    icon: "💳" },
                     { label: t("admin.table.dob"),           value: u.dob,     icon: "🎂" },
                     { label: t("admin.card.gender"),         value: u.gender === "male" ? t("admin.card.male") : u.gender === "female" ? t("admin.card.female") : null, icon: "⚥" },
                     { label: t("admin.card.region"),         value: u.region,  icon: "📍" },
@@ -572,6 +564,7 @@ export default function AdminPage() {
   const [approving, setApproving] = useState(null);
   const [justActed, setJustActed] = useState({});
   const [notifOpen, setNotifOpen] = useState(false);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
 
   const adminNotifications = getAdminNotifications();
   const unreadCount = adminNotifications.filter(n => !n.read).length;
@@ -668,7 +661,7 @@ export default function AdminPage() {
               )}
             </button>
 
-            <button onClick={logout} className="flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <button onClick={() => setLogoutConfirm(true)} className="flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
               <span className="hidden sm:inline">Log out</span>
             </button>
@@ -761,7 +754,6 @@ export default function AdminPage() {
                 { label: t("admin.total"),       value: (users ?? []).length,                                    color: "text-slate-700 dark:text-slate-200",     bg: "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800" },
                 { label: t("admin.clients"),     value: (users ?? []).filter(u => u.role === "client").length,   color: "text-sky-600 dark:text-sky-400",          bg: "bg-sky-50 dark:bg-sky-900/20 border-sky-100 dark:border-sky-900" },
                 { label: t("admin.freelancers"), value: (users ?? []).filter(u => u.role === "freelancer").length, color: "text-indigo-600 dark:text-indigo-400",  bg: "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-900" },
-                { label: t("admin.premium"),     value: (users ?? []).filter(u => u.plan === "premium").length,  color: "text-amber-600 dark:text-amber-400",      bg: "bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900" },
               ].map(s => (
                 <div key={s.label} className={`${s.bg} rounded-2xl px-4 py-3 border`}>
                   <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
@@ -822,6 +814,43 @@ export default function AdminPage() {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Logout Confirmation Modal ── */}
+      {logoutConfirm && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.55)' }}
+          onClick={() => setLogoutConfirm(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl w-full max-w-sm overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 pt-6 pb-0">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                <svg className="w-6 h-6 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+              </div>
+              <button onClick={() => setLogoutConfirm(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div className="px-6 py-5">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Log out</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to log out?</p>
+            </div>
+            <div className="flex gap-3 px-6 pb-6">
+              <button onClick={() => setLogoutConfirm(false)} className="flex-1 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                Cancel
+              </button>
+              <button onClick={() => { logout(); setLogoutConfirm(false); }} className="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold transition-colors shadow-sm shadow-rose-500/30">
+                Log out
+              </button>
             </div>
           </div>
         </div>

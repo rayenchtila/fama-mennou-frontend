@@ -556,7 +556,6 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         name:        pendingFormData.firstName + " " + pendingFormData.lastName,
         email:       pendingFormData.email,
         password:    pendingFormData.password,
-        plan:        "free",
         role:        pendingFormData.role,
         dob:         pendingFormData.dob,
         region:      pendingFormData.region,
