@@ -213,19 +213,6 @@ export default function CoursesPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Instructor CTA banner */}
-        {isInstructor && (
-          <button onClick={() => navigate('/dashboard?tab=courses')}
-            className="group w-full flex items-center justify-between gap-4 mb-8 px-6 py-4 rounded-2xl border border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md transition-all active:scale-[0.99]">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/60 flex items-center justify-center transition-colors shrink-0">
-                <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
-              </div>
-              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Créer un cours — Gratuit</span>
-            </div>
-            <svg className="w-4 h-4 text-emerald-500 dark:text-emerald-500 group-hover:translate-x-1 transition-transform shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-          </button>
-        )}
 
         {/* Grid */}
         {loading ? (
