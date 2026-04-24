@@ -86,13 +86,16 @@ export default function CoursesPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [courses,     setCourses]     = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [search,      setSearch]      = useState('');
-  const [category,    setCategory]    = useState('All');
-  const [sort,        setSort]        = useState('newest');
-  const [priceFilter, setPriceFilter] = useState('all');
-  const [minRating,   setMinRating]   = useState(0);
+  const [courses,      setCourses]      = useState([]);
+  const [myCourses,    setMyCourses]    = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [search,       setSearch]       = useState('');
+  const [category,     setCategory]     = useState('All');
+  const [sort,         setSort]         = useState('newest');
+  const [priceFilter,  setPriceFilter]  = useState('all');
+  const [minRating,    setMinRating]    = useState(0);
+
+  const isInstructor = user?.role === 'freelancer';
 
   const fetchCourses = useCallback(async () => {
     setLoading(true);
@@ -110,9 +113,17 @@ export default function CoursesPage() {
     finally  { setLoading(false); }
   }, [search, category, sort, priceFilter, minRating]);
 
-  useEffect(() => { fetchCourses(); }, [fetchCourses]);
+  const fetchMyCourses = useCallback(async () => {
+    if (!user?.email || !isInstructor) return;
+    try {
+      const r = await fetch(`${API}/courses/instructor/${encodeURIComponent(user.email)}`);
+      const d = await r.json();
+      if (Array.isArray(d)) setMyCourses(d);
+    } catch {}
+  }, [user?.email, isInstructor]);
 
-  const isInstructor = user?.role === 'freelancer';
+  useEffect(() => { fetchCourses(); }, [fetchCourses]);
+  useEffect(() => { fetchMyCourses(); }, [fetchMyCourses]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 overflow-x-hidden">
@@ -213,6 +224,35 @@ export default function CoursesPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
+        {/* My Courses section — only for instructors */}
+        {isInstructor && myCourses.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-base font-extrabold text-slate-900 dark:text-white">Mes cours</span>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">{myCourses.length}</span>
+              </div>
+              <button onClick={() => navigate('/dashboard?tab=courses')} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                Gérer mes cours →
+              </button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
+              {myCourses.map(c => (
+                <div key={c.id} className="relative">
+                  <CourseCard course={c} onClick={() => navigate(`/courses/${c.id}`)} />
+                  <div className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    c.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700' :
+                    c.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-700' :
+                    'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700'
+                  }`}>
+                    {c.status === 'approved' ? '✅ Approuvé' : c.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 border-t border-slate-200 dark:border-slate-800" />
+          </div>
+        )}
 
         {/* Grid */}
         {loading ? (
