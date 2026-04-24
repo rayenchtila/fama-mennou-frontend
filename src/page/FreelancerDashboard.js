@@ -1151,11 +1151,6 @@ function CoursesTab({ user }) {
                   </div>
                 </div>
 
-                {/* Checkbox */}
-                <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <input type="checkbox" checked={form.first_lesson_free} onChange={e => setForm(f => ({ ...f, first_lesson_free: e.target.checked }))} className="w-4 h-4 rounded accent-indigo-600" />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Première leçon gratuite</span>
-                </label>
 
                 {/* Error */}
                 {createError && (
