@@ -215,19 +215,40 @@ export default function CoursesPage() {
 
         {/* Instructor CTA banner */}
         {isInstructor && (
-          <div className="flex items-center justify-between gap-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl px-5 py-4 mb-6 shadow-lg shadow-emerald-500/20">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🎓</span>
-              <div>
-                <p className="text-sm font-extrabold text-white">Vous êtes instructeur</p>
-                <p className="text-xs text-emerald-100">Partagez vos connaissances et gagnez de l'argent</p>
+          <div className="relative overflow-hidden rounded-3xl mb-8 bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 border border-slate-700/50 shadow-xl">
+            {/* Background decoration */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.15),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(20,184,166,0.1),transparent_60%)]" />
+            <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-l from-emerald-500/10 to-transparent" />
+
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 p-6 sm:p-7">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 shrink-0">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-base font-extrabold text-white mb-1">Partagez votre expertise</p>
+                  <p className="text-sm text-slate-400 leading-relaxed max-w-xs">Créez un cours, touchez des milliers d'apprenants et générez des revenus passifs.</p>
+                  <div className="flex items-center gap-4 mt-3">
+                    {[['💰','Revenus passifs'],['👥','Large audience'],['✅','Publication rapide']].map(([icon, label]) => (
+                      <div key={label} className="flex items-center gap-1.5">
+                        <span className="text-xs">{icon}</span>
+                        <span className="text-[11px] font-semibold text-slate-400">{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
+
+              <button onClick={() => navigate('/dashboard?tab=courses')}
+                className="group shrink-0 flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-sm font-bold transition-all active:scale-95 shadow-lg shadow-emerald-500/25 whitespace-nowrap">
+                <svg className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Créer mon cours
+                <svg className="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+              </button>
             </div>
-            <button onClick={() => navigate('/dashboard?tab=courses')}
-              className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-700 text-xs font-bold hover:bg-emerald-50 active:scale-95 transition-all whitespace-nowrap shadow-sm">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
-              Créer un cours
-            </button>
           </div>
         )}
 
