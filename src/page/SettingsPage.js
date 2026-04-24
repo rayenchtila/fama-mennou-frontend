@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
 
   if (!user) return null;
 
@@ -89,13 +90,58 @@ export default function SettingsPage() {
         {/* Log out */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
           <button
-            onClick={logout}
+            onClick={() => setLogoutConfirm(true)}
             className="w-full py-2.5 rounded-xl text-sm font-bold border-2 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center justify-center gap-2"
           >
             🚪 {t('Log out')}
           </button>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {logoutConfirm && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.5)' }}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 pt-6 pb-0">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-2xl">
+                🚪
+              </div>
+              <button
+                onClick={() => setLogoutConfirm(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-4">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">{t('Se déconnecter ?')}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{t('Vous serez redirigé vers la page d\'accueil.')}</p>
+            </div>
+            <div className="flex gap-3 px-6 pb-6">
+              <button
+                onClick={() => setLogoutConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                {t('Annuler')}
+              </button>
+              <button
+                onClick={() => { logout(); setLogoutConfirm(false); }}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-sm font-bold text-white transition-colors shadow-sm shadow-rose-500/30"
+              >
+                {t('Oui, déconnecter')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

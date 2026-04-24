@@ -61,52 +61,7 @@ function ReadReceipt({ isRead, isReceiverOnline }) {
   );
 }
 
-/* Messenger-style floating action menu — appears above the bubble on click */
-function MessageMenu({ isMine, onEdit, onDelete, onClose, align }) {
-  const ref = useRef();
 
-  useEffect(() => {
-    function handler(e) {
-      if (ref.current && !ref.current.contains(e.target)) onClose();
-    }
-    document.addEventListener('mousedown', handler);
-    document.addEventListener('touchstart', handler);
-    return () => {
-      document.removeEventListener('mousedown', handler);
-      document.removeEventListener('touchstart', handler);
-    };
-  }, [onClose]);
-
-  return (
-    <div
-      ref={ref}
-      className={`absolute top-full mt-1 z-30 flex flex-col gap-0.5 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden min-w-[160px] ${align === 'right' ? 'right-0' : 'left-0'}`}
-    >
-      {isMine && (
-        <button
-          onMouseDown={e => { e.stopPropagation(); onEdit(); }}
-          className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-left"
-        >
-          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-          </svg>
-          Modifier
-        </button>
-      )}
-      {isMine && (
-        <button
-          onMouseDown={e => { e.stopPropagation(); onDelete(); }}
-          className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-left"
-        >
-          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-          </svg>
-          Supprimer
-        </button>
-      )}
-    </div>
-  );
-}
 
 export default function MessagesTab({ user, allUsers: allUsersProp, initialChat }) {
   const [conversations, setConversations] = useState([]);
@@ -118,6 +73,7 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
   const [editingId,     setEditingId]     = useState(null);
   const [editText,      setEditText]      = useState('');
   const [openMenuId,    setOpenMenuId]    = useState(null);
+  const [menuPos,       setMenuPos]       = useState({ top: 0, right: 0 });
   const [usersMap,      setUsersMap]      = useState({});
 
   const messagesBoxRef  = useRef();
@@ -183,6 +139,13 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
     prevChatRef.current = selectedChat;
     box.scrollTop = box.scrollHeight;
   }, [messages, selectedChat]);
+
+  // Close menu on outside click
+  useEffect(() => {
+    const handler = () => setOpenMenuId(null);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, []);
 
   // ── Actions ───────────────────────────────────────────────────────────────
   async function sendMsg() {
@@ -404,57 +367,41 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
                             }}
                             className="flex-1 text-sm rounded-xl border-2 border-indigo-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
-                          <button
-                            onClick={() => editMsg(m.id, editText)}
-                            className="w-8 h-8 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shrink-0"
-                          >
+                          <button onClick={() => editMsg(m.id, editText)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shrink-0">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                           </button>
-                          <button
-                            onClick={() => { setEditingId(null); setOpenMenuId(null); }}
-                            className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors shrink-0"
-                          >
+                          <button onClick={() => { setEditingId(null); setOpenMenuId(null); }} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors shrink-0">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                           </button>
                         </div>
                       ) : (
-                        /* Clickable bubble + floating menu */
-                        <div className="relative">
-                          {/* Floating action menu — only for own messages */}
-                          {isMenuOpen && isMine && (
-                            <MessageMenu
-                              isMine={isMine}
-                              align={isMine ? 'right' : 'left'}
-                              onEdit={() => { setEditingId(m.id); setEditText(m.content); setOpenMenuId(null); }}
-                              onDelete={() => deleteMsg(m.id)}
-                              onClose={() => setOpenMenuId(null)}
-                            />
-                          )}
-
-                          {/* Bubble — click only opens menu for own messages */}
-                          <button
-                            onClick={e => { e.stopPropagation(); if (isMine) setOpenMenuId(isMenuOpen ? null : m.id); setEditingId(null); }}
-                            className={`text-sm px-3.5 py-2.5 shadow-sm text-left transition-opacity active:opacity-70 select-text ${isMine ? 'cursor-pointer' : 'cursor-default'} ${bubbleRadius} ${
-                              isMine
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-700'
-                            } ${isMenuOpen && isMine ? 'ring-2 ring-indigo-300 dark:ring-indigo-700' : ''}`}
-                          >
-                            <span className="break-words leading-relaxed">{m.content}</span>
-                            {m.edited_at && (
-                              <span className={`block text-[10px] italic mt-0.5 ${isMine ? 'text-white/60' : 'text-slate-400'}`}>modifié</span>
-                            )}
-                          </button>
-                        </div>
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            if (!isMine) return;
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setMenuPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+                            setOpenMenuId(isMenuOpen ? null : m.id);
+                            setEditingId(null);
+                          }}
+                          className={`text-sm px-3.5 py-2.5 shadow-sm text-left ${isMine ? 'cursor-pointer' : 'cursor-default'} ${bubbleRadius} ${
+                            isMine ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-700'
+                          } ${isMenuOpen && isMine ? 'ring-2 ring-indigo-300 dark:ring-indigo-700' : ''}`}
+                        >
+                          <span className="break-words leading-relaxed">{m.content}</span>
+                        </button>
                       )}
 
-                      {/* Timestamp + receipt — only on last of group */}
-                      {isLast && !isEditing && (
-                        <div className={`flex items-center gap-1 mt-1 px-1 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
+                      {/* Time — always visible under every bubble */}
+                      {!isEditing && (
+                        <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
+                          {m.edited_at && (
+                            <span className="text-[10px] text-slate-400 italic">modifié ·</span>
+                          )}
                           <span className="text-[10px] text-slate-400 tabular-nums">
-                            {formatTime(m.created_at)} · {formatDate(m.created_at)}
+                            {m.edited_at ? formatTime(m.edited_at) : formatTime(m.created_at)}
                           </span>
-                          {isMine && <ReadReceipt isRead={m.is_read} isReceiverOnline={otherStatus?.online} />}
+                          {isMine && isLast && <ReadReceipt isRead={m.is_read} isReceiverOnline={otherStatus?.online} />}
                         </div>
                       )}
                     </div>
@@ -463,6 +410,35 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
               })}
             </div>
           </div>
+
+          {/* Fixed-position action menu — outside scroll container, never clipped */}
+          {openMenuId && (() => {
+            const activeMsg = messages.find(msg => msg.id === openMenuId);
+            if (!activeMsg) return null;
+            const canDelete = (Date.now() - new Date(activeMsg.created_at).getTime()) < 3600000;
+            return (
+              <div
+                className="fixed z-50 flex flex-col gap-0.5 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden min-w-[160px]"
+                style={{ top: menuPos.top, right: menuPos.right }}
+                onClick={e => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => { setEditingId(openMenuId); setEditText(activeMsg.content); setOpenMenuId(null); }}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors text-left"
+                >
+                  ✏️ Modifier
+                </button>
+                {canDelete && (
+                  <button
+                    onClick={() => { deleteMsg(openMenuId); setOpenMenuId(null); }}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-left"
+                  >
+                    🗑️ Supprimer
+                  </button>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Input */}
           <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2 items-end">

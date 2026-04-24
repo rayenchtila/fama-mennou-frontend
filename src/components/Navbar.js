@@ -246,6 +246,12 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
     setSearchOpen(false);
   };
 
+  // ── FIXED: properly passes pathname + search so ?tab= is always picked up ──
+  const handleDropdownNavigate = (to) => {
+    const [pathname, search] = to.split("?");
+    navigate({ pathname, search: search ? `?${search}` : "" });
+  };
+
   return (
     <>
       <header
@@ -489,45 +495,29 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                                     emoji: "🚪",
                                   },
                                 ]
-                              : [
-                                  {
-                                    label: t("Profil"),
-                                    to: "/profile",
-                                    emoji: "👤",
-                                  },
-                                  {
-                                    label: t("Dashboard"),
-                                    to: "/dashboard",
-                                    emoji: "📊",
-                                  },
-                                  {
-                                    label: t("Projets"),
-                                    to: "/projects",
-                                    emoji: "🗂️",
-                                  },
-                                  {
-                                    label: t("Messages"),
-                                    to: "/messages",
-                                    emoji: "💬",
-                                  },
-                                  {
-                                    label: t("Paiements"),
-                                    to: "/payments",
-                                    emoji: "💳",
-                                  },
-                                  {
-                                    label: t("Paramètres"),
-                                    to: "/settings",
-                                    emoji: "⚙️",
-                                  },
-                                ]
+                              : user.role === "freelancer"
+                                ? [
+                                    { label: t("Profil"),       to: "/dashboard?tab=profile",       emoji: "👤" },
+                                    { label: t("Dashboard"),    to: "/dashboard?tab=dashboard",     emoji: "📊" },
+                                    { label: "Trouver Projets", to: "/dashboard?tab=find-projects", emoji: "🔎" },
+                                    { label: "Mes Missions",    to: "/dashboard?tab=missions",      emoji: "📁" },
+                                    { label: "Gains",           to: "/dashboard?tab=gains",         emoji: "💰" },
+                                    { label: t("Paramètres"),   to: "/dashboard?tab=settings",      emoji: "⚙️" },
+                                  ]
+                                : [
+                                    { label: t("Profil"),       to: "/profile",    emoji: "👤" },
+                                    { label: t("Dashboard"),    to: "/dashboard",  emoji: "📊" },
+                                    { label: t("Projets"),      to: "/projects",   emoji: "🗂️" },
+                                    { label: t("Messages"),     to: "/messages",   emoji: "💬" },
+                                    { label: t("Paramètres"),   to: "/settings",   emoji: "⚙️" },
+                                  ]
                             ).map(item => (
                               <button
                                 key={item.label}
                                 onClick={() => {
                                   setProfOpen(false);
                                   if (item.logout) setLogoutConfirm(true);
-                                  else if (item.to) navigate(item.to);
+                                  else if (item.to) handleDropdownNavigate(item.to);
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
                                   item.logout
@@ -716,26 +706,37 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
             transition={{ duration: 0.15 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-4"
             style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.4)' }}
-            onClick={() => setLogoutConfirm(false)}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.92, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92, y: 12 }}
               transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm p-6 text-center"
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden"
               onClick={e => e.stopPropagation()}
             >
-              <div className="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-2xl mx-auto mb-4">
-                🚪
+              <div className="flex items-center justify-between px-6 pt-6 pb-0">
+                <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-2xl">
+                  🚪
+                </div>
+                <button
+                  onClick={() => setLogoutConfirm(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
               </div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">
-                {t("Se déconnecter ?")}
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                {t("Vous serez redirigé vers la page d'accueil.")}
-              </p>
-              <div className="flex gap-3">
+              <div className="px-6 py-4">
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">
+                  {t("Se déconnecter ?")}
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {t("Vous serez redirigé vers la page d'accueil.")}
+                </p>
+              </div>
+              <div className="flex gap-3 px-6 pb-6">
                 <button
                   onClick={() => setLogoutConfirm(false)}
                   className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"

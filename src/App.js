@@ -14,6 +14,8 @@ import Home from "./page/Home";
 import FreelancersPage from "./page/FreelancersPage";
 import JobsPage from "./page/JobsPage";
 import CoursesPage from "./page/CoursesPage";
+import CourseDetailPage from "./page/CourseDetailPage";
+import VideoPlayerPage from "./page/VideoPlayerPage";
 import ClientsPage from "./page/ClientsPage";
 import AdminPage from "./page/AdminPage";
 import ProfilePage from "./page/ProfilePage";
@@ -231,6 +233,24 @@ function AppInner() {
               element={
                 <PrivateRoute onLogin={handleLogin}>
                   <CoursesPage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/courses/:id"
+              element={
+                <PrivateRoute onLogin={handleLogin}>
+                  <CourseDetailPage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/courses/:courseId/lesson/:lessonId"
+              element={
+                <PrivateRoute onLogin={handleLogin}>
+                  <VideoPlayerPage />
                 </PrivateRoute>
               }
             />

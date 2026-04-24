@@ -1,74 +1,82 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import FilterBar from '../components/FilterBar';
-import Searchbar from '../components/Searchbar';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 const API = "https://famamennou-server.onrender.com/api";
 
-const AVATAR_COLORS = [
-  'bg-indigo-500','bg-emerald-500','bg-rose-500',
-  'bg-amber-500','bg-sky-500','bg-fuchsia-500','bg-violet-500',
+const SKILL_COLORS = [
+  'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800/40',
+  'bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 border-violet-100 dark:border-violet-800/40',
+  'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 border-sky-100 dark:border-sky-800/40',
+  'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/40',
+  'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-800/40',
+  'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800/40',
 ];
 
-function StarRating({ value, onChange, readonly = false }) {
+const AVATAR_GRADIENTS = [
+  'from-indigo-500 to-violet-600',
+  'from-emerald-500 to-teal-600',
+  'from-rose-500 to-pink-600',
+  'from-amber-500 to-orange-600',
+  'from-sky-500 to-cyan-600',
+  'from-fuchsia-500 to-purple-600',
+];
+
+function Stars({ value, onChange, readonly = false, size = 'md' }) {
   const [hovered, setHovered] = useState(0);
+  const sz = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4';
   return (
     <span className="flex items-center gap-0.5">
       {[1,2,3,4,5].map(i => (
-        <svg
-          key={i}
-          onClick={() => !readonly && onChange?.(i)}
+        <svg key={i} onClick={() => !readonly && onChange?.(i)}
           onMouseEnter={() => !readonly && setHovered(i)}
           onMouseLeave={() => !readonly && setHovered(0)}
-          className={[
-            'w-4 h-4 transition-colors',
-            readonly ? 'cursor-default' : 'cursor-pointer',
-            i <= (hovered || value) ? 'text-amber-400' : 'text-slate-200 dark:text-slate-700',
-          ].join(' ')}
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          className={[sz, 'transition-colors', readonly ? 'cursor-default' : 'cursor-pointer',
+            i <= (hovered || value) ? 'text-amber-400' : 'text-slate-200 dark:text-slate-700'].join(' ')}
+          fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>
       ))}
     </span>
   );
 }
 
+function Avatar({ user: u, size = 'lg' }) {
+  const sz = size === 'lg' ? 'w-16 h-16 text-lg' : size === 'md' ? 'w-10 h-10 text-sm' : 'w-7 h-7 text-[10px]';
+  const grad = AVATAR_GRADIENTS[(u?.email?.charCodeAt(0) ?? 0) % AVATAR_GRADIENTS.length];
+  if (u?.photo) return <img src={u.photo} alt={u.name} className={`${sz} rounded-2xl object-cover`} />;
+  return (
+    <div className={`${sz} rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold shrink-0`}>
+      {u?.name?.slice(0, 2).toUpperCase()}
+    </div>
+  );
+}
+
 function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, updateUser, completedWith, onMarkComplete, allUsers, onMessage }) {
-  const [showForm, setShowForm] = useState(false);
-  const [newRating, setNewRating] = useState(0);
-  const [newComment, setNewComment] = useState('');
-  const [showAllReviews, setShowAllReviews] = useState(false);
-  const [showPortfolioForm, setShowPortfolioForm] = useState(false);
-  const [portfolioType, setPortfolioType] = useState('image');
-  const [portfolioLabel, setPortfolioLabel] = useState('');
-  const [lightboxImg, setLightboxImg] = useState(null);
-  const [markingComplete, setMarkingComplete] = useState(false);
-  const fileRef = useRef();
+  const [showForm,         setShowForm]         = useState(false);
+  const [newRating,        setNewRating]        = useState(0);
+  const [newComment,       setNewComment]       = useState('');
+  const [showAllReviews,   setShowAllReviews]   = useState(false);
+  const [showPortfolioForm,setShowPortfolioForm]= useState(false);
+  const [portfolioType,    setPortfolioType]    = useState('image');
+  const [portfolioLabel,   setPortfolioLabel]   = useState('');
+  const [lightboxImg,      setLightboxImg]      = useState(null);
+  const [markingComplete,  setMarkingComplete]  = useState(false);
+  const [expanded,         setExpanded]         = useState(false);
+  const fileRef         = useRef();
   const portfolioImgRef = useRef();
-  const portfolioFileRef = useRef();
+  const portfolioFileRef= useRef();
 
-  const key = freelancer.email?.toLowerCase();
-  const myReviews = reviews[key] || [];
-  const avgRating = myReviews.length > 0
-    ? myReviews.reduce((s, r) => s + r.rating, 0) / myReviews.length
-    : 0;
-
-  const isOwnCard = currentUser?.email?.toLowerCase() === key;
-  const isClient = currentUser?.role === 'client';
+  const key           = freelancer.email?.toLowerCase();
+  const myReviews     = reviews[key] || [];
+  const avgRating     = myReviews.length > 0 ? myReviews.reduce((s,r) => s + r.rating, 0) / myReviews.length : 0;
+  const isOwnCard     = currentUser?.email?.toLowerCase() === key;
+  const isClient      = currentUser?.role === 'client';
   const alreadyReviewed = currentUser && myReviews.some(r => r.clientEmail === currentUser.email?.toLowerCase());
   const hasCompletedTask = completedWith?.includes(key);
-  const colorIndex = (key?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length;
   const displayedReviews = showAllReviews ? myReviews : myReviews.slice(0, 2);
-
-  const skillTags = freelancer.skills
-    ? freelancer.skills.split(',').map(s => s.trim()).filter(Boolean)
-    : [];
-
-  const portfolio = freelancer.portfolio || [];
+  const skillTags     = freelancer.skills ? freelancer.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const portfolio     = freelancer.portfolio || [];
 
   async function handleMarkComplete() {
     setMarkingComplete(true);
@@ -79,16 +87,8 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
   function handleSubmit(e) {
     e.preventDefault();
     if (!newRating || !newComment.trim()) return;
-    onAddReview(key, {
-      clientName: currentUser.name,
-      clientEmail: currentUser.email?.toLowerCase(),
-      rating: newRating,
-      comment: newComment.trim(),
-      createdAt: new Date().toISOString(),
-    });
-    setShowForm(false);
-    setNewRating(0);
-    setNewComment('');
+    onAddReview(key, { clientName: currentUser.name, clientEmail: currentUser.email?.toLowerCase(), rating: newRating, comment: newComment.trim(), createdAt: new Date().toISOString() });
+    setShowForm(false); setNewRating(0); setNewComment('');
   }
 
   function handlePhoto(e) {
@@ -110,337 +110,303 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
       updateUser(freelancer.email, { portfolio: [...portfolio, item] });
     };
     reader.readAsDataURL(file);
-    setPortfolioLabel('');
-    setShowPortfolioForm(false);
+    setPortfolioLabel(''); setShowPortfolioForm(false);
   }
 
   function handleRemovePortfolio(idx) {
-    const next = portfolio.filter((_, i) => i !== idx);
-    updateUser(freelancer.email, { portfolio: next });
+    updateUser(freelancer.email, { portfolio: portfolio.filter((_, i) => i !== idx) });
   }
 
   return (
     <>
       {lightboxImg && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxImg(null)}>
-          <img src={lightboxImg} alt="portfolio" className="max-w-full max-h-full rounded-xl shadow-2xl" />
+        <div className="fixed inset-0 z-[300] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setLightboxImg(null)}>
+          <img src={lightboxImg} alt="portfolio" className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl" />
+          <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-indigo-200 dark:hover:border-indigo-800/60 flex flex-col">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all duration-300 flex flex-col group">
 
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="relative group/av">
-              {freelancer.photo ? (
-                <img src={freelancer.photo} alt={freelancer.name} className="w-12 h-12 rounded-2xl object-cover shadow-md" />
-              ) : (
-                <div className={['w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-md', AVATAR_COLORS[colorIndex]].join(' ')}>
-                  {freelancer.name?.slice(0, 2).toUpperCase()}
-                </div>
-              )}
-              {isOwnCard && (
-                <>
-                  <button type="button" onClick={() => fileRef.current?.click()}
-                    className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover/av:opacity-100 flex items-center justify-center transition-opacity" title="Changer la photo">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </button>
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
-                </>
-              )}
+        {/* Cover banner */}
+        <div className={`h-20 bg-gradient-to-br ${AVATAR_GRADIENTS[(key?.charCodeAt(0) ?? 0) % AVATAR_GRADIENTS.length]} opacity-80 relative`}>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)]" />
+          {myReviews.length > 0 && (
+            <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
+              <svg className="w-3 h-3 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <span className="text-white text-[10px] font-bold">{avgRating.toFixed(1)}</span>
             </div>
-            <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{freelancer.name}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                {freelancer.region || 'Tunisie'}
-              </p>
+          )}
+        </div>
+
+        {/* Avatar overlap */}
+        <div className="px-5 pb-0 -mt-8 flex items-end justify-between">
+          <div className="relative group/av">
+            <div className="w-16 h-16 rounded-2xl ring-4 ring-white dark:ring-slate-900 overflow-hidden shadow-lg">
+              <Avatar user={freelancer} size="lg" />
             </div>
+            {isOwnCard && (
+              <>
+                <button onClick={() => fileRef.current?.click()}
+                  className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover/av:opacity-100 flex items-center justify-center transition-opacity">
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+              </>
+            )}
           </div>
-          <span className="text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-full whitespace-nowrap">
-            Vérifié ✓
+          <span className="mb-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+            ✓ Vérifié
           </span>
         </div>
 
-        {/* Bio */}
-        {freelancer.bio && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed line-clamp-2">
-            {freelancer.bio}
-          </p>
-        )}
-
-        {/* Skills / Tags */}
-        {skillTags.length > 0 && (
+        <div className="px-5 pt-3 pb-5 flex flex-col flex-1">
+          {/* Name + location */}
           <div className="mb-3">
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Compétences & Tags</p>
-            <div className="flex flex-wrap gap-1.5">
-              {skillTags.map((tag, i) => (
-                <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/40">
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">{freelancer.name}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              {freelancer.region || 'Tunisie'}
+            </p>
+          </div>
+
+          {/* Rating row */}
+          <div className="flex items-center gap-2 mb-3">
+            <Stars value={Math.round(avgRating)} readonly size="sm" />
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
+            <span className="text-xs text-slate-400">({myReviews.length} avis)</span>
+          </div>
+
+          {/* Bio */}
+          {freelancer.bio && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed line-clamp-2">{freelancer.bio}</p>
+          )}
+
+          {/* Skills */}
+          {skillTags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {skillTags.slice(0, 4).map((tag, i) => (
+                <span key={i} className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg border ${SKILL_COLORS[i % SKILL_COLORS.length]}`}>
                   {tag}
                 </span>
               ))}
+              {skillTags.length > 4 && (
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400">
+                  +{skillTags.length - 4}
+                </span>
+              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Stars summary */}
-        <div className="flex items-center gap-2 mb-3">
-          <StarRating value={Math.round(avgRating)} readonly />
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-            {avgRating > 0 ? avgRating.toFixed(1) : '—'}
-          </span>
-          <span className="text-xs text-slate-400">({myReviews.length} avis)</span>
-        </div>
+          {/* Portfolio thumbnails */}
+          {portfolio.filter(i => i.type === 'image').length > 0 && (
+            <div className="flex gap-1.5 mb-4">
+              {portfolio.filter(i => i.type === 'image').slice(0, 3).map((item, idx) => (
+                <button key={idx} onClick={() => setLightboxImg(item.data)}
+                  className="w-14 h-10 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700 hover:scale-105 transition-transform shrink-0">
+                  <img src={item.data} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+              {portfolio.filter(i => i.type === 'image').length > 3 && (
+                <div className="w-14 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
+                  +{portfolio.filter(i => i.type === 'image').length - 3}
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* Portfolio */}
-        {(portfolio.length > 0 || isOwnCard) && (
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Portfolio</span>
-              {isOwnCard && (
-                <button onClick={() => setShowPortfolioForm(v => !v)} className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline">
-                  {showPortfolioForm ? 'Annuler' : '+ Ajouter'}
+          {/* Expanded section */}
+          {expanded && (
+            <div className="space-y-4 mb-4">
+              {/* Portfolio manager */}
+              {(portfolio.length > 0 || isOwnCard) && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Portfolio</span>
+                    {isOwnCard && (
+                      <button onClick={() => setShowPortfolioForm(v => !v)} className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                        {showPortfolioForm ? 'Annuler' : '+ Ajouter'}
+                      </button>
+                    )}
+                  </div>
+                  {showPortfolioForm && isOwnCard && (
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-3 space-y-2">
+                      <div className="flex gap-0.5 p-0.5 bg-slate-200 dark:bg-slate-700 rounded-lg">
+                        {[{id:'image',icon:'🖼',label:'Image'},{id:'file',icon:'📄',label:'Fichier'}].map(tab => (
+                          <button key={tab.id} onClick={() => setPortfolioType(tab.id)}
+                            className={['flex-1 py-1 text-[10px] font-semibold rounded-md transition-all', portfolioType === tab.id ? 'bg-white dark:bg-slate-600 text-indigo-600 shadow-sm' : 'text-slate-500'].join(' ')}>
+                            {tab.icon} {tab.label}
+                          </button>
+                        ))}
+                      </div>
+                      {portfolioType === 'image' && (
+                        <button onClick={() => portfolioImgRef.current?.click()} className="w-full text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition-colors">
+                          📂 Choisir une image
+                        </button>
+                      )}
+                      {portfolioType === 'file' && (
+                        <div className="space-y-2">
+                          <input type="text" value={portfolioLabel} onChange={e => setPortfolioLabel(e.target.value)} placeholder="Titre du fichier"
+                            className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                          <button onClick={() => portfolioFileRef.current?.click()} className="w-full text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition-colors">
+                            📄 Choisir un fichier
+                          </button>
+                        </div>
+                      )}
+                      <input ref={portfolioImgRef} type="file" accept="image/*" className="hidden" onChange={e => handlePortfolioFile(e, 'image')} />
+                      <input ref={portfolioFileRef} type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" className="hidden" onChange={e => handlePortfolioFile(e, 'file')} />
+                    </div>
+                  )}
+                  <div className="space-y-1.5">
+                    {portfolio.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2 group/p p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        {item.type === 'image' && (
+                          <button onClick={() => setLightboxImg(item.data)} className="flex-1 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 hover:text-indigo-600 text-left">
+                            <img src={item.data} alt="" className="w-8 h-6 object-cover rounded" />
+                            <span className="truncate">{item.label || 'Image'}</span>
+                          </button>
+                        )}
+                        {item.type === 'file' && (
+                          <a href={item.data} download={item.filename || item.label} className="flex-1 flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline truncate">
+                            <span>📄</span><span className="truncate">{item.label || item.filename}</span>
+                          </a>
+                        )}
+                        {isOwnCard && (
+                          <button onClick={() => handleRemovePortfolio(idx)} className="opacity-0 group-hover/p:opacity-100 text-rose-400 hover:text-rose-600 transition-opacity shrink-0">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Reviews */}
+              {myReviews.length === 0 && !showForm && portfolio.length === 0 && !isOwnCard && (
+                <div className="flex items-center gap-2 py-3 px-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                  <svg className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Aucun avis pour le moment.</p>
+                </div>
+              )}
+              {myReviews.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Avis clients</p>
+                  <div className="space-y-2">
+                    {displayedReviews.map((r, i) => {
+                      const reviewer = allUsers?.find(u => u.email?.toLowerCase() === r.clientEmail?.toLowerCase());
+                      return (
+                        <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div className="shrink-0">
+                              {reviewer?.photo
+                                ? <img src={reviewer.photo} alt={r.clientName} className="w-6 h-6 rounded-full object-cover" />
+                                : <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-white text-[9px] font-bold">{r.clientName?.slice(0,2).toUpperCase()}</div>
+                              }
+                            </div>
+                            <Stars value={r.rating} readonly size="sm" />
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{r.clientName}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{r.comment}</p>
+                        </div>
+                      );
+                    })}
+                    {myReviews.length > 2 && (
+                      <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
+                        {showAllReviews ? 'Voir moins' : `Voir ${myReviews.length - 2} avis de plus`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Review form */}
+              {showForm && (
+                <form onSubmit={handleSubmit} className="space-y-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-3 border border-indigo-100 dark:border-indigo-800/40">
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Votre avis</p>
+                  <Stars value={newRating} onChange={setNewRating} />
+                  <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Votre commentaire..." rows={2}
+                    className="w-full text-xs rounded-xl border border-indigo-200 dark:border-indigo-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+                  <div className="flex gap-2">
+                    <button type="submit" disabled={!newRating || !newComment.trim()} className="flex-1 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-colors disabled:opacity-50">Envoyer</button>
+                    <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); }} className="flex-1 text-xs font-semibold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors">Annuler</button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+            {currentUser && !isOwnCard && (
+              <button onClick={() => onMessage(key)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold transition-all shadow-sm shadow-indigo-500/20">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                Envoyer un message
+              </button>
+            )}
+
+            <div className="flex gap-2">
+              <button onClick={() => setExpanded(v => !v)}
+                className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1">
+                {expanded ? 'Réduire' : 'Voir profil'}
+                <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+
+              {isClient && !isOwnCard && !hasCompletedTask && (
+                <button onClick={handleMarkComplete} disabled={markingComplete}
+                  className="flex-1 py-2 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-semibold hover:bg-amber-100 transition-colors disabled:opacity-50">
+                  {markingComplete ? '...' : '✓ Travaillé ensemble'}
+                </button>
+              )}
+
+              {isClient && !isOwnCard && hasCompletedTask && !alreadyReviewed && !showForm && (
+                <button onClick={() => { setExpanded(true); setShowForm(true); }}
+                  className="flex-1 py-2 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-semibold hover:bg-indigo-100 transition-colors">
+                  ⭐ Laisser un avis
                 </button>
               )}
             </div>
 
-            {showPortfolioForm && isOwnCard && (
-              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 mb-2 space-y-2">
-                <div className="flex gap-0.5 p-0.5 bg-slate-200 dark:bg-slate-700 rounded-lg">
-                  {[
-                    { id: 'image', icon: '🖼', label: 'Image' },
-                    { id: 'file',  icon: '📄', label: 'Fichier' },
-                    { id: 'video', icon: '🎬', label: 'Vidéo' },
-                    { id: 'audio', icon: '🎵', label: 'Audio' },
-                  ].map(tab => (
-                    <button key={tab.id} type="button" onClick={() => setPortfolioType(tab.id)}
-                      className={['flex-1 py-1 text-[10px] font-semibold rounded-md transition-all', portfolioType === tab.id ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'].join(' ')}>
-                      {tab.icon} {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                {portfolioType === 'image' && (
-                  <button type="button" onClick={() => portfolioImgRef.current?.click()}
-                    className="w-full text-xs font-semibold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-lg transition-colors">
-                    📂 Choisir une image
-                  </button>
-                )}
-
-                {portfolioType === 'file' && (
-                  <div className="space-y-2">
-                    <input type="text" value={portfolioLabel} onChange={e => setPortfolioLabel(e.target.value)}
-                      placeholder="Titre du fichier (ex: CV, Devis...)"
-                      className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                    <button type="button" onClick={() => portfolioFileRef.current?.click()}
-                      className="w-full text-xs font-semibold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-lg transition-colors">
-                      📄 Choisir un fichier (PDF, DOC...)
-                    </button>
-                  </div>
-                )}
-
-                {(portfolioType === 'video' || portfolioType === 'audio') && (
-                  <p className="text-xs text-slate-400 text-center py-2">
-                    Fonctionnalité bientôt disponible
-                  </p>
-                )}
-
-                <input ref={portfolioImgRef} type="file" accept="image/*" className="hidden"
-                  onChange={e => handlePortfolioFile(e, 'image')} />
-                <input ref={portfolioFileRef} type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" className="hidden"
-                  onChange={e => handlePortfolioFile(e, 'file')} />
-              </div>
-            )}
-
-            {portfolio.length > 0 && (
-              <div className="space-y-1.5">
-                {portfolio.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 group/p">
-                    {item.type === 'image' && (
-                      <button type="button" onClick={() => setLightboxImg(item.data)}
-                        className="flex-1 flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-left">
-                        <img src={item.data} alt="portfolio" className="w-8 h-6 object-cover rounded" />
-                        <span className="truncate">{item.label || 'Image'}</span>
-                      </button>
-                    )}
-                    {item.type === 'file' && (
-                      <a href={item.data} download={item.filename || item.label || 'fichier'}
-                        className="flex-1 flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:underline truncate">
-                        <span className="text-sm shrink-0">📄</span>
-                        <span className="truncate">{item.label || item.filename || 'Fichier'}</span>
-                      </a>
-                    )}
-                    {item.type === 'video' && (
-                      <span className="flex-1 flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 truncate">
-                        <span className="text-sm shrink-0">🎬</span>
-                        <span className="truncate">{item.label || 'Vidéo'}</span>
-                      </span>
-                    )}
-                    {item.type === 'audio' && (
-                      <span className="flex-1 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 truncate">
-                        <span className="text-sm shrink-0">🎵</span>
-                        <span className="truncate">{item.label || 'Audio'}</span>
-                      </span>
-                    )}
-                    {isOwnCard && (
-                      <button type="button" onClick={() => handleRemovePortfolio(idx)}
-                        className="opacity-0 group-hover/p:opacity-100 text-rose-400 hover:text-rose-600 transition-opacity" title="Supprimer">
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
+            {isOwnCard && portfolio.length === 0 && (
+              <p className="text-[10px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-lg text-center">
+                ⚠️ Ajoutez au moins un élément au portfolio
+              </p>
             )}
           </div>
-        )}
-
-        {/* Reviews */}
-        {myReviews.length > 0 && (
-          <div className="mb-3 space-y-2">
-            {displayedReviews.map((r, i) => {
-              const reviewer = allUsers?.find(u => u.email?.toLowerCase() === r.clientEmail?.toLowerCase());
-              return (
-              <div key={i} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  {reviewer?.photo ? (
-                    <img src={reviewer.photo} alt={r.clientName} className="w-6 h-6 rounded-full object-cover shrink-0" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
-                      {r.clientName?.slice(0,2).toUpperCase()}
-                    </div>
-                  )}
-                  <StarRating value={r.rating} readonly />
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{r.clientName}</span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{r.comment}</p>
-              </div>
-              );
-            })}
-            {myReviews.length > 2 && (
-              <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
-                {showAllReviews ? 'Voir moins' : `Voir ${myReviews.length - 2} avis de plus`}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Review form / CTA */}
-        <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800">
-
-          {/* Client: mark task complete first */}
-          {isClient && !isOwnCard && !hasCompletedTask && (
-            <button onClick={handleMarkComplete} disabled={markingComplete}
-              className="w-full text-xs font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-3 py-2 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors disabled:opacity-50 mb-2">
-              {markingComplete ? '...' : '✓ J\'ai travaillé avec ce freelancer'}
-            </button>
-          )}
-
-          {/* Review button — only after task completed */}
-          {isClient && !isOwnCard && hasCompletedTask && !alreadyReviewed && !showForm && (
-            <button onClick={() => setShowForm(true)} className="w-full text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-left">
-              + Laisser un avis
-            </button>
-          )}
-
-          {isClient && !isOwnCard && hasCompletedTask && alreadyReviewed && (
-            <p className="text-xs text-slate-400">Vous avez déjà laissé un avis.</p>
-          )}
-
-          {/* Message button for clients */}
-          {currentUser && !isOwnCard && (
-            <button onClick={() => onMessage(key)}
-              className="w-full flex items-center justify-center gap-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-colors mb-2">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-              </svg>
-              Envoyer un message
-            </button>
-          )}
-
-          {isOwnCard && portfolio.length === 0 && (
-            <p className="text-xs font-semibold text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-1.5 rounded-lg mb-1">
-              ⚠️ Portfolio obligatoire — ajoutez au moins un élément.
-            </p>
-          )}
-          {isOwnCard && <p className="text-xs text-slate-400">Votre profil — survolez la photo pour la modifier.</p>}
-          {!currentUser && <p className="text-xs text-slate-400">Connectez-vous pour laisser un avis.</p>}
-
-          {showForm && (
-            <form onSubmit={handleSubmit} className="space-y-2">
-              <div className="flex items-center gap-2">
-                <StarRating value={newRating} onChange={setNewRating} />
-                {newRating > 0 && <span className="text-xs text-slate-500 dark:text-slate-400">{newRating}/5</span>}
-              </div>
-              <textarea
-                value={newComment}
-                onChange={e => setNewComment(e.target.value)}
-                placeholder="Votre commentaire..."
-                rows={2}
-                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-              <div className="flex gap-2">
-                <button type="submit" disabled={!newRating || !newComment.trim()}
-                  className="flex-1 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
-                  Envoyer
-                </button>
-                <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); }}
-                  className="flex-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg transition-colors">
-                  Annuler
-                </button>
-              </div>
-            </form>
-          )}
         </div>
       </div>
     </>
   );
 }
 
-const FreelancersPage = () => {
-  const { t } = useTranslation();
+const CATEGORIES = ['All','Design','Development','Marketing','Writing','Video','Finance','Photography'];
+
+export default function FreelancersPage() {
   const { users, user, updateUser } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [reviews, setReviews] = useState({});
-  const [completedWith, setCompletedWith] = useState([]);
+  const [search,       setSearch]       = useState(searchParams.get('q') || '');
+  const [category,     setCategory]     = useState('All');
+  const [sortBy,       setSortBy]       = useState('rating');
+  const [reviews,      setReviews]      = useState({});
+  const [completedWith,setCompletedWith]= useState([]);
 
-  const categories = ['All', 'Design', 'Development', 'Marketing', 'Writing', 'Video'];
+  const approvedFreelancers = (users || []).filter(u => u?.role === 'freelancer' && u?.cinStatus === 'approved');
 
   const fetchAllReviews = useCallback(async () => {
     try {
-      const approvedEmails = users
-        .filter(u => u && u.role === 'freelancer' && u.cinStatus === 'approved')
-        .map(u => u.email);
-      const results = await Promise.all(
-        approvedEmails.map(email =>
-          fetch(`${API}/reviews/${encodeURIComponent(email)}`).then(r => r.json())
-        )
-      );
+      const emails = approvedFreelancers.map(u => u.email);
+      const results = await Promise.all(emails.map(email => fetch(`${API}/reviews/${encodeURIComponent(email)}`).then(r => r.json()).catch(() => [])));
       const map = {};
-      approvedEmails.forEach((email, i) => {
-        map[email.toLowerCase()] = results[i].map(r => ({
-          clientName:  r.client_name,
-          clientEmail: r.client_email,
-          rating:      r.rating,
-          comment:     r.comment,
-          createdAt:   r.created_at,
-        }));
+      emails.forEach((email, i) => {
+        map[email.toLowerCase()] = (results[i] || []).map(r => ({ clientName: r.client_name, clientEmail: r.client_email, rating: r.rating, comment: r.comment, createdAt: r.created_at }));
       });
       setReviews(map);
     } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users]);
 
   const fetchCompletedTasks = useCallback(async () => {
@@ -455,97 +421,140 @@ const FreelancersPage = () => {
   useEffect(() => { fetchAllReviews(); }, [fetchAllReviews]);
   useEffect(() => { fetchCompletedTasks(); }, [fetchCompletedTasks]);
 
-  const approvedFreelancers = users.filter(u => u && u.role === 'freelancer' && u.cinStatus === 'approved');
-
-  const filteredReal = approvedFreelancers.filter(f => {
-    const q = searchQuery.toLowerCase();
-    const matchesSearch = searchQuery === '' ||
-      f.name?.toLowerCase().includes(q) ||
-      f.region?.toLowerCase().includes(q) ||
-      f.skills?.toLowerCase().includes(q) ||
-      f.bio?.toLowerCase().includes(q);
-    const matchesCategory = activeCategory === 'All' ||
-      f.skills?.toLowerCase().includes(activeCategory.toLowerCase());
-    return matchesSearch && matchesCategory;
+  const filtered = approvedFreelancers.filter(f => {
+    const q = search.toLowerCase();
+    const matchSearch = !search || f.name?.toLowerCase().includes(q) || f.region?.toLowerCase().includes(q) || f.skills?.toLowerCase().includes(q) || f.bio?.toLowerCase().includes(q);
+    const matchCat = category === 'All' || f.skills?.toLowerCase().includes(category.toLowerCase());
+    return matchSearch && matchCat;
+  }).sort((a, b) => {
+    if (sortBy === 'rating') {
+      const ra = reviews[a.email?.toLowerCase()]?.reduce((s,r) => s+r.rating, 0) / (reviews[a.email?.toLowerCase()]?.length || 1) || 0;
+      const rb = reviews[b.email?.toLowerCase()]?.reduce((s,r) => s+r.rating, 0) / (reviews[b.email?.toLowerCase()]?.length || 1) || 0;
+      return rb - ra;
+    }
+    return a.name?.localeCompare(b.name);
   });
 
   async function handleAddReview(freelancerKey, review) {
     try {
-      await fetch(`${API}/reviews`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          freelancerEmail: freelancerKey,
-          clientEmail:     review.clientEmail,
-          clientName:      review.clientName,
-          rating:          review.rating,
-          comment:         review.comment,
-        }),
-      });
-      await fetchAllReviews();
+      await fetch(`${API}/reviews`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ freelancerEmail: freelancerKey, clientEmail: review.clientEmail, clientName: review.clientName, rating: review.rating, comment: review.comment }) });
+      fetchAllReviews();
     } catch {}
   }
 
   async function handleMarkComplete(freelancerEmail) {
     if (!user) return;
     try {
-      await fetch(`${API}/tasks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientEmail: user.email, freelancerEmail }),
-      });
+      await fetch(`${API}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientEmail: user.email, freelancerEmail }) });
       setCompletedWith(prev => [...prev, freelancerEmail]);
     } catch {}
   }
 
-  function handleMessage(freelancerEmail) {
-    navigate(`/dashboard?tab=messages&with=${encodeURIComponent(freelancerEmail)}`);
+  function handleMessage(email) {
+    navigate(`/dashboard?tab=messages&with=${encodeURIComponent(email)}`);
   }
 
+  const totalReviews = Object.values(reviews).flat().length;
+
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-8">{t("Find Freelancers")}</h1>
-        <div className="mb-6">
-          <Searchbar value={searchQuery} onChange={setSearchQuery} placeholder={t("Search freelancers...")} />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 overflow-x-hidden">
+
+      {/* ── Hero ── */}
+      <div className="relative bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 pt-24 pb-14 px-4 overflow-hidden min-h-[420px] flex flex-col justify-center">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.1),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(139,92,246,0.3),transparent_60%)]" />
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-white/90 text-xs font-semibold">{approvedFreelancers.length} freelancers vérifiés disponibles</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-white mb-4 leading-tight tracking-tight">
+            Trouvez le talent<br className="hidden sm:block" /> qu'il vous faut
+          </h1>
+          <p className="text-indigo-200 text-sm sm:text-base mb-8 max-w-xl mx-auto leading-relaxed">
+            Des freelancers tunisiens vérifiés, prêts à transformer vos projets en réalité.
+          </p>
+
+          {/* Search bar */}
+          <div className="relative max-w-lg mx-auto mb-6">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Rechercher par nom, compétence, région…"
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm bg-white/10 backdrop-blur border border-white/20 text-white placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/15 transition-all" />
+          </div>
+
+          {/* Stats */}
+          <div className="flex items-center justify-center gap-6 sm:gap-10">
+            {[
+              { label: 'Freelancers', value: approvedFreelancers.length },
+              { label: 'Avis clients', value: totalReviews },
+              { label: 'Régions', value: new Set(approvedFreelancers.map(f => f.region).filter(Boolean)).size },
+            ].map(s => (
+              <div key={s.label} className="text-center">
+                <p className="text-2xl font-extrabold text-white">{s.value}</p>
+                <p className="text-[11px] text-indigo-300 font-medium">{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <FilterBar
-          categories={categories}
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-          resultCount={filteredReal.length}
-          label={t("Freelancers")}
-        />
-        <div className="mt-8">
-          {filteredReal.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {filteredReal.map(f => (
-                <RealFreelancerCard
-                  key={f.email}
-                  freelancer={f}
-                  reviews={reviews}
-                  onAddReview={handleAddReview}
-                  currentUser={user}
-                  updateUser={updateUser}
-                  completedWith={completedWith}
-                  onMarkComplete={handleMarkComplete}
-                  allUsers={users}
-                  onMessage={handleMessage}
-                />
+      </div>
+
+      {/* ── Filters ── */}
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* Category scroll */}
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex gap-1.5 py-3 w-max">
+              {CATEGORIES.map(cat => (
+                <button key={cat} onClick={() => setCategory(cat)}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${category === cat ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                  {cat}
+                </button>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-16 text-slate-400 dark:text-slate-500">
-              <p className="text-lg font-medium">Aucun freelancer trouvé</p>
-              <p className="text-sm mt-1">
-                {searchQuery ? 'Essayez un autre terme de recherche.' : 'Aucun freelancer vérifié pour le moment.'}
-              </p>
-            </div>
-          )}
+          </div>
+          {/* Results + sort */}
+          <div className="flex items-center justify-between pb-3">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {filtered.length} freelancer{filtered.length !== 1 ? 's' : ''} trouvé{filtered.length !== 1 ? 's' : ''}
+              {search ? ` pour "${search}"` : ''}
+            </p>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+              className="text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-0 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="rating">Mieux notés</option>
+              <option value="name">Par nom</option>
+            </select>
+          </div>
         </div>
+      </div>
+
+      {/* ── Grid ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {filtered.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.map(f => (
+              <RealFreelancerCard key={f.email} freelancer={f} reviews={reviews} onAddReview={handleAddReview}
+                currentUser={user} updateUser={updateUser} completedWith={completedWith}
+                onMarkComplete={handleMarkComplete} allUsers={users} onMessage={handleMessage} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-20 h-20 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center mb-4">
+              <svg className="w-10 h-10 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <p className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun freelancer trouvé</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {search ? 'Essayez un autre terme de recherche.' : 'Aucun freelancer vérifié pour le moment.'}
+            </p>
+            {search && (
+              <button onClick={() => setSearch('')} className="mt-4 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors">
+                Effacer la recherche
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default FreelancersPage;
+}

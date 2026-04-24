@@ -555,7 +555,7 @@ export default function AdminPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // ── main tab: "cin" | "allusers" ──
+  // ── main tab: "cin" | "allusers" | "courses" ──
   const [mainTab,   setMainTab]   = useState("cin");
   const [filter,    setFilter]    = useState("pending");
   const [search,    setSearch]    = useState("");
@@ -565,6 +565,65 @@ export default function AdminPage() {
   const [justActed, setJustActed] = useState({});
   const [notifOpen, setNotifOpen] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+
+  // ── courses tab state ──
+  const [allCourses,      setAllCourses]      = useState([]);
+  const [coursesLoading,  setCoursesLoading]  = useState(false);
+  const [courseFilter,    setCourseFilter]    = useState("pending");
+  const [courseActing,    setCourseActing]    = useState({});
+  const [courseRejectId,  setCourseRejectId]  = useState(null);
+  const [courseApproveId, setCourseApproveId] = useState(null);
+  const [courseNote,      setCourseNote]      = useState("");
+
+  const API = 'https://famamennou-server.onrender.com/api';
+
+  const fetchCourses = async () => {
+    setCoursesLoading(true);
+    try {
+      const r = await fetch(`${API}/courses/pending`);
+      const d = await r.json();
+      if (Array.isArray(d)) setAllCourses(d);
+    } catch {}
+    setCoursesLoading(false);
+  };
+
+  useEffect(() => { if (mainTab === 'courses') fetchCourses(); }, [mainTab]);
+
+  const coursesByFilter = allCourses.filter(c =>
+    courseFilter === 'all' ? true : c.status === courseFilter
+  );
+  const courseCounts = {
+    pending:  allCourses.filter(c => c.status === 'pending').length,
+    approved: allCourses.filter(c => c.status === 'approved').length,
+    rejected: allCourses.filter(c => c.status === 'rejected').length,
+    all:      allCourses.length,
+  };
+
+  async function approveCourse(id, note) {
+    setCourseActing(p => ({ ...p, [id]: 'approved' }));
+    await fetch(`${API}/courses/${id}/approve`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_note: note }),
+    });
+    setCourseApproveId(null);
+    setCourseNote('');
+    fetchCourses();
+    setTimeout(() => setCourseActing(p => { const n = { ...p }; delete n[id]; return n; }), 1800);
+  }
+
+  async function rejectCourse(id, note) {
+    setCourseActing(p => ({ ...p, [id]: 'rejected' }));
+    await fetch(`${API}/courses/${id}/reject`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_note: note }),
+    });
+    setCourseRejectId(null);
+    setCourseNote('');
+    fetchCourses();
+    setTimeout(() => setCourseActing(p => { const n = { ...p }; delete n[id]; return n; }), 1800);
+  }
 
   const adminNotifications = getAdminNotifications();
   const unreadCount = adminNotifications.filter(n => !n.read).length;
@@ -673,6 +732,7 @@ export default function AdminPage() {
           {[
             { id: "cin",      label: t("admin.tab.cin") },
             { id: "allusers", label: `${t("admin.tab.all_users")} (${(users ?? []).length})` },
+            { id: "courses",  label: `📚 Cours${courseCounts.pending > 0 ? ` (${courseCounts.pending})` : ''}` },
           ].map(tab => (
             <button
               key={tab.id}
@@ -761,12 +821,199 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
-
             <AllUsersTable allUsers={users} search={search} />
           </>
         )}
 
+        {/* ══ COURSES TAB ══ */}
+        {mainTab === "courses" && (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              {[
+                { label: 'Total',    value: courseCounts.all,      color: 'text-slate-700 dark:text-slate-200',     bg: 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800' },
+                { label: 'En attente', value: courseCounts.pending, color: 'text-amber-600 dark:text-amber-400',     bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900' },
+                { label: 'Approuvés', value: courseCounts.approved, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900' },
+                { label: 'Refusés',  value: courseCounts.rejected, color: 'text-rose-600 dark:text-rose-400',       bg: 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-900' },
+              ].map(s => (
+                <div key={s.label} className={`${s.bg} rounded-2xl px-4 py-3 border`}>
+                  <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Filter pills */}
+            <div className="flex flex-wrap gap-1 p-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 mb-5">
+              {[['pending','En attente'],['approved','Approuvés'],['rejected','Refusés'],['all','Tous']].map(([id, label]) => (
+                <button key={id} onClick={() => setCourseFilter(id)}
+                  className={['px-4 py-1.5 text-xs font-bold rounded-xl transition-all duration-200 flex items-center gap-1.5',
+                    courseFilter === id ? 'bg-indigo-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'].join(' ')}>
+                  {label}
+                  {courseCounts[id] > 0 && (
+                    <span className={`text-[10px] font-extrabold rounded-full px-1.5 py-0.5 leading-none ${courseFilter === id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{courseCounts[id]}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {coursesLoading ? (
+              <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-28 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse" />)}</div>
+            ) : coursesByFilter.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
+                <span className="text-5xl mb-3">📚</span>
+                <p className="text-sm font-semibold">Aucun cours dans cette catégorie</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {coursesByFilter.map(course => {
+                  const acted = courseActing[course.id];
+                  const isPending = course.status === 'pending';
+                  return (
+                    <div key={course.id} className={['bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-500 overflow-hidden',
+                      acted === 'approved' ? 'border-emerald-300 dark:border-emerald-700 shadow-lg shadow-emerald-100 dark:shadow-emerald-900/20' :
+                      acted === 'rejected' ? 'border-rose-300 dark:border-rose-700 shadow-lg shadow-rose-100 dark:shadow-rose-900/20' :
+                      'border-slate-200 dark:border-slate-800'].join(' ')}>
+
+                      {isPending && (
+                        <div className="flex items-center gap-2 px-5 pt-4 pb-0">
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                          </span>
+                          <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Nouveau cours à valider</p>
+                        </div>
+                      )}
+
+                      <div className="p-4 sm:p-5">
+                        <div className="flex items-start gap-3 sm:gap-4">
+                          {/* Thumbnail */}
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-indigo-100 dark:bg-indigo-900/30 shrink-0 flex items-center justify-center text-2xl">
+                            {course.thumbnail_url
+                              ? <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                              : '📚'}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <p className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{course.title}</p>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                course.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' :
+                                course.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
+                                'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                              }`}>
+                                {course.status === 'approved' ? '✅ Approuvé' : course.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Par <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
+
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">📂 {course.category}</span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">💰 {Number(course.full_price) === 0 ? 'Gratuit' : `${Number(course.full_price).toFixed(2)} TND`}</span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">📅 {new Date(course.created_at).toLocaleDateString('fr-TN')}</span>
+                            </div>
+
+                            {course.description && (
+                              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{course.description}</p>
+                            )}
+
+                            {course.admin_note && !isPending && (
+                              <div className={`flex items-start gap-2 p-2.5 rounded-xl mb-3 ${course.status === 'approved' ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800'}`}>
+                                <p className={`text-xs font-semibold ${course.status === 'approved' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+                                  💬 {course.admin_note}
+                                </p>
+                              </div>
+                            )}
+
+                            {isPending && (
+                              <div className="flex gap-2 flex-wrap">
+                                <button onClick={() => { setCourseApproveId(course.id); setCourseNote(''); }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors active:scale-95">
+                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                  Approuver
+                                </button>
+                                <button onClick={() => { setCourseRejectId(course.id); setCourseNote(''); }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors active:scale-95">
+                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                  Refuser
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {acted && <div className={`h-1 w-full transition-all duration-700 ${acted === 'approved' ? 'bg-emerald-500' : 'bg-rose-500'}`} />}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
       </div>
+
+      {/* ── Course approve modal ── */}
+      {courseApproveId && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 pt-5 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p className="font-bold text-slate-900 dark:text-white">Approuver ce cours</p>
+              </div>
+              <button onClick={() => setCourseApproveId(null)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div className="px-6 pb-3">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Message pour l'instructeur (optionnel)</p>
+              {[['Excellent contenu, bien structuré !','Cours approuvé, bonne continuation !','Contenu de qualité, félicitations !']].flat().map(p => (
+                <button key={p} onClick={() => setCourseNote(p)} className={['w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all', courseNote === p ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 font-semibold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-300'].join(' ')}>{p}</button>
+              ))}
+              <textarea value={courseNote} onChange={e => setCourseNote(e.target.value)} rows={2} placeholder="Message personnalisé…" className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors" />
+            </div>
+            <div className="flex gap-2 px-6 pb-6">
+              <button onClick={() => setCourseApproveId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
+              <button onClick={() => approveCourse(courseApproveId, courseNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">✅ Confirmer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Course reject modal ── */}
+      {courseRejectId && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 pt-5 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </div>
+                <p className="font-bold text-slate-900 dark:text-white">Refuser ce cours</p>
+              </div>
+              <button onClick={() => setCourseRejectId(null)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div className="px-6 pb-3">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Raison du refus</p>
+              {['Contenu insuffisant ou incomplet.','Titre ou description peu clairs.','Catégorie incorrecte.','Vidéo manquante ou illisible.'].map(p => (
+                <button key={p} onClick={() => setCourseNote(p)} className={['w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all', courseNote === p ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-400 font-semibold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-300'].join(' ')}>{p}</button>
+              ))}
+              <textarea value={courseNote} onChange={e => setCourseNote(e.target.value)} rows={2} placeholder="Raison personnalisée…" className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 focus:border-rose-400 transition-colors" />
+            </div>
+            <div className="flex gap-2 px-6 pb-6">
+              <button onClick={() => setCourseRejectId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
+              <button disabled={!courseNote.trim()} onClick={() => rejectCourse(courseRejectId, courseNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white transition-colors">❌ Confirmer</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── modals ── */}
       {viewing   && <CINImageModal  user={viewing}   onClose={() => setViewing(null)} />}
@@ -824,7 +1071,6 @@ export default function AdminPage() {
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.55)' }}
-          onClick={() => setLogoutConfirm(false)}
         >
           <div
             className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl w-full max-w-sm overflow-hidden"
