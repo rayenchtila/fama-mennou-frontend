@@ -96,6 +96,7 @@ export default function CoursesPage() {
   const [minRating,    setMinRating]    = useState(0);
 
   const isInstructor = user?.role === 'freelancer';
+  const [showTypeModal, setShowTypeModal] = useState(false);
 
   const fetchCourses = useCallback(async () => {
     setLoading(true);
@@ -155,13 +156,49 @@ export default function CoursesPage() {
           </div>
 
           {isInstructor && (
-            <button onClick={() => navigate('/dashboard?tab=courses')}
+            <button onClick={() => setShowTypeModal(true)}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-indigo-700 text-sm font-bold hover:bg-indigo-50 active:scale-95 transition-all shadow-md">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
               </svg>
-              Créer un cours — Gratuit
+              Créer un cours
             </button>
+          )}
+
+          {/* Free/Paid choice modal */}
+          {showTypeModal && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowTypeModal(false)}>
+              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-5">
+                  <p className="text-base font-extrabold text-slate-900 dark:text-white">Type de cours</p>
+                  <button onClick={() => setShowTypeModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button onClick={() => { setShowTypeModal(false); setPriceFilter('free'); navigate('/dashboard?tab=courses&type=free'); }}
+                    className="group flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:border-emerald-400 active:scale-95 transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400">Gratuit</p>
+                      <p className="text-[10px] text-emerald-600/70 dark:text-emerald-500 mt-0.5">Accessible à tous</p>
+                    </div>
+                  </button>
+                  <button onClick={() => { setShowTypeModal(false); setPriceFilter('paid'); navigate('/dashboard?tab=courses&type=paid'); }}
+                    className="group flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:border-indigo-400 active:scale-95 transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-extrabold text-indigo-700 dark:text-indigo-400">Payant</p>
+                      <p className="text-[10px] text-indigo-600/70 dark:text-indigo-500 mt-0.5">Générez des revenus</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Stats */}
@@ -182,14 +219,23 @@ export default function CoursesPage() {
 
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-1.5 py-3 w-max">
-              {CATEGORIES.map(cat => (
-                <button key={cat} onClick={() => setCategory(cat)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${category === cat ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                  {cat}
-                </button>
-              ))}
+          <div className="flex items-center gap-2">
+            <div className="overflow-x-auto scrollbar-hide flex-1">
+              <div className="flex gap-1.5 py-3 w-max">
+                {CATEGORIES.map(cat => (
+                  <button key={cat} onClick={() => setCategory(cat)}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${category === cat ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="shrink-0 py-3 pl-1">
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher…"
+                  className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-colors w-36 sm:w-44" />
+              </div>
             </div>
           </div>
           <div className="flex items-center justify-between pb-3 gap-2 flex-wrap">
