@@ -212,6 +212,25 @@ export default function CoursesPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+        {/* Instructor CTA banner */}
+        {isInstructor && (
+          <div className="flex items-center justify-between gap-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl px-5 py-4 mb-6 shadow-lg shadow-emerald-500/20">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🎓</span>
+              <div>
+                <p className="text-sm font-extrabold text-white">Vous êtes instructeur</p>
+                <p className="text-xs text-emerald-100">Partagez vos connaissances et gagnez de l'argent</p>
+              </div>
+            </div>
+            <button onClick={() => navigate('/dashboard?tab=courses')}
+              className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-700 text-xs font-bold hover:bg-emerald-50 active:scale-95 transition-all whitespace-nowrap shadow-sm">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Créer un cours
+            </button>
+          </div>
+        )}
+
         {/* Grid */}
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
