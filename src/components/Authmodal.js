@@ -287,21 +287,18 @@ function ForgotPasswordScreen({ onBack, onSent }) {
             autoComplete="off" inputMode="numeric"
             value={code}
             onChange={e => { setCode(e.target.value.replace(/\D/g,"").slice(0,6)); setError(""); }}
-            onKeyDown={e => { if(e.key===' ') e.preventDefault(); }}
             required
           />
           <Input
             label={t("reset.new_password")} type="password" placeholder="Votre nouveau mot de passe"
-            autoComplete="off"
             value={newPassword}
-            onChange={e => { setNewPassword(e.target.value.replace(/ /g,'')); setError(""); }}
+            onChange={e => { setNewPassword(e.target.value); setError(""); }}
             required
           />
           <Input
             label={t("Confirm password")} type="password" placeholder="Répétez votre nouveau mot de passe"
-            autoComplete="off"
             value={confirmPassword}
-            onChange={e => { setConfirmPassword(e.target.value.replace(/ /g,'')); setError(""); }}
+            onChange={e => { setConfirmPassword(e.target.value); setError(""); }}
             required
           />
         </>)}
