@@ -9,6 +9,7 @@ const sizes = {
   xl: "max-w-xl",
   "2xl": "max-w-2xl",
   full: "max-w-full mx-4",
+  fullscreen: "max-w-full",
 };
  
 export default function Modal({
@@ -39,24 +40,25 @@ export default function Modal({
  
   if (!open) return null;
  
+  const isFullscreen = size === 'fullscreen';
+
   return createPortal(
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className={`fixed inset-0 z-50 flex items-center justify-center ${isFullscreen ? '' : 'p-4'}`}
       onClick={(e) => {
-        if (e.target === overlayRef.current && closable) onClose?.();
+        if (e.target === overlayRef.current && closable && !isFullscreen) onClose?.();
       }}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease]" />
- 
+      {!isFullscreen && <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease]" />}
+
       {/* Panel */}
       <div
         className={[
-          "relative w-full bg-white dark:bg-slate-900",
-          "rounded-2xl shadow-2xl shadow-black/30",
+          "relative w-full bg-white dark:bg-slate-900 flex flex-col",
+          isFullscreen ? "h-full rounded-none" : "rounded-2xl shadow-2xl shadow-black/30 max-h-[90vh]",
           "animate-[modalUp_0.25s_cubic-bezier(0.34,1.56,0.64,1)]",
-          "flex flex-col max-h-[90vh]",
           sizes[size] ?? sizes.md,
           className,
         ]

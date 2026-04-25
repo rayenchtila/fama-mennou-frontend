@@ -597,7 +597,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     t("Join thousands of professionals today");
 
   return (
-    <Modal open={open} onClose={onClose} size="md" title={modalTitle} subtitle={modalSubtitle} closable={closable}>
+    <Modal open={open} onClose={onClose} size="fullscreen" title={modalTitle} subtitle={modalSubtitle} closable={closable}>
 
       {/* ── VERIFY EMAIL SCREEN ── */}
       {screen === "verify" && pendingFormData && (
