@@ -46,7 +46,7 @@ export default function Modal({
 
   if (isFullscreen) {
     return createPortal(
-      <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 flex flex-col overflow-y-auto animate-[modalUp_0.25s_cubic-bezier(0.34,1.56,0.64,1)]">
+      <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 flex flex-col overflow-y-auto overflow-x-hidden animate-[modalUp_0.25s_cubic-bezier(0.34,1.56,0.64,1)]">
 
         {/* Close button — top right, always visible */}
         {closable && (
@@ -95,6 +95,18 @@ export default function Modal({
           @keyframes modalUp {
             from { opacity: 0; transform: translateY(16px); }
             to   { opacity: 1; transform: translateY(0); }
+          }
+          @media (max-width: 380px) {
+            .rc-anchor-normal {
+              transform: scale(0.82);
+              transform-origin: left center;
+            }
+          }
+          @media (max-width: 420px) and (min-width: 381px) {
+            .rc-anchor-normal {
+              transform: scale(0.9);
+              transform-origin: left center;
+            }
           }
         `}</style>
       </div>,
