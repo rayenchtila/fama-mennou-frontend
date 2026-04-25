@@ -291,12 +291,14 @@ function ForgotPasswordScreen({ onBack, onSent }) {
           />
           <Input
             label={t("reset.new_password")} type="password" placeholder="••••••"
+            autoComplete="new-password" data-lpignore="true" data-form-type="other"
             value={newPassword}
             onChange={e => { setNewPassword(e.target.value); setError(""); }}
             required
           />
           <Input
             label={t("Confirm password")} type="password" placeholder="••••••"
+            autoComplete="new-password" data-lpignore="true" data-form-type="other"
             value={confirmPassword}
             onChange={e => { setConfirmPassword(e.target.value); setError(""); }}
             required
