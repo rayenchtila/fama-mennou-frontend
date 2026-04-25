@@ -155,8 +155,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     if (!/\S+@\S+\.\S+/.test(email)) { setError(t("Enter a valid email")); return; }
     setLoading(true);
     try {
-      const data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
-      if (data.error === "noAccount")   { setError(t("No account found with this email")); return; }
+      const data = await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
       if (data.error === "emailFailed") { setError(t("Failed to send email. Try again.")); return; }
       if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
       setStep(2); setError("");
