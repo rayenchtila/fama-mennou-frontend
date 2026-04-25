@@ -175,10 +175,13 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     setLoading(true);
     try {
       const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
+      if (data.error === "noCode")      { setError("Code introuvable. Demandez un nouveau code."); setStep(1); return; }
       if (data.error === "wrongCode")   { setError(t("Incorrect code. Please try again.")); return; }
       if (data.error === "expired")     { setError(t("Code expired. Request a new one.")); setStep(1); return; }
       if (data.error === "noAccount")   { setError(t("No account found with this email")); return; }
+      if (data.error === "missing")     { setError("Champs manquants. Réessayez."); return; }
       if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
+      if (!data.success)                { setError("Erreur inattendue. Réessayez."); return; }
       setResetDone(true);
     } catch { setError(t("Network error. Please try again.")); }
     finally  { setLoading(false); }
