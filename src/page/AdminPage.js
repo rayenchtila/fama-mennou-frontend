@@ -574,6 +574,9 @@ export default function AdminPage() {
   const [courseRejectId,  setCourseRejectId]  = useState(null);
   const [courseApproveId, setCourseApproveId] = useState(null);
   const [courseNote,      setCourseNote]      = useState("");
+  const [expandedCourse,  setExpandedCourse]  = useState(null);
+  const [lessonsByCourse, setLessonsByCourse] = useState({});
+  const [lessonsLoading,  setLessonsLoading]  = useState(false);
 
   const API = 'https://famamennou-server.onrender.com/api';
 
@@ -586,6 +589,29 @@ export default function AdminPage() {
     } catch {}
     setCoursesLoading(false);
   };
+
+  async function toggleLessons(courseId) {
+    if (expandedCourse === courseId) { setExpandedCourse(null); return; }
+    setExpandedCourse(courseId);
+    if (lessonsByCourse[courseId]) return;
+    setLessonsLoading(true);
+    try {
+      const r = await fetch(`${API}/lessons/course/${courseId}`);
+      const d = await r.json();
+      if (Array.isArray(d)) setLessonsByCourse(p => ({ ...p, [courseId]: d }));
+    } catch {}
+    setLessonsLoading(false);
+  }
+
+  function CourseVideoPlayer({ url }) {
+    if (!url) return <p className="text-xs text-slate-400 text-center py-3">Aucune URL vidéo</p>;
+    const isYT = /youtube\.com|youtu\.be/.test(url);
+    if (isYT) {
+      const id = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
+      return <iframe className="w-full aspect-video rounded-xl" src={`https://www.youtube.com/embed/${id}?rel=0`} allowFullScreen title="lesson video" />;
+    }
+    return <video className="w-full aspect-video rounded-xl bg-black" src={url} controls />;
+  }
 
   useEffect(() => { if (mainTab === 'courses') fetchCourses(); }, [mainTab]);
 
@@ -926,8 +952,8 @@ export default function AdminPage() {
                               </div>
                             )}
 
-                            {isPending && (
-                              <div className="flex gap-2 flex-wrap">
+                            <div className="flex gap-2 flex-wrap items-center">
+                              {isPending && (<>
                                 <button onClick={() => { setCourseApproveId(course.id); setCourseNote(''); }}
                                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors active:scale-95">
                                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -938,11 +964,70 @@ export default function AdminPage() {
                                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                   Refuser
                                 </button>
-                              </div>
-                            )}
+                              </>)}
+                              <button onClick={() => toggleLessons(course.id)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors active:scale-95 ${
+                                  expandedCourse === course.id
+                                    ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600'
+                                }`}>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {expandedCourse === course.id ? 'Masquer leçons' : 'Voir leçons & vidéos'}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
+
+                      {/* ── Lessons panel ── */}
+                      {expandedCourse === course.id && (
+                        <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-5 py-4">
+                          {lessonsLoading && !lessonsByCourse[course.id] ? (
+                            <div className="space-y-3">
+                              {[1,2].map(i => <div key={i} className="h-40 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />)}
+                            </div>
+                          ) : !lessonsByCourse[course.id] || lessonsByCourse[course.id].length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                              <svg className="w-8 h-8 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.263a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                              </svg>
+                              <p className="text-xs font-semibold">Aucune leçon ajoutée pour ce cours</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                {lessonsByCourse[course.id].length} leçon{lessonsByCourse[course.id].length > 1 ? 's' : ''}
+                              </p>
+                              {lessonsByCourse[course.id].map((lesson, idx) => (
+                                <div key={lesson.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                                  <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                                    <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[10px] font-extrabold flex items-center justify-center shrink-0">
+                                      {idx + 1}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{lesson.title}</p>
+                                      <div className="flex items-center gap-3 mt-0.5">
+                                        {lesson.duration_min > 0 && <span className="text-[10px] text-slate-400">⏱ {lesson.duration_min} min</span>}
+                                        {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Free Preview</span>}
+                                        {Number(lesson.price) > 0 && <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">${Number(lesson.price).toFixed(2)}</span>}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {lesson.description && (
+                                    <p className="px-4 py-2 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">{lesson.description}</p>
+                                  )}
+                                  <div className="p-3">
+                                    <CourseVideoPlayer url={lesson.video_url} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {acted && <div className={`h-1 w-full transition-all duration-700 ${acted === 'approved' ? 'bg-emerald-500' : 'bg-rose-500'}`} />}
                     </div>

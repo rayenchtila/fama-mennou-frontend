@@ -180,8 +180,15 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
   const { t }          = useTranslation();
   const location       = useLocation();
   const navigate       = useNavigate();
-  const { user, logout, getUserNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications } = useAuth();
+  const { user, logout, getUserNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchNotifications } = useAuth();
   const profileRef     = useRef(null);
+
+  // Poll notifications every 8 seconds so new ones appear automatically
+  useEffect(() => {
+    if (!user) return;
+    const id = setInterval(() => { fetchNotifications(); }, 8000);
+    return () => clearInterval(id);
+  }, [user, fetchNotifications]);
 
   // Get user notifications (only for logged-in non-admin users)
   const userNotifications = (user && !user.isAdmin) ? getUserNotifications(user.email) : [];

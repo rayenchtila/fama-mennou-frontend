@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ChatDrawer from '../components/ChatDrawer';
 
 const API = "https://famamennou-server.onrender.com/api";
 
@@ -387,12 +388,12 @@ const CATEGORIES = ['All','Design','Development','Marketing','Writing','Video','
 export default function FreelancersPage() {
   const { users, user, updateUser } = useAuth();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [search,       setSearch]       = useState(searchParams.get('q') || '');
   const [category,     setCategory]     = useState('All');
   const [sortBy,       setSortBy]       = useState('rating');
   const [reviews,      setReviews]      = useState({});
   const [completedWith,setCompletedWith]= useState([]);
+  const [chatWith,     setChatWith]     = useState(null);
 
   const approvedFreelancers = (users || []).filter(u => u?.role === 'freelancer' && u?.cinStatus === 'approved');
 
@@ -451,7 +452,7 @@ export default function FreelancersPage() {
   }
 
   function handleMessage(email) {
-    navigate(`/dashboard?tab=messages&with=${encodeURIComponent(email)}`);
+    setChatWith(email.toLowerCase());
   }
 
   const totalReviews = Object.values(reviews).flat().length;
@@ -555,6 +556,14 @@ export default function FreelancersPage() {
           </div>
         )}
       </div>
+
+      {chatWith && user && (
+        <ChatDrawer
+          user={user}
+          initialEmail={chatWith}
+          onClose={() => setChatWith(null)}
+        />
+      )}
     </div>
   );
 }
