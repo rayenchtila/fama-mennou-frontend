@@ -137,7 +137,6 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   const [newPassword,     setNewPassword]     = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error,           setError]           = useState("");
-  const [resendMsg,       setResendMsg]       = useState("");
   const [resetDone,       setResetDone]       = useState(false);
   const [resendDone,      setResendDone]      = useState(false);
   const [loading,         setLoading]         = useState(false);
