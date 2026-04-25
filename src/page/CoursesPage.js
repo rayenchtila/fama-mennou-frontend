@@ -362,7 +362,7 @@ export default function CoursesPage() {
           user={user}
           initialType={createType}
           onClose={() => setShowCreateModal(false)}
-          onBack={() => { setShowCreateModal(false); setSelectedType('free'); }}
+          onBack={() => { setShowCreateModal(false); setShowTypeModal(true); }}
           onCreated={fetchCourses}
         />
       )}
