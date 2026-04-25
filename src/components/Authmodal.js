@@ -139,6 +139,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   const [error,           setError]           = useState("");
   const [resendMsg,       setResendMsg]       = useState("");
   const [resetDone,       setResetDone]       = useState(false);
+  const [resendDone,      setResendDone]      = useState(false);
   const [loading,         setLoading]         = useState(false);
 
   async function safeFetch(url, body) {
@@ -184,19 +185,37 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   }
 
   async function handleResend() {
-    setResendMsg("");
     setError("");
     try {
       await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
-      setResendMsg("✅ Code renvoyé ! Vérifiez votre boîte mail.");
-      setTimeout(() => setResendMsg(""), 4000);
+      setResendDone(true);
     } catch {
-      setResendMsg("❌ Échec de l'envoi. Réessayez.");
-      setTimeout(() => setResendMsg(""), 4000);
+      setError(t("Failed to resend. Please try again."));
     }
   }
 
   const handleSend = step === 1 ? handleSendCode : handleReset;
+
+  // ── Resend success screen ──
+  if (resendDone) return (
+    <div className="flex flex-col items-center py-10 px-2 text-center">
+      <div className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
+        <svg className="w-8 h-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">Code renvoyé ✅</h2>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+        Un nouveau code a été envoyé à
+      </p>
+      <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6">{email}</p>
+      <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">Vérifiez votre boîte mail et entrez le code reçu.</p>
+      <button onClick={() => setResendDone(false)}
+        className="w-full py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors">
+        Entrer le code →
+      </button>
+    </div>
+  );
 
   // ── Success screen after reset ──
   if (resetDone) return (
@@ -292,16 +311,10 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
       {step === 2 && (
         <div className="mt-3 text-center">
-          {resendMsg ? (
-            <p className={`text-xs font-semibold ${resendMsg.startsWith('✅') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
-              {resendMsg}
-            </p>
-          ) : (
-            <button onClick={handleResend} disabled={loading}
-              className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors disabled:opacity-40">
-              {t("Renvoyer le code")}
-            </button>
-          )}
+          <button onClick={handleResend} disabled={loading}
+            className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors disabled:opacity-40">
+            {t("Renvoyer le code")}
+          </button>
         </div>
       )}
     </div>
