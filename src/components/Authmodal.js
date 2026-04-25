@@ -139,19 +139,26 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   const [error,           setError]           = useState("");
   const [loading,         setLoading]         = useState(false);
 
+  async function safeFetch(url, body) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    try { return await res.json(); }
+    catch { return { error: "serverError" }; }
+  }
+
   // Step 1 — send verification code to email
   async function handleSendCode() {
-    if (!email.trim())               { setError(t("Email is required"));   return; }
+    if (!email.trim())                { setError(t("Email is required"));   return; }
     if (!/\S+@\S+\.\S+/.test(email)) { setError(t("Enter a valid email")); return; }
     setLoading(true);
     try {
-      const res  = await fetch(`${API}/auth/send-reset-code`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.toLowerCase() }),
-      });
-      const data = await res.json();
-      if (data.error === "noAccount")  { setError(t("No account found with this email")); return; }
-      if (data.error === "emailFailed"){ setError(t("Failed to send email. Try again.")); return; }
+      const data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
+      if (data.error === "noAccount")   { setError(t("No account found with this email")); return; }
+      if (data.error === "emailFailed") { setError(t("Failed to send email. Try again.")); return; }
+      if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
       setStep(2); setError("");
     } catch { setError(t("Network error. Please try again.")); }
     finally  { setLoading(false); }
@@ -159,20 +166,17 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
   // Step 2 — verify code + reset password
   async function handleReset() {
-    if (!code || code.length !== 6)            { setError(t("Enter the 6-digit code"));      return; }
-    if (!newPassword)                          { setError(t("Password is required"));        return; }
-    if (newPassword.length < 6)               { setError(t("At least 6 characters"));       return; }
-    if (newPassword !== confirmPassword)       { setError(t("Passwords do not match"));      return; }
+    if (!code || code.length !== 6)      { setError(t("Enter the 6-digit code"));      return; }
+    if (!newPassword)                    { setError(t("Password is required"));        return; }
+    if (newPassword.length < 6)         { setError(t("At least 6 characters"));       return; }
+    if (newPassword !== confirmPassword) { setError(t("Passwords do not match"));      return; }
     setLoading(true);
     try {
-      const res  = await fetch(`${API}/auth/reset-password`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.toLowerCase(), code, newPassword }),
-      });
-      const data = await res.json();
-      if (data.error === "wrongCode") { setError(t("Incorrect code. Please try again.")); return; }
-      if (data.error === "expired")   { setError(t("Code expired. Request a new one.")); setStep(1); return; }
-      if (data.error === "noAccount") { setError(t("No account found with this email")); return; }
+      const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
+      if (data.error === "wrongCode")   { setError(t("Incorrect code. Please try again.")); return; }
+      if (data.error === "expired")     { setError(t("Code expired. Request a new one.")); setStep(1); return; }
+      if (data.error === "noAccount")   { setError(t("No account found with this email")); return; }
+      if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
       onSent(email);
     } catch { setError(t("Network error. Please try again.")); }
     finally  { setLoading(false); }
