@@ -65,16 +65,24 @@ export default function Modal({
         <div className="flex-1 flex flex-col justify-center items-center px-4 py-10 sm:py-16">
           <div className="w-full max-w-md">
 
-            {/* Header */}
+            {/* Header — key forces remount → CSS animation fires on every switch */}
             {(title || subtitle) && (
               <div className="mb-6">
                 {title && (
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
+                  <h2
+                    key={title}
+                    className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-tight animate-[authTitleIn_0.35s_cubic-bezier(0.22,1,0.36,1)_both]"
+                  >
                     {title}
                   </h2>
                 )}
                 {subtitle && (
-                  <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
+                  <p
+                    key={subtitle}
+                    className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 animate-[authSubIn_0.35s_cubic-bezier(0.22,1,0.36,1)_0.05s_both]"
+                  >
+                    {subtitle}
+                  </p>
                 )}
               </div>
             )}
@@ -96,6 +104,39 @@ export default function Modal({
             from { opacity: 0; transform: translateY(16px); }
             to   { opacity: 1; transform: translateY(0); }
           }
+
+          /* Title slides in from slight left + fades — fires on every tab/role switch */
+          @keyframes authTitleIn {
+            from { opacity: 0; transform: translateX(-14px); }
+            to   { opacity: 1; transform: translateX(0); }
+          }
+          @keyframes authSubIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to   { opacity: 1; transform: translateX(0); }
+          }
+
+          /* All inputs, selects, textareas — silky smooth on appearance */
+          .fixed.inset-0 input,
+          .fixed.inset-0 select,
+          .fixed.inset-0 textarea {
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.25s ease;
+          }
+
+          /* Buttons inside auth feel snappy */
+          .fixed.inset-0 button {
+            transition: background-color 0.18s ease, color 0.18s ease,
+                        box-shadow 0.18s ease, transform 0.12s ease;
+          }
+          .fixed.inset-0 button:active {
+            transform: scale(0.97);
+          }
+
+          /* Smooth height change when form content grows/shrinks */
+          .fixed.inset-0 form,
+          .fixed.inset-0 [class*="flex flex-col"] {
+            transition: height 0.3s ease;
+          }
+
           @media (max-width: 380px) {
             .rc-anchor-normal {
               transform: scale(0.82);
