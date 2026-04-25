@@ -285,15 +285,25 @@ function ForgotPasswordScreen({ onBack, onSent }) {
         {step === 2 && (<>
           <Input
             label={t("Verification code")} placeholder="123456" maxLength={6}
-            value={code} onChange={e => { setCode(e.target.value.replace(/\D/g,"").slice(0,6)); setError(""); }} required
+            autoComplete="off" inputMode="numeric"
+            value={code}
+            onChange={e => { setCode(e.target.value.replace(/\D/g,"").slice(0,6)); setError(""); }}
+            onKeyDown={e => { if(e.key===' ') e.preventDefault(); }}
+            required
           />
           <Input
             label={t("reset.new_password")} type="password" placeholder="Votre nouveau mot de passe"
-            value={newPassword} onChange={e => { setNewPassword(e.target.value); setError(""); }} required autoComplete="new-password"
+            autoComplete="off"
+            value={newPassword}
+            onChange={e => { setNewPassword(e.target.value.replace(/ /g,'')); setError(""); }}
+            required
           />
           <Input
             label={t("Confirm password")} type="password" placeholder="Répétez votre nouveau mot de passe"
-            value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setError(""); }} required autoComplete="new-password"
+            autoComplete="off"
+            value={confirmPassword}
+            onChange={e => { setConfirmPassword(e.target.value.replace(/ /g,'')); setError(""); }}
+            required
           />
         </>)}
       </div>
