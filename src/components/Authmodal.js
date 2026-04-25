@@ -131,72 +131,135 @@ function VerifyEmailScreen({ email, onVerify, onBack, loading }) {
 
 function ForgotPasswordScreen({ onBack, onSent }) {
   const { t } = useTranslation();
+  const [step,            setStep]            = useState(1); // 1 = email, 2 = code + new password
   const [email,           setEmail]           = useState("");
+  const [code,            setCode]            = useState("");
   const [newPassword,     setNewPassword]     = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error,           setError]           = useState("");
   const [loading,         setLoading]         = useState(false);
 
-  async function handleSend() {
-    if (!email.trim())                        { setError(t("Email is required"));        return; }
-    if (!/\S+@\S+\.\S+/.test(email))         { setError(t("Enter a valid email"));      return; }
-    if (!newPassword)                         { setError(t("Password is required"));     return; }
-    if (newPassword.length < 6)              { setError(t("At least 6 characters"));    return; }
-    if (newPassword !== confirmPassword)      { setError(t("Passwords do not match"));   return; }
+  // Step 1 — send verification code to email
+  async function handleSendCode() {
+    if (!email.trim())               { setError(t("Email is required"));   return; }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError(t("Enter a valid email")); return; }
+    setLoading(true);
+    try {
+      const res  = await fetch(`${API}/auth/send-reset-code`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.toLowerCase() }),
+      });
+      const data = await res.json();
+      if (data.error === "noAccount")  { setError(t("No account found with this email")); return; }
+      if (data.error === "emailFailed"){ setError(t("Failed to send email. Try again.")); return; }
+      setStep(2); setError("");
+    } catch { setError(t("Network error. Please try again.")); }
+    finally  { setLoading(false); }
+  }
+
+  // Step 2 — verify code + reset password
+  async function handleReset() {
+    if (!code || code.length !== 6)            { setError(t("Enter the 6-digit code"));      return; }
+    if (!newPassword)                          { setError(t("Password is required"));        return; }
+    if (newPassword.length < 6)               { setError(t("At least 6 characters"));       return; }
+    if (newPassword !== confirmPassword)       { setError(t("Passwords do not match"));      return; }
     setLoading(true);
     try {
       const res  = await fetch(`${API}/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.toLowerCase(), newPassword }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.toLowerCase(), code, newPassword }),
       });
       const data = await res.json();
+      if (data.error === "wrongCode") { setError(t("Incorrect code. Please try again.")); return; }
+      if (data.error === "expired")   { setError(t("Code expired. Request a new one.")); setStep(1); return; }
       if (data.error === "noAccount") { setError(t("No account found with this email")); return; }
       onSent(email);
-    } catch {
-      setError(t("Network error. Please try again."));
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError(t("Network error. Please try again.")); }
+    finally  { setLoading(false); }
   }
+
+  const handleSend = step === 1 ? handleSendCode : handleReset;
 
   return (
     <div className="flex flex-col py-4 px-2">
-      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 mb-6 w-fit transition-colors">
+      <button onClick={step === 2 ? () => setStep(1) : onBack}
+        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 mb-6 w-fit transition-colors">
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        {t("Back to login")}
+        {step === 2 ? t("Back") : t("Back to login")}
       </button>
+
+      {/* Step indicator */}
+      <div className="flex items-center gap-2 mb-5 mx-auto">
+        {[1, 2].map(s => (
+          <div key={s} className="flex items-center gap-2">
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${step >= s ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>{s}</div>
+            {s < 2 && <div className={`w-10 h-0.5 rounded transition-all duration-500 ${step >= 2 ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'}`} />}
+          </div>
+        ))}
+      </div>
+
       <div className="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-4 mx-auto">
-        <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
-        </svg>
+        {step === 1
+          ? <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          : <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+        }
       </div>
-      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white text-center mb-1">{t("Forgot your password?")}</h2>
-      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">{t("reset.subtitle")}</p>
+
+      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white text-center mb-1">
+        {step === 1 ? t("Forgot your password?") : t("Verify your identity 🔐")}
+      </h2>
+      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">
+        {step === 1
+          ? t("reset.subtitle")
+          : <>{t("We sent a 6-digit code to")} <span className="font-semibold text-slate-700 dark:text-slate-200">{email}</span></>
+        }
+      </p>
+
       <div className="space-y-3">
-        <Input
-          label={t("Email address")} type="email" placeholder={t("you@example.com")}
-          value={email} onChange={e => { setEmail(e.target.value); setError(""); }} required
-          leftIcon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>}
-        />
-        <Input
-          label={t("reset.new_password")} type="password" placeholder={t("Min 6 characters")}
-          value={newPassword} onChange={e => { setNewPassword(e.target.value); setError(""); }} required
-        />
-        <Input
-          label={t("Confirm password")} type="password" placeholder={t("Repeat your password")}
-          value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setError(""); }} required
-        />
+        {step === 1 && (
+          <Input
+            label={t("Email address")} type="email" placeholder={t("you@example.com")}
+            value={email} onChange={e => { setEmail(e.target.value); setError(""); }} required
+            leftIcon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>}
+          />
+        )}
+
+        {step === 2 && (<>
+          <Input
+            label={t("Verification code")} placeholder="000000" maxLength={6}
+            value={code} onChange={e => { setCode(e.target.value.replace(/\D/g,"").slice(0,6)); setError(""); }} required
+          />
+          <Input
+            label={t("reset.new_password")} type="password" placeholder={t("Min 6 characters")}
+            value={newPassword} onChange={e => { setNewPassword(e.target.value); setError(""); }} required
+          />
+          <Input
+            label={t("Confirm password")} type="password" placeholder={t("Repeat your password")}
+            value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setError(""); }} required
+          />
+        </>)}
       </div>
+
       {error && (
         <div className="mt-3 flex items-center gap-2 p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl">
           <svg className="w-4 h-4 text-rose-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
           <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">{error}</p>
         </div>
       )}
+
       <Button variant="primary" size="lg" fullWidth className="mt-4" loading={loading} onClick={handleSend}>
-        {loading ? t("Processing…") : t("reset.btn")}
+        {loading
+          ? t("Processing…")
+          : step === 1 ? t("Envoyer le code") : t("Réinitialiser le mot de passe")
+        }
       </Button>
+
+      {step === 2 && (
+        <button onClick={handleSendCode} disabled={loading}
+          className="mt-3 text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 text-center w-full transition-colors disabled:opacity-40">
+          {t("Renvoyer le code")}
+        </button>
+      )}
     </div>
   );
 }
