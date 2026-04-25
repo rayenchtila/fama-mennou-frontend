@@ -120,6 +120,17 @@ export default function CoursesPage() {
 
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
 
+  // Lock page scroll whenever any modal is open
+  useEffect(() => {
+    const lock = showTypeModal || showCreateModal;
+    document.body.style.overflow            = lock ? 'hidden' : '';
+    document.documentElement.style.overflow = lock ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow            = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [showTypeModal, showCreateModal]);
+
   const instructors = new Set(courses.map(c => c.creator_email)).size;
 
   return (

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -9,6 +10,7 @@ const CATEGORIES = [
 
 export default function CreateCourseModal({ user, initialType = 'free', onClose, onCreated, onBack }) {
   const isPaid = initialType === 'paid';
+  const navigate = useNavigate();
   const photoRef = useRef();
   const videoRef = useRef();
 
@@ -41,10 +43,14 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
   const [success,       setSuccess]       = useState(false);
   const [createdCourse, setCreatedCourse] = useState(null);
 
-  // Lock body scroll while modal is open
+  // Lock scroll on both body and html — covers all browsers
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.overflow          = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow          = '';
+      document.documentElement.style.overflow = '';
+    };
   }, []);
 
   function set(key, val) { setForm(f => ({ ...f, [key]: val })); }
@@ -102,6 +108,37 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
 
   return (
     <div className="fixed inset-0 z-[300]">
+
+      {/* TRUE top-right X — only on success screen, color matches course type */}
+      {success && (
+        <button
+          onClick={async () => {
+            try {
+              await fetch(`${API}/notifications`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type:    'user',
+                  kind:    `course_created_${createdCourse?.id ?? Date.now()}`,
+                  title:   '📚 Cours en attente de vérification',
+                  message: `Votre cours "${createdCourse?.title || form.title}" est en cours de vérification. Résultat sous 24h max.`,
+                  email:   user.email,
+                  name:    createdCourse?.title || form.title,
+                }),
+              });
+            } catch {}
+            onClose();
+            navigate('/courses');
+          }}
+          className={`fixed top-4 right-4 z-[400] w-10 h-10 flex items-center justify-center rounded-full text-white shadow-lg transition-all active:scale-95 ${
+            isPaid ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'
+          }`}>
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      )}
+
       <div className="bg-white dark:bg-slate-900 w-full h-full overflow-y-auto flex flex-col">
 
         {/* Header */}
@@ -131,30 +168,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
 
         {/* Success */}
         {success ? (
-          <div className="flex flex-col items-center justify-center flex-1 px-6 py-10 text-center relative max-w-2xl mx-auto w-full">
-            {/* X close button — sends notification then closes */}
-            <button onClick={async () => {
-              try {
-                await fetch(`${API}/notifications`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    type:    'user',
-                    kind:    `course_created_${createdCourse?.id ?? Date.now()}`,
-                    title:   '📚 Cours en attente de vérification',
-                    message: `Votre cours "${createdCourse?.title || form.title}" est en cours de vérification. Résultat sous 24h max.`,
-                    email:   user.email,
-                    name:    createdCourse?.title || form.title,
-                  }),
-                });
-              } catch {}
-              onClose();
-            }}
-              className="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
+          <div className="flex flex-col items-center justify-center flex-1 px-6 py-10 text-center max-w-2xl mx-auto w-full">
 
             {/* Checkmark */}
             <div className={`w-16 h-16 rounded-full ${successBg} flex items-center justify-center mb-4`}>
