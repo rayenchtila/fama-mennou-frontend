@@ -290,13 +290,13 @@ function ForgotPasswordScreen({ onBack, onSent }) {
             required
           />
           <Input
-            label={t("reset.new_password")} type="password" placeholder="Votre nouveau mot de passe"
+            label={t("reset.new_password")} type="password" placeholder="••••••"
             value={newPassword}
             onChange={e => { setNewPassword(e.target.value); setError(""); }}
             required
           />
           <Input
-            label={t("Confirm password")} type="password" placeholder="Répétez votre nouveau mot de passe"
+            label={t("Confirm password")} type="password" placeholder="••••••"
             value={confirmPassword}
             onChange={e => { setConfirmPassword(e.target.value); setError(""); }}
             required
