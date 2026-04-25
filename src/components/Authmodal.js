@@ -131,12 +131,14 @@ function VerifyEmailScreen({ email, onVerify, onBack, loading }) {
 
 function ForgotPasswordScreen({ onBack, onSent }) {
   const { t } = useTranslation();
-  const [step,            setStep]            = useState(1); // 1 = email, 2 = code + new password
+  const [step,            setStep]            = useState(1);
   const [email,           setEmail]           = useState("");
   const [code,            setCode]            = useState("");
   const [newPassword,     setNewPassword]     = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error,           setError]           = useState("");
+  const [resendMsg,       setResendMsg]       = useState("");
+  const [resetDone,       setResetDone]       = useState(false);
   const [loading,         setLoading]         = useState(false);
 
   async function safeFetch(url, body) {
@@ -176,12 +178,43 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       if (data.error === "expired")     { setError(t("Code expired. Request a new one.")); setStep(1); return; }
       if (data.error === "noAccount")   { setError(t("No account found with this email")); return; }
       if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
-      onSent(email);
+      setResetDone(true);
     } catch { setError(t("Network error. Please try again.")); }
     finally  { setLoading(false); }
   }
 
+  async function handleResend() {
+    setResendMsg("");
+    setError("");
+    try {
+      await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+      setResendMsg("✅ Code renvoyé ! Vérifiez votre boîte mail.");
+      setTimeout(() => setResendMsg(""), 4000);
+    } catch {
+      setResendMsg("❌ Échec de l'envoi. Réessayez.");
+      setTimeout(() => setResendMsg(""), 4000);
+    }
+  }
+
   const handleSend = step === 1 ? handleSendCode : handleReset;
+
+  // ── Success screen after reset ──
+  if (resetDone) return (
+    <div className="flex flex-col items-center py-10 px-2 text-center">
+      <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
+        <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">Mot de passe réinitialisé ✅</h2>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Votre mot de passe a été changé avec succès.</p>
+      <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
+      <button onClick={() => onSent(email)}
+        className="w-full py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors">
+        Se connecter →
+      </button>
+    </div>
+  );
 
   return (
     <div className="flex flex-col py-4 px-2">
@@ -229,16 +262,16 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
         {step === 2 && (<>
           <Input
-            label={t("Verification code")} placeholder="000000" maxLength={6}
+            label={t("Verification code")} placeholder="123456" maxLength={6}
             value={code} onChange={e => { setCode(e.target.value.replace(/\D/g,"").slice(0,6)); setError(""); }} required
           />
           <Input
-            label={t("reset.new_password")} type="password" placeholder={t("Min 6 characters")}
-            value={newPassword} onChange={e => { setNewPassword(e.target.value); setError(""); }} required
+            label={t("reset.new_password")} type="password" placeholder="Votre nouveau mot de passe"
+            value={newPassword} onChange={e => { setNewPassword(e.target.value); setError(""); }} required autoComplete="new-password"
           />
           <Input
-            label={t("Confirm password")} type="password" placeholder={t("Repeat your password")}
-            value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setError(""); }} required
+            label={t("Confirm password")} type="password" placeholder="Répétez votre nouveau mot de passe"
+            value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setError(""); }} required autoComplete="new-password"
           />
         </>)}
       </div>
@@ -258,10 +291,18 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       </Button>
 
       {step === 2 && (
-        <button onClick={handleSendCode} disabled={loading}
-          className="mt-3 text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 text-center w-full transition-colors disabled:opacity-40">
-          {t("Renvoyer le code")}
-        </button>
+        <div className="mt-3 text-center">
+          {resendMsg ? (
+            <p className={`text-xs font-semibold ${resendMsg.startsWith('✅') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+              {resendMsg}
+            </p>
+          ) : (
+            <button onClick={handleResend} disabled={loading}
+              className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors disabled:opacity-40">
+              {t("Renvoyer le code")}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
