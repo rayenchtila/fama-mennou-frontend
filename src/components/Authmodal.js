@@ -174,7 +174,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     setLoading(true);
     setError("");
     try {
-      const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
+      const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), newPassword });
 
       // Silent auto-retry on server/network hiccup (attempt 1 only)
       if ((data.error === "serverError" || !data) && attempt === 1) {
