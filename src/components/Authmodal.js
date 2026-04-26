@@ -174,9 +174,9 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     setLoading(true);
     try {
       const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
-      if (data.error === "noCode")      { setError("Code introuvable. Demandez un nouveau code."); setStep(1); return; }
+      if (data.error === "noCode")      { goBackToStep1(); setError("Code introuvable. Demandez un nouveau code."); return; }
       if (data.error === "wrongCode")   { setError(t("Incorrect code. Please try again.")); return; }
-      if (data.error === "expired")     { setError(t("Code expired. Request a new one.")); setStep(1); return; }
+      if (data.error === "expired")     { goBackToStep1(); setError(t("Code expired. Request a new one.")); return; }
       if (data.error === "noAccount")   { setError(t("No account found with this email")); return; }
       if (data.error === "missing")     { setError("Champs manquants. Réessayez."); return; }
       if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
@@ -188,12 +188,21 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
   async function handleResend() {
     setError("");
+    setLoading(true);
     try {
-      await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+      const data = await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+      if (data.error) { setError(t("Failed to resend. Please try again.")); return; }
+      setCode("");
       setResendDone(true);
     } catch {
       setError(t("Failed to resend. Please try again."));
-    }
+    } finally { setLoading(false); }
+  }
+
+  function goBackToStep1() {
+    setStep(1);
+    setCode("");
+    setError("");
   }
 
   const handleSend = step === 1 ? handleSendCode : handleReset;
@@ -239,7 +248,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
   return (
     <div className="flex flex-col py-4 px-2">
-      <button onClick={step === 2 ? () => setStep(1) : onBack}
+      <button onClick={step === 2 ? goBackToStep1 : onBack}
         className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 mb-6 w-fit transition-colors">
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
         {step === 2 ? t("Back") : t("Back to login")}
