@@ -182,18 +182,25 @@ function ForgotPasswordScreen({ onBack, onSent }) {
         return handleReset(2);
       }
 
-      if (data.error === "noCode")    { goBackToStep1(); setError("Code introuvable. Cliquez Renvoyer le code."); return; }
-      if (data.error === "wrongCode") { setError(t("Incorrect code. Please try again.")); return; }
-      if (data.error === "expired")   { goBackToStep1(); setError(t("Code expired. Request a new one.")); return; }
-      if (data.error === "noAccount") { setError(t("No account found with this email")); return; }
-      if (!data.success)              { setError("Réessayez dans quelques secondes."); return; }
+      if (data.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); return; }
+      // On code issues: silently resend a fresh code — no error shown
+      if (data.error === "noCode" || data.error === "wrongCode" || data.error === "expired" || !data.success) {
+        await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+        setCode("");
+        setLoading(false);
+        setResendDone(true);
+        return;
+      }
       setResetDone(true);
     } catch {
       if (attempt === 1) {
         await new Promise(r => setTimeout(r, 2500));
         return handleReset(2);
       }
-      setError("Réessayez dans quelques secondes.");
+      // Last resort: silently resend fresh code
+      await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+      setCode("");
+      setResendDone(true);
     } finally { setLoading(false); }
   }
 
