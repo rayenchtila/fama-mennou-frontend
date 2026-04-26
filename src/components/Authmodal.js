@@ -173,7 +173,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     if (newPassword !== confirmPassword) { setError(t("Passwords do not match")); return; }
     setLoading(true);
     setError("");
-    const delays = [0, 8000, 15000, 20000]; // 4 attempts: immediate + 8s + 15s + 20s
+    const delays = [0, 1500, 3000, 5000]; // 4 attempts within 10s max
     for (const delay of delays) {
       try {
         if (delay > 0) await new Promise(r => setTimeout(r, delay));
