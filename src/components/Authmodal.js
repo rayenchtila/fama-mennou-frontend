@@ -142,13 +142,22 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   const [loading,         setLoading]         = useState(false);
 
   async function safeFetch(url, body) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    try { return await res.json(); }
-    catch { return { error: "serverError" }; }
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 6000);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: ctrl.signal,
+      });
+      clearTimeout(t);
+      try { return await res.json(); }
+      catch { return { error: "serverError" }; }
+    } catch {
+      clearTimeout(t);
+      return { error: "serverError" };
+    }
   }
 
   // Step 1 — send verification code to email
@@ -173,7 +182,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     if (newPassword !== confirmPassword) { setError(t("Passwords do not match")); return; }
     setLoading(true);
     setError("");
-    const delays = [0, 1500, 3000, 5000]; // 4 attempts within 10s max
+    const delays = [0, 2000, 4000]; // 3 attempts — immediate, +2s, +4s
     for (const delay of delays) {
       try {
         if (delay > 0) await new Promise(r => setTimeout(r, delay));
