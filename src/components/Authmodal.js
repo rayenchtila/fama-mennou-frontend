@@ -184,16 +184,13 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
       if (data.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); return; }
       if (data.success) { setResetDone(true); return; }
-      // Code not found or wrong — clear field, let user resend manually
-      setCode("");
-      setError("Code invalide ou expiré. Cliquez sur Renvoyer le code.");
+      setError("Code invalide, réessayez !");
     } catch {
       if (attempt === 1) {
         await new Promise(r => setTimeout(r, 2500));
         return handleReset(2);
       }
-      setCode("");
-      setError("Code invalide ou expiré. Cliquez sur Renvoyer le code.");
+      setError("Code invalide, réessayez !");
     } finally { setLoading(false); }
   }
 
