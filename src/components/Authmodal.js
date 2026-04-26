@@ -182,6 +182,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       const retry = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
       if (retry && retry.success)               { setResetDone(true); return; }
       if (retry && retry.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); return; }
+      if (retry && retry.error === "serverError") { setError("Serveur occupé, réessayez dans 10 secondes."); return; }
       setError("Code invalide, réessayez !");
     } catch {
       setError("Code invalide, réessayez !");
