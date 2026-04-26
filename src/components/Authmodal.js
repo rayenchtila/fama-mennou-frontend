@@ -143,7 +143,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
   async function safeFetch(url, body) {
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 6000);
+    const t = setTimeout(() => ctrl.abort(), 15000);
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -166,7 +166,12 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     if (!/\S+@\S+\.\S+/.test(email)) { setError(t("Enter a valid email")); return; }
     setLoading(true);
     try {
-      const data = await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+      let data = await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+      if (data.error === "serverError") {
+        // Silent retry once
+        await new Promise(r => setTimeout(r, 3000));
+        data = await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+      }
       if (data.error === "emailFailed") { setError(t("Failed to send email. Try again.")); return; }
       if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
       setStep(2); setError("");
