@@ -165,7 +165,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     finally  { setLoading(false); }
   }
 
-  // Step 2 — reset password
+  // Step 2 — reset password with persistent retry for Render wake-up
   async function handleReset() {
     if (!code || code.length !== 6)      { setError(t("Enter the 6-digit code"));  return; }
     if (!newPassword)                    { setError(t("Password is required"));    return; }
@@ -173,20 +173,18 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     if (newPassword !== confirmPassword) { setError(t("Passwords do not match")); return; }
     setLoading(true);
     setError("");
-    try {
-      const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
-      if (data && data.success)               { setResetDone(true); return; }
-      if (data && data.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); return; }
-      // Any other response: retry once silently after 2s
-      await new Promise(r => setTimeout(r, 2000));
-      const retry = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
-      if (retry && retry.success)               { setResetDone(true); return; }
-      if (retry && retry.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); return; }
-      if (retry && retry.error === "serverError") { setError("Serveur occupé, réessayez dans 10 secondes."); return; }
-      setError("Code invalide, réessayez !");
-    } catch {
-      setError("Code invalide, réessayez !");
-    } finally { setLoading(false); }
+    const delays = [0, 8000, 15000, 20000]; // 4 attempts: immediate + 8s + 15s + 20s
+    for (const delay of delays) {
+      try {
+        if (delay > 0) await new Promise(r => setTimeout(r, delay));
+        const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
+        if (data && data.success)               { setResetDone(true); setLoading(false); return; }
+        if (data && data.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); setLoading(false); return; }
+        // serverError or other — keep retrying
+      } catch { /* keep retrying */ }
+    }
+    setLoading(false);
+    setError("Réessayez dans quelques secondes.");
   }
 
   async function handleResend() {
