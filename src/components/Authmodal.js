@@ -165,25 +165,36 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     finally  { setLoading(false); }
   }
 
-  // Step 2 — verify code + reset password
-  async function handleReset() {
-    if (!code || code.length !== 6)      { setError(t("Enter the 6-digit code"));      return; }
-    if (!newPassword)                    { setError(t("Password is required"));        return; }
-    if (newPassword.length < 6)         { setError(t("At least 6 characters"));       return; }
-    if (newPassword !== confirmPassword) { setError(t("Passwords do not match"));      return; }
+  // Step 2 — verify code + reset password (with 1 silent auto-retry)
+  async function handleReset(attempt = 1) {
+    if (!code || code.length !== 6)      { setError(t("Enter the 6-digit code"));  return; }
+    if (!newPassword)                    { setError(t("Password is required"));    return; }
+    if (newPassword.length < 6)         { setError(t("At least 6 characters"));   return; }
+    if (newPassword !== confirmPassword) { setError(t("Passwords do not match")); return; }
     setLoading(true);
+    setError("");
     try {
       const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
-      if (data.error === "noCode")      { goBackToStep1(); setError("Code introuvable. Demandez un nouveau code."); return; }
-      if (data.error === "wrongCode")   { setError(t("Incorrect code. Please try again.")); return; }
-      if (data.error === "expired")     { goBackToStep1(); setError(t("Code expired. Request a new one.")); return; }
-      if (data.error === "noAccount")   { setError(t("No account found with this email")); return; }
-      if (data.error === "missing")     { setError("Champs manquants. Réessayez."); return; }
-      if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
-      if (!data.success)                { setError("Erreur inattendue. Réessayez."); return; }
+
+      // Silent auto-retry on server/network hiccup (attempt 1 only)
+      if ((data.error === "serverError" || !data) && attempt === 1) {
+        await new Promise(r => setTimeout(r, 2500));
+        return handleReset(2);
+      }
+
+      if (data.error === "noCode")    { goBackToStep1(); setError("Code introuvable. Cliquez Renvoyer le code."); return; }
+      if (data.error === "wrongCode") { setError(t("Incorrect code. Please try again.")); return; }
+      if (data.error === "expired")   { goBackToStep1(); setError(t("Code expired. Request a new one.")); return; }
+      if (data.error === "noAccount") { setError(t("No account found with this email")); return; }
+      if (!data.success)              { setError("Réessayez dans quelques secondes."); return; }
       setResetDone(true);
-    } catch { setError(t("Network error. Please try again.")); }
-    finally  { setLoading(false); }
+    } catch {
+      if (attempt === 1) {
+        await new Promise(r => setTimeout(r, 2500));
+        return handleReset(2);
+      }
+      setError("Réessayez dans quelques secondes.");
+    } finally { setLoading(false); }
   }
 
   async function handleResend() {
