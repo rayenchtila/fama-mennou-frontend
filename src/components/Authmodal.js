@@ -165,8 +165,8 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     finally  { setLoading(false); }
   }
 
-  // Step 2 — verify code + reset password (with 1 silent auto-retry)
-  async function handleReset(attempt = 1) {
+  // Step 2 — reset password
+  async function handleReset() {
     if (!code || code.length !== 6)      { setError(t("Enter the 6-digit code"));  return; }
     if (!newPassword)                    { setError(t("Password is required"));    return; }
     if (newPassword.length < 6)         { setError(t("At least 6 characters"));   return; }
@@ -175,24 +175,15 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     setError("");
     try {
       const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
-
-      // Silent auto-retry on server/network hiccup (attempt 1 only)
-      if ((data.error === "serverError" || !data) && attempt === 1) {
-        await new Promise(r => setTimeout(r, 2500));
-        return handleReset(2);
-      }
-
-      if (data.success)                { setResetDone(true); return; }
-      if (data.error === "noAccount")  { goBackToStep1(); setError(t("No account found with this email")); return; }
-      if (data.error === "missing")    { setError("Champs manquants."); return; }
-      if (data.error === "serverError"){ if (attempt === 1) { await new Promise(r=>setTimeout(r,2500)); return handleReset(2); } }
-      // noCode / wrongCode / expired — code is stale, ask user to resend
+      if (data && data.success)               { setResetDone(true); return; }
+      if (data && data.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); return; }
+      // Any other response: retry once silently after 2s
+      await new Promise(r => setTimeout(r, 2000));
+      const retry = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
+      if (retry && retry.success)               { setResetDone(true); return; }
+      if (retry && retry.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); return; }
       setError("Code invalide, réessayez !");
     } catch {
-      if (attempt === 1) {
-        await new Promise(r => setTimeout(r, 2500));
-        return handleReset(2);
-      }
       setError("Code invalide, réessayez !");
     } finally { setLoading(false); }
   }
