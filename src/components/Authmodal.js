@@ -115,9 +115,9 @@ function VerifyEmailScreen({ email, onVerify, onBack, loading }) {
         required
       />
       {error && (
-        <div className="mt-3 flex items-center gap-2 p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl">
-          <svg className="w-4 h-4 text-rose-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
-          <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">{error}</p>
+        <div className="mt-3 flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+          <svg className="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
+          <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold">{error}</p>
         </div>
       )}
       <Button variant="primary" size="lg" fullWidth className="mt-4" loading={loading} onClick={() => onVerify(code, setError)}>
@@ -183,24 +183,17 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       }
 
       if (data.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); return; }
-      // On code issues: silently resend a fresh code — no error shown
-      if (data.error === "noCode" || data.error === "wrongCode" || data.error === "expired" || !data.success) {
-        await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
-        setCode("");
-        setLoading(false);
-        setResendDone(true);
-        return;
-      }
-      setResetDone(true);
+      if (data.success) { setResetDone(true); return; }
+      // Code not found or wrong — clear field, let user resend manually
+      setCode("");
+      setError("Code invalide ou expiré. Cliquez sur Renvoyer le code.");
     } catch {
       if (attempt === 1) {
         await new Promise(r => setTimeout(r, 2500));
         return handleReset(2);
       }
-      // Last resort: silently resend fresh code
-      await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
       setCode("");
-      setResendDone(true);
+      setError("Code invalide ou expiré. Cliquez sur Renvoyer le code.");
     } finally { setLoading(false); }
   }
 
@@ -334,9 +327,9 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       </div>
 
       {error && (
-        <div className="mt-3 flex items-center gap-2 p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl">
-          <svg className="w-4 h-4 text-rose-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
-          <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">{error}</p>
+        <div className="mt-3 flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+          <svg className="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
+          <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold">{error}</p>
         </div>
       )}
 
