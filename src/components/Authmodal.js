@@ -174,7 +174,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     setLoading(true);
     setError("");
     try {
-      const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), newPassword });
+      const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
 
       // Silent auto-retry on server/network hiccup (attempt 1 only)
       if ((data.error === "serverError" || !data) && attempt === 1) {
@@ -182,8 +182,11 @@ function ForgotPasswordScreen({ onBack, onSent }) {
         return handleReset(2);
       }
 
-      if (data.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); return; }
-      if (data.success) { setResetDone(true); return; }
+      if (data.success)                { setResetDone(true); return; }
+      if (data.error === "noAccount")  { goBackToStep1(); setError(t("No account found with this email")); return; }
+      if (data.error === "missing")    { setError("Champs manquants."); return; }
+      if (data.error === "serverError"){ if (attempt === 1) { await new Promise(r=>setTimeout(r,2500)); return handleReset(2); } }
+      // noCode / wrongCode / expired — code is stale, ask user to resend
       setError("Code invalide, réessayez !");
     } catch {
       if (attempt === 1) {
