@@ -174,11 +174,9 @@ export default function CourseDetailPage() {
       const r = await fetch(`${API}/lessons`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          course_id: id, title: newLesson.title.trim(),
-          description: newLesson.description.trim(),
-          video_url: newLesson.video_url.trim(),
-          duration_min: Number(newLesson.duration_min) || 0,
-          price: Number(newLesson.price) || 0,
+          course_id: id,
+          title: newLesson.title.trim(),
+          video_url: newLesson.video_url || '',
         }),
       });
       const d = await r.json();
