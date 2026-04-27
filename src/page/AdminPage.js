@@ -581,34 +581,35 @@ export default function AdminPage() {
   const API = 'https://famamennou-server.onrender.com/api';
 
   const fetchCourses = async () => {
-    // Show cached data instantly — no loading spinner for returning visitors
     const CACHE_KEY = 'admin_courses_cache';
+
+    // 1. Show cached data INSTANTLY — zero wait for returning visitors
     try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const { data, ts } = JSON.parse(cached);
-        if (Array.isArray(data)) { setAllCourses(data); setCoursesLoading(false); }
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const { data } = JSON.parse(raw);
+        if (Array.isArray(data) && data.length > 0) {
+          setAllCourses(data);
+          setCoursesLoading(false);
+        }
       }
     } catch {}
 
-    // Fetch fresh data silently in background
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        if (attempt > 0) await new Promise(r => setTimeout(r, 2000));
-        const ctrl  = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 5000);
-        const res   = await fetch(`${API}/courses/pending`, { signal: ctrl.signal });
-        clearTimeout(timer);
-        const d = await res.json();
-        if (Array.isArray(d)) {
-          setAllCourses(d);
-          setCoursesLoading(false);
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: d, ts: Date.now() }));
-          return;
-        }
-      } catch {}
+    // 2. Fetch fresh data — 35s timeout covers Render's 27s cold-start wake-up
+    try {
+      const ctrl  = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 35000);
+      const res   = await fetch(`${API}/courses/pending`, { signal: ctrl.signal });
+      clearTimeout(timer);
+      const d = await res.json();
+      if (Array.isArray(d)) {
+        setAllCourses(d);
+        setCoursesLoading(false);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: d, ts: Date.now() }));
+      }
+    } catch {
+      setCoursesLoading(false);
     }
-    setCoursesLoading(false);
   };
 
   async function toggleLessons(courseId) {
