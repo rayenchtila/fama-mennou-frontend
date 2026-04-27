@@ -728,6 +728,8 @@ function CoursesTab({ user }) {
   const [lessons,      setLessons]      = useState([]);
 
   const [form, setForm] = useState({ title:'', description:'', thumbnail_url:'', category:'', full_price:'', first_lesson_free: false, _videoFile: null, _photoFile: null });
+  const [courseNameEdit,  setCourseNameEdit]  = useState('');
+  const [savingCourseName, setSavingCourseName] = useState(false);
   const [lForm, setLForm] = useState({ title:'', description:'', video_url:'', duration_min:'', price:'0', is_free_preview: false });
   const [sForm, setSForm] = useState({ title:'', description:'', scheduled_at:'', price:'0', join_url:'' });
   const [createLoading, setCreateLoading] = useState(false);
@@ -760,7 +762,11 @@ function CoursesTab({ user }) {
   }, []);
 
   useEffect(() => {
-    if (showLessons) fetchLessons(showLessons);
+    if (showLessons) {
+      fetchLessons(showLessons);
+      const c = courses.find(c => c.id === showLessons);
+      if (c) setCourseNameEdit(c.title || '');
+    }
   }, [showLessons, fetchLessons]);
 
   async function createCourse(e) {
@@ -826,6 +832,20 @@ function CoursesTab({ user }) {
     await fetch(`${API}/courses/${id}`, { method: 'DELETE' });
     setDeleteConfirmId(null);
     fetchCourses();
+  }
+
+  async function saveCourseName() {
+    if (!courseNameEdit.trim() || !showLessons) return;
+    setSavingCourseName(true);
+    try {
+      await fetch(`${API}/courses/${showLessons}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: courseNameEdit.trim() }),
+      });
+      fetchCourses();
+    } catch {}
+    setSavingCourseName(false);
   }
 
   async function addLesson(e) {
@@ -1192,6 +1212,25 @@ function CoursesTab({ user }) {
               </div>
             </div>
             <div className="p-6 space-y-4">
+              {/* Nom du cours */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Nom du cours
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    value={courseNameEdit}
+                    onChange={e => setCourseNameEdit(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveCourseName(); }}
+                    placeholder="Nom du cours…"
+                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  />
+                  <button onClick={saveCourseName} disabled={savingCourseName || !courseNameEdit.trim()}
+                    className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold disabled:opacity-40 active:scale-95 transition-all">
+                    {savingCourseName ? '…' : 'Sauvegarder'}
+                  </button>
+                </div>
+              </div>
               {/* Existing lessons */}
               {lessons.length > 0 && (
                 <div className="space-y-2">
