@@ -50,9 +50,14 @@ export default function CourseDetailPage() {
   const [buyMsg,       setBuyMsg]       = useState('');
 
   // Review form
-  const [myRating,  setMyRating]  = useState(0);
-  const [myReview,  setMyReview]  = useState('');
-  const [submitting,setSubmitting]= useState(false);
+  const [myRating,     setMyRating]     = useState(0);
+  const [myReview,     setMyReview]     = useState('');
+  const [submitting,   setSubmitting]   = useState(false);
+
+  // Add lesson inline (instructor only)
+  const [showAddLesson, setShowAddLesson] = useState(false);
+  const [newLesson,     setNewLesson]     = useState({ title:'', description:'', video_url:'', duration_min:'', price:'0' });
+  const [addingLesson,  setAddingLesson]  = useState(false);
 
   const isInstructor = course && user?.email === course.creator_email;
 
@@ -156,6 +161,31 @@ export default function CourseDetailPage() {
         alert(d.error || 'Failed to submit review');
       }
     } catch {} finally { setSubmitting(false); }
+  }
+
+  async function addLesson(e) {
+    e.preventDefault();
+    if (!newLesson.title.trim()) return;
+    setAddingLesson(true);
+    try {
+      const r = await fetch(`${API}/lessons`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          course_id: id, title: newLesson.title.trim(),
+          description: newLesson.description.trim(),
+          video_url: newLesson.video_url.trim(),
+          duration_min: Number(newLesson.duration_min) || 0,
+          price: Number(newLesson.price) || 0,
+        }),
+      });
+      const d = await r.json();
+      if (d.id) {
+        setLessons(prev => [...prev, d]);
+        setNewLesson({ title:'', description:'', video_url:'', duration_min:'', price:'0' });
+        setShowAddLesson(false);
+      }
+    } catch {}
+    setAddingLesson(false);
   }
 
   async function messageInstructor() {
@@ -395,6 +425,51 @@ export default function CourseDetailPage() {
         {/* ── Curriculum ────────────────────────────────────────────────────── */}
         {activeTab === 'curriculum' && (
           <div className="space-y-2 mb-10">
+            {/* Add lesson button — instructor only */}
+            {isInstructor && (
+              <div className="mb-4">
+                {!showAddLesson ? (
+                  <button onClick={() => setShowAddLesson(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 active:scale-[.99] transition-all">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Ajouter une leçon
+                  </button>
+                ) : (
+                  <form onSubmit={addLesson} className="bg-white dark:bg-slate-900 rounded-2xl border border-indigo-200 dark:border-indigo-800 p-4 space-y-3">
+                    <p className="text-sm font-extrabold text-slate-900 dark:text-white">Nouvelle leçon</p>
+                    <input required placeholder="Titre de la leçon *" value={newLesson.title}
+                      onChange={e => setNewLesson(p => ({ ...p, title: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                    <input placeholder="Description (optionnel)" value={newLesson.description}
+                      onChange={e => setNewLesson(p => ({ ...p, description: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                    <input placeholder="URL vidéo (YouTube ou lien direct)" value={newLesson.video_url}
+                      onChange={e => setNewLesson(p => ({ ...p, video_url: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                    <div className="flex gap-3">
+                      <input type="number" min="0" placeholder="Durée (min)" value={newLesson.duration_min}
+                        onChange={e => setNewLesson(p => ({ ...p, duration_min: e.target.value }))}
+                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                      <input type="number" min="0" step="0.01" placeholder="Prix TND (0 = inclus)" value={newLesson.price}
+                        onChange={e => setNewLesson(p => ({ ...p, price: e.target.value }))}
+                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button type="button" onClick={() => setShowAddLesson(false)}
+                        className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        Annuler
+                      </button>
+                      <button type="submit" disabled={addingLesson || !newLesson.title.trim()}
+                        className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold disabled:opacity-50 transition-colors">
+                        {addingLesson ? 'Ajout…' : 'Ajouter'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
             {lessons.length === 0 ? (
               <div className="text-center py-16 text-slate-400">
                 <p className="text-3xl mb-2">📂</p>
