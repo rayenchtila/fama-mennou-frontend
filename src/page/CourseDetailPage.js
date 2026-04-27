@@ -72,23 +72,36 @@ export default function CourseDetailPage() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
+    // Phase 1 — course + purchases only (fast, enough to decide paywall)
     Promise.all([
       fetch(`${API}/courses/${id}`).then(r => r.json()),
-      fetch(`${API}/lessons/course/${id}`).then(r => r.json()),
-      fetch(`${API}/course-reviews/course/${id}`).then(r => r.json()),
-      fetch(`${API}/live-sessions/course/${id}`).then(r => r.json()),
       user?.email
         ? fetch(`${API}/course-purchases/user/${user.email}`).then(r => r.json())
         : Promise.resolve([]),
-    ]).then(([c, ls, rv, live, myPurch]) => {
+    ]).then(([c, myPurch]) => {
       setCourse(c);
-      setLessons(Array.isArray(ls)   ? ls   : []);
-      setReviews(Array.isArray(rv)   ? rv   : []);
-      setLiveSessions(Array.isArray(live) ? live : []);
-      if (Array.isArray(myPurch)) {
-        setPurchases(myPurch.filter(p => Number(p.course_id) === Number(id)));
+      const filteredPurch = Array.isArray(myPurch)
+        ? myPurch.filter(p => Number(p.course_id) === Number(id))
+        : [];
+      setPurchases(filteredPurch);
+      setLoading(false); // ← paywall or hero renders immediately here
+
+      // Phase 2 — rest only if user can access the course
+      const paid         = Number(c?.full_price) > 0;
+      const isOwner      = c && user?.email === c.creator_email;
+      const hasPurchased = filteredPurch.some(p => !p.lesson_id);
+      if (!paid || isOwner || hasPurchased || user?.isAdmin) {
+        Promise.all([
+          fetch(`${API}/lessons/course/${id}`).then(r => r.json()),
+          fetch(`${API}/course-reviews/course/${id}`).then(r => r.json()),
+          fetch(`${API}/live-sessions/course/${id}`).then(r => r.json()),
+        ]).then(([ls, rv, live]) => {
+          setLessons(Array.isArray(ls)   ? ls   : []);
+          setReviews(Array.isArray(rv)   ? rv   : []);
+          setLiveSessions(Array.isArray(live) ? live : []);
+        }).catch(() => {});
       }
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch(() => setLoading(false));
   }, [id, user?.email]);
 
   async function buyFull() {
@@ -173,6 +186,65 @@ export default function CourseDetailPage() {
   const isFree       = Number(course.full_price) === 0;
   const totalMinutes = lessons.reduce((s, l) => s + (Number(l.duration_min) || 0), 0);
 
+  // ── Paywall — paid course, user hasn't purchased, not instructor, not admin ──
+  if (!isFree && !isInstructor && !hasFull && !user?.isAdmin) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-16 flex flex-col items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+          {/* Thumbnail */}
+          <div className="relative aspect-video bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30">
+            {course.thumbnail_url
+              ? <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
+              : <div className="w-full h-full flex items-center justify-center text-6xl">📚</div>
+            }
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+            </div>
+            <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
+              🔒 Cours payant
+            </span>
+          </div>
+
+          {/* Info */}
+          <div className="p-6">
+            <p className="text-[11px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1">{course.category}</p>
+            <h1 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1 leading-snug">{course.title}</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+              par <span className="font-semibold">{course.instructor_name || course.creator_email?.split('@')[0]}</span>
+            </p>
+
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl px-4 py-4 text-center mb-5">
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-white mb-0.5">
+                {Number(course.full_price).toFixed(2)} TND
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold">
+                🔒 Accès complet requis pour voir ce cours
+              </p>
+            </div>
+
+            {buyMsg && (
+              <p className="text-sm font-semibold text-center text-emerald-600 dark:text-emerald-400 mb-3">{buyMsg}</p>
+            )}
+
+            <button onClick={buyFull} disabled={buying}
+              className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-extrabold transition-all active:scale-[.98] shadow-sm shadow-indigo-500/25 disabled:opacity-60 mb-3">
+              {buying ? 'Traitement…' : `Acheter ce cours — ${Number(course.full_price).toFixed(2)} TND`}
+            </button>
+
+            <button onClick={() => navigate('/courses')}
+              className="w-full py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              ← Retour aux cours
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-16">
 
@@ -237,7 +309,7 @@ export default function CourseDetailPage() {
             <div className="p-5">
               {/* Price */}
               <p className={`text-3xl font-extrabold mb-4 ${isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-                {isFree ? 'Free' : `$${Number(course.full_price).toFixed(2)}`}
+                {isFree ? 'Gratuit' : `${Number(course.full_price).toFixed(2)} TND`}
               </p>
 
               {buyMsg && (
@@ -258,7 +330,7 @@ export default function CourseDetailPage() {
                 <>
                   <button onClick={buyFull} disabled={buying}
                     className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-bold transition-colors shadow-sm shadow-indigo-500/30 mb-3">
-                    {buying ? 'Processing…' : isFree ? 'Enroll for Free' : `Buy Full Course — $${Number(course.full_price).toFixed(2)}`}
+                    {buying ? 'Processing…' : isFree ? 'Enroll for Free' : `Acheter — ${Number(course.full_price).toFixed(2)} TND`}
                   </button>
                   {!isFree && (
                     <p className="text-[10px] text-center text-slate-400">or purchase lessons individually below</p>
@@ -371,7 +443,7 @@ export default function CourseDetailPage() {
                       <button onClick={e => { e.stopPropagation(); buyLesson(lesson); }}
                         disabled={buyingLesson === lesson.id}
                         className="text-xs font-bold px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors disabled:opacity-60">
-                        {buyingLesson === lesson.id ? '…' : `$${Number(lesson.price).toFixed(2)}`}
+                        {buyingLesson === lesson.id ? '…' : `${Number(lesson.price).toFixed(2)} TND`}
                       </button>
                     )}
                     {!watchable && (Number(lesson.price) === 0 || !lesson.price) && (
@@ -482,7 +554,7 @@ export default function CourseDetailPage() {
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-2">
                     <span className={`text-sm font-extrabold ${Number(s.price) === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-                      {Number(s.price) === 0 ? 'Free' : `$${Number(s.price).toFixed(2)}`}
+                      {Number(s.price) === 0 ? 'Gratuit' : `${Number(s.price).toFixed(2)} TND`}
                     </span>
                     {s.is_recorded && s.recording_url && (
                       <a href={s.recording_url} target="_blank" rel="noopener noreferrer"

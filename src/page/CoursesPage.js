@@ -8,11 +8,12 @@ const API = 'https://famamennou-server.onrender.com/api';
 const CATEGORIES = ['All','Design','Development','Marketing','Business','Music','Photography','Finance','Health','Other'];
 
 const SORT_OPTIONS = [
-  { value: 'newest',     label: 'Newest' },
-  { value: 'popular',    label: 'Most Popular' },
-  { value: 'rating',     label: 'Highest Rated' },
-  { value: 'price_asc',  label: 'Price: Low → High' },
-  { value: 'price_desc', label: 'Price: High → Low' },
+  { value: 'free_first',  label: 'Free First' },
+  { value: 'newest',      label: 'Newest' },
+  { value: 'popular',     label: 'Most Popular' },
+  { value: 'rating',      label: 'Highest Rated' },
+  { value: 'price_asc',   label: 'Price: Low → High' },
+  { value: 'price_desc',  label: 'Price: High → Low' },
 ];
 
 function StarRating({ rating = 0 }) {
@@ -31,6 +32,7 @@ function StarRating({ rating = 0 }) {
 
 function CourseCard({ course, onClick }) {
   const isFree = Number(course.full_price) === 0;
+  const instructorFirst = (course.instructor_name || course.creator_email?.split('@')[0] || '').split(' ')[0];
   return (
     <button onClick={onClick}
       className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-left group w-full">
@@ -43,11 +45,9 @@ function CourseCard({ course, onClick }) {
         <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 dark:bg-slate-900/90 text-indigo-700 dark:text-indigo-400">
           {course.category}
         </span>
-        {course.first_lesson_free && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white">
-            Free Preview
-          </span>
-        )}
+        <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${isFree ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
+          {isFree ? 'Gratuit' : '🔒 Payant'}
+        </span>
       </div>
 
       <div className="p-4">
@@ -55,7 +55,7 @@ function CourseCard({ course, onClick }) {
           {course.title}
         </h3>
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 truncate">
-          {course.instructor_name || course.creator_email?.split('@')[0]}
+          {instructorFirst}
         </p>
         <div className="flex items-center gap-2 mb-3">
           <StarRating rating={course.avg_rating} />
@@ -88,14 +88,16 @@ function SkeletonCard() {
 export default function CoursesPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isInstructor = user?.role === 'freelancer';
 
-  const [courses,     setCourses]     = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [search,      setSearch]      = useState('');
-  const [category,    setCategory]    = useState('All');
-  const [sort,        setSort]        = useState('newest');
-  const [priceFilter, setPriceFilter] = useState('all');
-  const [minRating,   setMinRating]   = useState(0);
+  const [courses,       setCourses]       = useState([]);
+  const [recommended,   setRecommended]   = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [search,        setSearch]        = useState('');
+  const [category,      setCategory]      = useState('All');
+  const [sort,          setSort]          = useState('free_first');
+  const [priceFilter,   setPriceFilter]   = useState('all');
+  const [minRating,     setMinRating]     = useState(0);
 
   const [showTypeModal,   setShowTypeModal]   = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -118,7 +120,16 @@ export default function CoursesPage() {
     finally  { setLoading(false); }
   }, [search, category, sort, priceFilter, minRating]);
 
-  useEffect(() => { fetchCourses(); }, [fetchCourses]);
+  const fetchRecommended = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/courses/recommended`);
+      const d = await r.json();
+      if (Array.isArray(d)) setRecommended(d);
+    } catch {}
+  }, []);
+
+  useEffect(() => { fetchCourses(); },    [fetchCourses]);
+  useEffect(() => { fetchRecommended(); }, [fetchRecommended]);
 
   // Lock page scroll whenever any modal is open
   useEffect(() => {
@@ -131,7 +142,9 @@ export default function CoursesPage() {
     };
   }, [showTypeModal, showCreateModal]);
 
-  const instructors = new Set(courses.map(c => c.creator_email)).size;
+  const instructors  = new Set(courses.map(c => c.creator_email)).size;
+  const freeCourses  = courses.filter(c => Number(c.full_price) === 0);
+  const paidCourses  = courses.filter(c => Number(c.full_price) > 0);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 overflow-x-hidden">
@@ -248,13 +261,67 @@ export default function CoursesPage() {
         </div>
       </div>
 
-      {/* ── Grid — identical structure to Find pages ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {loading ? (
+      {/* ── Content ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+
+        {/* Recommendations — shown only when not searching/filtering */}
+        {!search && category === 'All' && recommended.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">⭐</span>
+              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Recommandés pour vous</h2>
+              <span className="text-xs text-slate-400 dark:text-slate-500">· Basé sur la popularité et les avis</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {recommended.slice(0, 4).map(c => (
+                <CourseCard key={c.id} course={c} onClick={() => navigate(`/courses/${c.id}`)} />
+              ))}
+            </div>
+            <div className="mt-8 border-t border-slate-200 dark:border-slate-800" />
+          </section>
+        )}
+
+        {/* Loading */}
+        {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {[...Array(8)].map((_,i) => <SkeletonCard key={i} />)}
           </div>
-        ) : courses.length === 0 ? (
+        )}
+
+        {/* Free courses — always first */}
+        {!loading && freeCourses.length > 0 && priceFilter !== 'paid' && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">🎁</span>
+              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Cours gratuits</h2>
+              <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">{freeCourses.length}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {freeCourses.map(c => (
+                <CourseCard key={c.id} course={c} onClick={() => navigate(`/courses/${c.id}`)} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Paid courses — always after free */}
+        {!loading && paidCourses.length > 0 && priceFilter !== 'free' && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">🔒</span>
+              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Cours payants</h2>
+              <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">{paidCourses.length}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {paidCourses.map(c => (
+                <CourseCard key={c.id} course={c} onClick={() => navigate(`/courses/${c.id}`)} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Empty state */}
+        {!loading && courses.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-20 h-20 rounded-3xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-4">
               <span className="text-4xl">🎓</span>
@@ -268,12 +335,6 @@ export default function CoursesPage() {
                 Effacer la recherche
               </button>
             )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {courses.map(c => (
-              <CourseCard key={c.id} course={c} onClick={() => navigate(`/courses/${c.id}`)} />
-            ))}
           </div>
         )}
       </div>
@@ -295,10 +356,9 @@ export default function CoursesPage() {
               </button>
             </div>
 
-            {/* Pill toggle — left = Gratuit, right = Payant */}
+            {/* Pill toggle */}
             <div className="flex bg-slate-100 dark:bg-slate-800 rounded-2xl p-1 mb-6">
-              <button
-                onClick={() => setSelectedType('free')}
+              <button onClick={() => setSelectedType('free')}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
                   selectedType === 'free'
                     ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm'
@@ -309,8 +369,7 @@ export default function CoursesPage() {
                 </svg>
                 Gratuit
               </button>
-              <button
-                onClick={() => setSelectedType('paid')}
+              <button onClick={() => setSelectedType('paid')}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
                   selectedType === 'paid'
                     ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm'
@@ -343,8 +402,7 @@ export default function CoursesPage() {
             </div>
 
             {/* Continue button */}
-            <button
-              onClick={() => { setShowTypeModal(false); setCreateType(selectedType); setShowCreateModal(true); }}
+            <button onClick={() => { setShowTypeModal(false); setCreateType(selectedType); setShowCreateModal(true); }}
               className={`w-full py-3 rounded-2xl text-sm font-extrabold text-white transition-all active:scale-[.98] shadow-sm ${
                 selectedType === 'free'
                   ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25'
