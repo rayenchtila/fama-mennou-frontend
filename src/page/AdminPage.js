@@ -581,16 +581,31 @@ export default function AdminPage() {
   const API = 'https://famamennou-server.onrender.com/api';
 
   const fetchCourses = async () => {
-    setCoursesLoading(true);
-    for (let attempt = 0; attempt < 4; attempt++) {
+    // Show cached data instantly — no loading spinner for returning visitors
+    const CACHE_KEY = 'admin_courses_cache';
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, ts } = JSON.parse(cached);
+        if (Array.isArray(data)) { setAllCourses(data); setCoursesLoading(false); }
+      }
+    } catch {}
+
+    // Fetch fresh data silently in background
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
         if (attempt > 0) await new Promise(r => setTimeout(r, 2000));
-        const ctrl = new AbortController();
+        const ctrl  = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 5000);
-        const res = await fetch(`${API}/courses/pending`, { signal: ctrl.signal });
+        const res   = await fetch(`${API}/courses/pending`, { signal: ctrl.signal });
         clearTimeout(timer);
         const d = await res.json();
-        if (Array.isArray(d)) { setAllCourses(d); setCoursesLoading(false); return; }
+        if (Array.isArray(d)) {
+          setAllCourses(d);
+          setCoursesLoading(false);
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: d, ts: Date.now() }));
+          return;
+        }
       } catch {}
     }
     setCoursesLoading(false);
