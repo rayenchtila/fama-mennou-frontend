@@ -42,6 +42,16 @@ export function AuthProvider({ children }) {
   // ── Load users and notifications from backend on mount ──
   const fetchAccounts = useCallback(async () => {
     try {
+      // Phase 1 — fast lite fetch (no base64 images) for instant count display
+      const liteRes = await fetch(`${API}/users/lite`);
+      const liteRows = await liteRes.json();
+      if (Array.isArray(liteRows) && liteRows.length > 0) {
+        const liteMap = {};
+        liteRows.forEach(r => { if (r?.email) liteMap[r.email.toLowerCase()] = normalizeUser(r); });
+        setAccounts(liteMap);
+        localStorage.setItem("fm_accounts", JSON.stringify(liteMap));
+      }
+      // Phase 2 — full fetch with images in background (for CIN verification etc.)
       const res = await fetch(`${API}/users`);
       const rows = await res.json();
       const map = {};
