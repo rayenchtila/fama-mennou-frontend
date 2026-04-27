@@ -55,10 +55,11 @@ export default function CourseDetailPage() {
   const [submitting,   setSubmitting]   = useState(false);
 
   // Add lesson inline (instructor only)
-  const [showAddLesson, setShowAddLesson] = useState(false);
-  const [newLesson,     setNewLesson]     = useState({ title:'', video_url:'' });
-  const [videoFileName, setVideoFileName] = useState('');
-  const [addingLesson,  setAddingLesson]  = useState(false);
+  const [showAddLesson,    setShowAddLesson]    = useState(false);
+  const [lessonSubmitted,  setLessonSubmitted]  = useState(false);
+  const [newLesson,        setNewLesson]        = useState({ title:'', video_url:'' });
+  const [videoFileName,    setVideoFileName]    = useState('');
+  const [addingLesson,     setAddingLesson]     = useState(false);
   const videoInputRef = { current: null };
 
   const isInstructor = course && user?.email === course.creator_email;
@@ -183,8 +184,11 @@ export default function CourseDetailPage() {
       const d = await r.json();
       if (d.id) {
         setLessons(prev => [...prev, d]);
-        setNewLesson({ title:'', description:'', video_url:'', duration_min:'', price:'0' });
+        setNewLesson({ title:'', video_url:'' });
+        setVideoFileName('');
         setShowAddLesson(false);
+        setLessonSubmitted(true);
+        setTimeout(() => setLessonSubmitted(false), 6000);
       }
     } catch {}
     setAddingLesson(false);
@@ -427,6 +431,17 @@ export default function CourseDetailPage() {
         {/* ── Curriculum ────────────────────────────────────────────────────── */}
         {activeTab === 'curriculum' && (
           <div className="space-y-2 mb-10">
+            {/* Lesson submitted banner */}
+            {lessonSubmitted && (
+              <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mb-2">
+                <span className="text-xl">⏳</span>
+                <div>
+                  <p className="text-sm font-extrabold text-amber-800 dark:text-amber-300">Leçon envoyée à l'admin</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">En attente de vérification · Résultat sous 24h max · Vous serez notifié</p>
+                </div>
+              </div>
+            )}
+
             {/* Add lesson button — instructor only */}
             {isInstructor && (
               <div className="mb-4">
@@ -512,9 +527,17 @@ export default function CourseDetailPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-semibold truncate ${watchable ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                      {lesson.title}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={`text-sm font-semibold truncate ${watchable ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                        {lesson.title}
+                      </p>
+                      {lesson.status === 'pending' && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 shrink-0">⏳ En attente</span>
+                      )}
+                      {lesson.status === 'rejected' && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shrink-0">❌ Refusée</span>
+                      )}
+                    </div>
                     {lesson.description && (
                       <p className="text-xs text-slate-400 truncate mt-0.5">{lesson.description}</p>
                     )}
