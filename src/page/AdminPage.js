@@ -644,6 +644,8 @@ export default function AdminPage() {
     );
   }
 
+  // Fetch courses on mount AND on tab switch — badge always ready
+  useEffect(() => { fetchCourses(); }, []);
   useEffect(() => { if (mainTab === 'courses') fetchCourses(); }, [mainTab]);
 
   const coursesByFilter = allCourses.filter(c =>
@@ -788,7 +790,7 @@ export default function AdminPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-3 flex flex-wrap gap-1">
           {[
             { id: "cin",      label: t("admin.tab.cin") },
-            { id: "allusers", label: `${t("admin.tab.all_users")} (${(users ?? []).length})` },
+            { id: "allusers", label: `${t("admin.tab.all_users")} (${(users ?? []).length > 0 ? (users ?? []).length : '…'})` },
             { id: "courses",  label: `📚 Cours${courseCounts.pending > 0 ? ` (${courseCounts.pending})` : ''}` },
           ].map(tab => (
             <button
