@@ -810,8 +810,8 @@ export default function AdminPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-3 flex flex-wrap gap-1">
           {[
             { id: "cin",      label: t("admin.tab.cin") },
-            { id: "allusers", label: `${t("admin.tab.all_users")} (${(users ?? []).length > 0 ? (users ?? []).length : '…'})` },
-            { id: "courses",  label: `📚 Cours${courseCounts.pending > 0 ? ` (${courseCounts.pending})` : ''}` },
+            { id: "allusers", label: `${t("admin.tab.all_users")} (${(users ?? []).length})` },
+            { id: "courses",  label: `📚 Cours${courseCounts.all > 0 ? ` (${courseCounts.all})` : ''}` },
           ].map(tab => (
             <button
               key={tab.id}
