@@ -63,7 +63,7 @@ function CourseCard({ course, onClick }) {
         </div>
         <div className="flex items-center justify-between">
           <span className={`text-base font-extrabold ${isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-            {isFree ? 'Free' : `$${Number(course.full_price).toFixed(2)}`}
+            {isFree ? 'Gratuit' : `${Number(course.full_price).toFixed(2)} TND`}
           </span>
           <span className="text-[10px] text-slate-400">{course.lesson_count ?? 0} lessons</span>
         </div>

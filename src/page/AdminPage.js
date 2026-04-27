@@ -582,17 +582,15 @@ export default function AdminPage() {
 
   const fetchCourses = async () => {
     setCoursesLoading(true);
-    const delays = [0, 3000, 6000, 10000];
-    for (const delay of delays) {
+    for (let attempt = 0; attempt < 4; attempt++) {
       try {
-        if (delay > 0) await new Promise(r => setTimeout(r, delay));
-        const res = await fetch(`${API}/courses/pending`);
-        const d   = await res.json();
-        if (Array.isArray(d) && d.length >= 0) {
-          setAllCourses(d);
-          setCoursesLoading(false);
-          return;
-        }
+        if (attempt > 0) await new Promise(r => setTimeout(r, 2000));
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 5000);
+        const res = await fetch(`${API}/courses/pending`, { signal: ctrl.signal });
+        clearTimeout(timer);
+        const d = await res.json();
+        if (Array.isArray(d)) { setAllCourses(d); setCoursesLoading(false); return; }
       } catch {}
     }
     setCoursesLoading(false);
@@ -1067,7 +1065,7 @@ export default function AdminPage() {
                                       <div className="flex items-center gap-3 mt-0.5">
                                         {lesson.duration_min > 0 && <span className="text-[10px] text-slate-400">⏱ {lesson.duration_min} min</span>}
                                         {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Free Preview</span>}
-                                        {Number(lesson.price) > 0 && <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">${Number(lesson.price).toFixed(2)}</span>}
+                                        {Number(lesson.price) > 0 && <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">{Number(lesson.price).toFixed(2)} TND</span>}
                                       </div>
                                     </div>
                                   </div>
