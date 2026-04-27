@@ -179,14 +179,16 @@ export default function CoursesPage() {
               className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm bg-white/10 backdrop-blur border border-white/20 text-white placeholder-emerald-300 focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/15 transition-all" />
           </div>
 
-          {/* Create Course button */}
-          <button onClick={() => setShowTypeModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-indigo-700 text-sm font-bold hover:bg-indigo-50 active:scale-95 transition-all shadow-md mb-8">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
-            Créer un cours
-          </button>
+          {/* Create Course button — freelancers only */}
+          {user?.role === 'freelancer' && (
+            <button onClick={() => setShowTypeModal(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-indigo-700 text-sm font-bold hover:bg-indigo-50 active:scale-95 transition-all shadow-md mb-8">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              Créer un cours
+            </button>
+          )}
 
           {/* Stats row — identical layout to Find pages */}
           <div className="flex items-center justify-center gap-6 sm:gap-10">
