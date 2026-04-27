@@ -168,7 +168,7 @@ export default function CourseDetailPage() {
 
   async function addLesson(e) {
     e.preventDefault();
-    if (!newLesson.title.trim()) return;
+    if (!newLesson.title.trim() || !newLesson.video_url) return;
     setAddingLesson(true);
     try {
       const r = await fetch(`${API}/lessons`, {
@@ -491,7 +491,7 @@ export default function CourseDetailPage() {
                         className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         Annuler
                       </button>
-                      <button type="submit" disabled={addingLesson || !newLesson.title.trim()}
+                      <button type="submit" disabled={addingLesson || !newLesson.title.trim() || !newLesson.video_url}
                         className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold disabled:opacity-50 transition-colors">
                         {addingLesson ? 'Ajout…' : 'Ajouter'}
                       </button>
