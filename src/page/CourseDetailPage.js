@@ -460,32 +460,13 @@ export default function CourseDetailPage() {
                     <input required placeholder="Titre de la leçon *" value={newLesson.title}
                       onChange={e => setNewLesson(p => ({ ...p, title: e.target.value }))}
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
-                    {/* MP4 upload */}
-                    <input type="file" accept="video/mp4,video/*" className="hidden"
-                      ref={r => { videoInputRef.current = r; }}
-                      onChange={e => {
-                        const f = e.target.files?.[0];
-                        if (!f) return;
-                        setVideoFileName(f.name);
-                        setNewLesson(p => ({ ...p, video_url: f.name }));
-                      }} />
-                    <button type="button" onClick={() => videoInputRef.current?.click()}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-indigo-400 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-all">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.263a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-                      </svg>
-                      {videoFileName || 'Importer vidéo MP4'}
-                    </button>
-                    {videoFileName && (
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
-                        <svg className="w-4 h-4 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 truncate flex-1">{videoFileName}</p>
-                        <button type="button" onClick={() => { setVideoFileName(''); setNewLesson(p => ({ ...p, video_url: '' })); if(videoInputRef.current) videoInputRef.current.value=''; }}
-                          className="text-slate-400 hover:text-rose-500 transition-colors">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                      </div>
-                    )}
+                    {/* Video URL */}
+                    <input
+                      placeholder="Lien vidéo (YouTube ou URL directe) *"
+                      value={newLesson.video_url}
+                      onChange={e => setNewLesson(p => ({ ...p, video_url: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    />
                     <div className="flex gap-2 pt-1">
                       <button type="button" onClick={() => { setShowAddLesson(false); setVideoFileName(''); setNewLesson({ title:'', video_url:'' }); }}
                         className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
