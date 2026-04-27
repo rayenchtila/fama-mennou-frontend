@@ -566,8 +566,14 @@ export default function AdminPage() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
 
-  // ── courses tab state ──
-  const [allCourses,      setAllCourses]      = useState([]);
+  // ── courses tab state — init from localStorage so counts show on first render ──
+  const [allCourses, setAllCourses] = useState(() => {
+    try {
+      const raw = localStorage.getItem('admin_courses_cache');
+      if (raw) { const { data } = JSON.parse(raw); if (Array.isArray(data) && data.length > 0) return data; }
+    } catch {}
+    return [];
+  });
   const [coursesLoading,  setCoursesLoading]  = useState(false);
   const [courseFilter,    setCourseFilter]    = useState("pending");
   const [courseActing,    setCourseActing]    = useState({});
