@@ -193,8 +193,8 @@ export default function CourseDetailPage() {
         <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
           {/* Thumbnail */}
           <div className="relative aspect-video bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30">
-            {course.thumbnail_url
-              ? <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
+            {(course.photo_url || course.thumbnail_url)
+              ? <img src={course.photo_url || course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
               : <div className="w-full h-full flex items-center justify-center text-6xl">📚</div>
             }
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
