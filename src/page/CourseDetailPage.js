@@ -58,9 +58,11 @@ export default function CourseDetailPage() {
   const [showAddLesson,    setShowAddLesson]    = useState(false);
   const [lessonSubmitted,  setLessonSubmitted]  = useState(false);
   const [newLesson,        setNewLesson]        = useState({ title:'', video_url:'' });
-  const [videoFileName,    setVideoFileName]    = useState('');
   const [addingLesson,     setAddingLesson]     = useState(false);
-  const videoInputRef = { current: null };
+  const [uploadState,      setUploadState]      = useState('idle'); // idle | uploading | processing | done | error
+  const [uploadProgress,   setUploadProgress]   = useState(0);
+  const [uploadFileName,   setUploadFileName]   = useState('');
+  const muxFileRef = { current: null };
 
   const isInstructor = course && user?.email === course.creator_email;
 
@@ -166,6 +168,50 @@ export default function CourseDetailPage() {
         alert(d.error || 'Failed to submit review');
       }
     } catch {} finally { setSubmitting(false); }
+  }
+
+  async function handleMuxUpload(file) {
+    if (!file) return;
+    setUploadFileName(file.name);
+    setUploadState('uploading');
+    setUploadProgress(0);
+    try {
+      // 1. Get upload URL from our backend
+      const r = await fetch(`${API}/mux/upload-url`, { method: 'POST' });
+      const { upload_id, url } = await r.json();
+
+      // 2. Upload file directly to Mux with XHR for progress
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', url);
+        xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+        xhr.upload.onprogress = e => {
+          if (e.lengthComputable) setUploadProgress(Math.round(e.loaded / e.total * 100));
+        };
+        xhr.onload  = () => xhr.status < 300 ? resolve() : reject(new Error('Upload failed'));
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(file);
+      });
+
+      // 3. Poll until Mux finishes processing
+      setUploadState('processing');
+      setUploadProgress(100);
+      let playbackId = null;
+      for (let i = 0; i < 60; i++) {
+        await new Promise(r => setTimeout(r, 3000));
+        const poll = await fetch(`${API}/mux/upload/${upload_id}`).then(r => r.json());
+        if (poll.playback_id) { playbackId = poll.playback_id; break; }
+        if (poll.status === 'errored') throw new Error('Mux processing failed');
+      }
+      if (!playbackId) throw new Error('Timeout waiting for Mux');
+
+      // 4. Store as mux:{playback_id}
+      setNewLesson(p => ({ ...p, video_url: `mux:${playbackId}` }));
+      setUploadState('done');
+    } catch (err) {
+      console.error('Mux upload error:', err);
+      setUploadState('error');
+    }
   }
 
   async function addLesson(e) {
@@ -460,21 +506,76 @@ export default function CourseDetailPage() {
                     <input required placeholder="Titre de la leçon *" value={newLesson.title}
                       onChange={e => setNewLesson(p => ({ ...p, title: e.target.value }))}
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
-                    {/* Video URL */}
-                    <input
-                      placeholder="Lien vidéo (YouTube ou URL directe) *"
-                      value={newLesson.video_url}
-                      onChange={e => setNewLesson(p => ({ ...p, video_url: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    />
+                    {/* Mux video upload */}
+                    <input type="file" accept="video/mp4,video/*" className="hidden"
+                      ref={r => { muxFileRef.current = r; }}
+                      onChange={e => { const f = e.target.files?.[0]; if (f) handleMuxUpload(f); }} />
+
+                    {uploadState === 'idle' && (
+                      <button type="button" onClick={() => muxFileRef.current?.click()}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        Importer une vidéo MP4 *
+                      </button>
+                    )}
+
+                    {uploadState === 'uploading' && (
+                      <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 p-3 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-600 dark:text-slate-300 font-semibold truncate flex-1 mr-2">{uploadFileName}</span>
+                          <span className="text-indigo-600 dark:text-indigo-400 font-bold shrink-0">{uploadProgress}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-indigo-500 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                        </div>
+                        <p className="text-[10px] text-slate-400">Envoi en cours…</p>
+                      </div>
+                    )}
+
+                    {uploadState === 'processing' && (
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                        <svg className="w-5 h-5 text-amber-500 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        </svg>
+                        <div>
+                          <p className="text-xs font-bold text-amber-700 dark:text-amber-400">Traitement Mux en cours…</p>
+                          <p className="text-[10px] text-amber-600 dark:text-amber-500">Peut prendre 1–2 minutes</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {uploadState === 'done' && (
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                        <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">Vidéo prête ✅</p>
+                          <p className="text-[10px] text-emerald-600 dark:text-emerald-500 truncate">{uploadFileName}</p>
+                        </div>
+                        <button type="button" onClick={() => { setUploadState('idle'); setUploadProgress(0); setUploadFileName(''); setNewLesson(p => ({ ...p, video_url: '' })); if(muxFileRef.current) muxFileRef.current.value=''; }}
+                          className="text-slate-400 hover:text-rose-500 transition-colors shrink-0">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                      </div>
+                    )}
+
+                    {uploadState === 'error' && (
+                      <button type="button" onClick={() => { setUploadState('idle'); muxFileRef.current?.click(); }}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl border-2 border-dashed border-rose-300 dark:border-rose-700 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all">
+                        ❌ Échec — Réessayer
+                      </button>
+                    )}
                     <div className="flex gap-2 pt-1">
                       <button type="button" onClick={() => { setShowAddLesson(false); setVideoFileName(''); setNewLesson({ title:'', video_url:'' }); }}
                         className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         Annuler
                       </button>
-                      <button type="submit" disabled={addingLesson || !newLesson.title.trim() || !newLesson.video_url}
+                      <button type="submit"
+                        disabled={addingLesson || !newLesson.title.trim() || !newLesson.video_url || uploadState === 'uploading' || uploadState === 'processing'}
                         className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold disabled:opacity-50 transition-colors">
-                        {addingLesson ? 'Ajout…' : 'Ajouter'}
+                        {addingLesson ? 'Ajout…' : uploadState === 'uploading' ? 'Upload…' : uploadState === 'processing' ? 'Traitement…' : 'Ajouter'}
                       </button>
                     </div>
                   </form>

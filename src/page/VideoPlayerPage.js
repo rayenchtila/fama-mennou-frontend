@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -13,10 +13,41 @@ function getYouTubeId(url = '') {
   return m ? m[1] : '';
 }
 
+function MuxPlayer({ playbackId }) {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const video = ref.current;
+    if (!video || !playbackId) return;
+    const src = `https://stream.mux.com/${playbackId}.m3u8`;
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = src;
+    } else {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js';
+      s.onload = () => {
+        if (window.Hls && window.Hls.isSupported()) {
+          const hls = new window.Hls();
+          hls.loadSource(src);
+          hls.attachMedia(video);
+        }
+      };
+      document.head.appendChild(s);
+    }
+    return () => { if (video) { video.src = ''; } };
+  }, [playbackId]);
+  return <video ref={ref} className="w-full aspect-video bg-black" controls controlsList="nodownload" />;
+}
+
 function VideoPlayer({ url }) {
+  const isMux      = (url || '').startsWith('mux:');
   const isYT       = isYouTube(url || '');
   const isStream   = /^https?:\/\//i.test(url || '');
   const isB64      = (url || '').startsWith('data:video');
+
+  if (isMux) {
+    const playbackId = (url || '').replace('mux:', '');
+    return <MuxPlayer playbackId={playbackId} />;
+  }
 
   if (!url || (!isYT && !isStream && !isB64)) return (
     <div className="w-full aspect-video bg-slate-900 flex flex-col items-center justify-center gap-3 px-4 text-center">
