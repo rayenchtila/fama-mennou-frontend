@@ -72,13 +72,7 @@ export default function CourseDetailPage() {
 
   function canWatch(lesson) {
     if (!user) return false;
-    if (Number(course?.full_price) === 0) return true; // free course → everyone watches
-    if (isInstructor) return true;                      // instructor → full access
-    if (user?.isAdmin) return true;                     // admin → full access
-    if (hasFull) return true;                           // paid → full access
-    if (lesson.is_free_preview) return true;
-    if (ownedLesson(lesson.id)) return true;
-    return false;
+    return true; // all logged-in users can watch all videos
   }
 
   useEffect(() => {

@@ -49,15 +49,9 @@ function VideoPlayer({ url }) {
     return <MuxPlayer playbackId={playbackId} />;
   }
 
-  if (!url || (!isYT && !isStream && !isB64)) return (
-    <div className="w-full aspect-video bg-slate-900 flex flex-col items-center justify-center gap-3 px-4 text-center">
-      <svg className="w-12 h-12 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/>
-      </svg>
-      <div>
-        <p className="text-slate-300 text-sm font-semibold">Vidéo non disponible</p>
-        <p className="text-slate-500 text-xs mt-1">L'instructeur doit fournir un lien YouTube ou une URL directe</p>
-      </div>
+  if (!url) return (
+    <div className="w-full aspect-video bg-slate-900 flex items-center justify-center">
+      <p className="text-slate-400 text-sm">Aucune vidéo disponible</p>
     </div>
   );
 
