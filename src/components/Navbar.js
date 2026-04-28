@@ -74,19 +74,26 @@ function getRoleColor(role) {
 
 // ─── User Notifications Panel ─────────────────────────────────────────────────
 
-function getNotifLink(n) {
-  if (!n) return null;
+async function getNotifLink(n) {
+  if (!n) return '/courses';
   const k = n.kind || '';
-  // Extract ID from kind like "course_created_25" → /courses/25
+  const API_URL = 'https://famamennou-server.onrender.com/api';
+  // course_created_25 / course_approved_25 / course_rejected_25
   const courseMatch = k.match(/^course_(?:created|approved|rejected)_(\d+)$/);
   if (courseMatch) return `/courses/${courseMatch[1]}`;
-  // Lesson notifications with course_id: "lesson_created_10_course_3" → /courses/3
-  const lessonMatch = k.match(/^lesson_(?:created|approved|rejected)_\d+_course_(\d+)$/);
-  if (lessonMatch) return `/courses/${lessonMatch[1]}`;
-  if (k.startsWith('lesson_')) return '/courses';
-  // Admin pending — go to admin courses tab
+  // lesson_created_10_course_3 (new format)
+  const lessonWithCourse = k.match(/^lesson_(?:created|approved|rejected)_\d+_course_(\d+)$/);
+  if (lessonWithCourse) return `/courses/${lessonWithCourse[1]}`;
+  // lesson_created_10 (old format) — fetch lesson to get course_id
+  const lessonOnly = k.match(/^lesson_(?:created|approved|rejected)_(\d+)$/);
+  if (lessonOnly) {
+    try {
+      const r = await fetch(`${API_URL}/lessons/${lessonOnly[1]}`);
+      const l = await r.json();
+      if (l?.course_id) return `/courses/${l.course_id}`;
+    } catch {}
+  }
   if (k === 'course_pending') return '/dashboard?tab=courses';
-  // Fallback
   return '/courses';
 }
 
@@ -124,7 +131,7 @@ function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear,
             notifications.map(n => (
               <div
                 key={n.id}
-                onClick={() => { onMarkRead(n.id); const link = getNotifLink(n); if (link) { onClose(); navigate(link); } }}
+                onClick={async () => { onMarkRead(n.id); const link = await getNotifLink(n); onClose(); navigate(link); }}
                 className={[
                   "flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
                   n.read
