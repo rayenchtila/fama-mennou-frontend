@@ -37,9 +37,26 @@ function MuxPlayer({ playbackId }) {
     }
     loadHlsJs(() => {
       if (window.Hls?.isSupported()) {
-        const hls = new window.Hls({ enableWorker: true });
+        const hls = new window.Hls({
+          enableWorker:       true,
+          startLevel:         -1,      // auto quality based on network
+          autoStartLoad:      true,
+          maxBufferLength:    60,      // buffer 60s ahead
+          maxMaxBufferLength: 120,
+          maxBufferSize:      60 * 1000 * 1000, // 60MB buffer
+          lowLatencyMode:     false,
+          backBufferLength:   30,
+          abrEwmaDefaultEstimate: 1000000, // start at 1Mbps estimate
+        });
         hls.loadSource(src);
         hls.attachMedia(video);
+        // Auto-recover on errors
+        hls.on(window.Hls.Events.ERROR, (_, data) => {
+          if (data.fatal) {
+            if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+            else if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+          }
+        });
       }
     });
     return () => { if (video) video.src = ''; };
