@@ -683,7 +683,24 @@ export default function AdminPage() {
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js';
       s.id = 'hls-script'; s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
-      s.onload = () => { if (window.Hls?.isSupported()) { const h = new window.Hls(); h.loadSource(src); h.attachMedia(video); } };
+      s.onload = () => {
+        if (window.Hls?.isSupported()) {
+          const h = new window.Hls({
+            enableWorker: true, startLevel: -1,
+            maxBufferLength: 60, maxMaxBufferLength: 120,
+            maxBufferSize: 60 * 1000 * 1000,
+            lowLatencyMode: false, backBufferLength: 30,
+            abrEwmaDefaultEstimate: 1000000,
+          });
+          h.loadSource(src); h.attachMedia(video);
+          h.on(window.Hls.Events.ERROR, (_, d) => {
+            if (d.fatal) {
+              if (d.type === window.Hls.ErrorTypes.NETWORK_ERROR) h.startLoad();
+              else if (d.type === window.Hls.ErrorTypes.MEDIA_ERROR) h.recoverMediaError();
+            }
+          });
+        }
+      };
       if (!document.getElementById('hls-script')) document.head.appendChild(s);
     }, [isMux, url]);
 
