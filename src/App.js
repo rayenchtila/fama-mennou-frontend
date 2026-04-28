@@ -12,7 +12,6 @@ import ToastProvider, { toast } from "./components/Toast";
 import { PostJobModal, PostCourseModal, PostClientModal } from "./components/Postforms";
 import Home from "./page/Home";
 import FreelancersPage from "./page/FreelancersPage";
-import JobsPage from "./page/JobsPage";
 import CoursesPage from "./page/CoursesPage";
 import CourseDetailPage from "./page/CourseDetailPage";
 import VideoPlayerPage from "./page/VideoPlayerPage";
@@ -219,14 +218,6 @@ function AppInner() {
               }
             />
 
-            <Route
-              path="/jobs"
-              element={
-                <PrivateRoute onLogin={handleLogin}>
-                  <JobsPage />
-                </PrivateRoute>
-              }
-            />
 
             <Route
               path="/courses"

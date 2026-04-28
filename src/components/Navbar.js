@@ -198,7 +198,6 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
     { label: t("Find Freelancers"), to: "/freelancers" },
     { label: t("Find Clients"),     to: "/clients"     },
     { label: t("Courses"),          to: "/courses"      },
-    { label: t("Jobs"),             to: "/jobs"         },
   ];
 
   useEffect(() => {
