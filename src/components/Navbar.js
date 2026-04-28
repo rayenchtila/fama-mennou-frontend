@@ -74,7 +74,17 @@ function getRoleColor(role) {
 
 // ─── User Notifications Panel ─────────────────────────────────────────────────
 
+function getNotifLink(n) {
+  if (!n) return null;
+  const k = n.kind || '';
+  if (k.startsWith('course_created') || k.startsWith('course_approved') || k.startsWith('course_rejected')) return '/courses';
+  if (k.startsWith('lesson_approved') || k.startsWith('lesson_rejected') || k.startsWith('lesson_created')) return '/courses';
+  if (k === 'course_pending') return '/dashboard?tab=courses';
+  return null;
+}
+
 function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear, onClose }) {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const unread = notifications.filter(n => !n.read).length;
   return (
@@ -91,18 +101,7 @@ function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear,
               <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold">{unread}</span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {unread > 0 && (
-              <button onClick={onMarkAll} className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-                {t("Mark all read")}
-              </button>
-            )}
-            {notifications.length > 0 && (
-              <button onClick={onClear} className="text-[11px] font-semibold text-slate-400 hover:text-rose-500 transition-colors">
-                {t("Clear")}
-              </button>
-            )}
-          </div>
+          <div />
         </div>
 
         {/* List */}
@@ -118,7 +117,7 @@ function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear,
             notifications.map(n => (
               <div
                 key={n.id}
-                onClick={() => onMarkRead(n.id)}
+                onClick={() => { onMarkRead(n.id); const link = getNotifLink(n); if (link) { onClose(); navigate(link); } }}
                 className={[
                   "flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
                   n.read
@@ -400,7 +399,7 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                   {/* ── Notification Bell (only for non-admin users) ── */}
                   {!user.isAdmin && (
                     <button
-                      onClick={() => setNotifOpen(!notifOpen)}
+                      onClick={() => { setNotifOpen(v => { if (!v) markAllNotificationsRead("user", user?.email); return !v; }); }}
                       className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                       <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
