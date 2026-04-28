@@ -682,17 +682,18 @@ export default function AdminPage() {
       if (window.Hls?.isSupported()) { const h = new window.Hls(); h.loadSource(src); h.attachMedia(video); return; }
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js';
+      s.id = 'hls-script'; s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
       s.onload = () => { if (window.Hls?.isSupported()) { const h = new window.Hls(); h.loadSource(src); h.attachMedia(video); } };
-      document.head.appendChild(s);
+      if (!document.getElementById('hls-script')) document.head.appendChild(s);
     }, [isMux, url]);
 
     if (!url) return <p className="text-xs text-slate-400 text-center py-3">Aucune vidéo disponible</p>;
-    if (isMux) return <video ref={ref} className="w-full aspect-video rounded-xl bg-black" controls />;
+    if (isMux) return <video ref={ref} className="w-full aspect-video rounded-xl bg-black" controls playsInline />;
     if (isYT) {
       const vid = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
       return <iframe className="w-full aspect-video rounded-xl" src={`https://www.youtube.com/embed/${vid}?rel=0`} allowFullScreen title="video" />;
     }
-    if (isURL || isB64) return <video className="w-full aspect-video rounded-xl bg-black" src={url} controls />;
+    if (isURL || isB64) return <video className="w-full aspect-video rounded-xl bg-black" src={url} controls playsInline />;
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800">
         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">📎 {url} — pas streamable, uploadez via Mux</p>
