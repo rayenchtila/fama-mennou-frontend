@@ -556,10 +556,22 @@ export default function CourseDetailPage() {
                     )}
 
                     {uploadState === 'error' && (
-                      <button type="button" onClick={() => { setUploadState('idle'); muxFileRef.current?.click(); }}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl border-2 border-dashed border-rose-300 dark:border-rose-700 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all">
-                        ❌ Échec — Réessayer
-                      </button>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                          <span className="text-amber-500 text-sm">⚠️</span>
+                          <p className="text-xs text-amber-700 dark:text-amber-400">Upload MP4 indisponible. Utilisez un lien vidéo :</p>
+                        </div>
+                        <input
+                          placeholder="Lien YouTube ou URL directe (https://...)"
+                          value={newLesson.video_url.startsWith('mux:') ? '' : newLesson.video_url}
+                          onChange={e => setNewLesson(p => ({ ...p, video_url: e.target.value }))}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        />
+                        <button type="button" onClick={() => { setUploadState('idle'); setNewLesson(p => ({ ...p, video_url: '' })); }}
+                          className="text-xs text-indigo-500 hover:text-indigo-700 transition-colors">
+                          ↩ Réessayer l'upload MP4
+                        </button>
+                      </div>
                     )}
                     <div className="flex gap-2 pt-1">
                       <button type="button" onClick={() => { setShowAddLesson(false); setVideoFileName(''); setNewLesson({ title:'', video_url:'' }); }}
