@@ -197,7 +197,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
             {/* Title */}
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                Titre du cours <span className="text-rose-500">*</span>
+                Titre du course <span className="text-rose-500">*</span>
               </label>
               <input required value={form.title} onChange={e => set('title', e.target.value)}
                 placeholder="ex: Maîtrisez React en 30 jours"
