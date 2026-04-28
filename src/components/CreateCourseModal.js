@@ -176,16 +176,8 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
               </svg>
             </div>
 
-            <p className="text-base font-extrabold text-slate-900 dark:text-white mb-2">Cours soumis avec succès !</p>
-
-            {/* Status badge */}
-            <div className={`flex items-center gap-2 ${verifyBg} rounded-2xl px-4 py-3 mb-4`}>
-              <span className="text-lg">⏳</span>
-              <div className="text-left">
-                <p className={`text-xs font-extrabold ${verifyTitle}`}>En attente de vérification</p>
-                <p className={`text-[11px] ${verifySub} mt-0.5`}>Résultat sous 24h max · Vous serez notifié</p>
-              </div>
-            </div>
+            <p className="text-base font-extrabold text-slate-900 dark:text-white mb-2">Course créé et publié ! 🎉</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Votre course est maintenant visible par tout le monde. Ajoutez des leçons depuis la page du course.</p>
 
             <p className="text-[11px] text-slate-400 dark:text-slate-500">
               Une notification a été envoyée à votre compte.
