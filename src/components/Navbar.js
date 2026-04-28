@@ -30,17 +30,6 @@ const SEARCH_GROUPS = [
     ],
   },
   {
-    key: "jobs", label: "Jobs", icon: "💼", path: "/jobs",
-    data: [
-      { name: "Senior React Developer", sub: "TechFlow Inc.",  tags: ["React","TypeScript","Node.js"] },
-      { name: "UI/UX Designer",         sub: "CreativeStudio", tags: ["Figma","Tailwind","Motion"] },
-      { name: "Digital Marketing Lead", sub: "GrowthLab",      tags: ["SEO","Paid Ads","Analytics"] },
-      { name: "Full-Stack Engineer",    sub: "NovaSaaS",       tags: ["Next.js","PostgreSQL","AWS"] },
-      { name: "Content Strategist",     sub: "BrandVoice",     tags: ["Copywriting","Strategy","SEO"] },
-      { name: "DevOps Engineer",        sub: "CloudNine",      tags: ["Kubernetes","Terraform","CI/CD"] },
-    ],
-  },
-  {
     key: "courses", label: "Courses", icon: "📚", path: "/courses",
     data: [
       { name: "Advanced React Patterns",    sub: "Youssef Khalil", tags: ["React","Architecture","Performance"] },
