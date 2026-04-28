@@ -203,56 +203,58 @@ function ProfileTab({ user, updateUser }) {
         </div>
       </div>
 
-      {/* ── Info tiles ── */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Région</p>
-          <p className="text-sm font-semibold text-white">{user.region || '—'}</p>
-        </div>
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Statut CIN</p>
-          <p className="text-sm font-semibold text-white">{statusMap[user.cinStatus] || '⏳ En attente'}</p>
-        </div>
-      </div>
+      {/* ── ONE card with all fields in 2-col grid — same as client ── */}
+      <form onSubmit={handleSave}>
+        <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-      {/* ── Editable form ── */}
-      <form onSubmit={handleSave} className="space-y-4">
+            {/* Nom complet */}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1">Nom complet</p>
+              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required
+                className="w-full text-sm font-medium text-white bg-transparent border-b border-slate-700 pb-1 focus:outline-none focus:border-indigo-500 transition-colors" />
+            </div>
 
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nom complet</p>
-          <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required
-            placeholder="Votre nom complet"
-            className="w-full text-sm rounded-xl border border-slate-700 bg-slate-800 text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-500" />
+            {/* Région */}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1">Région</p>
+              <select value={form.region} onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
+                className="w-full text-sm font-medium text-white bg-transparent border-b border-slate-700 pb-1 focus:outline-none focus:border-indigo-500 transition-colors">
+                <option value="" className="bg-slate-900">— Choisir —</option>
+                {TUNISIAN_REGIONS.map(r => <option key={r} value={r} className="bg-slate-900">{r}</option>)}
+              </select>
+            </div>
+
+            {/* Compétences */}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1">Compétences</p>
+              <input value={form.skills} onChange={e => setForm(f => ({ ...f, skills: e.target.value }))}
+                placeholder="WEB, Design…"
+                className="w-full text-sm font-medium text-white bg-transparent border-b border-slate-700 pb-1 focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-600" />
+              <p className="text-[10px] text-slate-600 mt-1">Séparées par des virgules</p>
+            </div>
+
+            {/* Statut CIN */}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1">Statut CIN</p>
+              <p className="text-sm font-medium text-white">{statusMap[user.cinStatus] || '⏳ En attente'}</p>
+            </div>
+
+            {/* Bio — full width */}
+            <div className="sm:col-span-2">
+              <p className="text-xs font-semibold text-slate-500 mb-1">Bio</p>
+              <textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+                rows={3} placeholder="Tell us about yourself..."
+                className="w-full text-sm font-medium text-white bg-transparent border-b border-slate-700 pb-1 focus:outline-none focus:border-indigo-500 transition-colors resize-none placeholder-slate-600" />
+            </div>
+
+          </div>
         </div>
 
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Région</p>
-          <select value={form.region} onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
-            className="w-full text-sm rounded-xl border border-slate-700 bg-slate-800 text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="">— Choisir —</option>
-            {TUNISIAN_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
-
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Compétences</p>
-          <input value={form.skills} onChange={e => setForm(f => ({ ...f, skills: e.target.value }))}
-            placeholder="React, Node.js, Design…"
-            className="w-full text-sm rounded-xl border border-slate-700 bg-slate-800 text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-500" />
-          <p className="text-[10px] text-slate-500 mt-1.5">Séparées par des virgules</p>
-        </div>
-
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Bio</p>
-          <textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
-            rows={4} placeholder="Tell us about yourself..."
-            className="w-full text-sm rounded-xl border border-slate-700 bg-slate-800 text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-slate-500" />
-        </div>
-
-        {error && <p className="text-xs text-rose-500 px-1">{error}</p>}
+        {error && <p className="text-xs text-rose-500 mt-3 px-1">{error}</p>}
 
         <button type="submit" disabled={saving}
-          className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60 shadow-lg shadow-indigo-500/20">
+          className="w-full mt-4 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60 shadow-lg shadow-indigo-500/20">
           {saving ? 'Sauvegarde…' : saved ? '✅ Sauvegardé !' : 'Save changes'}
         </button>
       </form>
