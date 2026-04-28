@@ -575,6 +575,13 @@ export default function AdminPage() {
     return [];
   });
   const [coursesLoading,  setCoursesLoading]  = useState(false);
+
+  // ── lessons tab state ──
+  const [allLessons,      setAllLessons]      = useState([]);
+  const [lessonsTabLoad,  setLessonsTabLoad]  = useState(false);
+  const [lessonActing,    setLessonActing]    = useState({});
+  const [lessonRejectId,  setLessonRejectId]  = useState(null);
+  const [lessonNote,      setLessonNote]      = useState('');
   const [courseFilter,    setCourseFilter]    = useState("pending");
   const [courseActing,    setCourseActing]    = useState({});
   const [courseRejectId,  setCourseRejectId]  = useState(null);
@@ -617,6 +624,34 @@ export default function AdminPage() {
       setCoursesLoading(false);
     }
   };
+
+  const fetchLessonsTab = async () => {
+    setLessonsTabLoad(true);
+    try {
+      const r = await fetch(`${API}/lessons/pending`);
+      const d = await r.json();
+      if (Array.isArray(d)) setAllLessons(d);
+    } catch {}
+    setLessonsTabLoad(false);
+  };
+
+  async function approveLesson(id) {
+    setLessonActing(p => ({ ...p, [id]: 'approved' }));
+    await fetch(`${API}/lessons/${id}/approve`, { method: 'PATCH' });
+    fetchLessonsTab();
+    setTimeout(() => setLessonActing(p => { const n = { ...p }; delete n[id]; return n; }), 1800);
+  }
+
+  async function rejectLesson(id, note) {
+    setLessonActing(p => ({ ...p, [id]: 'rejected' }));
+    await fetch(`${API}/lessons/${id}/reject`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_note: note }),
+    });
+    setLessonRejectId(null); setLessonNote('');
+    fetchLessonsTab();
+    setTimeout(() => setLessonActing(p => { const n = { ...p }; delete n[id]; return n; }), 1800);
+  }
 
   async function toggleLessons(courseId) {
     if (expandedCourse === courseId) { setExpandedCourse(null); return; }
@@ -665,8 +700,9 @@ export default function AdminPage() {
   }
 
   // Fetch courses on mount AND on tab switch — badge always ready
-  useEffect(() => { fetchCourses(); }, []);
+  useEffect(() => { fetchCourses(); fetchLessonsTab(); }, []);
   useEffect(() => { if (mainTab === 'courses') fetchCourses(); }, [mainTab]);
+  useEffect(() => { if (mainTab === 'lessons') fetchLessonsTab(); }, [mainTab]);
 
   const coursesByFilter = allCourses.filter(c =>
     courseFilter === 'all' ? true : c.status === courseFilter
@@ -812,6 +848,7 @@ export default function AdminPage() {
             { id: "cin",      label: t("admin.tab.cin") },
             { id: "allusers", label: `${t("admin.tab.all_users")} (${(users ?? []).length})` },
             { id: "courses",  label: `📚 Cours${courseCounts.all > 0 ? ` (${courseCounts.all})` : ''}` },
+            { id: "lessons",  label: `📖 Leçons${allLessons.filter(l=>l.status==='pending').length > 0 ? ` (${allLessons.filter(l=>l.status==='pending').length})` : ''}` },
           ].map(tab => (
             <button
               key={tab.id}
@@ -1114,6 +1151,91 @@ export default function AdminPage() {
         )}
 
       </div>
+
+      {/* ── Lessons tab ── */}
+      {mainTab === 'lessons' && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {lessonsTabLoad ? 'Chargement…' : `${allLessons.filter(l=>l.status==='pending').length} leçon(s) en attente`}
+            </p>
+            <button onClick={fetchLessonsTab} disabled={lessonsTabLoad}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 transition-colors disabled:opacity-40">
+              <svg className={`w-3.5 h-3.5 ${lessonsTabLoad?'animate-spin':''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              Actualiser
+            </button>
+          </div>
+
+          {allLessons.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+              <p className="text-4xl mb-3">📖</p>
+              <p className="text-sm font-semibold">Aucune leçon soumise</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {allLessons.map(lesson => {
+                const acted = lessonActing[lesson.id];
+                return (
+                  <div key={lesson.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                    <div className="flex items-start gap-4 p-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">{lesson.title}</p>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            lesson.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700'
+                            : lesson.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-700'
+                            : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700'
+                          }`}>
+                            {lesson.status === 'approved' ? '✅ Approuvée' : lesson.status === 'rejected' ? '❌ Refusée' : '⏳ En attente'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          📚 <span className="font-semibold">{lesson.course_title}</span> · par <span className="font-semibold">{lesson.instructor_name}</span>
+                        </p>
+                        {lesson.admin_note && <p className="text-[11px] text-rose-500 mt-1">💬 {lesson.admin_note}</p>}
+                      </div>
+                      {lesson.status === 'pending' && !acted && (
+                        <div className="flex gap-2 shrink-0">
+                          <button onClick={() => approveLesson(lesson.id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 transition-all">
+                            ✓ Approuver
+                          </button>
+                          <button onClick={() => { setLessonRejectId(lesson.id); setLessonNote(''); }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white active:scale-95 transition-all">
+                            ✕ Refuser
+                          </button>
+                        </div>
+                      )}
+                      {acted && (
+                        <span className={`text-xs font-bold px-3 py-1.5 rounded-xl ${acted==='approved'?'bg-emerald-100 text-emerald-700':'bg-rose-100 text-rose-600'}`}>
+                          {acted==='approved'?'✅ Approuvée':'❌ Refusée'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Reject modal */}
+          {lessonRejectId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6">
+                <p className="font-bold text-slate-900 dark:text-white mb-4">Raison du refus</p>
+                {['Contenu insuffisant.','Titre peu clair.','Vidéo manquante ou illisible.'].map(p => (
+                  <button key={p} onClick={() => setLessonNote(p)} className={`w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all ${lessonNote===p?'bg-rose-50 dark:bg-rose-900/20 border-rose-300 text-rose-700 font-semibold':'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-300'}`}>{p}</button>
+                ))}
+                <textarea value={lessonNote} onChange={e=>setLessonNote(e.target.value)} rows={2} placeholder="Message personnalisé…" className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 mt-1" />
+                <div className="flex gap-2 mt-4">
+                  <button onClick={() => setLessonRejectId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
+                  <button onClick={() => rejectLesson(lessonRejectId, lessonNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors">❌ Confirmer le refus</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Course approve modal ── */}
       {courseApproveId && (
