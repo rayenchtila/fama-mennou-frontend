@@ -1,5 +1,5 @@
 // src/page/AdminPage.js
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 
@@ -667,34 +667,35 @@ export default function AdminPage() {
   }
 
   function CourseVideoPlayer({ url, label }) {
+    const ref = React.useRef(null);
+    const isMux = (url || '').startsWith('mux:');
+    const isYT  = /youtube\.com|youtu\.be/.test(url || '');
+    const isURL = /^https?:\/\//i.test(url || '');
+    const isB64 = (url || '').startsWith('data:video');
+
+    React.useEffect(() => {
+      if (!isMux || !ref.current) return;
+      const video = ref.current;
+      const playbackId = url.replace('mux:', '');
+      const src = `https://stream.mux.com/${playbackId}.m3u8`;
+      if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = src; return; }
+      if (window.Hls?.isSupported()) { const h = new window.Hls(); h.loadSource(src); h.attachMedia(video); return; }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js';
+      s.onload = () => { if (window.Hls?.isSupported()) { const h = new window.Hls(); h.loadSource(src); h.attachMedia(video); } };
+      document.head.appendChild(s);
+    }, [isMux, url]);
+
     if (!url) return <p className="text-xs text-slate-400 text-center py-3">Aucune vidéo disponible</p>;
-    const isYT  = /youtube\.com|youtu\.be/.test(url);
-    const isURL = /^https?:\/\//i.test(url);
-    const isB64 = url.startsWith('data:video');
+    if (isMux) return <video ref={ref} className="w-full aspect-video rounded-xl bg-black" controls />;
     if (isYT) {
       const vid = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
-      return (
-        <div>
-          {label && <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 px-1">{label}</p>}
-          <iframe className="w-full aspect-video rounded-xl" src={`https://www.youtube.com/embed/${vid}?rel=0`} allowFullScreen title="video" />
-        </div>
-      );
+      return <iframe className="w-full aspect-video rounded-xl" src={`https://www.youtube.com/embed/${vid}?rel=0`} allowFullScreen title="video" />;
     }
-    if (isURL || isB64) {
-      return (
-        <div>
-          {label && <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 px-1">{label}</p>}
-          <video className="w-full aspect-video rounded-xl bg-black" src={url} controls />
-        </div>
-      );
-    }
-    // Filename only — not streamable
+    if (isURL || isB64) return <video className="w-full aspect-video rounded-xl bg-black" src={url} controls />;
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800">
-        <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.263a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-        </svg>
-        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">📎 {url}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">📎 {url} — pas streamable, uploadez via Mux</p>
       </div>
     );
   }
