@@ -79,7 +79,6 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
     }
     if (!form.description.trim()) { setError('La description est obligatoire.'); return; }
     if (!form.photo)              { setError('La photo du cours est obligatoire.'); return; }
-    if (!form.video_url)          { setError('Veuillez importer la vidéo du cours.'); return; }
     setSubmitting(true);
     try {
       const r = await fetch(`${API}/courses`, {
@@ -236,30 +235,6 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
               )}
             </div>
 
-            {/* Importer course */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Importer course <span className="text-rose-500">*</span></label>
-              <input ref={videoRef} type="file" accept="video/mp4,video/*" className="hidden" onChange={handleVideo} />
-              <button type="button" onClick={() => videoRef.current?.click()}
-                className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 ${hoverBorder} text-sm text-slate-500 dark:text-slate-400 ${hoverText} transition-all`}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.263a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-                </svg>
-                {videoName ? videoName : 'Choisir une vidéo MP4'}
-              </button>
-              {videoName && (
-                <div className={`mt-2 flex items-center gap-2 px-3 py-2 rounded-xl ${videoBg}`}>
-                  <svg className={`w-4 h-4 ${videoTxt} shrink-0`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <p className={`text-xs font-semibold ${videoLabel} truncate flex-1`}>{videoName}</p>
-                  <button type="button" onClick={() => { setVideoName(''); set('video_url', ''); if(videoRef.current) videoRef.current.value=''; }}
-                    className="shrink-0 text-slate-400 hover:text-rose-500 transition-colors">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                  </button>
-                </div>
-              )}
-            </div>
 
             {/* Category + Price */}
             <div className="grid grid-cols-2 gap-4">
