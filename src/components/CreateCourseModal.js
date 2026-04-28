@@ -212,9 +212,9 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                 className={`w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 ${ring} focus:border-transparent transition-all resize-none`} />
             </div>
 
-            {/* Photo du cours */}
+            {/* Photo du course */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Photo du cours <span className="text-rose-500">*</span></label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Photo du course <span className="text-rose-500">*</span></label>
               <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
               <button type="button" onClick={() => photoRef.current?.click()}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 ${hoverBorder} text-sm text-slate-500 dark:text-slate-400 ${hoverText} transition-all`}>
