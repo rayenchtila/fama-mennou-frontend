@@ -166,116 +166,96 @@ function ProfileTab({ user, updateUser }) {
     }
   }
 
+  const statusMap = { approved:'✅ Approuvé', pending:'⏳ En attente', rejected:'❌ Refusé' };
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header card */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex items-center gap-5">
-        {/* Clickable avatar */}
+    <div className="max-w-2xl mx-auto space-y-5">
+
+      {/* ── Profile header card ── */}
+      <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 flex items-center gap-5">
         <div className="relative shrink-0 group cursor-pointer" onClick={() => photoRef.current?.click()}>
-          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getGradient(user.email)} flex items-center justify-center text-white text-xl font-bold shadow-md overflow-hidden`}>
+          <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${getGradient(user.email)} flex items-center justify-center text-white text-2xl font-bold overflow-hidden`}>
             {form.photo
-              ? <img src={form.photo} alt="" className="w-16 h-16 object-cover" onError={e => { e.target.style.display='none'; }} />
+              ? <img src={form.photo} alt="" className="w-20 h-20 object-cover" onError={e => { e.target.style.display='none'; }} />
               : getInitials(form.name || user.email)
             }
           </div>
-          <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
           </div>
           <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoFile} />
         </div>
-        <div>
-          <p className="text-base font-extrabold text-slate-900 dark:text-white">{form.name || user.name}</p>
-          <p className="text-xs text-slate-400">{user.email}</p>
-          <span className="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">🧑‍💻 Freelancer</span>
-        </div>
-      </div>
-
-      {/* Form card */}
-      <form onSubmit={handleSave} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">Modifier le profil</h3>
-
-        <InputField label="Nom complet" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Votre nom" required />
-        {/* Photo upload */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Photo de profil</label>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={() => photoRef.current?.click()}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 hover:border-indigo-300 transition-all">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              {form.photo ? 'Changer la photo' : 'Ajouter une photo'}
-            </button>
+        <div className="flex-1 min-w-0">
+          <p className="text-lg font-bold text-white truncate">{form.name || user.name}</p>
+          <p className="text-sm text-slate-400 truncate">{user.email}</p>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400">🧑‍💻 Freelancer</span>
             {form.photo && (
               <button type="button" onClick={() => setForm(f => ({ ...f, photo: '' }))}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-rose-200 dark:border-rose-800 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                Supprimer
+                className="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors">
+                Supprimer la photo
               </button>
             )}
           </div>
         </div>
+      </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Région</label>
-          <select
-            value={form.region}
-            onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
-            className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
+      {/* ── Info tiles ── */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Région</p>
+          <p className="text-sm font-semibold text-white">{user.region || '—'}</p>
+        </div>
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Statut CIN</p>
+          <p className="text-sm font-semibold text-white">{statusMap[user.cinStatus] || '⏳ En attente'}</p>
+        </div>
+      </div>
+
+      {/* ── Editable form ── */}
+      <form onSubmit={handleSave} className="space-y-4">
+
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 space-y-4">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nom complet</p>
+          <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required
+            placeholder="Votre nom complet"
+            className="w-full text-sm rounded-xl border border-slate-700 bg-slate-800 text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-500" />
+        </div>
+
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Région</p>
+          <select value={form.region} onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
+            className="w-full text-sm rounded-xl border border-slate-700 bg-slate-800 text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">— Choisir —</option>
             {TUNISIAN_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Compétences</label>
-          <input
-            value={form.skills}
-            onChange={e => setForm(f => ({ ...f, skills: e.target.value }))}
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Compétences</p>
+          <input value={form.skills} onChange={e => setForm(f => ({ ...f, skills: e.target.value }))}
             placeholder="React, Node.js, Design…"
-            className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <p className="text-[10px] text-slate-400 mt-1">Séparées par des virgules</p>
+            className="w-full text-sm rounded-xl border border-slate-700 bg-slate-800 text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-500" />
+          <p className="text-[10px] text-slate-500 mt-1.5">Séparées par des virgules</p>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Bio</label>
-          <textarea
-            value={form.bio}
-            onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
-            rows={3}
-            placeholder="Décrivez votre expertise…"
-            className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-          />
+        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Bio</p>
+          <textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+            rows={4} placeholder="Tell us about yourself..."
+            className="w-full text-sm rounded-xl border border-slate-700 bg-slate-800 text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-slate-500" />
         </div>
 
-        {error && <p className="text-xs text-rose-500">{error}</p>}
+        {error && <p className="text-xs text-rose-500 px-1">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60 shadow-sm shadow-indigo-500/30"
-        >
-          {saving ? 'Sauvegarde…' : saved ? '✅ Sauvegardé !' : 'Sauvegarder'}
+        <button type="submit" disabled={saving}
+          className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60 shadow-lg shadow-indigo-500/20">
+          {saving ? 'Sauvegarde…' : saved ? '✅ Sauvegardé !' : 'Save changes'}
         </button>
       </form>
-
-      {/* Skills chips */}
-      {form.skills && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-          <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">Compétences</p>
-          <div className="flex flex-wrap gap-2">
-            {form.skills.split(',').map(s => s.trim()).filter(Boolean).map(s => (
-              <span key={s} className="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400">{s}</span>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
