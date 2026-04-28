@@ -166,6 +166,11 @@ export default function CourseDetailPage() {
 
   async function handleMuxUpload(file) {
     if (!file) return;
+    // Warn if file is very large
+    if (file.size > 500 * 1024 * 1024) {
+      const mb = (file.size / 1024 / 1024).toFixed(0);
+      if (!window.confirm(`Fichier ${mb} MB — l'upload peut prendre plusieurs minutes. Continuer ?\n\nRecommandé : compresser la vidéo à moins de 500 MB avant d'uploader.`)) return;
+    }
     setUploadFileName(file.name);
     setUploadState('uploading');
     setUploadProgress(0);
@@ -524,7 +529,9 @@ export default function CourseDetailPage() {
                         <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div className="h-full bg-indigo-500 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
                         </div>
-                        <p className="text-[10px] text-slate-400">Envoi en cours…</p>
+                        <p className="text-[10px] text-slate-400">
+                          Envoi en cours… · Plus le fichier est petit, plus c'est rapide
+                        </p>
                       </div>
                     )}
 
