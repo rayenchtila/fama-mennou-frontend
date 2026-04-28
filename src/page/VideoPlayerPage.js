@@ -14,21 +14,66 @@ function getYouTubeId(url = '') {
 }
 
 function MuxPlayer({ playbackId }) {
+  const ref = React.useRef(null);
+
   React.useEffect(() => {
-    if (document.getElementById('mux-player-script')) return;
+    const video = ref.current;
+    if (!video || !playbackId) return;
+    const src = `https://stream.mux.com/${playbackId}.m3u8`;
+
+    // iOS Safari — native HLS, no JS needed
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = src;
+      return;
+    }
+
+    const init = () => {
+      if (!window.Hls?.isSupported()) return;
+      const hls = new window.Hls({
+        enableWorker:           true,
+        startLevel:             -1,
+        autoStartLoad:          true,
+        maxBufferLength:        20,          // low for budget phones
+        maxMaxBufferLength:     40,
+        maxBufferSize:          20*1000*1000, // 20MB — fits A06's 3GB RAM
+        lowLatencyMode:         false,
+        backBufferLength:       10,
+        abrEwmaDefaultEstimate: 300000,      // start at 300kbps for slow networks
+        abrBandWidthFactor:     0.8,
+        abrBandWidthUpFactor:   0.5,
+      });
+      hls.loadSource(src);
+      hls.attachMedia(video);
+      hls.on(window.Hls.Events.ERROR, (_, d) => {
+        if (d.fatal) {
+          if (d.type === window.Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+          else if (d.type === window.Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+          else hls.destroy();
+        }
+      });
+    };
+
+    // Load HLS.js once (regular script, not module — works on ALL Android)
+    if (window.Hls) { init(); return; }
+    const existing = document.getElementById('hls-js');
+    if (existing) { existing.addEventListener('load', init); return; }
     const s = document.createElement('script');
-    s.id = 'mux-player-script';
-    s.src = 'https://cdn.jsdelivr.net/npm/@mux/mux-player';
-    s.type = 'module';
+    s.id  = 'hls-js';
+    s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
+    s.onload = init;
     document.head.appendChild(s);
-  }, []);
+
+    return () => { if (video) video.src = ''; };
+  }, [playbackId]);
 
   return (
-    <mux-player
-      playback-id={playbackId}
-      stream-type="on-demand"
+    <video
+      ref={ref}
+      className="w-full aspect-video bg-black"
       controls
-      style={{ width: '100%', aspectRatio: '16/9' }}
+      playsInline
+      preload="auto"
+      controlsList="nodownload"
     />
   );
 }
