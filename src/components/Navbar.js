@@ -77,10 +77,15 @@ function getRoleColor(role) {
 function getNotifLink(n) {
   if (!n) return null;
   const k = n.kind || '';
-  if (k.startsWith('course_created') || k.startsWith('course_approved') || k.startsWith('course_rejected')) return '/courses';
-  if (k.startsWith('lesson_approved') || k.startsWith('lesson_rejected') || k.startsWith('lesson_created')) return '/courses';
+  // Extract ID from kind like "course_created_25" → /courses/25
+  const courseMatch = k.match(/^course_(?:created|approved|rejected)_(\d+)$/);
+  if (courseMatch) return `/courses/${courseMatch[1]}`;
+  // Lesson notifications — go to courses list (no course ID in kind)
+  if (k.startsWith('lesson_')) return '/courses';
+  // Admin pending — go to admin courses tab
   if (k === 'course_pending') return '/dashboard?tab=courses';
-  return null;
+  // Fallback
+  return '/courses';
 }
 
 function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear, onClose }) {
