@@ -225,7 +225,7 @@ export default function CourseDetailPage() {
       if (d.id) {
         setLessons(prev => [...prev, d]);
         setNewLesson({ title:'', video_url:'' });
-        setVideoFileName('');
+        setUploadFileName('');
         setShowAddLesson(false);
         setLessonSubmitted(true);
         setTimeout(() => setLessonSubmitted(false), 6000);
@@ -574,7 +574,7 @@ export default function CourseDetailPage() {
                       </div>
                     )}
                     <div className="flex gap-2 pt-1">
-                      <button type="button" onClick={() => { setShowAddLesson(false); setVideoFileName(''); setNewLesson({ title:'', video_url:'' }); }}
+                      <button type="button" onClick={() => { setShowAddLesson(false); setUploadFileName(''); setUploadState('idle'); setUploadProgress(0); setNewLesson({ title:'', video_url:'' }); if(muxFileRef.current) muxFileRef.current.value=''; }}
                         className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         Annuler
                       </button>
