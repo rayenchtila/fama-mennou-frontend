@@ -80,7 +80,9 @@ function getNotifLink(n) {
   // Extract ID from kind like "course_created_25" → /courses/25
   const courseMatch = k.match(/^course_(?:created|approved|rejected)_(\d+)$/);
   if (courseMatch) return `/courses/${courseMatch[1]}`;
-  // Lesson notifications — go to courses list (no course ID in kind)
+  // Lesson notifications with course_id: "lesson_created_10_course_3" → /courses/3
+  const lessonMatch = k.match(/^lesson_(?:created|approved|rejected)_\d+_course_(\d+)$/);
+  if (lessonMatch) return `/courses/${lessonMatch[1]}`;
   if (k.startsWith('lesson_')) return '/courses';
   // Admin pending — go to admin courses tab
   if (k === 'course_pending') return '/dashboard?tab=courses';
