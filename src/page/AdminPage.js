@@ -1195,6 +1195,11 @@ export default function AdminPage() {
                           📚 <span className="font-semibold">{lesson.course_title}</span> · par <span className="font-semibold">{lesson.instructor_name}</span>
                         </p>
                         {lesson.admin_note && <p className="text-[11px] text-rose-500 mt-1">💬 {lesson.admin_note}</p>}
+                        {lesson.video_url && (
+                          <div className="mt-3">
+                            <CourseVideoPlayer url={lesson.video_url} />
+                          </div>
+                        )}
                       </div>
                       {lesson.status === 'pending' && !acted && (
                         <div className="flex gap-2 shrink-0">
