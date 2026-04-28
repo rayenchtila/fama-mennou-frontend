@@ -13,55 +13,24 @@ function getYouTubeId(url = '') {
   return m ? m[1] : '';
 }
 
-function loadHlsJs(cb) {
-  if (window.Hls) { cb(); return; }
-  if (document.getElementById('hls-script')) {
-    document.getElementById('hls-script').addEventListener('load', cb);
-    return;
-  }
-  const s = document.createElement('script');
-  s.id = 'hls-script';
-  s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
-  s.onload = cb;
-  document.head.appendChild(s);
-}
-
 function MuxPlayer({ playbackId }) {
-  const ref = React.useRef(null);
   React.useEffect(() => {
-    const video = ref.current;
-    if (!video || !playbackId) return;
-    const src = `https://stream.mux.com/${playbackId}.m3u8`;
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = src; return;
-    }
-    loadHlsJs(() => {
-      if (window.Hls?.isSupported()) {
-        const hls = new window.Hls({
-          enableWorker:       true,
-          startLevel:         -1,      // auto quality based on network
-          autoStartLoad:      true,
-          maxBufferLength:    60,      // buffer 60s ahead
-          maxMaxBufferLength: 120,
-          maxBufferSize:      60 * 1000 * 1000, // 60MB buffer
-          lowLatencyMode:     false,
-          backBufferLength:   30,
-          abrEwmaDefaultEstimate: 1000000, // start at 1Mbps estimate
-        });
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        // Auto-recover on errors
-        hls.on(window.Hls.Events.ERROR, (_, data) => {
-          if (data.fatal) {
-            if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-            else if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-          }
-        });
-      }
-    });
-    return () => { if (video) video.src = ''; };
-  }, [playbackId]);
-  return <video ref={ref} className="w-full aspect-video bg-black" controls playsInline controlsList="nodownload" />;
+    if (document.getElementById('mux-player-script')) return;
+    const s = document.createElement('script');
+    s.id = 'mux-player-script';
+    s.src = 'https://cdn.jsdelivr.net/npm/@mux/mux-player';
+    s.type = 'module';
+    document.head.appendChild(s);
+  }, []);
+
+  return (
+    <mux-player
+      playback-id={playbackId}
+      stream-type="on-demand"
+      controls
+      style={{ width: '100%', aspectRatio: '16/9' }}
+    />
+  );
 }
 
 function VideoPlayer({ url }) {
