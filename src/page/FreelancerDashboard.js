@@ -19,14 +19,8 @@ const AVATAR_COLORS = [
 ];
 
 const TABS = [
-  { id: 'profile',       label: 'Profil',          icon: '👤' },
-  { id: 'dashboard',     label: 'Dashboard',        icon: '📊' },
-  { id: 'find-projects', label: 'Trouver Projets',  icon: '🔎' },
-  { id: 'missions',      label: 'Mes Missions',     icon: '📁' },
-  { id: 'gains',         label: 'Gains',            icon: '💰' },
-  { id: 'courses',       label: 'Mes Cours',        icon: '📚' },
-  { id: 'settings',      label: 'Paramètres',       icon: '⚙️' },
-  { id: 'logout',        label: 'Log out',          icon: '🚪', danger: true },
+  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+  { id: 'logout',    label: 'Log out',   icon: '🚪', danger: true },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -131,54 +125,43 @@ function InputField({ label, ...props }) {
 // ── TAB: Profil ───────────────────────────────────────────────────────────────
 
 function ProfileTab({ user, updateUser }) {
-  const [form, setForm]       = useState({ name: user.name || '', bio: user.bio || '', skills: user.skills || '', region: user.region || '', photo: user.photo || '' });
-  const [saving, setSaving]   = useState(false);
-  const [saved, setSaved]     = useState(false);
-  const [error, setError]     = useState('');
+  const [photo,   setPhoto]   = useState(user.photo || '');
+  const [saving,  setSaving]  = useState(false);
   const photoRef              = useRef();
+
+  async function savePhoto(newPhoto) {
+    setSaving(true);
+    try {
+      await fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo: newPhoto }),
+      });
+      await updateUser({ ...user, photo: newPhoto });
+    } catch {}
+    setSaving(false);
+  }
 
   function handlePhotoFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => setForm(f => ({ ...f, photo: ev.target.result }));
+    reader.onload = ev => { setPhoto(ev.target.result); savePhoto(ev.target.result); };
     reader.readAsDataURL(file);
   }
 
-  async function handleSave(e) {
-    e.preventDefault();
-    if (!form.name.trim()) { setError('Le nom est requis.'); return; }
-    setSaving(true); setError('');
-    try {
-      const res = await fetch(`${API}/users/profile`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, ...form }),
-      });
-      if (!res.ok) throw new Error();
-      await updateUser({ ...user, ...form });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    } catch {
-      setError('Erreur lors de la sauvegarde.');
-    } finally {
-      setSaving(false);
-    }
-  }
+  function deletePhoto() { setPhoto(''); savePhoto(''); }
 
   const statusMap = { approved:'✅ Approuvé', pending:'⏳ En attente', rejected:'❌ Refusé' };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
 
-      {/* ── Profile header card ── */}
+      {/* Header — same as client */}
       <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 flex items-center gap-5">
         <div className="relative shrink-0 group cursor-pointer" onClick={() => photoRef.current?.click()}>
           <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${getGradient(user.email)} flex items-center justify-center text-white text-2xl font-bold overflow-hidden`}>
-            {form.photo
-              ? <img src={form.photo} alt="" className="w-20 h-20 object-cover" onError={e => { e.target.style.display='none'; }} />
-              : getInitials(form.name || user.email)
-            }
+            {photo ? <img src={photo} alt="" className="w-20 h-20 object-cover" onError={e=>{e.target.style.display='none'}} /> : getInitials(user.name || user.email)}
           </div>
           <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -189,75 +172,26 @@ function ProfileTab({ user, updateUser }) {
           <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoFile} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-lg font-bold text-white truncate">{form.name || user.name}</p>
+          <p className="text-lg font-bold text-white truncate">{user.name}</p>
           <p className="text-sm text-slate-400 truncate">{user.email}</p>
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
             <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400">🧑‍💻 Freelancer</span>
-            {form.photo && (
-              <button type="button" onClick={() => setForm(f => ({ ...f, photo: '' }))}
-                className="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors">
-                Supprimer la photo
-              </button>
-            )}
+            {photo && <button onClick={deletePhoto} disabled={saving} className="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors">Supprimer la photo</button>}
+            {saving && <span className="text-xs text-slate-500">Sauvegarde…</span>}
           </div>
         </div>
       </div>
 
-      {/* ── ONE card with all fields in 2-col grid — same as client ── */}
-      <form onSubmit={handleSave}>
-        <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-            {/* Nom complet */}
-            <div>
-              <p className="text-xs font-semibold text-slate-500 mb-1">Nom complet</p>
-              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required
-                className="w-full text-sm font-medium text-white bg-transparent border-b border-slate-700 pb-1 focus:outline-none focus:border-indigo-500 transition-colors" />
-            </div>
-
-            {/* Région */}
-            <div>
-              <p className="text-xs font-semibold text-slate-500 mb-1">Région</p>
-              <select value={form.region} onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
-                className="w-full text-sm font-medium text-white bg-transparent border-b border-slate-700 pb-1 focus:outline-none focus:border-indigo-500 transition-colors">
-                <option value="" className="bg-slate-900">— Choisir —</option>
-                {TUNISIAN_REGIONS.map(r => <option key={r} value={r} className="bg-slate-900">{r}</option>)}
-              </select>
-            </div>
-
-            {/* Compétences */}
-            <div>
-              <p className="text-xs font-semibold text-slate-500 mb-1">Compétences</p>
-              <input value={form.skills} onChange={e => setForm(f => ({ ...f, skills: e.target.value }))}
-                placeholder="WEB, Design…"
-                className="w-full text-sm font-medium text-white bg-transparent border-b border-slate-700 pb-1 focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-600" />
-              <p className="text-[10px] text-slate-600 mt-1">Séparées par des virgules</p>
-            </div>
-
-            {/* Statut CIN */}
-            <div>
-              <p className="text-xs font-semibold text-slate-500 mb-1">Statut CIN</p>
-              <p className="text-sm font-medium text-white">{statusMap[user.cinStatus] || '⏳ En attente'}</p>
-            </div>
-
-            {/* Bio — full width */}
-            <div className="sm:col-span-2">
-              <p className="text-xs font-semibold text-slate-500 mb-1">Bio</p>
-              <textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
-                rows={3} placeholder="Tell us about yourself..."
-                className="w-full text-sm font-medium text-white bg-transparent border-b border-slate-700 pb-1 focus:outline-none focus:border-indigo-500 transition-colors resize-none placeholder-slate-600" />
-            </div>
-
-          </div>
+      {/* ONE card with 2-col grid — read-only, same as client */}
+      <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div><p className="text-xs font-semibold text-slate-500 mb-1">Nom complet</p><p className="text-sm font-medium text-white">{user.name || '—'}</p></div>
+          <div><p className="text-xs font-semibold text-slate-500 mb-1">Région</p><p className="text-sm font-medium text-white">{user.region || '—'}</p></div>
+          <div><p className="text-xs font-semibold text-slate-500 mb-1">Compétences</p><p className="text-sm font-medium text-white">{user.skills || '—'}</p></div>
+          <div><p className="text-xs font-semibold text-slate-500 mb-1">Statut CIN</p><p className="text-sm font-medium text-white">{statusMap[user.cinStatus] || '⏳ En attente'}</p></div>
+          <div className="sm:col-span-2"><p className="text-xs font-semibold text-slate-500 mb-1">Bio</p><p className="text-sm font-medium text-white leading-relaxed">{user.bio || '—'}</p></div>
         </div>
-
-        {error && <p className="text-xs text-rose-500 mt-3 px-1">{error}</p>}
-
-        <button type="submit" disabled={saving}
-          className="w-full mt-4 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60 shadow-lg shadow-indigo-500/20">
-          {saving ? 'Sauvegarde…' : saved ? '✅ Sauvegardé !' : 'Save changes'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }
