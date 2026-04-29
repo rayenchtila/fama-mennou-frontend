@@ -126,9 +126,10 @@ function InputField({ label, ...props }) {
 
 function ProfileTab({ user, updateUser }) {
   const [photo,   setPhoto]   = useState(user.photo || '');
-  const [bio,     setBio]     = useState(user.bio || '');
-  const [saving,  setSaving]  = useState(false);
-  const [saved,   setSaved]   = useState(false);
+  const [bio,       setBio]      = useState(user.bio || '');
+  const [saving,    setSaving]   = useState(false);
+  const [saved,     setSaved]    = useState(false);
+  const [showBanner,setShowBanner] = useState(false);
   const photoRef              = useRef();
 
   async function handleSave() {
@@ -139,7 +140,19 @@ function ProfileTab({ user, updateUser }) {
         body: JSON.stringify({ bio }),
       });
       await updateUser({ ...user, bio });
-      setSaved(true); setTimeout(() => setSaved(false), 2500);
+      // Send notification
+      fetch(`${API}/notifications`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'user', kind: `profile_saved_${Date.now()}`,
+          title: '✅ Profil mis à jour',
+          message: 'Vos modifications ont été sauvegardées avec succès.',
+          email: user.email, name: user.name,
+        }),
+      }).catch(() => {});
+      setSaved(true);
+      setShowBanner(true);
+      setTimeout(() => { setSaved(false); setShowBanner(false); }, 4000);
     } catch {}
     setSaving(false);
   }
@@ -225,9 +238,24 @@ function ProfileTab({ user, updateUser }) {
           className="w-full bg-slate-800 text-white text-sm rounded-2xl border border-slate-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-slate-500" />
       </div>
 
+      {/* Success banner */}
+      {showBanner && (
+        <div className="flex items-center gap-3 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl px-4 py-3">
+          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-emerald-400">Modifications sauvegardées !</p>
+            <p className="text-[11px] text-emerald-500/80">Toutes vos informations ont été enregistrées.</p>
+          </div>
+        </div>
+      )}
+
       <button onClick={handleSave} disabled={saving}
         className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60">
-        {saving ? 'Sauvegarde…' : saved ? '✅ Sauvegardé !' : 'Save changes'}
+        {saving ? 'Sauvegarde…' : 'Save changes'}
       </button>
     </div>
   );
