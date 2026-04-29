@@ -125,13 +125,16 @@ function InputField({ label, ...props }) {
 
 // ── TAB: Profil ───────────────────────────────────────────────────────────────
 
-function ProfileTab({ user, updateUser }) {
+function ProfileTab({ user, updateUser, fetchAccounts }) {
   const [photo,   setPhoto]   = useState(user.photo || '');
-  const [bio,       setBio]      = useState(user.bio || '');
-  const [saving,    setSaving]   = useState(false);
-  const [saved,     setSaved]    = useState(false);
-  const [showBanner,setShowBanner] = useState(false);
-  const photoRef              = useRef();
+  const [bio,        setBio]       = useState(user.bio || '');
+  const [saving,     setSaving]    = useState(false);
+  const [saved,      setSaved]     = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+  const photoRef = useRef();
+
+  // Sync bio when user data updates
+  useEffect(() => { setBio(user.bio || ''); }, [user.bio]);
 
   async function handleSave() {
     setSaving(true);
@@ -147,6 +150,7 @@ function ProfileTab({ user, updateUser }) {
     setSaved(true);
     setTimeout(() => { setShowBanner(false); setSaved(false); }, 4000);
     if (updateUser) updateUser({ ...user, bio }).catch(() => {});
+    if (fetchAccounts) fetchAccounts().catch(() => {});
     fetch(`${API}/notifications`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1436,7 +1440,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
 export default function FreelancerDashboard() {
   const [searchParams]                   = useSearchParams();
   const navigate                         = useNavigate();
-  const { user, updateUser, logout, users } = useAuth();
+  const { user, updateUser, logout, users, fetchAccounts } = useAuth();
   const [activeTab, setActiveTab]        = useState(() => searchParams.get('tab') || 'profile');
   const [logoutConfirm, setLogoutConfirm] = useState(false);
 
@@ -1457,7 +1461,7 @@ export default function FreelancerDashboard() {
 
       {/* ── Content ── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {activeTab === 'profile'       && <ProfileTab       user={user} updateUser={updateUser} />}
+        {activeTab === 'profile'       && <ProfileTab       user={user} updateUser={updateUser} fetchAccounts={fetchAccounts} />}
         {activeTab === 'dashboard'     && <DashboardTab     user={user} users={users} onNavigate={setActiveTab} navigate={navigate} />}
         {activeTab === 'find-projects' && <FindProjectsTab  user={user} users={users} navigate={navigate} />}
         {activeTab === 'missions'      && <MissionsTab      user={user} users={users} navigate={navigate} />}
