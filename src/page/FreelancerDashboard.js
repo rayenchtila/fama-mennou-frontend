@@ -148,9 +148,9 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     // Always show banner + send notification (non-blocking)
     setShowBanner(true);
     setSaved(true);
-    setTimeout(() => { setShowBanner(false); setSaved(false); }, 4000);
+    // Reload after 2.5s so fresh bio loads from DB
+    setTimeout(() => { window.location.reload(); }, 2500);
     if (updateUser) updateUser({ ...user, bio }).catch(() => {});
-    if (fetchAccounts) fetchAccounts().catch(() => {});
     fetch(`${API}/notifications`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
