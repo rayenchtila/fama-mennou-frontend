@@ -189,7 +189,7 @@ function ProfileTab({ user, updateUser }) {
           <p className="text-xs text-slate-400 truncate">{user.email}</p>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400">🧑‍💻 Freelancer</span>
-            {photo && <button onClick={deletePhoto} className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 transition-colors">Supprimer la photo</button>}
+            <button onClick={deletePhoto} className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 transition-colors">Supprimer la photo</button>
           </div>
         </div>
       </div>
