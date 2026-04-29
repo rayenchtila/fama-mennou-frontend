@@ -136,20 +136,17 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   // Sync bio when user data updates
   useEffect(() => { setBio(user.bio || ''); }, [user.bio]);
 
-  async function handleSave() {
-    setSaving(true);
-    // Save bio to DB
-    try {
-      await fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bio }),
-      });
-    } catch {}
-    // Always show banner + send notification (non-blocking)
+  function handleSave() {
+    // Show overlay IMMEDIATELY — before any network call
     setShowBanner(true);
-    setSaved(true);
-    // Reload after 2.5s so fresh bio loads from DB
+    setSaving(true);
+    // Reload after 2.5s
     setTimeout(() => { window.location.reload(); }, 2500);
+    // Save bio to DB (non-blocking)
+    fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bio }),
+    }).catch(() => {});
     if (updateUser) updateUser({ ...user, bio }).catch(() => {});
     fetch(`${API}/notifications`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
