@@ -240,17 +240,23 @@ function ProfileTab({ user, updateUser }) {
           className="w-full bg-slate-800 text-white text-sm rounded-2xl border border-slate-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-slate-500" />
       </div>
 
-      {/* Success banner */}
+      {/* Success overlay */}
       {showBanner && (
-        <div className="flex items-center gap-3 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl px-4 py-3">
-          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-emerald-400">Modifications sauvegardées !</p>
-            <p className="text-[11px] text-emerald-500/80">Toutes vos informations ont été enregistrées.</p>
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl p-8 flex flex-col items-center gap-4 shadow-2xl max-w-xs w-full text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center">
+              <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <div>
+              <p className="text-lg font-extrabold text-white mb-1">Modifications sauvegardées !</p>
+              <p className="text-sm text-slate-400">Vos informations ont été enregistrées avec succès.</p>
+            </div>
+            <button onClick={() => setShowBanner(false)}
+              className="mt-2 px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors">
+              OK
+            </button>
           </div>
         </div>
       )}
