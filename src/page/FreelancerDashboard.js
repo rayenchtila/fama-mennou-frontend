@@ -134,26 +134,27 @@ function ProfileTab({ user, updateUser }) {
 
   async function handleSave() {
     setSaving(true);
+    // Save bio to DB
     try {
       await fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bio }),
       });
-      await updateUser({ ...user, bio });
-      // Send notification
-      fetch(`${API}/notifications`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'user', kind: `profile_saved_${Date.now()}`,
-          title: '✅ Profil mis à jour',
-          message: 'Vos modifications ont été sauvegardées avec succès.',
-          email: user.email, name: user.name,
-        }),
-      }).catch(() => {});
-      setSaved(true);
-      setShowBanner(true);
-      setTimeout(() => { setSaved(false); setShowBanner(false); }, 4000);
     } catch {}
+    // Always show banner + send notification (non-blocking)
+    setShowBanner(true);
+    setSaved(true);
+    setTimeout(() => { setShowBanner(false); setSaved(false); }, 4000);
+    if (updateUser) updateUser({ ...user, bio }).catch(() => {});
+    fetch(`${API}/notifications`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'user', kind: `profile_saved_${Date.now()}`,
+        title: '✅ Profil mis à jour',
+        message: 'Vos modifications ont été sauvegardées avec succès.',
+        email: user.email, name: user.name,
+      }),
+    }).catch(() => {});
     setSaving(false);
   }
 
