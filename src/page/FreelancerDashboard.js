@@ -19,6 +19,7 @@ const AVATAR_COLORS = [
 ];
 
 const TABS = [
+  { id: 'profile',   label: 'Profil',    icon: '👤' },
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
   { id: 'logout',    label: 'Log out',   icon: '🚪', danger: true },
 ];
@@ -1430,7 +1431,7 @@ export default function FreelancerDashboard() {
   const [searchParams]                   = useSearchParams();
   const navigate                         = useNavigate();
   const { user, updateUser, logout, users } = useAuth();
-  const [activeTab, setActiveTab]        = useState(() => searchParams.get('tab') || 'dashboard');
+  const [activeTab, setActiveTab]        = useState(() => searchParams.get('tab') || 'profile');
   const [logoutConfirm, setLogoutConfirm] = useState(false);
 
   useEffect(() => {
