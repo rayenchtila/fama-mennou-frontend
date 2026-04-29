@@ -170,7 +170,7 @@ function ProfileTab({ user, updateUser }) {
   return (
     <div className="max-w-sm mx-auto space-y-4">
 
-      {/* Photo + name card — same as client screenshot */}
+      {/* Header — clickable photo + name + delete */}
       <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex items-center gap-4">
         <div className="relative shrink-0 group cursor-pointer" onClick={() => photoRef.current?.click()}>
           <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getGradient(user.email)} flex items-center justify-center text-white text-xl font-bold overflow-hidden`}>
@@ -188,43 +188,43 @@ function ProfileTab({ user, updateUser }) {
           <p className="text-base font-bold text-white truncate">{user.name}</p>
           <p className="text-xs text-slate-400 truncate">{user.email}</p>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400">Freelancer</span>
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400">🧑‍💻 Freelancer</span>
             {photo && <button onClick={deletePhoto} className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 transition-colors">Supprimer la photo</button>}
           </div>
         </div>
       </div>
 
-      {/* GENDER + DATE OF BIRTH tiles */}
+      {/* Freelancer fields — same dark card design as client */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-slate-800 rounded-2xl p-4">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Gender</p>
-          <p className="text-sm font-semibold text-white">{genderMap[user.gender] || user.gender || '—'}</p>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Nom complet</p>
+          <p className="text-sm font-semibold text-white">{user.name || '—'}</p>
         </div>
         <div className="bg-slate-800 rounded-2xl p-4">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Date of birth</p>
-          <p className="text-sm font-semibold text-white">{user.dob ? new Date(user.dob).toISOString().slice(0,10) : '—'}</p>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Région</p>
+          <p className="text-sm font-semibold text-white">{user.region || '—'}</p>
         </div>
       </div>
 
-      {/* STATUT tile */}
-      <div className="bg-slate-800 rounded-2xl p-4">
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Statut</p>
-        <p className="text-sm font-semibold text-white">{statusMap[user.cinStatus] || '—'}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-slate-800 rounded-2xl p-4">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Compétences</p>
+          <p className="text-sm font-semibold text-white truncate">{user.skills || '—'}</p>
+        </div>
+        <div className="bg-slate-800 rounded-2xl p-4">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Statut</p>
+          <p className="text-sm font-semibold text-white">{statusMap[user.cinStatus] || '—'}</p>
+        </div>
       </div>
 
       {/* BIO — editable, same as client */}
       <div>
         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Bio</p>
-        <textarea
-          value={bio}
-          onChange={e => setBio(e.target.value)}
-          rows={4}
+        <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4}
           placeholder="Tell us about yourself..."
-          className="w-full bg-slate-800 text-white text-sm rounded-2xl border border-slate-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-slate-500"
-        />
+          className="w-full bg-slate-800 text-white text-sm rounded-2xl border border-slate-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-slate-500" />
       </div>
 
-      {/* Save changes button — same as client */}
       <button onClick={handleSave} disabled={saving}
         className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60">
         {saving ? 'Sauvegarde…' : saved ? '✅ Sauvegardé !' : 'Save changes'}
