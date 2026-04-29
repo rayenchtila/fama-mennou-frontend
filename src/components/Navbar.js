@@ -95,6 +95,7 @@ async function getNotifLink(n) {
   }
   if (k === 'course_pending') return '/dashboard?tab=courses';
   if (k.startsWith('profile_saved')) return '/dashboard?tab=profile';
+  if (k.startsWith('client_profile_saved')) return '/account?tab=profile';
   return '/courses';
 }
 
