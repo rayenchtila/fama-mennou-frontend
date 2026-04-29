@@ -137,12 +137,11 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   useEffect(() => { setBio(user.bio || ''); }, [user.bio]);
 
   function handleSave() {
-    // Direct DOM — impossible to block by React/z-index issues
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
-    overlay.innerHTML = '<div style="background:#0f172a;border:1px solid rgba(16,185,129,0.4);border-radius:24px;padding:32px;text-align:center;max-width:320px;width:90%"><div style="width:64px;height:64px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><svg width="32" height="32" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div><p style="color:white;font-size:18px;font-weight:800;margin:0 0 8px">Modifications sauvegardées !</p><p style="color:#94a3b8;font-size:14px;margin:0">Vos informations ont été enregistrées.</p></div>';
-    document.body.appendChild(overlay);
-    setTimeout(() => { overlay.remove(); window.location.reload(); }, 2500);
+    const t = document.createElement('div');
+    t.textContent = '✅  Modifications sauvegardées !';
+    t.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#10b981;color:white;padding:14px 28px;border-radius:12px;font-weight:700;font-size:15px;z-index:2147483647;box-shadow:0 8px 24px rgba(0,0,0,0.4);white-space:nowrap';
+    document.body.appendChild(t);
+    setTimeout(() => { t.remove(); window.location.reload(); }, 2500);
     // Save bio to DB
     fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
