@@ -126,20 +126,32 @@ function InputField({ label, ...props }) {
 
 function ProfileTab({ user, updateUser }) {
   const [photo,   setPhoto]   = useState(user.photo || '');
+  const [bio,     setBio]     = useState(user.bio || '');
   const [saving,  setSaving]  = useState(false);
+  const [saved,   setSaved]   = useState(false);
   const photoRef              = useRef();
 
-  async function savePhoto(newPhoto) {
+  async function handleSave() {
     setSaving(true);
     try {
       await fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bio }),
+      });
+      await updateUser({ ...user, bio });
+      setSaved(true); setTimeout(() => setSaved(false), 2500);
+    } catch {}
+    setSaving(false);
+  }
+
+  async function savePhoto(newPhoto) {
+    try {
+      await fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ photo: newPhoto }),
       });
       await updateUser({ ...user, photo: newPhoto });
     } catch {}
-    setSaving(false);
   }
 
   function handlePhotoFile(e) {
@@ -152,19 +164,20 @@ function ProfileTab({ user, updateUser }) {
 
   function deletePhoto() { setPhoto(''); savePhoto(''); }
 
-  const statusMap = { approved:'✅ Approuvé', pending:'⏳ En attente', rejected:'❌ Refusé' };
+  const statusMap  = { approved:'Approved', pending:'En attente', rejected:'Refusé' };
+  const genderMap  = { male:'Male', female:'Female', other:'Other' };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="max-w-sm mx-auto space-y-4">
 
-      {/* Header — same as client */}
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 flex items-center gap-5">
+      {/* Photo + name card — same as client screenshot */}
+      <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex items-center gap-4">
         <div className="relative shrink-0 group cursor-pointer" onClick={() => photoRef.current?.click()}>
-          <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${getGradient(user.email)} flex items-center justify-center text-white text-2xl font-bold overflow-hidden`}>
-            {photo ? <img src={photo} alt="" className="w-20 h-20 object-cover" onError={e=>{e.target.style.display='none'}} /> : getInitials(user.name || user.email)}
+          <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getGradient(user.email)} flex items-center justify-center text-white text-xl font-bold overflow-hidden`}>
+            {photo ? <img src={photo} alt="" className="w-16 h-16 object-cover" onError={e=>{e.target.style.display='none'}} /> : getInitials(user.name||user.email)}
           </div>
-          <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="absolute inset-0 rounded-xl bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
@@ -172,26 +185,50 @@ function ProfileTab({ user, updateUser }) {
           <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoFile} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-lg font-bold text-white truncate">{user.name}</p>
-          <p className="text-sm text-slate-400 truncate">{user.email}</p>
-          <div className="flex items-center gap-3 mt-2 flex-wrap">
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400">🧑‍💻 Freelancer</span>
-            {photo && <button onClick={deletePhoto} disabled={saving} className="text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors">Supprimer la photo</button>}
-            {saving && <span className="text-xs text-slate-500">Sauvegarde…</span>}
+          <p className="text-base font-bold text-white truncate">{user.name}</p>
+          <p className="text-xs text-slate-400 truncate">{user.email}</p>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400">Freelancer</span>
+            {photo && <button onClick={deletePhoto} className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 transition-colors">Supprimer la photo</button>}
           </div>
         </div>
       </div>
 
-      {/* ONE card with 2-col grid — read-only, same as client */}
-      <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div><p className="text-xs font-semibold text-slate-500 mb-1">Nom complet</p><p className="text-sm font-medium text-white">{user.name || '—'}</p></div>
-          <div><p className="text-xs font-semibold text-slate-500 mb-1">Région</p><p className="text-sm font-medium text-white">{user.region || '—'}</p></div>
-          <div><p className="text-xs font-semibold text-slate-500 mb-1">Compétences</p><p className="text-sm font-medium text-white">{user.skills || '—'}</p></div>
-          <div><p className="text-xs font-semibold text-slate-500 mb-1">Statut CIN</p><p className="text-sm font-medium text-white">{statusMap[user.cinStatus] || '⏳ En attente'}</p></div>
-          <div className="sm:col-span-2"><p className="text-xs font-semibold text-slate-500 mb-1">Bio</p><p className="text-sm font-medium text-white leading-relaxed">{user.bio || '—'}</p></div>
+      {/* GENDER + DATE OF BIRTH tiles */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-slate-800 rounded-2xl p-4">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Gender</p>
+          <p className="text-sm font-semibold text-white">{genderMap[user.gender] || user.gender || '—'}</p>
+        </div>
+        <div className="bg-slate-800 rounded-2xl p-4">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Date of birth</p>
+          <p className="text-sm font-semibold text-white">{user.dob ? new Date(user.dob).toISOString().slice(0,10) : '—'}</p>
         </div>
       </div>
+
+      {/* STATUT tile */}
+      <div className="bg-slate-800 rounded-2xl p-4">
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Statut</p>
+        <p className="text-sm font-semibold text-white">{statusMap[user.cinStatus] || '—'}</p>
+      </div>
+
+      {/* BIO — editable, same as client */}
+      <div>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Bio</p>
+        <textarea
+          value={bio}
+          onChange={e => setBio(e.target.value)}
+          rows={4}
+          placeholder="Tell us about yourself..."
+          className="w-full bg-slate-800 text-white text-sm rounded-2xl border border-slate-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder-slate-500"
+        />
+      </div>
+
+      {/* Save changes button — same as client */}
+      <button onClick={handleSave} disabled={saving}
+        className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60">
+        {saving ? 'Sauvegarde…' : saved ? '✅ Sauvegardé !' : 'Save changes'}
+      </button>
     </div>
   );
 }
