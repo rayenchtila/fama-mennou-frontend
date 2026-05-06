@@ -538,6 +538,58 @@ function StatisticsPanel({ allUsers }) {
   );
 }
 
+// ─── Course/Lesson video player (must be at module scope — never inside a component) ──
+
+function CourseVideoPlayer({ url }) {
+  const ref = React.useRef(null);
+  const isMux  = (url || '').startsWith('mux:');
+  const isYT   = /youtube\.com|youtu\.be/.test(url || '');
+  const isURL  = /^https?:\/\//i.test(url || '');
+  const isBlob = (url || '').startsWith('blob:');
+  const isB64  = (url || '').startsWith('data:video');
+
+  React.useEffect(() => {
+    if (!isMux || !ref.current) return;
+    const video = ref.current;
+    const playbackId = url.replace('mux:', '');
+    const src = `https://stream.mux.com/${playbackId}.m3u8`;
+    if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = src; return; }
+    const init = () => {
+      if (!window.Hls?.isSupported()) return;
+      const h = new window.Hls({ enableWorker: true, startLevel: -1, maxBufferLength: 60, maxMaxBufferLength: 120, maxBufferSize: 60 * 1000 * 1000, lowLatencyMode: false, backBufferLength: 30, abrEwmaDefaultEstimate: 1000000 });
+      h.loadSource(src); h.attachMedia(video);
+      h.on(window.Hls.Events.ERROR, (_, d) => {
+        if (d.fatal) {
+          if (d.type === window.Hls.ErrorTypes.NETWORK_ERROR) h.startLoad();
+          else if (d.type === window.Hls.ErrorTypes.MEDIA_ERROR) h.recoverMediaError();
+        }
+      });
+    };
+    if (window.Hls) { init(); return; }
+    const existing = document.getElementById('hls-script');
+    if (existing) { existing.addEventListener('load', init); return; }
+    const s = document.createElement('script');
+    s.id = 'hls-script';
+    s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
+    s.onload = init;
+    document.head.appendChild(s);
+    return () => { if (video) video.src = ''; };
+  }, [isMux, url]);
+
+  if (!url) return <p className="text-xs text-slate-400 text-center py-3">Aucune vidéo disponible</p>;
+  if (isMux)  return <video ref={ref} className="w-full aspect-video rounded-xl bg-black" controls playsInline />;
+  if (isYT) {
+    const vid = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
+    return <iframe className="w-full aspect-video rounded-xl" src={`https://www.youtube.com/embed/${vid}?rel=0`} allowFullScreen title="video" />;
+  }
+  if (isURL || isB64 || isBlob) return <video className="w-full aspect-video rounded-xl bg-black" src={url} controls playsInline />;
+  return (
+    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800">
+      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">📎 Lien non lisible — utilisez YouTube ou Mux</p>
+    </div>
+  );
+}
+
 // ─── main AdminPage ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -664,58 +716,6 @@ export default function AdminPage() {
       if (Array.isArray(d)) setLessonsByCourse(p => ({ ...p, [courseId]: d }));
     } catch {}
     setLessonsLoading(false);
-  }
-
-  function CourseVideoPlayer({ url, label }) {
-    const ref = React.useRef(null);
-    const isMux = (url || '').startsWith('mux:');
-    const isYT  = /youtube\.com|youtu\.be/.test(url || '');
-    const isURL = /^https?:\/\//i.test(url || '');
-    const isB64 = (url || '').startsWith('data:video');
-
-    React.useEffect(() => {
-      if (!isMux || !ref.current) return;
-      const video = ref.current;
-      const playbackId = url.replace('mux:', '');
-      const src = `https://stream.mux.com/${playbackId}.m3u8`;
-      if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = src; return; }
-      if (window.Hls?.isSupported()) { const h = new window.Hls(); h.loadSource(src); h.attachMedia(video); return; }
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js';
-      s.id = 'hls-script'; s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
-      s.onload = () => {
-        if (window.Hls?.isSupported()) {
-          const h = new window.Hls({
-            enableWorker: true, startLevel: -1,
-            maxBufferLength: 60, maxMaxBufferLength: 120,
-            maxBufferSize: 60 * 1000 * 1000,
-            lowLatencyMode: false, backBufferLength: 30,
-            abrEwmaDefaultEstimate: 1000000,
-          });
-          h.loadSource(src); h.attachMedia(video);
-          h.on(window.Hls.Events.ERROR, (_, d) => {
-            if (d.fatal) {
-              if (d.type === window.Hls.ErrorTypes.NETWORK_ERROR) h.startLoad();
-              else if (d.type === window.Hls.ErrorTypes.MEDIA_ERROR) h.recoverMediaError();
-            }
-          });
-        }
-      };
-      if (!document.getElementById('hls-script')) document.head.appendChild(s);
-    }, [isMux, url]);
-
-    if (!url) return <p className="text-xs text-slate-400 text-center py-3">Aucune vidéo disponible</p>;
-    if (isMux) return <video ref={ref} className="w-full aspect-video rounded-xl bg-black" controls playsInline />;
-    if (isYT) {
-      const vid = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
-      return <iframe className="w-full aspect-video rounded-xl" src={`https://www.youtube.com/embed/${vid}?rel=0`} allowFullScreen title="video" />;
-    }
-    if (isURL || isB64) return <video className="w-full aspect-video rounded-xl bg-black" src={url} controls playsInline />;
-    return (
-      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800">
-        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">📎 {url} — pas streamable, uploadez via Mux</p>
-      </div>
-    );
   }
 
   // Fetch courses on mount AND on tab switch — badge always ready
