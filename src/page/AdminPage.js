@@ -42,7 +42,19 @@ function StatusBadge({ status }) {
 function CINImageModal({ user, onClose }) {
   const { t } = useTranslation();
   const [side, setSide] = useState("front");
-  const img = side === "front" ? user.cinFront : user.cinBack;
+  const [cinData, setCinData] = useState({ cin_front: null, cin_back: null });
+  const [cinLoading, setCinLoading] = useState(true);
+  const API_URL = 'https://famamennou-server.onrender.com/api';
+
+  React.useEffect(() => {
+    setCinLoading(true);
+    fetch(`${API_URL}/users/${encodeURIComponent(user.email)}/cin`)
+      .then(r => r.json())
+      .then(d => { setCinData(d); setCinLoading(false); })
+      .catch(() => setCinLoading(false));
+  }, [user.email]);
+
+  const img = side === "front" ? cinData.cin_front : cinData.cin_back;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden w-full max-w-2xl" onClick={e => e.stopPropagation()}>
@@ -66,7 +78,12 @@ function CINImageModal({ user, onClose }) {
           ))}
         </div>
         <div className="p-4 bg-slate-900 min-h-64 flex items-center justify-center">
-          {img ? (
+          {cinLoading ? (
+            <svg className="w-8 h-8 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+            </svg>
+          ) : img ? (
             <img src={`data:image/jpeg;base64,${img}`} alt={`CIN ${side}`} className="max-h-96 w-full object-contain rounded-xl" />
           ) : (
             <div className="text-slate-500 text-sm flex flex-col items-center gap-2">
