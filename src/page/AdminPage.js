@@ -522,7 +522,7 @@ function StatisticsPanel({ allUsers }) {
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">{t("admin.age_distribution")}</p>
             <div className="space-y-2">
               {ageCounts.map(b => (
-                <div key={b.label} className="flex items-center gap-3">
+                <div key={b.range} className="flex items-center gap-3">
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 w-24 shrink-0">{b.range} {t("admin.years")}</span>
                   <div className="flex-1 h-5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-500 rounded-full transition-all duration-700" style={{ width: `${Math.round((b.count / maxAge) * 100)}%` }} />
@@ -603,7 +603,7 @@ export default function AdminPage() {
     const interval = setInterval(() => {
       fetchAccounts();
       fetchNotifications();
-    }, 1000);
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 

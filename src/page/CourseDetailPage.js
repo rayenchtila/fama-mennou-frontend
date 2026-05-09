@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { uploadVideo } from '../utils/upload';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -166,49 +167,15 @@ export default function CourseDetailPage() {
 
   async function handleMuxUpload(file) {
     if (!file) return;
-    // Warn if file is very large
-    if (file.size > 500 * 1024 * 1024) {
-      const mb = (file.size / 1024 / 1024).toFixed(0);
-      if (!window.confirm(`Fichier ${mb} MB — l'upload peut prendre plusieurs minutes. Continuer ?\n\nRecommandé : compresser la vidéo à moins de 500 MB avant d'uploader.`)) return;
-    }
     setUploadFileName(file.name);
     setUploadState('uploading');
     setUploadProgress(0);
     try {
-      // 1. Get upload URL from our backend
-      const r = await fetch(`${API}/mux/upload-url`, { method: 'POST' });
-      const { upload_id, url } = await r.json();
-
-      // 2. Upload file directly to Mux with XHR for progress
-      await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', url);
-        xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
-        xhr.upload.onprogress = e => {
-          if (e.lengthComputable) setUploadProgress(Math.round(e.loaded / e.total * 100));
-        };
-        xhr.onload  = () => xhr.status < 300 ? resolve() : reject(new Error('Upload failed'));
-        xhr.onerror = () => reject(new Error('Network error'));
-        xhr.send(file);
-      });
-
-      // 3. Poll until Mux finishes processing
-      setUploadState('processing');
-      setUploadProgress(100);
-      let playbackId = null;
-      for (let i = 0; i < 60; i++) {
-        await new Promise(r => setTimeout(r, 3000));
-        const poll = await fetch(`${API}/mux/upload/${upload_id}`).then(r => r.json());
-        if (poll.playback_id) { playbackId = poll.playback_id; break; }
-        if (poll.status === 'errored') throw new Error('Mux processing failed');
-      }
-      if (!playbackId) throw new Error('Timeout waiting for Mux');
-
-      // 4. Store as mux:{playback_id}
-      setNewLesson(p => ({ ...p, video_url: `mux:${playbackId}` }));
+      const res = await uploadVideo(file, 'famamennou/videos', pct => setUploadProgress(pct));
+      setNewLesson(p => ({ ...p, video_url: res.secure_url }));
       setUploadState('done');
     } catch (err) {
-      console.error('Mux upload error:', err);
+      console.error('Upload error:', err.message);
       setUploadState('error');
     }
   }

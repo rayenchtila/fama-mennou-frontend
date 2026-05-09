@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { uploadVideo, uploadImage } from '../utils/upload';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -759,7 +760,11 @@ function CoursesTab({ user }) {
   const [form, setForm] = useState({ title:'', description:'', thumbnail_url:'', category:'', full_price:'', first_lesson_free: false, _videoFile: null, _photoFile: null });
   const [courseNameEdit,  setCourseNameEdit]  = useState('');
   const [savingCourseName, setSavingCourseName] = useState(false);
-  const [lForm, setLForm] = useState({ title:'', description:'', video_url:'', duration_min:'', price:'0', is_free_preview: false });
+  const [lForm,           setLForm]           = useState({ title:'', description:'', video_url:'', duration_min:'', price:'0', is_free_preview: false });
+  const [lVideoUploading, setLVideoUploading] = useState(false);
+  const [lVideoProgress,  setLVideoProgress]  = useState(0);
+  const [lVideoName,      setLVideoName]      = useState('');
+  const lVideoRef = useRef();
   const [sForm, setSForm] = useState({ title:'', description:'', scheduled_at:'', price:'0', join_url:'' });
   const [createLoading, setCreateLoading] = useState(false);
   const [createError,   setCreateError]   = useState('');
@@ -813,7 +818,10 @@ function CoursesTab({ user }) {
 
     let thumbnail_url = '';
     if (form._photoFile) {
-      try { thumbnail_url = await imageToBase64(form._photoFile); } catch {}
+      try {
+        const r = await uploadImage(form._photoFile, 'famamennou/thumbnails');
+        thumbnail_url = r.secure_url;
+      } catch { try { thumbnail_url = await imageToBase64(form._photoFile); } catch {} }
     }
 
     const payload = {
@@ -879,6 +887,8 @@ function CoursesTab({ user }) {
 
   async function addLesson(e) {
     e.preventDefault();
+    if (lVideoUploading) return;
+    if (!lForm.video_url) { alert('Veuillez uploader une vidéo MP4 d\'abord.'); return; }
     try {
       const r = await fetch(`${API}/lessons`, {
         method: 'POST',
@@ -886,7 +896,11 @@ function CoursesTab({ user }) {
         body: JSON.stringify({ ...lForm, course_id: showLessons, price: Number(lForm.price), duration_min: Number(lForm.duration_min) || 0 }),
       });
       const d = await r.json();
-      if (d.id) { setLForm({ title:'', description:'', video_url:'', duration_min:'', price:'0', is_free_preview: false }); fetchLessons(showLessons); }
+      if (d.id) {
+        setLForm({ title:'', description:'', video_url:'', duration_min:'', price:'0', is_free_preview: false });
+        setLVideoName(''); setLVideoProgress(0);
+        fetchLessons(showLessons);
+      }
     } catch {}
   }
 
@@ -1284,8 +1298,25 @@ function CoursesTab({ user }) {
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 <textarea rows={2} placeholder="Description (optional)" value={lForm.description} onChange={e => setLForm(f => ({ ...f, description: e.target.value }))}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
-                <input required placeholder="Video URL (YouTube or direct link)" value={lForm.video_url} onChange={e => setLForm(f => ({ ...f, video_url: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                {/* Video upload */}
+                <input ref={lVideoRef} type="file" accept="video/mp4,video/*" className="hidden"
+                  onChange={async e => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    setLVideoName(file.name); setLVideoUploading(true); setLVideoProgress(0);
+                    try {
+                      const res = await uploadVideo(file, 'famamennou/videos', p => setLVideoProgress(p));
+                      setLForm(f => ({ ...f, video_url: res.secure_url }));
+                    } catch (err) { alert('Upload échoué: ' + err.message); setLVideoName(''); }
+                    finally { setLVideoUploading(false); }
+                  }} />
+                <button type="button" onClick={() => !lVideoUploading && lVideoRef.current?.click()} disabled={lVideoUploading}
+                  className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed text-sm transition-all ${lVideoUploading ? 'border-indigo-300 text-indigo-500' : lForm.video_url ? 'border-emerald-400 text-emerald-600 dark:text-emerald-400' : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:border-indigo-400'}`}>
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                  </svg>
+                  {lVideoUploading ? `Envoi… ${lVideoProgress}%` : lForm.video_url ? `✓ ${lVideoName}` : 'Choisir un fichier MP4 *'}
+                </button>
+                {lVideoUploading && <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden"><div className="h-1.5 bg-indigo-500 rounded-full transition-all" style={{ width: `${lVideoProgress}%` }} /></div>}
                 <div className="grid grid-cols-2 gap-3">
                   <input type="number" min="0" placeholder="Duration (min)" value={lForm.duration_min} onChange={e => setLForm(f => ({ ...f, duration_min: e.target.value }))}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
