@@ -110,24 +110,31 @@ function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear,
   const { t } = useTranslation();
   const unread = notifications.filter(n => !n.read).length;
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pt-16" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-end p-2 pt-14 sm:p-4 sm:pt-16" onClick={onClose}>
       <div
         className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <p className="font-bold text-slate-900 dark:text-white text-sm">{t("Notifications")}</p>
             {unread > 0 && (
               <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold">{unread}</span>
             )}
           </div>
-          <div />
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
 
         {/* List */}
-        <div className="max-h-96 overflow-y-auto">
+        <div className="overflow-y-auto" style={{ maxHeight: 'min(384px, 60vh)' }}>
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-slate-400">
               <svg className="w-8 h-8 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -141,7 +148,7 @@ function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear,
                 key={n.id}
                 onClick={async () => { onMarkRead(n.id); const link = await getNotifLink(n); onClose(); navigate(link); }}
                 className={[
-                  "flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
+                  "flex items-start gap-3 px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
                   n.read
                     ? "bg-white dark:bg-slate-900"
                     : "bg-indigo-50/50 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20",
