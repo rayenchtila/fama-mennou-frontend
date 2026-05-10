@@ -78,6 +78,12 @@ async function getNotifLink(n) {
   if (!n) return '/courses';
   const k = n.kind || '';
   const API_URL = 'https://famamennou-server.onrender.com/api';
+
+  // ── Admin notification kinds ──
+  if (k === 'new_submission') return '/admin/dashboard?tab=cin';
+  if (k === 'new_user')       return '/admin/dashboard?tab=allusers';
+  if (k === 'new_project')    return '/admin/dashboard?tab=allusers';
+  if (k === 'withdrawal')     return '/admin/dashboard?tab=allusers';
   // course_created_25 / course_approved_25 / course_rejected_25
   const courseMatch = k.match(/^course_(?:created|approved|rejected)_(\d+)$/);
   if (courseMatch) return `/courses/${courseMatch[1]}`;
@@ -184,7 +190,7 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
   const { t }          = useTranslation();
   const location       = useLocation();
   const navigate       = useNavigate();
-  const { user, logout, getUserNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchNotifications } = useAuth();
+  const { user, logout, getUserNotifications, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchNotifications } = useAuth();
   const profileRef     = useRef(null);
 
   // Poll notifications every 8 seconds so new ones appear automatically
@@ -197,6 +203,10 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
   // Get user notifications (only for logged-in non-admin users)
   const userNotifications = (user && !user.isAdmin) ? getUserNotifications(user.email) : [];
   const unreadCount = userNotifications.filter(n => !n.read).length;
+
+  // Admin notifications
+  const adminNotifications = user?.isAdmin ? getAdminNotifications() : [];
+  const adminUnreadCount = adminNotifications.filter(n => !n.read).length;
 
   const NAV_LINKS = [
     { label: t("Find Freelancers"), to: "/freelancers" },
@@ -412,22 +422,28 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
               {/* ── LOGGED IN: Notification Bell + Profile Avatar + Dropdown ── */}
               {user ? (
                 <>
-                  {/* ── Notification Bell (only for non-admin users) ── */}
-                  {!user.isAdmin && (
-                    <button
-                      onClick={() => { setNotifOpen(v => { if (!v) markAllNotificationsRead("user", user?.email); return !v; }); }}
-                      className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    >
-                      <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                      </svg>
-                      {unreadCount > 0 && (
-                        <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center leading-none">
-                          {unreadCount > 9 ? "9+" : unreadCount}
-                        </span>
-                      )}
-                    </button>
-                  )}
+                  {/* ── Notification Bell ── */}
+                  <button
+                    onClick={() => {
+                      setNotifOpen(v => {
+                        if (!v) {
+                          if (user.isAdmin) markAllNotificationsRead("admin");
+                          else markAllNotificationsRead("user", user?.email);
+                        }
+                        return !v;
+                      });
+                    }}
+                    className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    {(user.isAdmin ? adminUnreadCount : unreadCount) > 0 && (
+                      <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center leading-none">
+                        {(user.isAdmin ? adminUnreadCount : unreadCount) > 9 ? "9+" : (user.isAdmin ? adminUnreadCount : unreadCount)}
+                      </span>
+                    )}
+                  </button>
 
                   <div className="relative" ref={profileRef}>
                     <button
@@ -695,13 +711,22 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
         )}
       </AnimatePresence>
 
-      {/* ── User Notifications Panel ── */}
+      {/* ── Notifications Panel ── */}
       {notifOpen && user && !user.isAdmin && (
         <UserNotificationsPanel
           notifications={userNotifications}
           onMarkRead={id => markNotificationRead(id)}
           onMarkAll={() => markAllNotificationsRead("user", user.email)}
           onClear={() => clearNotifications("user", user.email)}
+          onClose={() => setNotifOpen(false)}
+        />
+      )}
+      {notifOpen && user?.isAdmin && (
+        <UserNotificationsPanel
+          notifications={adminNotifications}
+          onMarkRead={id => markNotificationRead(id)}
+          onMarkAll={() => markAllNotificationsRead("admin")}
+          onClear={() => clearNotifications("admin")}
           onClose={() => setNotifOpen(false)}
         />
       )}

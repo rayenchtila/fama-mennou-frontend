@@ -1,6 +1,7 @@
 // src/page/AdminPage.js
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -625,7 +626,8 @@ export default function AdminPage() {
   }, []);
 
   // ── main tab: "cin" | "allusers" | "courses" ──
-  const [mainTab,   setMainTab]   = useState("cin");
+  const [searchParams] = useSearchParams();
+  const [mainTab,   setMainTab]   = useState(searchParams.get("tab") || "cin");
   const [filter,    setFilter]    = useState("pending");
   const [search,    setSearch]    = useState("");
   const [viewing,   setViewing]   = useState(null);

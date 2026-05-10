@@ -160,18 +160,19 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     }
   }
 
-  // Step 1 — send verification code to email
+  // Step 1 — send reset code to email
   async function handleSendCode() {
     if (!email.trim())                { setError(t("Email is required"));   return; }
     if (!/\S+@\S+\.\S+/.test(email)) { setError(t("Enter a valid email")); return; }
     setLoading(true);
     try {
-      let data = await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+      let data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
       if (data.error === "serverError") {
         // Silent retry once
         await new Promise(r => setTimeout(r, 3000));
-        data = await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+        data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
       }
+      if (data.error === "noAccount")  { setError(t("No account found with this email")); return; }
       if (data.error === "emailFailed") { setError(t("Failed to send email. Try again.")); return; }
       if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
       setStep(2); setError("");
@@ -192,20 +193,22 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       try {
         if (delay > 0) await new Promise(r => setTimeout(r, delay));
         const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
-        if (data && data.success)               { setResetDone(true); setLoading(false); return; }
-        if (data && data.error === "noAccount") { goBackToStep1(); setError(t("No account found with this email")); setLoading(false); return; }
-        // serverError or other — keep retrying
+        if (data && data.success)                { setResetDone(true); setLoading(false); return; }
+        if (data && data.error === "noAccount")  { goBackToStep1(); setError(t("No account found with this email")); setLoading(false); return; }
+        if (data && data.error === "wrongCode")  { setError(t("Invalid code. Please check and try again.")); setLoading(false); return; }
+        if (data && data.error === "expired")    { setError(t("Code expired. Please request a new one.")); setLoading(false); return; }
+        // serverError — keep retrying
       } catch { /* keep retrying */ }
     }
     setLoading(false);
-    setError("Réessayez dans quelques secondes.");
+    setError(t("Server error. Please try again."));
   }
 
   async function handleResend() {
     setError("");
     setLoading(true);
     try {
-      const data = await safeFetch(`${API}/auth/send-code`, { email: email.toLowerCase() });
+      const data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
       if (data.error) { setError(t("Failed to resend. Please try again.")); return; }
       setCode("");
       setResendDone(true);
