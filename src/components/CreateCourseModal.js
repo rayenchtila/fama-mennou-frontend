@@ -34,12 +34,13 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
     photo:       '',
     video_url:   '',
     category:    'Development',
-    full_price:  isPaid ? '' : '0',
+    full_price:  '',
   });
   const [photoPreview,  setPhotoPreview]  = useState('');
   const [videoName,     setVideoName]     = useState('');
   const [submitting,    setSubmitting]    = useState(false);
   const [error,         setError]         = useState('');
+  const [priceError,    setPriceError]    = useState('');
   const [success,       setSuccess]       = useState(false);
   const [createdCourse, setCreatedCourse] = useState(null);
 
@@ -74,8 +75,9 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
     e.preventDefault();
     setError('');
     if (!form.title.trim()) { setError('Le titre est obligatoire.'); return; }
-    if (isPaid && (isNaN(Number(form.full_price)) || Number(form.full_price) <= 0)) {
-      setError('Veuillez entrer un prix valide supérieur à 0.'); return;
+    if (isNaN(Number(form.full_price)) || Number(form.full_price) < 50) {
+      setPriceError('Le prix minimum est 50 TND.');
+      setError('Le prix minimum est 50 TND.'); return;
     }
     if (!form.description.trim()) { setError('La description est obligatoire.'); return; }
     if (!form.photo)              { setError('La photo du cours est obligatoire.'); return; }
@@ -91,7 +93,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
           photo_url:     form.photo,
           video_url:     form.video_url,
           category:      form.category,
-          full_price:    isPaid ? Number(form.full_price) : 0,
+          full_price:    Number(form.full_price) || 0,
         }),
       });
       const d = await r.json();
@@ -142,27 +144,27 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
 
         {/* Header */}
         <div className={`px-4 py-5 rounded-t-3xl flex items-center gap-3 bg-gradient-to-r ${isPaid ? 'from-amber-500 to-amber-600' : 'from-emerald-500 to-green-600'}`}>
-          {onBack && (
-            <button onClick={onBack}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors shrink-0">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
-              </svg>
-            </button>
-          )}
+          <button onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg shrink-0">
               {isPaid ? '💰' : '🎁'}
             </div>
             <div className="min-w-0">
-              <p className="text-white font-extrabold text-sm leading-tight">
-                {isPaid ? 'Créer un cours payant' : 'Créer un cours gratuit'}
-              </p>
-              <p className="text-white/70 text-[11px] mt-0.5">
-                {isPaid ? 'Générez des revenus avec votre expertise' : 'Partagez librement vos connaissances'}
-              </p>
+              <p className="text-white font-extrabold text-sm leading-tight">Créer un cours</p>
+              <p className="text-white/70 text-[11px] mt-0.5">Remplissez les informations de votre cours</p>
             </div>
           </div>
+          <button onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
 
         {/* Success */}
@@ -233,42 +235,49 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Catégorie</label>
                 <select value={form.category} onChange={e => set('category', e.target.value)}
-                  className={`w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 ${ring} focus:border-transparent transition-all`}>
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  {isPaid ? 'Prix (TND)' : 'Prix'}
+                  Prix (TND) <span className="text-rose-500">*</span>
                 </label>
-                {isPaid ? (
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">TND</span>
-                    <input type="number" min="0.01" step="0.01" required
-                      value={form.full_price} onChange={e => set('full_price', e.target.value)}
-                      placeholder="29.99"
-                      className={`w-full pl-12 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 ${ring} focus:border-transparent transition-all`} />
-                  </div>
-                ) : (
-                  <div className="px-4 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                    Gratuit
-                  </div>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">TND</span>
+                  <input type="number" min="50" step="0.01" required
+                    value={form.full_price}
+                    onChange={e => {
+                      const val = e.target.value;
+                      set('full_price', val);
+                      if (val !== '' && Number(val) < 50) setPriceError('Le prix minimum est 50 TND.');
+                      else setPriceError('');
+                    }}
+                    onBlur={e => {
+                      if (e.target.value === '' || Number(e.target.value) < 50) setPriceError('Le prix minimum est 50 TND.');
+                    }}
+                    placeholder="50.00"
+                    className={`w-full pl-12 pr-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all ${priceError ? 'border-rose-400 dark:border-rose-500 focus:ring-rose-400/30' : 'border-slate-200 dark:border-slate-700 focus:ring-indigo-500'}`} />
+                {priceError && (
+                  <p className="mt-1.5 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
+                    Le prix minimum est 50 TND.
+                  </p>
                 )}
+                </div>
               </div>
             </div>
 
-            {/* Commission note — 5% */}
-            {isPaid && (
-              <div className="flex items-start gap-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 rounded-xl px-4 py-3">
-                <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
-                  La plateforme retient une commission de <strong>5 %</strong> sur chaque vente.
-                  Vous recevez <strong>95 %</strong> du prix affiché.
-                </p>
-              </div>
-            )}
+            {/* Commission note — always visible */}
+            <div className="flex items-start gap-2.5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40 rounded-xl px-4 py-3">
+              <svg className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p className="text-[11px] text-indigo-700 dark:text-indigo-400 leading-relaxed">
+                La plateforme retient une commission de <strong>5 %</strong> sur chaque vente.
+                Vous recevez <strong>95 %</strong> du prix affiché.
+              </p>
+            </div>
 
             {/* Error */}
             {error && (
@@ -296,7 +305,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                     </svg>
                     Création…
                   </span>
-                ) : `Créer le cours ${isPaid ? 'payant' : 'gratuit'}`}
+                ) : 'Créer le cours'}
               </button>
             </div>
           </form>

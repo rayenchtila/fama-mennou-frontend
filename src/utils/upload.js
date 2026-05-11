@@ -2,15 +2,33 @@
 // Architecture: Browser → sign(backend) → upload(Cloudinary directly) → save URL(Supabase)
 // NO localStorage for files. NO base64. NO unsigned preset issues.
 
-const SIGN_API = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-  ? 'http://localhost:4000/api'
-  : 'https://famamennou-server.onrender.com/api';
+const SIGN_API = 'https://famamennou-server.onrender.com/api';
 
 const CLOUD = 'dcantqizj';
+
+// ─── Signature pre-fetch cache ────────────────────────────────────────────────
+// Fetched before user selects a file so upload starts with ZERO waiting
+const _sigCache = {};
+
+export async function preloadVideoSignature(folder = 'famamennou/videos') {
+  try {
+    const res = await fetch(`${SIGN_API}/uploads/sign-direct`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ resource_type: 'video', folder }),
+    });
+    if (res.ok) _sigCache[folder] = { data: await res.json(), at: Date.now() };
+  } catch {}
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC API
 // ─────────────────────────────────────────────────────────────────────────────
+
+/** Pre-warm: call this when user is about to upload (e.g. modal opens) */
+export function warmVideoUpload(folder = 'famamennou/videos') {
+  preloadVideoSignature(folder);
+}
 
 /** Upload an MP4 video file to Cloudinary */
 export function uploadVideo(file, folder = 'famamennou/videos', onProgress = null) {
@@ -32,27 +50,41 @@ export function uploadDocument(file, folder = 'famamennou/docs', onProgress = nu
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function signedUpload(file, resourceType, folder, onProgress) {
-  // Step 1: Get Cloudinary signature from our backend (uses API secret, secure)
-  const signRes = await fetch(`${SIGN_API}/uploads/sign-direct`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ resource_type: resourceType, folder }),
-  });
-
-  if (!signRes.ok) {
-    const err = await signRes.json().catch(() => ({}));
-    throw new Error(err.error || 'Impossible d\'obtenir la signature Cloudinary');
+  // Step 1: Use pre-fetched signature if available (zero wait), else fetch now
+  const SIG_TTL = 4 * 60 * 1000; // Cloudinary signatures valid for 5 min, use at 4
+  let sign;
+  const cached = _sigCache[folder];
+  if (cached && Date.now() - cached.at < SIG_TTL) {
+    sign = cached.data;
+    delete _sigCache[folder]; // consume — fetch a fresh one for next time
+    preloadVideoSignature(folder); // pre-fetch replacement in background
+  } else {
+    const signRes = await fetch(`${SIGN_API}/uploads/sign-direct`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ resource_type: resourceType, folder }),
+    });
+    if (!signRes.ok) {
+      const err = await signRes.json().catch(() => ({}));
+      throw new Error(err.error || 'Impossible d\'obtenir la signature Cloudinary');
+    }
+    sign = await signRes.json();
   }
 
-  const sign = await signRes.json();
-
-  // Step 2: Upload directly to Cloudinary using the signature (no upload_preset needed)
+  // Step 2: Upload directly to Cloudinary — skip analysis to return faster
   const formData = new FormData();
   formData.append('file',      file);
   formData.append('api_key',   sign.api_key);
   formData.append('timestamp', sign.timestamp);
   formData.append('signature', sign.signature);
   formData.append('folder',    sign.folder);
+  // Skip analysis that adds latency — image-only params skipped for video
+  if (resourceType !== 'video') {
+    formData.append('quality_analysis', 'false');
+    formData.append('colors',           'false');
+    formData.append('phash',            'false');
+    formData.append('faces',            'false');
+  }
 
   const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD}/${resourceType}/upload`;
   const result    = await xhrWithProgress(uploadUrl, formData, onProgress);

@@ -181,7 +181,7 @@ export default function CoursesPage() {
 
           {/* Create Course button — freelancers only */}
           {user?.role === 'freelancer' && (
-            <button onClick={() => setShowTypeModal(true)}
+            <button onClick={() => { setCreateType('paid'); setShowCreateModal(true); }}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-indigo-700 text-sm font-bold hover:bg-indigo-50 active:scale-95 transition-all shadow-md mb-8">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
@@ -422,7 +422,7 @@ export default function CoursesPage() {
           user={user}
           initialType={createType}
           onClose={() => setShowCreateModal(false)}
-          onBack={() => { setShowCreateModal(false); setShowTypeModal(true); }}
+          onBack={null}
           onCreated={fetchCourses}
         />
       )}

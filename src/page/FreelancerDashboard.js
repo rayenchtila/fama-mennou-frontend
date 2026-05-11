@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { uploadVideo, uploadImage } from '../utils/upload';
+import { uploadVideo, uploadImage, warmVideoUpload } from '../utils/upload';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -893,7 +893,7 @@ function CoursesTab({ user }) {
       const r = await fetch(`${API}/lessons`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...lForm, course_id: showLessons, price: Number(lForm.price), duration_min: Number(lForm.duration_min) || 0 }),
+        body: JSON.stringify({ ...lForm, course_id: showLessons, price: 0, duration_min: Number(lForm.duration_min) || 0 }),
       });
       const d = await r.json();
       if (d.id) {
@@ -1307,11 +1307,6 @@ function CoursesTab({ user }) {
                       💰 Paid
                     </button>
                   </div>
-                  {!lForm.is_free_preview && (
-                    <input type="number" min="0.01" step="0.01" required placeholder="Price in TND *" value={lForm.price}
-                      onChange={e => setLForm(f => ({ ...f, price: e.target.value }))}
-                      className="w-full mt-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                  )}
                 </div>
                 <input required placeholder="Title" value={lForm.title} onChange={e => setLForm(f => ({ ...f, title: e.target.value }))}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -1328,7 +1323,7 @@ function CoursesTab({ user }) {
                     } catch (err) { alert('Upload échoué: ' + err.message); setLVideoName(''); }
                     finally { setLVideoUploading(false); }
                   }} />
-                <button type="button" onClick={() => !lVideoUploading && lVideoRef.current?.click()} disabled={lVideoUploading}
+                <button type="button" onClick={() => { if (!lVideoUploading) { warmVideoUpload(); lVideoRef.current?.click(); } }} disabled={lVideoUploading}
                   className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed text-sm transition-all ${lVideoUploading ? 'border-indigo-300 text-indigo-500' : lForm.video_url ? 'border-emerald-400 text-emerald-600 dark:text-emerald-400' : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:border-indigo-400'}`}>
                   <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>

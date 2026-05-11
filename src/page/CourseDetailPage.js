@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { uploadVideo } from '../utils/upload';
+import { uploadVideo, warmVideoUpload } from '../utils/upload';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -49,6 +49,7 @@ export default function CourseDetailPage() {
   const [buying,       setBuying]       = useState(false);
   const [buyingLesson, setBuyingLesson] = useState(null);
   const [buyMsg,       setBuyMsg]       = useState('');
+  const [lockedMsg,    setLockedMsg]    = useState(false);
 
   // Review form
   const [myRating,     setMyRating]     = useState(0);
@@ -72,8 +73,12 @@ export default function CourseDetailPage() {
   const ownedLesson = id => purchases.some(p => Number(p.lesson_id) === Number(id));
 
   function canWatch(lesson) {
+    if (lesson.is_free_preview) return true;   // free for everyone
     if (!user) return false;
-    return true; // all logged-in users can watch all videos
+    if (user.isAdmin) return true;             // admin sees all
+    if (isInstructor) return true;             // instructor sees own lessons
+    if (hasFull) return true;                  // full course purchased
+    return false;
   }
 
   useEffect(() => {
@@ -94,20 +99,16 @@ export default function CourseDetailPage() {
       setLoading(false); // ← paywall or hero renders immediately here
 
       // Phase 2 — rest only if user can access the course
-      const paid         = Number(c?.full_price) > 0;
-      const isOwner      = c && user?.email === c.creator_email;
-      const hasPurchased = filteredPurch.some(p => !p.lesson_id);
-      if (!paid || isOwner || hasPurchased || user?.isAdmin) {
-        Promise.all([
-          fetch(`${API}/lessons/course/${id}`).then(r => r.json()),
-          fetch(`${API}/course-reviews/course/${id}`).then(r => r.json()),
-          fetch(`${API}/live-sessions/course/${id}`).then(r => r.json()),
-        ]).then(([ls, rv, live]) => {
-          setLessons(Array.isArray(ls)   ? ls   : []);
-          setReviews(Array.isArray(rv)   ? rv   : []);
-          setLiveSessions(Array.isArray(live) ? live : []);
-        }).catch(() => {});
-      }
+      // Always load lessons — everyone sees the list (locked/unlocked per lesson)
+      Promise.all([
+        fetch(`${API}/lessons/course/${id}`).then(r => r.json()),
+        fetch(`${API}/course-reviews/course/${id}`).then(r => r.json()),
+        fetch(`${API}/live-sessions/course/${id}`).then(r => r.json()),
+      ]).then(([ls, rv, live]) => {
+        setLessons(Array.isArray(ls)   ? ls   : []);
+        setReviews(Array.isArray(rv)   ? rv   : []);
+        setLiveSessions(Array.isArray(live) ? live : []);
+      }).catch(() => {});
     }).catch(() => setLoading(false));
   }, [id, user?.email]);
 
@@ -170,13 +171,20 @@ export default function CourseDetailPage() {
     setUploadFileName(file.name);
     setUploadState('uploading');
     setUploadProgress(0);
-    try {
-      const res = await uploadVideo(file, 'famamennou/videos', pct => setUploadProgress(pct));
-      setNewLesson(p => ({ ...p, video_url: res.secure_url }));
-      setUploadState('done');
-    } catch (err) {
-      console.error('Upload error:', err.message);
-      setUploadState('error');
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const res = await uploadVideo(file, 'famamennou/videos', pct => setUploadProgress(pct));
+        setNewLesson(p => ({ ...p, video_url: res.secure_url }));
+        setUploadState('done');
+        return;
+      } catch (err) {
+        if (attempt < 2) {
+          setUploadProgress(0); // reset progress for retry
+          await new Promise(r => setTimeout(r, 1500));
+        } else {
+          setUploadState('error');
+        }
+      }
     }
   }
 
@@ -236,64 +244,6 @@ export default function CourseDetailPage() {
   const isFree       = Number(course.full_price) === 0;
   const totalMinutes = lessons.reduce((s, l) => s + (Number(l.duration_min) || 0), 0);
 
-  // ── Paywall — paid course, user hasn't purchased, not instructor, not admin ──
-  if (!isFree && !isInstructor && !hasFull && !user?.isAdmin) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-16 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
-          {/* Thumbnail */}
-          <div className="relative aspect-video bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30">
-            {(course.photo_url || course.thumbnail_url)
-              ? <img src={course.photo_url || course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
-              : <div className="w-full h-full flex items-center justify-center text-6xl">📚</div>
-            }
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-              </div>
-            </div>
-            <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
-              🔒 Cours payant
-            </span>
-          </div>
-
-          {/* Info */}
-          <div className="p-6">
-            <p className="text-[11px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1">{course.category}</p>
-            <h1 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1 leading-snug">{course.title}</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              par <span className="font-semibold">{course.instructor_name || course.creator_email?.split('@')[0]}</span>
-            </p>
-
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl px-4 py-4 text-center mb-5">
-              <p className="text-2xl font-extrabold text-slate-900 dark:text-white mb-0.5">
-                {Number(course.full_price).toFixed(2)} TND
-              </p>
-              <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold">
-                🔒 Accès complet requis pour voir ce cours
-              </p>
-            </div>
-
-            {buyMsg && (
-              <p className="text-sm font-semibold text-center text-emerald-600 dark:text-emerald-400 mb-3">{buyMsg}</p>
-            )}
-
-            <button onClick={buyFull} disabled={buying}
-              className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-extrabold transition-all active:scale-[.98] shadow-sm shadow-indigo-500/25 disabled:opacity-60 mb-3">
-              {buying ? 'Traitement…' : `Acheter ce cours — ${Number(course.full_price).toFixed(2)} TND`}
-            </button>
-
-            <button onClick={() => navigate('/courses')}
-              className="w-full py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              ← Retour aux cours
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-16">
@@ -382,9 +332,6 @@ export default function CourseDetailPage() {
                     className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-bold transition-colors shadow-sm shadow-indigo-500/30 mb-3">
                     {buying ? 'Processing…' : isFree ? 'Enroll for Free' : `Acheter — ${Number(course.full_price).toFixed(2)} TND`}
                   </button>
-                  {!isFree && (
-                    <p className="text-[10px] text-center text-slate-400">or purchase lessons individually below</p>
-                  )}
                 </>
               )}
 
@@ -483,11 +430,6 @@ export default function CourseDetailPage() {
                           💰 Payante
                         </button>
                       </div>
-                      {!newLesson.is_free_preview && (
-                        <input type="number" min="0.01" step="0.01" required placeholder="Prix en TND *" value={newLesson.price || ''}
-                          onChange={e => setNewLesson(p => ({ ...p, price: e.target.value }))}
-                          className="w-full mt-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
-                      )}
                     </div>
                     {/* Title */}
                     <input required placeholder="Titre de la leçon *" value={newLesson.title}
@@ -499,7 +441,7 @@ export default function CourseDetailPage() {
                       onChange={e => { const f = e.target.files?.[0]; if (f) handleMuxUpload(f); }} />
 
                     {uploadState === 'idle' && (
-                      <button type="button" onClick={() => muxFileRef.current?.click()}
+                      <button type="button" onClick={() => { warmVideoUpload(); muxFileRef.current?.click(); }}
                         className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -551,20 +493,23 @@ export default function CourseDetailPage() {
                     )}
 
                     {uploadState === 'error' && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                          <span className="text-amber-500 text-sm">⚠️</span>
-                          <p className="text-xs text-amber-700 dark:text-amber-400">Upload MP4 indisponible. Utilisez un lien vidéo :</p>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800">
+                          <svg className="w-5 h-5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-rose-700 dark:text-rose-400">L'upload a échoué</p>
+                            <p className="text-[11px] text-rose-600 dark:text-rose-500">Vérifiez votre connexion et réessayez.</p>
+                          </div>
                         </div>
-                        <input
-                          placeholder="Lien YouTube ou URL directe (https://...)"
-                          value={newLesson.video_url.startsWith('mux:') ? '' : newLesson.video_url}
-                          onChange={e => setNewLesson(p => ({ ...p, video_url: e.target.value }))}
-                          className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                        />
-                        <button type="button" onClick={() => { setUploadState('idle'); setNewLesson(p => ({ ...p, video_url: '' })); }}
-                          className="text-xs text-indigo-500 hover:text-indigo-700 transition-colors">
-                          ↩ Réessayer l'upload MP4
+                        <button type="button"
+                          onClick={() => { setUploadState('idle'); setUploadProgress(0); setNewLesson(p => ({ ...p, video_url: '' })); if(muxFileRef.current) muxFileRef.current.value=''; }}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors active:scale-[.98]">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                          </svg>
+                          Réimporter la vidéo
                         </button>
                       </div>
                     )}
@@ -583,6 +528,16 @@ export default function CourseDetailPage() {
                 )}
               </div>
             )}
+            {/* Inline locked message — appears right above lessons when user clicks a locked one */}
+            {lockedMsg && (
+              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900 dark:bg-slate-800 border border-slate-700 shadow-lg mb-2 animate-pulse">
+                <svg className="w-5 h-5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <p className="text-sm font-semibold text-white">Vous devez acheter le cours complet pour accéder aux leçons payantes.</p>
+              </div>
+            )}
+
             {lessons.length === 0 ? (
               <div className="text-center py-16 text-slate-400">
                 <p className="text-3xl mb-2">📂</p>
@@ -595,9 +550,16 @@ export default function CourseDetailPage() {
                   className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
                     watchable
                       ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer'
-                      : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800/50'
+                      : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800/50 cursor-pointer hover:border-slate-300 dark:hover:border-slate-700'
                   }`}
-                  onClick={() => watchable && navigate(`/courses/${id}/lesson/${lesson.id}`)}>
+                  onClick={() => {
+                    if (watchable) navigate(`/courses/${id}/lesson/${lesson.id}`);
+                    else if (!lesson.is_free_preview) {
+                      setBuyMsg('Vous devez acheter le cours complet pour accéder aux leçons payantes.');
+                      setLockedMsg(true);
+                      setTimeout(() => setLockedMsg(false), 4000);
+                    }
+                  }}>
                   {/* Index */}
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${
                     watchable ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
@@ -626,25 +588,21 @@ export default function CourseDetailPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {lesson.is_free_preview && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
-                        Free
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                        Gratuit
+                      </span>
+                    )}
+                    {!lesson.is_free_preview && !watchable && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                        Payant
                       </span>
                     )}
                     {lesson.duration_min > 0 && (
                       <span className="text-xs text-slate-400">{lesson.duration_min}m</span>
                     )}
-                    {!watchable && Number(lesson.price) > 0 && !hasFull && (
-                      <button onClick={e => { e.stopPropagation(); buyLesson(lesson); }}
-                        disabled={buyingLesson === lesson.id}
-                        className="text-xs font-bold px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors disabled:opacity-60">
-                        {buyingLesson === lesson.id ? '…' : `${Number(lesson.price).toFixed(2)} TND`}
-                      </button>
-                    )}
-                    {!watchable && (Number(lesson.price) === 0 || !lesson.price) && (
-                      <LockIcon />
-                    )}
+                    {!watchable && <LockIcon />}
                   </div>
                 </div>
               );
