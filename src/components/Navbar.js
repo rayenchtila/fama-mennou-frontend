@@ -80,10 +80,11 @@ async function getNotifLink(n) {
   const API_URL = 'https://famamennou-server.onrender.com/api';
 
   // ── Admin notification kinds ──
-  if (k === 'new_submission') return '/admin/dashboard?tab=cin';
-  if (k === 'new_user')       return '/admin/dashboard?tab=allusers';
-  if (k === 'new_project')    return '/admin/dashboard?tab=allusers';
-  if (k === 'withdrawal')     return '/admin/dashboard?tab=allusers';
+  if (k === 'new_submission')          return '/admin/dashboard?tab=cin';
+  if (k === 'new_user')                return '/admin/dashboard?tab=allusers';
+  if (k === 'new_project')             return '/admin/dashboard?tab=allusers';
+  if (k === 'withdrawal')              return '/admin/dashboard?tab=allusers';
+  if (k.startsWith('lesson_pending_')) return '/admin/dashboard?tab=lessons';
   // course_created_25 / course_approved_25 / course_rejected_25
   const courseMatch = k.match(/^course_(?:created|approved|rejected)_(\d+)$/);
   if (courseMatch) return `/courses/${courseMatch[1]}`;
