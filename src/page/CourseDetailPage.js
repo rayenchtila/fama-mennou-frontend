@@ -58,7 +58,7 @@ export default function CourseDetailPage() {
   // Add lesson inline (instructor only)
   const [showAddLesson,    setShowAddLesson]    = useState(false);
   const [lessonSubmitted,  setLessonSubmitted]  = useState(false);
-  const [newLesson,        setNewLesson]        = useState({ title:'', video_url:'' });
+  const [newLesson,        setNewLesson]        = useState({ title:'', video_url:'', is_free_preview: true, price: 0 });
   const [addingLesson,     setAddingLesson]     = useState(false);
   const [uploadState,      setUploadState]      = useState('idle'); // idle | uploading | processing | done | error
   const [uploadProgress,   setUploadProgress]   = useState(0);
@@ -191,12 +191,14 @@ export default function CourseDetailPage() {
           course_id: id,
           title: newLesson.title.trim(),
           video_url: newLesson.video_url || '',
+          is_free_preview: newLesson.is_free_preview,
+          price: newLesson.is_free_preview ? 0 : Number(newLesson.price) || 0,
         }),
       });
       const d = await r.json();
       if (d.id) {
         setLessons(prev => [...prev, d]);
-        setNewLesson({ title:'', video_url:'' });
+        setNewLesson({ title:'', video_url:'', is_free_preview: true, price: 0 });
         setUploadFileName('');
         setShowAddLesson(false);
         setLessonSubmitted(true);
@@ -468,6 +470,25 @@ export default function CourseDetailPage() {
                 ) : (
                   <form onSubmit={addLesson} className="bg-white dark:bg-slate-900 rounded-2xl border border-indigo-200 dark:border-indigo-800 p-4 space-y-3">
                     <p className="text-sm font-extrabold text-slate-900 dark:text-white">Nouvelle leçon</p>
+                    {/* FREE / PAID toggle */}
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Type de leçon *</p>
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => setNewLesson(p => ({ ...p, is_free_preview: true, price: 0 }))}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-sm font-bold transition-all ${newLesson.is_free_preview ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:border-emerald-300'}`}>
+                          🆓 Gratuite
+                        </button>
+                        <button type="button" onClick={() => setNewLesson(p => ({ ...p, is_free_preview: false }))}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-sm font-bold transition-all ${!newLesson.is_free_preview ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400' : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:border-indigo-300'}`}>
+                          💰 Payante
+                        </button>
+                      </div>
+                      {!newLesson.is_free_preview && (
+                        <input type="number" min="0.01" step="0.01" required placeholder="Prix en TND *" value={newLesson.price || ''}
+                          onChange={e => setNewLesson(p => ({ ...p, price: e.target.value }))}
+                          className="w-full mt-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                      )}
+                    </div>
                     {/* Title */}
                     <input required placeholder="Titre de la leçon *" value={newLesson.title}
                       onChange={e => setNewLesson(p => ({ ...p, title: e.target.value }))}
@@ -548,7 +569,7 @@ export default function CourseDetailPage() {
                       </div>
                     )}
                     <div className="flex gap-2 pt-1">
-                      <button type="button" onClick={() => { setShowAddLesson(false); setUploadFileName(''); setUploadState('idle'); setUploadProgress(0); setNewLesson({ title:'', video_url:'' }); if(muxFileRef.current) muxFileRef.current.value=''; }}
+                      <button type="button" onClick={() => { setShowAddLesson(false); setUploadFileName(''); setUploadState('idle'); setUploadProgress(0); setNewLesson({ title:'', video_url:'', is_free_preview: true, price: 0 }); if(muxFileRef.current) muxFileRef.current.value=''; }}
                         className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         Annuler
                       </button>
