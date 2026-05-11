@@ -652,7 +652,9 @@ export default function AdminPage() {
   const [lessonsTabLoad,  setLessonsTabLoad]  = useState(false);
   const [lessonActing,    setLessonActing]    = useState({});
   const [lessonRejectId,  setLessonRejectId]  = useState(null);
+  const [lessonApproveId, setLessonApproveId] = useState(null);
   const [lessonNote,      setLessonNote]      = useState('');
+  const [lessonApproveNote, setLessonApproveNote] = useState('');
   const [courseFilter,    setCourseFilter]    = useState("pending");
   const [courseActing,    setCourseActing]    = useState({});
   const [courseRejectId,  setCourseRejectId]  = useState(null);
@@ -706,9 +708,13 @@ export default function AdminPage() {
     setLessonsTabLoad(false);
   };
 
-  async function approveLesson(id) {
+  async function approveLesson(id, note) {
     setLessonActing(p => ({ ...p, [id]: 'approved' }));
-    await fetch(`${API}/lessons/${id}/approve`, { method: 'PATCH' });
+    await fetch(`${API}/lessons/${id}/approve`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_note: note || '' }),
+    });
+    setLessonApproveId(null); setLessonApproveNote('');
     fetchLessonsTab();
     setTimeout(() => setLessonActing(p => { const n = { ...p }; delete n[id]; return n; }), 1800);
   }
@@ -1239,7 +1245,7 @@ export default function AdminPage() {
                       </div>
                       {lesson.status === 'pending' && !acted && (
                         <div className="flex gap-2 shrink-0">
-                          <button onClick={() => approveLesson(lesson.id)}
+                          <button onClick={() => { setLessonApproveId(lesson.id); setLessonApproveNote(''); }}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 transition-all">
                             ✓ Approuver
                           </button>
@@ -1261,18 +1267,49 @@ export default function AdminPage() {
             </div>
           )}
 
+          {/* Approve modal */}
+          {lessonApproveId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  </div>
+                  <p className="font-bold text-slate-900 dark:text-white">Approuver cette leçon</p>
+                </div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Message rapide (optionnel)</p>
+                {['Excellent contenu, bien structuré.', 'Vidéo claire et de bonne qualité.', 'Leçon conforme aux standards de la plateforme.'].map(p => (
+                  <button key={p} onClick={() => setLessonApproveNote(p)} className={`w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all ${lessonApproveNote===p?'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 text-emerald-700 font-semibold':'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-300'}`}>{p}</button>
+                ))}
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-3">Message personnalisé</p>
+                <textarea value={lessonApproveNote} onChange={e => setLessonApproveNote(e.target.value)} rows={2} placeholder="Message pour l'instructeur…" className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/30 mt-1" />
+                <div className="flex gap-2 mt-4">
+                  <button onClick={() => setLessonApproveId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
+                  <button onClick={() => approveLesson(lessonApproveId, lessonApproveNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">✅ Confirmer l'approbation</button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Reject modal */}
           {lessonRejectId && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
               <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6">
-                <p className="font-bold text-slate-900 dark:text-white mb-4">Raison du refus</p>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                  </div>
+                  <p className="font-bold text-slate-900 dark:text-white">Raison du refus</p>
+                </div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Raison rapide</p>
                 {['Contenu insuffisant.','Titre peu clair.','Vidéo manquante ou illisible.'].map(p => (
                   <button key={p} onClick={() => setLessonNote(p)} className={`w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all ${lessonNote===p?'bg-rose-50 dark:bg-rose-900/20 border-rose-300 text-rose-700 font-semibold':'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-300'}`}>{p}</button>
                 ))}
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-3">Message personnalisé</p>
                 <textarea value={lessonNote} onChange={e=>setLessonNote(e.target.value)} rows={2} placeholder="Message personnalisé…" className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 mt-1" />
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => setLessonRejectId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
-                  <button onClick={() => rejectLesson(lessonRejectId, lessonNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors">❌ Confirmer le refus</button>
+                  <button onClick={() => rejectLesson(lessonRejectId, lessonNote)} disabled={!lessonNote.trim()} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors">❌ Confirmer le refus</button>
                 </div>
               </div>
             </div>
