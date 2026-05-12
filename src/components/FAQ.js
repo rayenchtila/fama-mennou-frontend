@@ -20,8 +20,8 @@ const faqs = [
     answer: "Créez votre profil et recevez des demandes adaptées à vos services.",
   },
   {
-    question: "Comment trouver des jobs ?",
-    answer: "Consultez les offres disponibles et postulez directement.",
+    question: "Comment trouver des cours ?",
+    answer: "Parcourez les cours disponibles et accédez directement aux leçons.",
   },
 ];
 
