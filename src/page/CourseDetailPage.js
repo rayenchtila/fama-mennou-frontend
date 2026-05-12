@@ -543,7 +543,9 @@ export default function CourseDetailPage() {
                 <p className="text-3xl mb-2">📂</p>
                 <p className="text-sm">No lessons added yet</p>
               </div>
-            ) : lessons.map((lesson, idx) => {
+            ) : lessons.filter(lesson =>
+                lesson.status !== 'rejected' || user?.isAdmin || isInstructor
+              ).map((lesson, idx) => {
               const watchable = canWatch(lesson);
               return (
                 <div key={lesson.id}

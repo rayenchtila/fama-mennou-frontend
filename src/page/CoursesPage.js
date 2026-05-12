@@ -46,7 +46,7 @@ function CourseCard({ course, onClick }) {
           {course.category}
         </span>
         <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${isFree ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
-          {isFree ? 'Gratuit' : '🔒 Payant'}
+          {isFree ? 'Gratuit' : 'Payant'}
         </span>
       </div>
 
@@ -310,8 +310,7 @@ export default function CoursesPage() {
         {!loading && paidCourses.length > 0 && priceFilter !== 'free' && (
           <section>
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg">🔒</span>
-              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Cours payants</h2>
+              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Cours</h2>
               <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">{paidCourses.length}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
