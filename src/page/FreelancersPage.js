@@ -422,10 +422,22 @@ export default function FreelancersPage() {
   useEffect(() => { fetchAllReviews(); }, [fetchAllReviews]);
   useEffect(() => { fetchCompletedTasks(); }, [fetchCompletedTasks]);
 
+  const CATEGORY_KEYWORDS = {
+    Design:      ['design', 'figma', 'ui', 'ux', 'graphic', 'illustr', 'brand', 'logo', 'visual', 'sketch', 'photoshop', 'indesign'],
+    Development: ['develop', 'react', 'node', 'javascript', 'python', 'java', 'angular', 'vue', 'code', 'backend', 'frontend', 'fullstack', 'flutter', 'mobile', 'php', 'laravel', 'html', 'css', 'typescript', 'swift', 'kotlin'],
+    Marketing:   ['marketing', 'seo', 'ads', 'social media', 'content', 'growth', 'campaign', 'email', 'analytics', 'copywriting', 'branding'],
+    Writing:     ['writing', 'copywriting', 'content', 'blog', 'article', 'editorial', 'redact', 'rédact', 'translation', 'traduct'],
+    Video:       ['video', 'motion', 'animation', 'after effects', 'premiere', 'montage', 'editing', 'cinema', 'vfx', 'lottie'],
+    Finance:     ['finance', 'compta', 'accounting', 'audit', 'tax', 'fiscalit', 'invest', 'budget', 'excel'],
+    Photography: ['photo', 'camera', 'lightroom', 'portrait', 'product photo', 'retouche'],
+  };
+
   const filtered = approvedFreelancers.filter(f => {
     const q = search.toLowerCase();
     const matchSearch = !search || f.name?.toLowerCase().includes(q) || f.region?.toLowerCase().includes(q) || f.skills?.toLowerCase().includes(q) || f.bio?.toLowerCase().includes(q);
-    const matchCat = category === 'All' || f.skills?.toLowerCase().includes(category.toLowerCase());
+    const haystack = `${f.skills || ''} ${f.bio || ''}`.toLowerCase();
+    const matchCat = category === 'All' || haystack.includes(category.toLowerCase()) ||
+      (CATEGORY_KEYWORDS[category] || []).some(kw => haystack.includes(kw));
     return matchSearch && matchCat;
   }).sort((a, b) => {
     if (sortBy === 'rating') {

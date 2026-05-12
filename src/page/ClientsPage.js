@@ -220,9 +220,23 @@ export default function ClientsPage() {
 
   useEffect(() => { fetchAllReviews(); }, [fetchAllReviews]);
 
+  const INDUSTRY_KEYWORDS = {
+    Technology:  ['tech', 'software', 'it ', 'digital', 'developer', 'startup', 'saas', 'app'],
+    Design:      ['design', 'creative', 'visual', 'brand', 'ui', 'ux', 'graphic'],
+    Marketing:   ['marketing', 'ads', 'seo', 'social media', 'content', 'growth', 'campaign'],
+    Finance:     ['finance', 'bank', 'invest', 'accounting', 'fintech', 'insurance', 'audit'],
+    'E-commerce':['ecommerce', 'e-commerce', 'shop', 'retail', 'store', 'boutique', 'vente'],
+    Education:   ['education', 'school', 'training', 'formation', 'learning', 'teach'],
+    Health:      ['health', 'medical', 'clinic', 'pharma', 'santé', 'wellness', 'hospital'],
+  };
+
   const filtered = approvedClients.filter(c => {
     const q = search.toLowerCase();
-    return !search || c.name?.toLowerCase().includes(q) || c.region?.toLowerCase().includes(q) || c.bio?.toLowerCase().includes(q);
+    const matchSearch = !search || c.name?.toLowerCase().includes(q) || c.region?.toLowerCase().includes(q) || c.bio?.toLowerCase().includes(q) || c.company?.toLowerCase().includes(q);
+    const haystack = `${c.bio || ''} ${c.company || ''}`.toLowerCase();
+    const matchIndustry = industry === 'All' || haystack.includes(industry.toLowerCase()) ||
+      (INDUSTRY_KEYWORDS[industry] || []).some(kw => haystack.includes(kw));
+    return matchSearch && matchIndustry;
   }).sort((a, b) => {
     if (sortBy === 'rating') {
       const ra = reviews[a.email?.toLowerCase()]?.reduce((s,r) => s+r.rating,0) / (reviews[a.email?.toLowerCase()]?.length||1) || 0;
