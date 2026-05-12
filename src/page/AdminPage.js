@@ -1236,7 +1236,11 @@ export default function AdminPage() {
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                           📚 <span className="font-semibold">{lesson.course_title}</span> · par <span className="font-semibold">{lesson.instructor_name}</span>
                         </p>
-                        {lesson.admin_note && <p className="text-[11px] text-rose-500 mt-1">💬 {lesson.admin_note}</p>}
+                        {lesson.admin_note && (
+                          <p className={`text-[11px] mt-1 ${lesson.status === 'approved' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            💬 {lesson.admin_note}
+                          </p>
+                        )}
                         {lesson.video_url && (
                           <div className="mt-3">
                             <CourseVideoPlayer url={lesson.video_url} />
