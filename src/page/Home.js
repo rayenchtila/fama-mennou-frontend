@@ -125,19 +125,6 @@ const NAV_BUTTONS = [
     ring: 'hover:ring-violet-400/50',
   },
   {
-    to: '/jobs',
-    labelKey: 'Jobs',
-    icon: (
-      <svg className="w-[15px] h-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-      </svg>
-    ),
-    gradient: 'from-blue-600 to-indigo-600',
-    glow: 'shadow-blue-500/40',
-    border: 'border-blue-400/30',
-    ring: 'hover:ring-blue-400/50',
-  },
-  {
     to: '/courses',
     labelKey: 'Courses',
     icon: (
@@ -210,7 +197,7 @@ const Home = () => {
               />
             </motion.span>
 
-            {/* "Clients," */}
+            {/* "Clients" */}
             <motion.span
               className="inline-block mr-[0.22em] relative text-indigo-600 dark:text-indigo-400"
               custom={2} variants={wordVariant} initial="hidden" animate="visible"
@@ -224,25 +211,11 @@ const Home = () => {
               />
             </motion.span>
 
-            {/* "Jobs" */}
-            <motion.span
-              className="inline-block mr-[0.12em] relative text-indigo-600 dark:text-indigo-400"
-              custom={3} variants={wordVariant} initial="hidden" animate="visible"
-            >
-              {words2[0]}
-              <motion.span
-                initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
-                transition={{ duration: 0.5, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                style={{ originX: 0 }}
-                className="absolute -bottom-1 left-0 right-0 h-[3px] rounded-full bg-indigo-400/50"
-              />
-            </motion.span>
-
             {/* "&" — hidden in Arabic */}
             {!isAr && (
             <motion.span
               className="inline-block mx-[0.18em] text-slate-400 dark:text-slate-500"
-              custom={4} variants={wordVariant} initial="hidden" animate="visible"
+              custom={3} variants={wordVariant} initial="hidden" animate="visible"
             >
               &amp;
             </motion.span>
@@ -251,9 +224,9 @@ const Home = () => {
             {/* "Courses" */}
             <motion.span
               className="inline-block relative text-indigo-600 dark:text-indigo-400"
-              custom={5} variants={wordVariant} initial="hidden" animate="visible"
+              custom={4} variants={wordVariant} initial="hidden" animate="visible"
             >
-              {words2[1]}
+              {words2[1] || words2[0]}
               <motion.span
                 initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
                 transition={{ duration: 0.5, delay: 1.35, ease: [0.22, 1, 0.36, 1] }}

@@ -175,7 +175,7 @@ i18n
           "hero.badge":        "All Your Opportunities in One Platform",
           "hero.title.find":   "Find",
           "hero.title.highlight1": "Freelancers, Clients",
-          "hero.title.highlight2": "Courses & Jobs",
+          "hero.title.highlight2": "Courses",
           "hero.title.rest":   "",
           "hero.subtitle":     "Connect talent, opportunities, and learning.",
           // Home — how to create account section
@@ -581,7 +581,7 @@ i18n
           "hero.badge":        "Toutes vos opportunités en une seule plateforme",
           "hero.title.find":   "Trouvez",
           "hero.title.highlight1": "Freelancers, Clients",
-          "hero.title.highlight2": "Cours & Jobs",
+          "hero.title.highlight2": "Cours",
           "hero.title.rest":   "",
           "hero.subtitle":     "Connecter talents, opportunités et apprentissage.",
           // Home — how to create account section
@@ -895,7 +895,7 @@ i18n
           "hero.title.highlight1": "المستقلين , والعملاء",
           "hero.title.find":  "اعثر على",
           
-          "hero.title.highlight2": "والوظائف & والدورات",
+          "hero.title.highlight2": "والدورات",
           "hero.title.rest":   "",
           "hero.subtitle":     "ربط المواهب والفرص والتعلم.",
           // Home — how to create account section
