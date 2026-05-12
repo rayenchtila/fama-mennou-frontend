@@ -45,11 +45,6 @@ function CourseCard({ course, onClick }) {
         <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 dark:bg-slate-900/90 text-indigo-700 dark:text-indigo-400">
           {course.category}
         </span>
-        {isFree && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white">
-            Gratuit
-          </span>
-        )}
       </div>
 
       <div className="p-4">
