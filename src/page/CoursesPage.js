@@ -94,10 +94,17 @@ export default function CoursesPage() {
   const [recommended,   setRecommended]   = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [search,        setSearch]        = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [category,      setCategory]      = useState('All');
   const [sort,          setSort]          = useState('free_first');
   const [priceFilter,   setPriceFilter]   = useState('all');
   const [minRating,     setMinRating]     = useState(0);
+
+  // Debounce search — fires API only 350ms after user stops typing
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 350);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const [showTypeModal,   setShowTypeModal]   = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -108,7 +115,7 @@ export default function CoursesPage() {
     setLoading(true);
     try {
       const p = new URLSearchParams({ sort });
-      if (search)                 p.set('search', search);
+      if (debouncedSearch)        p.set('search', debouncedSearch.trim());
       if (category !== 'All')     p.set('category', category);
       if (priceFilter === 'free') p.set('max_price', '0');
       if (priceFilter === 'paid') p.set('min_price', '0.01');
@@ -118,7 +125,7 @@ export default function CoursesPage() {
       if (Array.isArray(d)) setCourses(d);
     } catch { setCourses([]); }
     finally  { setLoading(false); }
-  }, [search, category, sort, priceFilter, minRating]);
+  }, [debouncedSearch, category, sort, priceFilter, minRating]);
 
   const fetchRecommended = useCallback(async () => {
     try {
