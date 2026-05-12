@@ -152,28 +152,47 @@ export default function VideoPlayerPage() {
   const [marking,      setMarking]      = useState(false);
   const [certLoading,  setCertLoading]  = useState(false);
   const [sidebarOpen,  setSidebarOpen]  = useState(true);
+  const [purchases,    setPurchases]    = useState([]);
 
   const email = user?.email;
 
   const fetchAll = useCallback(async () => {
     try {
-      const [lsRes, cRes, pRes, certRes] = await Promise.all([
+      const [lsRes, cRes, pRes, certRes, purchRes] = await Promise.all([
         fetch(`${API}/lessons/course/${courseId}`),
         fetch(`${API}/courses/${courseId}`),
         fetch(`${API}/progress/${email}/${courseId}`),
         fetch(`${API}/certificates/${email}/${courseId}`),
+        email ? fetch(`${API}/course-purchases/user/${email}`) : Promise.resolve({ json: () => [] }),
       ]);
-      const [ls, c, p, certData] = await Promise.all([
+      const [ls, c, p, certData, purch] = await Promise.all([
         lsRes.json(), cRes.json(), pRes.json(), certRes.json(),
+        email ? purchRes.json() : [],
       ]);
       if (Array.isArray(ls)) setLessons(ls);
       if (c && c.id)         setCourse(c);
       if (p && p.completed_ids) setProgress(p);
       if (certData && certData.id) setCert(certData);
+      if (Array.isArray(purch)) {
+        setPurchases(purch.filter(p => Number(p.course_id) === Number(courseId)));
+      }
     } catch {}
   }, [courseId, email]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const hasFull       = purchases.some(p => !p.lesson_id);
+  const isInstructor  = course && user?.email === course.creator_email;
+
+  function canWatch(l) {
+    if (!l) return false;
+    if (l.is_free_preview) return true;
+    if (!user) return false;
+    if (user.isAdmin) return true;
+    if (isInstructor) return true;
+    if (hasFull) return true;
+    return false;
+  }
 
   useEffect(() => {
     if (lessons.length && lessonId) {
@@ -259,7 +278,25 @@ export default function VideoPlayerPage() {
         {/* Main video area */}
         <div className="flex-1 flex flex-col overflow-y-auto">
           <div className="bg-black">
-            <VideoPlayer url={lesson?.video_url} />
+            {canWatch(lesson) ? (
+              <VideoPlayer url={lesson?.video_url} />
+            ) : (
+              <div className="w-full aspect-video bg-slate-900 flex flex-col items-center justify-center gap-4 px-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-white font-bold text-base mb-1">Leçon verrouillée</p>
+                  <p className="text-slate-400 text-sm max-w-xs">Vous devez acheter le cours complet pour accéder aux leçons payantes.</p>
+                </div>
+                <button onClick={() => navigate(`/courses/${courseId}`)}
+                  className="mt-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-colors">
+                  Acheter le cours →
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-6">
@@ -330,27 +367,46 @@ export default function VideoPlayerPage() {
             </div>
             <div className="flex-1 overflow-y-auto">
               {lessons.map((l, i) => {
-                const done    = progress.completed_ids.includes(l.id);
-                const active  = l.id === lesson?.id;
+                const done      = progress.completed_ids.includes(l.id);
+                const active    = l.id === lesson?.id;
+                const watchable = canWatch(l);
                 return (
-                  <button key={l.id} onClick={() => goToLesson(l)}
+                  <button key={l.id}
+                    onClick={() => watchable ? goToLesson(l) : navigate(`/courses/${courseId}`)}
                     className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors border-b border-slate-800/50 ${
                       active ? 'bg-indigo-900/40 border-l-2 border-l-indigo-500' : 'hover:bg-slate-800/60'
                     }`}>
                     <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
-                      done    ? 'bg-emerald-600 text-white' :
-                      active  ? 'bg-indigo-600 text-white' :
-                                'bg-slate-700 text-slate-400'
+                      !watchable  ? 'bg-slate-800 text-slate-600' :
+                      done        ? 'bg-emerald-600 text-white' :
+                      active      ? 'bg-indigo-600 text-white' :
+                                    'bg-slate-700 text-slate-400'
                     }`}>
-                      {done ? '✓' : i + 1}
+                      {!watchable ? (
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                      ) : done ? '✓' : i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-semibold line-clamp-2 ${active ? 'text-indigo-300' : done ? 'text-slate-400' : 'text-slate-200'}`}>
+                      <p className={`text-xs font-semibold line-clamp-2 ${
+                        !watchable ? 'text-slate-600' :
+                        active     ? 'text-indigo-300' :
+                        done       ? 'text-slate-400' : 'text-slate-200'
+                      }`}>
                         {l.title}
                       </p>
-                      {l.duration_min > 0 && (
-                        <p className="text-[10px] text-slate-500 mt-0.5">{l.duration_min} min</p>
-                      )}
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {l.duration_min > 0 && (
+                          <p className="text-[10px] text-slate-500">{l.duration_min} min</p>
+                        )}
+                        {!watchable && (
+                          <span className="text-[9px] font-bold text-slate-600 uppercase tracking-wide">Payant</span>
+                        )}
+                        {l.is_free_preview && (
+                          <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wide">Gratuit</span>
+                        )}
+                      </div>
                     </div>
                   </button>
                 );
