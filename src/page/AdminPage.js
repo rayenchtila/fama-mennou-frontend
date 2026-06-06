@@ -658,6 +658,7 @@ export default function AdminPage() {
   const [grantMsg,            setGrantMsg]            = useState(null);
   const [grantIsError,        setGrantIsError]        = useState(false);
   const [revokeLoading,       setRevokeLoading]       = useState({});
+  const [revokeConfirm,       setRevokeConfirm]       = useState(null);
   const [searchEmail,         setSearchEmail]         = useState('');
   const [searchDropdown,      setSearchDropdown]      = useState([]);
   const [searchSelected,      setSearchSelected]      = useState(false);
@@ -1704,7 +1705,7 @@ export default function AdminPage() {
                                 <p className="text-[10px] text-slate-400 truncate">{s.buyer_email}</p>
                               </div>
                               <button
-                                onClick={() => revokeAccess(s)}
+                                onClick={() => setRevokeConfirm(s)}
                                 disabled={!!revokeLoading[s.id]}
                                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 disabled:opacity-40 transition-colors active:scale-95 shrink-0">
                                 {revokeLoading[s.id] ? '…' : '✕ Révoquer'}
@@ -1724,6 +1725,50 @@ export default function AdminPage() {
 
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Revoke Access Confirmation Modal ── */}
+      {revokeConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setRevokeConfirm(null)}>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700" onClick={e => e.stopPropagation()}>
+
+            {/* Icon + title */}
+            <div className="flex flex-col items-center px-6 pt-8 pb-4 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                </svg>
+              </div>
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">Revoke Course Access</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to remove access for</p>
+
+              {/* User info */}
+              <div className="mt-3 w-full bg-slate-50 dark:bg-slate-800 rounded-2xl px-4 py-3 text-left">
+                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{revokeConfirm.buyer_name || revokeConfirm.buyer_email}</p>
+                <p className="text-xs text-slate-400 truncate">{revokeConfirm.buyer_email}</p>
+                <span className={`inline-block mt-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${revokeConfirm.access_type === 'full_course' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400'}`}>
+                  {revokeConfirm.access_type === 'full_course' ? 'Full course access' : 'Single lesson access'}
+                </span>
+              </div>
+
+              <p className="text-xs text-rose-500 dark:text-rose-400 font-semibold mt-3">This action cannot be undone.</p>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3 px-6 pb-6">
+              <button
+                onClick={() => setRevokeConfirm(null)}
+                className="flex-1 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={() => { revokeAccess(revokeConfirm); setRevokeConfirm(null); }}
+                className="flex-1 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-sm font-bold text-white transition-colors shadow-sm shadow-rose-500/30 active:scale-95">
+                Yes, Revoke
+              </button>
             </div>
           </div>
         </div>
