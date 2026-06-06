@@ -700,26 +700,42 @@ export default function AdminPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paidCourses, pendingCourseId]);
 
-  // Clickable admin notification — goes directly to specific course or tab
+  // Comprehensive admin notification navigation — handles all notification kinds
   function handleAdminNotifClick(n) {
     markNotificationRead(n.id);
     setNotifOpen(false);
-    const [base, id] = n.kind.split(':');
-    if (base === 'course_access_granted') {
+    const kind = n.kind || '';
+
+    // course_access_granted:courseId → open exact course modal
+    if (kind.startsWith('course_access_granted')) {
+      const courseId = kind.includes(':') ? kind.split(':')[1] : null;
       setMainTab('paidaccess');
       navigate('/admin?tab=paidaccess');
-      if (id) {
-        const course = paidCourses.find(c => String(c.id) === String(id));
-        if (course) { openAccessModal(course); }
-        else { fetchPaidCourses(); setPendingCourseId(id); }
+      if (courseId) {
+        const found = paidCourses.find(c => String(c.id) === String(courseId));
+        if (found) openAccessModal(found);
+        else { fetchPaidCourses(); setPendingCourseId(courseId); }
       }
-    } else if (base === 'new_submission' || base === 'approved' || base === 'rejected') {
-      setMainTab('cin'); navigate('/admin?tab=cin');
-    } else if (base === 'course_upload') {
-      setMainTab('courses'); navigate('/admin?tab=courses');
-    } else if (base === 'new_lesson') {
-      setMainTab('lessons'); navigate('/admin?tab=lessons');
+      return;
     }
+
+    // lesson_pending_${lessonId} → lessons tab
+    if (kind.startsWith('lesson_pending')) {
+      setMainTab('lessons'); navigate('/admin?tab=lessons'); return;
+    }
+
+    // course_pending → courses tab
+    if (kind.startsWith('course_pending') || kind.startsWith('course_upload')) {
+      setMainTab('courses'); navigate('/admin?tab=courses'); return;
+    }
+
+    // new_submission / CIN-related → cin tab
+    if (kind.startsWith('new_submission') || kind.startsWith('new_user')) {
+      setMainTab('cin'); navigate('/admin?tab=cin'); return;
+    }
+
+    // Default → cin tab
+    setMainTab('cin'); navigate('/admin?tab=cin');
   }
 
   const fetchCourses = async () => {
@@ -1911,8 +1927,18 @@ export default function AdminPage() {
               ) : (
                 adminNotifications.map(n => (
                   <div key={n.id} onClick={() => handleAdminNotifClick(n)} className={["flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors group", n.read ? "bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50" : "bg-indigo-50/50 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"].join(" ")}>
-                    <div className={["w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm", n.kind.startsWith("course_access_granted") ? "bg-emerald-100 dark:bg-emerald-900/30" : n.kind.startsWith("approved") ? "bg-emerald-100 dark:bg-emerald-900/30" : n.kind.startsWith("rejected") ? "bg-rose-100 dark:bg-rose-900/30" : "bg-amber-100 dark:bg-amber-900/30"].join(" ")}>
-                      {n.kind.startsWith("course_access_granted") ? "🎓" : n.kind.startsWith("approved") ? "✅" : n.kind.startsWith("rejected") ? "❌" : "🔔"}
+                    <div className={["w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm",
+                      n.kind.startsWith("course_access_granted") ? "bg-emerald-100 dark:bg-emerald-900/30" :
+                      n.kind.startsWith("lesson_pending")         ? "bg-indigo-100 dark:bg-indigo-900/30" :
+                      n.kind.startsWith("course_pending")         ? "bg-violet-100 dark:bg-violet-900/30" :
+                      n.kind.includes("approved")                  ? "bg-emerald-100 dark:bg-emerald-900/30" :
+                      n.kind.includes("rejected")                  ? "bg-rose-100 dark:bg-rose-900/30" :
+                      "bg-amber-100 dark:bg-amber-900/30"].join(" ")}>
+                      {n.kind.startsWith("course_access_granted") ? "🎓" :
+                       n.kind.startsWith("lesson_pending")         ? "📖" :
+                       n.kind.startsWith("course_pending")         ? "📚" :
+                       n.kind.includes("approved")                  ? "✅" :
+                       n.kind.includes("rejected")                  ? "❌" : "🔔"}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-bold mb-0.5 ${n.read ? "text-slate-700 dark:text-slate-300" : "text-slate-900 dark:text-white"}`}>{n.title}</p>
