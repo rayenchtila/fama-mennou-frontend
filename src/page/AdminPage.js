@@ -647,6 +647,22 @@ export default function AdminPage() {
   });
   const [coursesLoading,  setCoursesLoading]  = useState(false);
 
+  // ── paid course access tab state ──
+  const [paidCourses,         setPaidCourses]         = useState([]);
+  const [paidCoursesLoading,  setPaidCoursesLoading]  = useState(false);
+  const [accessModal,         setAccessModal]         = useState(null);   // { course, lessons, students }
+  const [accessModalLoading,  setAccessModalLoading]  = useState(false);
+  const [watchLesson,         setWatchLesson]         = useState(null);   // lesson object with video_url
+  const [grantEmail,          setGrantEmail]          = useState('');
+  const [grantLoading,        setGrantLoading]        = useState(false);
+  const [grantMsg,            setGrantMsg]            = useState(null);
+  const [grantIsError,        setGrantIsError]        = useState(false);
+  const [revokeLoading,       setRevokeLoading]       = useState({});
+  const [searchEmail,         setSearchEmail]         = useState('');
+  const [searchDropdown,      setSearchDropdown]      = useState([]);
+  const [searchSelected,      setSearchSelected]      = useState(false);
+  const [searchSelectedUser,  setSearchSelectedUser]  = useState(null);
+
   // ── lessons tab state ──
   const [allLessons,      setAllLessons]      = useState([]);
   const [lessonsTabLoad,  setLessonsTabLoad]  = useState(false);
@@ -698,6 +714,107 @@ export default function AdminPage() {
     }
   };
 
+  const fetchPaidCourses = async () => {
+    setPaidCoursesLoading(true);
+    try {
+      const r = await fetch(`${API}/admin-course-access/paid-courses?admin_email=${encodeURIComponent(user?.email || '')}`);
+      const d = await r.json();
+      if (Array.isArray(d)) setPaidCourses(d);
+    } catch {}
+    setPaidCoursesLoading(false);
+  };
+
+  const openAccessModal = async (course) => {
+    setAccessModal({ course, lessons: [], students: [] });
+    setAccessModalLoading(true);
+    setWatchLesson(null);
+    setGrantMsg(null);
+    setGrantIsError(false);
+    setSearchEmail('');
+    setSearchDropdown([]);
+    setSearchSelected(false);
+    setSearchSelectedUser(null);
+    try {
+      const [detailRes, studRes] = await Promise.all([
+        fetch(`${API}/admin-course-access/paid-courses/${course.id}?admin_email=${encodeURIComponent(user?.email || '')}`),
+        fetch(`${API}/admin-course-access/paid-courses/${course.id}/students?admin_email=${encodeURIComponent(user?.email || '')}`),
+      ]);
+      const detail  = await detailRes.json();
+      const students = await studRes.json();
+      setAccessModal({ course: detail.course || course, lessons: detail.lessons || [], students: Array.isArray(students) ? students : [] });
+    } catch {}
+    setAccessModalLoading(false);
+  };
+
+  const grantAccess = async () => {
+    if (!searchEmail.trim() || !accessModal) return;
+    setGrantLoading(true);
+    setGrantMsg(null);
+    setGrantIsError(false);
+    try {
+      const r = await fetch(`${API}/admin-course-access/grant`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_email: user?.email, buyer_email: searchEmail.trim(), course_id: accessModal.course.id }),
+      });
+      const d = await r.json();
+      if (d.success) {
+        if (d.already_granted) {
+          setGrantMsg('Accès déjà accordé.');
+          setGrantIsError(false);
+        } else {
+          setSearchEmail('');
+          setSearchSelected(false);
+          setSearchDropdown([]);
+          setSearchSelectedUser(null);
+          setGrantMsg('Paid course access granted successfully.');
+          setGrantIsError(false);
+          fetchNotifications();
+          openAccessModal(accessModal.course);
+        }
+      } else {
+        setGrantMsg(d.error || 'Erreur');
+        setGrantIsError(true);
+      }
+    } catch {
+      setGrantMsg('Erreur réseau');
+      setGrantIsError(true);
+    }
+    setGrantLoading(false);
+  };
+
+  const revokeAccess = async (purchase) => {
+    const pid = purchase.id;
+    setRevokeLoading(p => ({ ...p, [pid]: true }));
+    try {
+      await fetch(`${API}/admin-course-access/revoke`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_email: user?.email, buyer_email: purchase.buyer_email, course_id: accessModal.course.id, lesson_id: purchase.lesson_id || undefined }),
+      });
+      setRevokeLoading(p => { const n = { ...p }; delete n[pid]; return n; });
+      openAccessModal(accessModal.course);
+    } catch {
+      setRevokeLoading(p => { const n = { ...p }; delete n[pid]; return n; });
+    }
+  };
+
+  const searchUser = async () => {
+    const email = searchEmail.trim().toLowerCase();
+    if (!email) return;
+    setSearchLoading(true);
+    setSearchResult(null);
+    setSearchError('');
+    try {
+      const r = await fetch(`${API}/admin-course-access/search-user?email=${encodeURIComponent(email)}&admin_email=${encodeURIComponent(user?.email || '')}`);
+      const d = await r.json();
+      if (r.status === 404) { setSearchError('User not found.'); }
+      else if (!r.ok)       { setSearchError(d.error || 'Erreur serveur.'); }
+      else                  { setSearchResult(d); }
+    } catch { setSearchError('Erreur réseau.'); }
+    setSearchLoading(false);
+  };
+
   const fetchLessonsTab = async () => {
     setLessonsTabLoad(true);
     try {
@@ -747,6 +864,7 @@ export default function AdminPage() {
   useEffect(() => { fetchCourses(); fetchLessonsTab(); }, []);
   useEffect(() => { if (mainTab === 'courses') fetchCourses(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'lessons') fetchLessonsTab(); }, [mainTab]);
+  useEffect(() => { if (mainTab === 'paidaccess') fetchPaidCourses(); }, [mainTab]);
 
   const coursesByFilter = allCourses.filter(c =>
     courseFilter === 'all' ? true : c.status === courseFilter
@@ -887,18 +1005,19 @@ export default function AdminPage() {
         </div>
 
         {/* ── MAIN TABS ── */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-3 flex flex-wrap gap-1">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-3 flex gap-1 overflow-x-auto scrollbar-hide">
           {[
             { id: "cin",      label: t("admin.tab.cin") },
             { id: "allusers", label: `${t("admin.tab.all_users")} (${(users ?? []).length})` },
             { id: "courses",  label: `📚 Cours${courseCounts.all > 0 ? ` (${courseCounts.all})` : ''}` },
             { id: "lessons",  label: `📖 Leçons${allLessons.filter(l=>l.status==='pending').length > 0 ? ` (${allLessons.filter(l=>l.status==='pending').length})` : ''}` },
+            { id: "paidaccess", label: `💳 Paid Course Access${paidCourses.length > 0 ? ` (${paidCourses.length})` : ''}` },
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setMainTab(tab.id)}
               className={[
-                "px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200",
+                "px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 whitespace-nowrap",
                 mainTab === tab.id
                   ? "bg-indigo-600 text-white shadow"
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800",
@@ -1318,6 +1437,311 @@ export default function AdminPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ══ PAID COURSE ACCESS TAB ══ */}
+      {mainTab === 'paidaccess' && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {paidCoursesLoading ? 'Chargement…' : `${paidCourses.length} cours`}
+            </p>
+            <button onClick={fetchPaidCourses} disabled={paidCoursesLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors disabled:opacity-40">
+              <svg className={`w-3.5 h-3.5 ${paidCoursesLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Actualiser
+            </button>
+          </div>
+
+          {paidCoursesLoading ? (
+            <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-28 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse" />)}</div>
+          ) : paidCourses.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
+              <span className="text-5xl mb-3">💳</span>
+              <p className="text-sm font-semibold">Aucun cours payant trouvé</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {paidCourses.map(course => (
+                <div key={course.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
+                  <div className="p-4 sm:p-5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-indigo-100 dark:bg-indigo-900/30 shrink-0 flex items-center justify-center text-2xl">
+                        {course.thumbnail_url ? <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" /> : '📚'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <p className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{course.title}</p>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            course.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' :
+                            course.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
+                            'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                          }`}>
+                            {course.status === 'approved' ? '✅ Approuvé' : course.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Par <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">💰 {Number(course.full_price) === 0 ? 'Gratuit' : `${Number(course.full_price).toFixed(2)} TND`}</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">👥 {course.total_buyers ?? 0} acheteur{(course.total_buyers ?? 0) !== 1 ? 's' : ''}</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">📖 {course.approved_lessons ?? 0} leçon{(course.approved_lessons ?? 0) !== 1 ? 's' : ''}</span>
+                          <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">💵 {Number(course.total_revenue ?? 0).toFixed(2)} TND collectés</span>
+                        </div>
+                        <button
+                          onClick={() => openAccessModal(course)}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors active:scale-95 shadow-sm shadow-indigo-500/30">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.263a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                          </svg>
+                          Watch Paid Course
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Paid Course Access Modal ── */}
+      {accessModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/70 backdrop-blur-sm" onClick={() => { setAccessModal(null); setWatchLesson(null); }}>
+          <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl flex items-center justify-center text-xl shrink-0">
+                  {accessModal.course?.thumbnail_url ? <img src={accessModal.course.thumbnail_url} alt="" className="w-full h-full object-cover rounded-xl" /> : '📚'}
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{accessModal.course?.title}</p>
+                  <p className="text-xs text-slate-400">Par {accessModal.course?.instructor_name || accessModal.course?.creator_email}</p>
+                </div>
+              </div>
+              <button onClick={() => { setAccessModal(null); setWatchLesson(null); }}
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            {/* Mobile drag handle */}
+            <div className="flex justify-center pt-2 pb-0 sm:hidden shrink-0">
+              <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+            </div>
+
+            <div className="overflow-y-auto flex-1">
+              {accessModalLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <svg className="w-8 h-8 animate-spin text-indigo-400" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                  </svg>
+                </div>
+              ) : (
+                <div className="p-3 sm:p-5 space-y-4 sm:space-y-6">
+
+                  {/* Video player — shows when a lesson is selected */}
+                  {watchLesson && (
+                    <div className="bg-slate-950 rounded-2xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+                        <p className="text-xs font-bold text-white truncate">▶ {watchLesson.lesson_title || watchLesson.title}</p>
+                        <button onClick={() => setWatchLesson(null)} className="text-slate-400 hover:text-white text-xs font-semibold ml-3 shrink-0">Fermer</button>
+                      </div>
+                      <div className="p-3">
+                        <CourseVideoPlayer url={watchLesson.video_url} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lessons list */}
+                  {accessModal.lessons?.length > 0 && (
+                    <div>
+                      <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                        📖 {accessModal.lessons.length} leçon{accessModal.lessons.length !== 1 ? 's' : ''}
+                      </p>
+                      <div className="space-y-2">
+                        {accessModal.lessons.map((lesson, idx) => (
+                          <div key={lesson.id} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-800">
+                            <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[10px] font-extrabold flex items-center justify-center shrink-0">{idx + 1}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{lesson.title}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-500">Free Preview</span>}
+                                {Number(lesson.price) > 0 && <span className="text-[10px] font-bold text-indigo-500">{Number(lesson.price).toFixed(2)} TND</span>}
+                                <span className={`text-[10px] font-bold ${lesson.status === 'approved' ? 'text-emerald-500' : lesson.status === 'rejected' ? 'text-rose-500' : 'text-amber-500'}`}>{lesson.status}</span>
+                              </div>
+                            </div>
+                            {lesson.video_url && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const r = await fetch(`${API}/admin-course-access/watch/${lesson.id}?admin_email=${encodeURIComponent(user?.email || '')}`);
+                                    const d = await r.json();
+                                    if (d.ok) setWatchLesson(d);
+                                  } catch {}
+                                }}
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors active:scale-95 shrink-0">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/></svg>
+                                Watch
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Search + Grant — unified */}
+                  <div className="relative">
+                    <div className="relative">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                      </svg>
+                      <input
+                        type="text"
+                        placeholder="Rechercher un utilisateur par email…"
+                        value={searchEmail}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setSearchEmail(val);
+                          setSearchSelected(false);
+                          setGrantMsg(null);
+                          setGrantIsError(false);
+                          if (val.trim().length > 0) {
+                            const filtered = (users || [])
+                              .filter(u => u.email && u.email.toLowerCase().includes(val.toLowerCase()))
+                              .slice(0, 8);
+                            setSearchDropdown(filtered);
+                          } else {
+                            setSearchDropdown([]);
+                          }
+                        }}
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-colors text-sm"
+                      />
+                    </div>
+
+                    {/* Dropdown suggestions */}
+                    {searchDropdown.length > 0 && !searchSelected && (
+                      <div className="absolute z-20 w-full mt-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden max-h-52 overflow-y-auto">
+                        {searchDropdown.map(u => (
+                          <div
+                            key={u.email}
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => {
+                              setSearchEmail(u.email);
+                              setSearchDropdown([]);
+                              setSearchSelected(true);
+                              setSearchSelectedUser(u);
+                              setGrantMsg(null);
+                              setGrantIsError(false);
+                            }}
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer border-b border-slate-100 dark:border-slate-700 last:border-0 transition-colors">
+                            <Avatar name={u.name} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{u.name || u.email}</p>
+                              <p className="text-xs text-slate-400 truncate">{u.email}</p>
+                            </div>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                              u.role === 'freelancer' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' :
+                                                       'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800'
+                            }`}>{u.role}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Selected user info card + Confirm Access button */}
+                    {searchSelected && searchSelectedUser && (
+                      <div className="mt-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-200 dark:border-emerald-800 overflow-hidden">
+                        <div className="flex items-center gap-3 px-4 py-3">
+                          <div className="w-10 h-10 shrink-0">
+                            {searchSelectedUser.photo
+                              ? <img src={searchSelectedUser.photo} alt="" className="w-10 h-10 rounded-xl object-cover" />
+                              : <Avatar name={searchSelectedUser.name} />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{searchSelectedUser.name || '—'}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{searchSelectedUser.email}</p>
+                            {searchSelectedUser.region && <p className="text-xs text-slate-400 truncate">📍 {searchSelectedUser.region}</p>}
+                          </div>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                            searchSelectedUser.role === 'freelancer' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' :
+                                                                       'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800'
+                          }`}>{searchSelectedUser.role}</span>
+                        </div>
+                        <div className="px-4 pb-4">
+                          <button
+                            onClick={grantAccess}
+                            disabled={grantLoading}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors active:scale-95 shadow-sm shadow-emerald-500/30">
+                            {grantLoading
+                              ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                              : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
+                            {grantLoading ? 'En cours…' : '✅ Confirm Access'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {grantMsg && (
+                      <div className={`flex items-center gap-2 mt-2 px-3 py-2.5 rounded-xl text-xs font-semibold ${grantIsError ? 'bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400' : 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400'}`}>
+                        {grantIsError
+                          ? <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                          : <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
+                        {grantMsg}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Students with access */}
+                  <div>
+                    <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                      👥 {accessModal.students?.length ?? 0} utilisateur{(accessModal.students?.length ?? 0) !== 1 ? 's' : ''} avec accès
+                    </p>
+                    {(!accessModal.students || accessModal.students.length === 0) ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-slate-400 dark:text-slate-600">
+                        <span className="text-3xl mb-2">👤</span>
+                        <p className="text-xs font-semibold">Aucun utilisateur n'a encore acheté ce cours</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {accessModal.students.map(s => (
+                          <div key={s.id} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl px-3 sm:px-4 py-3 border border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-3">
+                              <Avatar name={s.buyer_name || s.buyer_email} />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{s.buyer_name || s.buyer_email}</p>
+                                <p className="text-[10px] text-slate-400 truncate">{s.buyer_email}</p>
+                              </div>
+                              <button
+                                onClick={() => revokeAccess(s)}
+                                disabled={!!revokeLoading[s.id]}
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 disabled:opacity-40 transition-colors active:scale-95 shrink-0">
+                                {revokeLoading[s.id] ? '…' : '✕ Révoquer'}
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1.5 ml-[52px] flex-wrap">
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${s.access_type === 'full_course' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400'}`}>
+                                {s.access_type === 'full_course' ? 'Cours complet' : 'Leçon: ' + (s.lesson_title || s.lesson_id)}
+                              </span>
+                              {Number(s.amount_paid) > 0 && <span className="text-[10px] text-slate-400">{Number(s.amount_paid).toFixed(2)} TND</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

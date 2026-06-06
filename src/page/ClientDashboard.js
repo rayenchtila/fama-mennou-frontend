@@ -98,12 +98,21 @@ function SkeletonRow() {
 }
 
 export default function ClientDashboard() {
-  const { user, users } = useAuth();
+  const { user, users, fetchNotifications, getUserNotifications, markNotificationRead } = useAuth();
   const navigate = useNavigate();
 
   const [projects, setProjects]       = useState([]);
   const [conversations, setConvos]    = useState([]);
   const [loading, setLoading]         = useState(true);
+  const [notifOpen, setNotifOpen]     = useState(false);
+
+  // Fetch notifications on mount and poll every 30s
+  useEffect(() => {
+    fetchNotifications();
+    const id = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -140,6 +149,8 @@ export default function ClientDashboard() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
   const firstName = user.name?.split(' ')[0] || 'Client';
+  const userNotifs  = getUserNotifications(user?.email);
+  const unreadCount = userNotifs.filter(n => !n.read).length;
 
   return (
     <div className="pt-16 min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -166,6 +177,48 @@ export default function ClientDashboard() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400">💼 Client</span>
+
+              {/* Notification bell */}
+              <div className="relative">
+                <button onClick={() => setNotifOpen(p => !p)} className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                  <svg className="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                  </svg>
+                  {unreadCount > 0 && <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center leading-none">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+                </button>
+                {notifOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                    <div className="absolute right-0 top-11 z-50 w-[min(320px,calc(100vw-2rem))] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">Notifications</p>
+                        {unreadCount > 0 && <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold">{unreadCount}</span>}
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {userNotifs.length === 0 ? (
+                          <div className="flex flex-col items-center py-8 text-slate-400">
+                            <svg className="w-8 h-8 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            <p className="text-xs font-semibold">Aucune notification</p>
+                          </div>
+                        ) : userNotifs.map(n => (
+                          <div key={n.id} onClick={() => markNotificationRead(n.id)} className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors last:border-0 ${n.read ? 'bg-white dark:bg-slate-900' : 'bg-indigo-50/60 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}>
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm ${n.kind === 'course_access' ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-indigo-100 dark:bg-indigo-900/30'}`}>
+                              {n.kind === 'course_access' ? '🎓' : '🔔'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-xs font-bold mb-0.5 ${n.read ? 'text-slate-600 dark:text-slate-300' : 'text-slate-900 dark:text-white'}`}>{n.title}</p>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{n.message}</p>
+                              <p className="text-[10px] text-slate-400 mt-1">{new Date(n.createdAt).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                            </div>
+                            {!n.read && <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5" />}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <button
                 onClick={() => navigate('/freelancers')}
                 className="text-xs font-bold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm shadow-indigo-500/30"
