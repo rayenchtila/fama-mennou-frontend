@@ -799,22 +799,6 @@ export default function AdminPage() {
     }
   };
 
-  const searchUser = async () => {
-    const email = searchEmail.trim().toLowerCase();
-    if (!email) return;
-    setSearchLoading(true);
-    setSearchResult(null);
-    setSearchError('');
-    try {
-      const r = await fetch(`${API}/admin-course-access/search-user?email=${encodeURIComponent(email)}&admin_email=${encodeURIComponent(user?.email || '')}`);
-      const d = await r.json();
-      if (r.status === 404) { setSearchError('User not found.'); }
-      else if (!r.ok)       { setSearchError(d.error || 'Erreur serveur.'); }
-      else                  { setSearchResult(d); }
-    } catch { setSearchError('Erreur réseau.'); }
-    setSearchLoading(false);
-  };
-
   const fetchLessonsTab = async () => {
     setLessonsTabLoad(true);
     try {
