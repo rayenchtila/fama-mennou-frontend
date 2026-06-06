@@ -46,9 +46,11 @@ export default function CourseDetailPage() {
   const [purchases,    setPurchases]    = useState([]);  // user's purchases for this course
   const [loading,      setLoading]      = useState(true);
   const [activeTab,    setActiveTab]    = useState('curriculum');
-  const [buying,       setBuying]       = useState(false);
-  const [buyingLesson, setBuyingLesson] = useState(null);
-  const [buyMsg,       setBuyMsg]       = useState('');
+  const [buying,         setBuying]         = useState(false);
+  const [buyingLesson,   setBuyingLesson]   = useState(null);
+  const [buyMsg,         setBuyMsg]         = useState('');
+  const [requestStatus,  setRequestStatus]  = useState(null); // null | 'pending' | 'approved' | 'rejected'
+  const [requesting,     setRequesting]     = useState(false);
   const [lockedMsg,    setLockedMsg]    = useState(false);
 
   // Review form
@@ -72,6 +74,49 @@ export default function CourseDetailPage() {
   const hasFull     = purchases.some(p => !p.lesson_id);
   const ownedLesson = id => purchases.some(p => Number(p.lesson_id) === Number(id));
 
+
+  async function buyFull() {
+    if (!user) return;
+    const isFreeC = Number(course?.full_price) === 0;
+
+    // FREE course — keep existing enrollment logic
+    if (isFreeC) {
+      setBuying(true); setBuyMsg('');
+      try {
+        const r = await fetch(`${API}/course-purchases`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ buyer_email: user.email, course_id: id }),
+        });
+        const d = await r.json();
+        if (d.success) {
+          setPurchases(prev => [...prev, { course_id: id, lesson_id: null }]);
+          setBuyMsg('🎉 Inscription réussie !');
+        } else { setBuyMsg('Inscription échouée. Réessaie.'); }
+      } catch { setBuyMsg('Inscription échouée. Réessaie.'); }
+      finally { setBuying(false); }
+      return;
+    }
+
+    // PAID course — submit an access request
+    setRequesting(true); setBuyMsg('');
+    try {
+      const r = await fetch(`${API}/course-requests`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_email: user.email, user_name: user.name || '', course_id: id }),
+      });
+      const d = await r.json();
+      if (d.success) {
+        if (d.already_has_access) {
+          setPurchases(prev => [...prev, { course_id: id, lesson_id: null }]);
+        } else {
+          setRequestStatus(d.status || 'pending');
+          setBuyMsg('✅ Demande envoyée ! L\'admin examinera votre demande.');
+        }
+      } else { setBuyMsg('Demande échouée. Réessaie.'); }
+    } catch { setBuyMsg('Demande échouée. Réessaie.'); }
+    finally { setRequesting(false); }
+  }
+
   function canWatch(lesson) {
     if (lesson.is_free_preview) return true;   // free for everyone
     if (!user) return false;
@@ -90,12 +135,16 @@ export default function CourseDetailPage() {
       user?.email
         ? fetch(`${API}/course-purchases/user/${user.email}`).then(r => r.json())
         : Promise.resolve([]),
-    ]).then(([c, myPurch]) => {
+      user?.email
+        ? fetch(`${API}/course-requests/status?email=${encodeURIComponent(user.email)}&courseId=${id}`).then(r => r.json()).catch(() => ({ status: null }))
+        : Promise.resolve({ status: null }),
+    ]).then(([c, myPurch, reqStatus]) => {
       setCourse(c);
       const filteredPurch = Array.isArray(myPurch)
         ? myPurch.filter(p => Number(p.course_id) === Number(id))
         : [];
       setPurchases(filteredPurch);
+      setRequestStatus(reqStatus?.status || null);
       setLoading(false); // ← paywall or hero renders immediately here
 
       // Phase 2 — rest only if user can access the course
@@ -111,23 +160,6 @@ export default function CourseDetailPage() {
       }).catch(() => {});
     }).catch(() => setLoading(false));
   }, [id, user?.email]);
-
-  async function buyFull() {
-    if (!user) return;
-    setBuying(true); setBuyMsg('');
-    try {
-      const r = await fetch(`${API}/course-purchases`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ buyer_email: user.email, course_id: id }),
-      });
-      const d = await r.json();
-      if (d.success) {
-        setBuyMsg('🎉 Course unlocked!');
-        setPurchases(prev => [...prev, { course_id: id, lesson_id: null }]);
-      }
-    } catch { setBuyMsg('Purchase failed. Try again.'); }
-    finally { setBuying(false); }
-  }
 
   async function buyLesson(lesson) {
     if (!user) return;
@@ -322,17 +354,31 @@ export default function CourseDetailPage() {
                 <div className="text-xs text-center text-slate-500 dark:text-slate-400 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
                   You are the instructor of this course
                 </div>
-              ) : hasFull ? (
-                <div className="text-xs text-center text-emerald-600 dark:text-emerald-400 font-bold py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
-                  ✅ You own this course
+              ) : hasFull || requestStatus === 'approved' ? (
+                <button
+                  onClick={() => document.getElementById('curriculum-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors shadow-sm shadow-emerald-500/30 mb-3">
+                  ▶ Voir le cours
+                </button>
+              ) : requestStatus === 'pending' ? (
+                <div className="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm font-bold text-center mb-3">
+                  ⏳ Demande en attente de validation
                 </div>
-              ) : (
+              ) : requestStatus === 'rejected' ? (
                 <>
-                  <button onClick={buyFull} disabled={buying}
+                  <div className="text-xs text-center text-rose-600 dark:text-rose-400 py-2 bg-rose-50 dark:bg-rose-900/20 rounded-xl mb-2">
+                    ❌ Demande refusée
+                  </div>
+                  <button onClick={buyFull} disabled={requesting}
                     className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-bold transition-colors shadow-sm shadow-indigo-500/30 mb-3">
-                    {buying ? 'Processing…' : isFree ? 'Enroll for Free' : `Acheter — ${Number(course.full_price).toFixed(2)} TND`}
+                    {requesting ? 'Envoi…' : 'Renvoyer la demande'}
                   </button>
                 </>
+              ) : (
+                <button onClick={buyFull} disabled={buying || requesting}
+                  className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-bold transition-colors shadow-sm shadow-indigo-500/30 mb-3">
+                  {requesting ? 'Envoi en cours…' : buying ? 'Processing…' : isFree ? 'Enroll for Free' : `🛒 Acheter le cours`}
+                </button>
               )}
 
               <div className="mt-4 space-y-2 text-xs text-slate-500 dark:text-slate-400">
@@ -391,7 +437,7 @@ export default function CourseDetailPage() {
 
         {/* ── Curriculum ────────────────────────────────────────────────────── */}
         {activeTab === 'curriculum' && (
-          <div className="space-y-2 mb-10">
+          <div id="curriculum-section" className="space-y-2 mb-10">
             {/* Lesson submitted banner */}
             {lessonSubmitted && (
               <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mb-2">
