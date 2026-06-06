@@ -1556,7 +1556,6 @@ export default function AdminPage() {
                               <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{lesson.title}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-500">Free Preview</span>}
-                                {Number(lesson.price) > 0 && <span className="text-[10px] font-bold text-indigo-500">{Number(lesson.price).toFixed(2)} TND</span>}
                                 <span className={`text-[10px] font-bold ${lesson.status === 'approved' ? 'text-emerald-500' : lesson.status === 'rejected' ? 'text-rose-500' : 'text-amber-500'}`}>{lesson.status}</span>
                               </div>
                             </div>
