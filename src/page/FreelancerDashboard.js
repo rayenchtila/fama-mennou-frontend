@@ -1529,7 +1529,7 @@ export default function FreelancerDashboard() {
                       <p className="text-xs font-semibold">Aucune notification</p>
                     </div>
                   ) : userNotifs.map(n => (
-                    <div key={n.id} onClick={() => { markNotificationRead(n.id); setNotifOpen(false); if (n.kind === 'course_access') navigate('/courses'); }} className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors last:border-0 group ${n.read ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50' : 'bg-indigo-50/60 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}>
+                    <div key={n.id} onClick={() => { markNotificationRead(n.id); setNotifOpen(false); const r = { course_access: '/courses', approved: '/dashboard', rejected: '/dashboard' }; const route = r[n.kind]; if (route) navigate(route); }} className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors last:border-0 group ${n.read ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50' : 'bg-indigo-50/60 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}>
                       <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm ${n.kind === 'course_access' ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-indigo-100 dark:bg-indigo-900/30'}`}>
                         {n.kind === 'course_access' ? '🎓' : '🔔'}
                       </div>

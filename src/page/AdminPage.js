@@ -628,21 +628,6 @@ export default function AdminPage() {
   // ── main tab: "cin" | "allusers" | "courses" ──
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  function handleAdminNotifClick(n) {
-    markNotificationRead(n.id);
-    setNotifOpen(false);
-    const tabMap = {
-      course_access_granted: 'paidaccess',
-      new_submission:        'cin',
-      course_upload:         'courses',
-      new_lesson:            'lessons',
-      approved:              'cin',
-      rejected:              'cin',
-    };
-    const tab = tabMap[n.kind];
-    if (tab) setMainTab(tab);
-  }
   const [mainTab,   setMainTab]   = useState(searchParams.get("tab") || "cin");
   const [filter,    setFilter]    = useState("pending");
   const [search,    setSearch]    = useState("");
@@ -698,6 +683,29 @@ export default function AdminPage() {
   const [lessonsLoading,  setLessonsLoading]  = useState(false);
 
   const API = 'https://famamennou-server.onrender.com/api';
+
+  // Sync tab from URL when URL changes
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) setMainTab(tab);
+  }, [searchParams]);
+
+  // Clickable admin notification — marks read + navigates to relevant tab
+  function handleAdminNotifClick(n) {
+    markNotificationRead(n.id);
+    setNotifOpen(false);
+    const tabMap = {
+      course_access_granted: 'paidaccess',
+      new_submission:        'cin',
+      course_upload:         'courses',
+      new_lesson:            'lessons',
+      approved:              'cin',
+      rejected:              'cin',
+    };
+    const tab = tabMap[n.kind] || 'cin';
+    setMainTab(tab);
+    navigate(`/admin?tab=${tab}`);
+  }
 
   const fetchCourses = async () => {
     const CACHE_KEY = 'admin_courses_cache';
