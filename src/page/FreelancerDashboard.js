@@ -1529,7 +1529,7 @@ export default function FreelancerDashboard() {
                       <p className="text-xs font-semibold">Aucune notification</p>
                     </div>
                   ) : userNotifs.map(n => (
-                    <div key={n.id} onClick={() => markNotificationRead(n.id)} className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors last:border-0 ${n.read ? 'bg-white dark:bg-slate-900' : 'bg-indigo-50/60 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}>
+                    <div key={n.id} onClick={() => { markNotificationRead(n.id); setNotifOpen(false); if (n.kind === 'course_access') navigate('/courses'); }} className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors last:border-0 group ${n.read ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50' : 'bg-indigo-50/60 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}>
                       <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm ${n.kind === 'course_access' ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-indigo-100 dark:bg-indigo-900/30'}`}>
                         {n.kind === 'course_access' ? '🎓' : '🔔'}
                       </div>
@@ -1538,7 +1538,10 @@ export default function FreelancerDashboard() {
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{n.message}</p>
                         <p className="text-[10px] text-slate-400 mt-1">{new Date(n.createdAt).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
-                      {!n.read && <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5" />}
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        {!n.read && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
+                        <svg className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+                      </div>
                     </div>
                   ))}
                 </div>

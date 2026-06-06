@@ -1,7 +1,7 @@
 // src/page/AdminPage.js
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -627,6 +627,22 @@ export default function AdminPage() {
 
   // ── main tab: "cin" | "allusers" | "courses" ──
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  function handleAdminNotifClick(n) {
+    markNotificationRead(n.id);
+    setNotifOpen(false);
+    const tabMap = {
+      course_access_granted: 'paidaccess',
+      new_submission:        'cin',
+      course_upload:         'courses',
+      new_lesson:            'lessons',
+      approved:              'cin',
+      rejected:              'cin',
+    };
+    const tab = tabMap[n.kind];
+    if (tab) setMainTab(tab);
+  }
   const [mainTab,   setMainTab]   = useState(searchParams.get("tab") || "cin");
   const [filter,    setFilter]    = useState("pending");
   const [search,    setSearch]    = useState("");
@@ -1871,16 +1887,19 @@ export default function AdminPage() {
                 </div>
               ) : (
                 adminNotifications.map(n => (
-                  <div key={n.id} onClick={() => markNotificationRead(n.id)} className={["flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors", n.read ? "bg-white dark:bg-slate-900" : "bg-indigo-50/50 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"].join(" ")}>
-                    <div className={["w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm", n.kind === "approved" ? "bg-emerald-100 dark:bg-emerald-900/30" : n.kind === "rejected" ? "bg-rose-100 dark:bg-rose-900/30" : "bg-amber-100 dark:bg-amber-900/30"].join(" ")}>
-                      {n.kind === "approved" ? "✅" : n.kind === "rejected" ? "❌" : "🔔"}
+                  <div key={n.id} onClick={() => handleAdminNotifClick(n)} className={["flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors group", n.read ? "bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50" : "bg-indigo-50/50 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"].join(" ")}>
+                    <div className={["w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm", n.kind === "course_access_granted" ? "bg-emerald-100 dark:bg-emerald-900/30" : n.kind === "approved" ? "bg-emerald-100 dark:bg-emerald-900/30" : n.kind === "rejected" ? "bg-rose-100 dark:bg-rose-900/30" : "bg-amber-100 dark:bg-amber-900/30"].join(" ")}>
+                      {n.kind === "course_access_granted" ? "🎓" : n.kind === "approved" ? "✅" : n.kind === "rejected" ? "❌" : "🔔"}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-bold mb-0.5 ${n.read ? "text-slate-700 dark:text-slate-300" : "text-slate-900 dark:text-white"}`}>{n.title}</p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">{n.message}</p>
                       <p className="text-[10px] text-slate-400 mt-1">{new Date(n.createdAt).toLocaleDateString("fr-TN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
                     </div>
-                    {!n.read && <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1" />}
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      {!n.read && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
+                      <svg className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </div>
                   </div>
                 ))
               )}
