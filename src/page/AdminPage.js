@@ -653,14 +653,20 @@ function AdminChatPanel({ allUsers }) {
   const [sending,       setSending]       = React.useState(false);
   const [showPicker,    setShowPicker]    = React.useState(false);
   const [pickerSearch,  setPickerSearch]  = React.useState('');
-  const [stagedImage,   setStagedImage]   = React.useState(null); // { file, previewUrl }
-  const [uploading,     setUploading]     = React.useState(false);
+  const [stagedImage,     setStagedImage]     = React.useState(null);
+  const [uploading,       setUploading]       = React.useState(false);
+  const [openMenuId,      setOpenMenuId]      = React.useState(null);
+  const [menuPos,         setMenuPos]         = React.useState({ top: 0, right: 0 });
+  const [editingId,       setEditingId]       = React.useState(null);
+  const [editText,        setEditText]        = React.useState('');
+  const [editStagedImage, setEditStagedImage] = React.useState(null);
 
-  const messagesBoxRef = React.useRef();
-  const convsPollRef   = React.useRef();
-  const msgsPollRef    = React.useRef();
-  const inputRef       = React.useRef();
-  const fileInputRef   = React.useRef();
+  const messagesBoxRef  = React.useRef();
+  const convsPollRef    = React.useRef();
+  const msgsPollRef     = React.useRef();
+  const inputRef        = React.useRef();
+  const fileInputRef    = React.useRef();
+  const editFileInputRef = React.useRef();
 
   const API_CHAT = 'https://famamennou-server.onrender.com/api';
 
@@ -700,7 +706,10 @@ function AdminChatPanel({ allUsers }) {
   }, [messages, selectedEmail]);
 
   React.useEffect(() => {
-    const handler = e => { if (!e.target.closest('[data-picker]')) setShowPicker(false); };
+    const handler = e => {
+      if (!e.target.closest('[data-picker]')) setShowPicker(false);
+      if (!e.target.closest('[data-menu]'))   setOpenMenuId(null);
+    };
     document.addEventListener('click', handler);
     return () => document.removeEventListener('click', handler);
   }, []);
@@ -710,6 +719,49 @@ function AdminChatPanel({ allUsers }) {
     if (!file) return;
     setStagedImage({ file, previewUrl: URL.createObjectURL(file) });
     e.target.value = '';
+  }
+
+  function handleEditImageSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditStagedImage({ file, previewUrl: URL.createObjectURL(file) });
+    e.target.value = '';
+  }
+
+  async function editMsg(id, content) {
+    if (!content.trim() && !editStagedImage) return;
+    let attachmentUrl;
+    if (editStagedImage) {
+      try {
+        const fd = new FormData();
+        fd.append('file', editStagedImage.file);
+        const r = await fetch(`${API_CHAT}/uploads/image`, { method: 'POST', body: fd });
+        const d = await r.json();
+        attachmentUrl = d.secure_url;
+      } catch { return; }
+    }
+    const body = { senderEmail: ADMIN_EMAIL, content };
+    if (attachmentUrl) body.attachmentUrl = attachmentUrl;
+    await fetch(`${API_CHAT}/messages/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    setEditingId(null);
+    setEditStagedImage(null);
+    setOpenMenuId(null);
+    fetchMsgs(selectedEmail);
+  }
+
+  async function deleteMsg(id) {
+    setOpenMenuId(null);
+    await fetch(`${API_CHAT}/messages/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderEmail: ADMIN_EMAIL }),
+    });
+    fetchMsgs(selectedEmail);
+    fetchConvs();
   }
 
   async function sendMsg() {
@@ -966,21 +1018,66 @@ function AdminChatPanel({ allUsers }) {
                             {isMine ? ADMIN_TEAM_NAME : (selectedConv?.user_name || selectedEmail)}
                           </p>
                         )}
-                        <div className={`text-sm shadow-sm ${m.attachment_url && !m.content ? 'p-1' : 'px-3.5 py-2.5'} ${bubbleR} ${
-                          isMine ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-700'
-                        }`}>
-                          {m.attachment_url && (
-                            <img
-                              src={m.attachment_url}
-                              alt="Photo"
-                              className={`max-w-[260px] w-full object-cover rounded-xl block cursor-pointer ${m.content ? 'mb-2' : ''}`}
-                              onClick={() => window.open(m.attachment_url, '_blank')}
-                            />
-                          )}
-                          {m.content && <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>}
-                        </div>
+
+                        {editingId === m.id ? (
+                          <div className="w-full max-w-xs space-y-2">
+                            {(m.attachment_url || editStagedImage) && (
+                              <div className="flex items-center gap-2 p-2 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                                <img src={editStagedImage?.previewUrl || m.attachment_url} alt="photo" className={`h-14 w-14 rounded-lg object-cover shrink-0 ${editStagedImage ? 'ring-2 ring-indigo-400' : 'opacity-60'}`} />
+                                <div className="min-w-0">
+                                  <button onClick={() => editFileInputRef.current?.click()} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline block">🔄 Remplacer</button>
+                                  {editStagedImage && <button onClick={() => setEditStagedImage(null)} className="text-xs text-slate-400 hover:text-rose-500 mt-0.5 block">✗ Annuler</button>}
+                                </div>
+                              </div>
+                            )}
+                            <div className="flex gap-1.5 items-center">
+                              <input
+                                autoFocus={!m.attachment_url}
+                                value={editText}
+                                onChange={e => setEditText(e.target.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') editMsg(m.id, editText);
+                                  if (e.key === 'Escape') { setEditingId(null); setEditStagedImage(null); setOpenMenuId(null); }
+                                }}
+                                placeholder={m.attachment_url ? 'Légende…' : undefined}
+                                className="flex-1 text-sm rounded-xl border-2 border-indigo-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 focus:outline-none min-w-0"
+                              />
+                              <button onClick={() => editMsg(m.id, editText)} className="w-8 h-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shrink-0 transition-colors">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                              </button>
+                              <button onClick={() => { setEditingId(null); setEditStagedImage(null); setOpenMenuId(null); }} className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 transition-colors">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={isMine ? (e => {
+                              e.stopPropagation();
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setMenuPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+                              setOpenMenuId(openMenuId === m.id ? null : m.id);
+                              setEditingId(null);
+                            }) : undefined}
+                            className={`text-sm shadow-sm ${m.attachment_url && !m.content ? 'p-1' : 'px-3.5 py-2.5'} ${bubbleR} ${
+                              isMine ? 'bg-indigo-600 text-white cursor-pointer' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-700'
+                            } ${openMenuId === m.id ? 'ring-2 ring-indigo-300 dark:ring-indigo-700' : ''}`}
+                          >
+                            {m.attachment_url && (
+                              <img
+                                src={m.attachment_url}
+                                alt="Photo"
+                                className={`max-w-[260px] w-full object-cover rounded-xl block cursor-pointer ${m.content ? 'mb-2' : ''}`}
+                                onClick={e => { e.stopPropagation(); window.open(m.attachment_url, '_blank'); }}
+                              />
+                            )}
+                            {m.content && <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>}
+                          </div>
+                        )}
+
                         <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
-                          <span className="text-[10px] text-slate-400 tabular-nums">{formatTime(m.created_at)}</span>
+                          {m.edited_at && <span className="text-[10px] text-slate-400 italic">modifié ·</span>}
+                          <span className="text-[10px] text-slate-400 tabular-nums">{formatTime(m.edited_at || m.created_at)}</span>
                           {isMine && isLast && (
                             m.is_read
                               ? <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 10" fill="none"><path d="M1 5l3.5 3.5L12 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 5l3.5 3.5L18 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -994,6 +1091,36 @@ function AdminChatPanel({ allUsers }) {
               </div>
             )}
           </div>
+
+          {/* Fixed context menu — outside scroll container so it's never clipped */}
+          {openMenuId && (() => {
+            const activeMsg = messages.find(msg => msg.id === openMenuId);
+            if (!activeMsg) return null;
+            const canDelete = (Date.now() - new Date(activeMsg.created_at).getTime()) < 3600000;
+            return (
+              <div
+                data-menu
+                className="fixed z-50 flex flex-col gap-0.5 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden min-w-[160px]"
+                style={{ top: menuPos.top, right: menuPos.right }}
+                onClick={e => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => { setEditingId(openMenuId); setEditText(activeMsg.content || ''); setOpenMenuId(null); }}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors text-left"
+                >
+                  ✏️ Modifier
+                </button>
+                {canDelete && (
+                  <button
+                    onClick={() => { deleteMsg(openMenuId); }}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-left"
+                  >
+                    🗑️ Supprimer
+                  </button>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Input */}
           <div className="border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -1012,7 +1139,8 @@ function AdminChatPanel({ allUsers }) {
               </div>
             )}
             <div className="flex gap-2 items-center px-4 py-3">
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              <input ref={fileInputRef}     type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              <input ref={editFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleEditImageSelect} />
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}

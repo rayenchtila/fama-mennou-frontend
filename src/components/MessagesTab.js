@@ -77,8 +77,9 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
   const [openMenuId,    setOpenMenuId]    = useState(null);
   const [menuPos,       setMenuPos]       = useState({ top: 0, right: 0 });
   const [usersMap,      setUsersMap]      = useState({});
-  const [stagedImage,   setStagedImage]   = useState(null); // { file, previewUrl }
-  const [uploading,     setUploading]     = useState(false);
+  const [stagedImage,    setStagedImage]    = useState(null); // { file, previewUrl }
+  const [uploading,      setUploading]      = useState(false);
+  const [editStagedImage, setEditStagedImage] = useState(null); // replacement photo during edit
 
   const messagesBoxRef  = useRef();
   const prevChatRef     = useRef(null);
@@ -87,6 +88,7 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
   const usersPollRef    = useRef();
   const inputRef        = useRef();
   const fileInputRef    = useRef();
+  const editFileInputRef = useRef();
 
   // ── Users (for online status) ─────────────────────────────────────────────
   const refreshUsers = useCallback(async () => {
@@ -186,14 +188,34 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
     fetchConvs();
   }
 
+  function handleEditImageSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditStagedImage({ file, previewUrl: URL.createObjectURL(file) });
+    e.target.value = '';
+  }
+
   async function editMsg(id, content) {
-    if (!content.trim()) return;
+    if (!content.trim() && !editStagedImage) return;
+    let attachmentUrl;
+    if (editStagedImage) {
+      try {
+        const fd = new FormData();
+        fd.append('file', editStagedImage.file);
+        const r = await fetch(`${API}/uploads/image`, { method: 'POST', body: fd });
+        const d = await r.json();
+        attachmentUrl = d.secure_url;
+      } catch { return; }
+    }
+    const body = { senderEmail: user.email, content };
+    if (attachmentUrl) body.attachmentUrl = attachmentUrl;
     await fetch(`${API}/messages/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ senderEmail: user.email, content }),
+      body: JSON.stringify(body),
     });
     setEditingId(null);
+    setEditStagedImage(null);
     setOpenMenuId(null);
     fetchMsgs(selectedChat);
   }
@@ -384,23 +406,43 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
 
                       {/* Edit mode */}
                       {isEditing ? (
-                        <div className="flex gap-2 items-center w-full min-w-[200px] max-w-xs">
-                          <input
-                            autoFocus
-                            value={editText}
-                            onChange={e => setEditText(e.target.value)}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') editMsg(m.id, editText);
-                              if (e.key === 'Escape') { setEditingId(null); setOpenMenuId(null); }
-                            }}
-                            className="flex-1 text-sm rounded-xl border-2 border-indigo-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          />
-                          <button onClick={() => editMsg(m.id, editText)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shrink-0">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                          </button>
-                          <button onClick={() => { setEditingId(null); setOpenMenuId(null); }} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors shrink-0">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                          </button>
+                        <div className="w-full max-w-xs space-y-2">
+                          {/* Photo replacement — shown only for messages with attachment */}
+                          {(m.attachment_url || editStagedImage) && (
+                            <div className="flex items-center gap-2 p-2 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                              <img
+                                src={editStagedImage?.previewUrl || m.attachment_url}
+                                alt="photo"
+                                className={`h-14 w-14 rounded-lg object-cover shrink-0 ${editStagedImage ? 'ring-2 ring-indigo-400' : 'opacity-60'}`}
+                              />
+                              <div className="min-w-0">
+                                <button onClick={() => editFileInputRef.current?.click()} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline block">🔄 Remplacer</button>
+                                {editStagedImage && (
+                                  <button onClick={() => setEditStagedImage(null)} className="text-xs text-slate-400 hover:text-rose-500 mt-0.5 block">✗ Annuler</button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {/* Caption / text input */}
+                          <div className="flex gap-2 items-center">
+                            <input
+                              autoFocus={!m.attachment_url}
+                              value={editText}
+                              onChange={e => setEditText(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') editMsg(m.id, editText);
+                                if (e.key === 'Escape') { setEditingId(null); setEditStagedImage(null); setOpenMenuId(null); }
+                              }}
+                              placeholder={m.attachment_url ? 'Légende (optionnel)…' : undefined}
+                              className="flex-1 text-sm rounded-xl border-2 border-indigo-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                            <button onClick={() => editMsg(m.id, editText)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shrink-0">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </button>
+                            <button onClick={() => { setEditingId(null); setEditStagedImage(null); setOpenMenuId(null); }} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors shrink-0">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <button
@@ -494,7 +536,8 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
               </div>
             )}
             <div className="flex gap-2 items-center p-3">
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              <input ref={fileInputRef}     type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              <input ref={editFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleEditImageSelect} />
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
