@@ -77,6 +77,8 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
   const [openMenuId,    setOpenMenuId]    = useState(null);
   const [menuPos,       setMenuPos]       = useState({ top: 0, right: 0 });
   const [usersMap,      setUsersMap]      = useState({});
+  const [stagedImage,   setStagedImage]   = useState(null); // { file, previewUrl }
+  const [uploading,     setUploading]     = useState(false);
 
   const messagesBoxRef  = useRef();
   const prevChatRef     = useRef(null);
@@ -84,6 +86,7 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
   const msgPollRef      = useRef();
   const usersPollRef    = useRef();
   const inputRef        = useRef();
+  const fileInputRef    = useRef();
 
   // ── Users (for online status) ─────────────────────────────────────────────
   const refreshUsers = useCallback(async () => {
@@ -150,14 +153,34 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
   }, []);
 
   // ── Actions ───────────────────────────────────────────────────────────────
+  function handleImageSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setStagedImage({ file, previewUrl: URL.createObjectURL(file) });
+    e.target.value = '';
+  }
+
   async function sendMsg() {
-    if (!newMsg.trim() || !selectedChat) return;
+    if ((!newMsg.trim() && !stagedImage) || !selectedChat) return;
+    let attachmentUrl = null;
+    if (stagedImage) {
+      setUploading(true);
+      try {
+        const fd = new FormData();
+        fd.append('file', stagedImage.file);
+        const r = await fetch(`${API}/uploads/image`, { method: 'POST', body: fd });
+        const d = await r.json();
+        attachmentUrl = d.secure_url || null;
+      } catch {}
+      setUploading(false);
+    }
     const content = newMsg.trim();
     setNewMsg('');
+    setStagedImage(null);
     await fetch(`${API}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ senderEmail: user.email, receiverEmail: selectedChat, content }),
+      body: JSON.stringify({ senderEmail: user.email, receiverEmail: selectedChat, content, attachmentUrl }),
     });
     fetchMsgs(selectedChat);
     fetchConvs();
@@ -389,11 +412,19 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
                             setOpenMenuId(isMenuOpen ? null : m.id);
                             setEditingId(null);
                           }}
-                          className={`text-sm px-3.5 py-2.5 shadow-sm text-left ${isMine ? 'cursor-pointer' : 'cursor-default'} ${bubbleRadius} ${
+                          className={`text-sm shadow-sm text-left ${m.attachment_url && !m.content ? 'p-1' : 'px-3.5 py-2.5'} ${isMine ? 'cursor-pointer' : 'cursor-default'} ${bubbleRadius} ${
                             isMine ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-700'
                           } ${isMenuOpen && isMine ? 'ring-2 ring-indigo-300 dark:ring-indigo-700' : ''}`}
                         >
-                          <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>
+                          {m.attachment_url && (
+                            <img
+                              src={m.attachment_url}
+                              alt="Photo"
+                              className={`max-w-[260px] w-full object-cover rounded-xl block ${m.content ? 'mb-2' : ''}`}
+                              onClick={e => { e.stopPropagation(); window.open(m.attachment_url, '_blank'); }}
+                            />
+                          )}
+                          {m.content && <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>}
                         </button>
                       )}
 
@@ -446,25 +477,54 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
           })()}
 
           {/* Input */}
-          <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2 items-end">
-            <input
-              ref={inputRef}
-              value={newMsg}
-              onChange={e => setNewMsg(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
-              onClick={() => setOpenMenuId(null)}
-              placeholder="Aa"
-              className="flex-1 text-sm rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-            />
-            <button
-              onClick={sendMsg}
-              disabled={!newMsg.trim()}
-              className="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-full transition-all shrink-0 shadow-sm shadow-indigo-500/30"
-            >
-              <svg className="w-4 h-4 translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-              </svg>
-            </button>
+          <div className="border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+            {/* Staged image preview */}
+            {stagedImage && (
+              <div className="px-3 pt-2.5 flex items-start gap-2">
+                <div className="relative">
+                  <img src={stagedImage.previewUrl} alt="preview" className="h-20 w-20 object-cover rounded-xl border border-slate-200 dark:border-slate-700" />
+                  <button
+                    onClick={() => setStagedImage(null)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 hover:bg-rose-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">Ajouter une légende…</p>
+              </div>
+            )}
+            <div className="flex gap-2 items-center p-3">
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-500 transition-colors shrink-0 disabled:opacity-40"
+                title="Envoyer une photo"
+              >
+                <svg className="w-4.5 h-4.5" style={{width:'18px',height:'18px'}} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </button>
+              <input
+                ref={inputRef}
+                value={newMsg}
+                onChange={e => setNewMsg(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
+                onClick={() => setOpenMenuId(null)}
+                placeholder="Aa"
+                className="flex-1 text-sm rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+              <button
+                onClick={sendMsg}
+                disabled={(!newMsg.trim() && !stagedImage) || uploading}
+                className="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-full transition-all shrink-0 shadow-sm shadow-indigo-500/30"
+              >
+                {uploading
+                  ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                  : <svg className="w-4 h-4 translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                }
+              </button>
+            </div>
           </div>
         </div>
       ) : (
