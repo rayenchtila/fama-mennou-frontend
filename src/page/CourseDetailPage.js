@@ -79,6 +79,21 @@ export default function CourseDetailPage() {
     if (!user) return;
     const isFreeC = Number(course?.full_price) === 0;
 
+    const now = new Date().toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const accountType = user.role === 'client' ? 'Client' : user.role === 'freelancer' ? 'Freelancer' : user.role || 'Utilisateur';
+
+    async function sendAdminMsg(courseTitle, courseId, type) {
+      const msg = type === 'free'
+        ? `Bonjour Fama Mennou TEAM 👋\n\nJe viens de m'inscrire au cours gratuit suivant.\n\n👤 Nom complet : ${user.name || 'N/A'}\n📧 Email : ${user.email}\n🏷️ Type de compte : ${accountType}\n\n📚 Cours : ${courseTitle} (ID: #${courseId})\n\n📅 Date : ${now}`
+        : `Bonjour Fama Mennou TEAM 👋\n\nUne nouvelle demande d'accès au cours a été soumise.\n\n👤 Nom complet : ${user.name || 'N/A'}\n📧 Email : ${user.email}\n🏷️ Type de compte : ${accountType}\n\n📚 Cours sélectionné :\n${courseTitle} (ID: #${courseId})\n\n📅 Date : ${now}\n\nMerci de bien vouloir traiter cette demande.`;
+      try {
+        await fetch(`${API}/messages`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ senderEmail: user.email, receiverEmail: 'admin@famamennou.com', content: msg }),
+        });
+      } catch {}
+    }
+
     // FREE course — keep existing enrollment logic
     if (isFreeC) {
       setBuying(true); setBuyMsg('');
@@ -91,6 +106,7 @@ export default function CourseDetailPage() {
         if (d.success) {
           setPurchases(prev => [...prev, { course_id: id, lesson_id: null }]);
           setBuyMsg('🎉 Inscription réussie !');
+          sendAdminMsg(course?.title || `Cours #${id}`, id, 'free');
         } else { setBuyMsg('Inscription échouée. Réessaie.'); }
       } catch { setBuyMsg('Inscription échouée. Réessaie.'); }
       finally { setBuying(false); }
@@ -111,6 +127,7 @@ export default function CourseDetailPage() {
         } else {
           setRequestStatus(d.status || 'pending');
           setBuyMsg('✅ Demande envoyée ! L\'admin examinera votre demande.');
+          sendAdminMsg(course?.title || `Cours #${id}`, id, 'paid');
         }
       } else { setBuyMsg('Demande échouée. Réessaie.'); }
     } catch { setBuyMsg('Demande échouée. Réessaie.'); }

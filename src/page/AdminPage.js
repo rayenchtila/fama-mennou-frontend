@@ -608,6 +608,397 @@ function CourseVideoPlayer({ url }) {
   );
 }
 
+// ─── Admin Chat Panel ─────────────────────────────────────────────────────────
+
+const ADMIN_EMAIL       = 'admin@famamennou.com';
+const ADMIN_TEAM_NAME   = 'Fama Mennou TEAM';
+const AVATAR_CLR        = ['bg-indigo-500','bg-emerald-500','bg-rose-500','bg-amber-500','bg-sky-500','bg-fuchsia-500'];
+const chatAvatarColor   = email => AVATAR_CLR[(email?.charCodeAt(0) ?? 0) % AVATAR_CLR.length];
+
+function chatOnlineStatus(lastSeen) {
+  if (!lastSeen) return { online: false, text: 'Hors ligne' };
+  const diffMin = Math.floor((Date.now() - new Date(lastSeen).getTime()) / 60000);
+  if (diffMin < 3)  return { online: true,  text: 'En ligne' };
+  if (diffMin < 60) return { online: false, text: `Il y a ${diffMin} min` };
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24)   return { online: false, text: `Il y a ${diffH}h` };
+  return { online: false, text: `Il y a ${Math.floor(diffH / 24)}j` };
+}
+
+function ChatAvatar({ name, email, photo, size = 'md', online }) {
+  const sz  = size === 'lg' ? 'w-12 h-12' : size === 'sm' ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm';
+  const dot = size === 'sm' ? 'w-2 h-2' : 'w-2.5 h-2.5';
+  return (
+    <div className="relative shrink-0">
+      {photo
+        ? <img src={photo} alt={name} className={`${sz} rounded-xl object-cover`} />
+        : <div className={`${sz} ${chatAvatarColor(email)} rounded-xl flex items-center justify-center text-white font-bold`}>
+            {(name || email)?.slice(0,2).toUpperCase()}
+          </div>
+      }
+      {online !== undefined && (
+        <span className={`absolute bottom-0 right-0 ${dot} rounded-full border-2 border-white dark:border-slate-900 ${online ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
+      )}
+    </div>
+  );
+}
+
+function AdminChatPanel({ allUsers }) {
+  const [conversations, setConversations] = React.useState([]);
+  const [selectedEmail, setSelectedEmail] = React.useState(null);
+  const [messages,      setMessages]      = React.useState([]);
+  const [newMsg,        setNewMsg]        = React.useState('');
+  const [search,        setSearch]        = React.useState('');
+  const [convsLoading,  setConvsLoading]  = React.useState(true);
+  const [sending,       setSending]       = React.useState(false);
+  const [showPicker,    setShowPicker]    = React.useState(false);
+  const [pickerSearch,  setPickerSearch]  = React.useState('');
+
+  const messagesBoxRef = React.useRef();
+  const convsPollRef   = React.useRef();
+  const msgsPollRef    = React.useRef();
+  const inputRef       = React.useRef();
+
+  const API_CHAT = 'https://famamennou-server.onrender.com/api';
+
+  const fetchConvs = React.useCallback(async () => {
+    try {
+      const data = await fetch(`${API_CHAT}/messages/admin/conversations`).then(r => r.json());
+      if (Array.isArray(data)) { setConversations(data); setConvsLoading(false); }
+    } catch { setConvsLoading(false); }
+  }, []);
+
+  React.useEffect(() => {
+    fetchConvs();
+    convsPollRef.current = setInterval(fetchConvs, 4000);
+    return () => clearInterval(convsPollRef.current);
+  }, [fetchConvs]);
+
+  const fetchMsgs = React.useCallback(async (email) => {
+    if (!email) return;
+    try {
+      const data = await fetch(`${API_CHAT}/messages/${encodeURIComponent(ADMIN_EMAIL)}/${encodeURIComponent(email)}`).then(r => r.json());
+      if (Array.isArray(data)) setMessages(data);
+      fetch(`${API_CHAT}/messages/read/${encodeURIComponent(email)}/${encodeURIComponent(ADMIN_EMAIL)}`, { method: 'PATCH' });
+    } catch {}
+  }, []);
+
+  React.useEffect(() => {
+    if (!selectedEmail) return;
+    fetchMsgs(selectedEmail);
+    clearInterval(msgsPollRef.current);
+    msgsPollRef.current = setInterval(() => fetchMsgs(selectedEmail), 3000);
+    return () => clearInterval(msgsPollRef.current);
+  }, [selectedEmail, fetchMsgs]);
+
+  React.useEffect(() => {
+    const box = messagesBoxRef.current;
+    if (box) box.scrollTop = box.scrollHeight;
+  }, [messages, selectedEmail]);
+
+  React.useEffect(() => {
+    const handler = e => { if (!e.target.closest('[data-picker]')) setShowPicker(false); };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, []);
+
+  async function sendMsg() {
+    if (!newMsg.trim() || !selectedEmail || sending) return;
+    setSending(true);
+    const content = newMsg.trim();
+    setNewMsg('');
+    try {
+      await fetch(`${API_CHAT}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderEmail: ADMIN_EMAIL, receiverEmail: selectedEmail, content }),
+      });
+      fetchMsgs(selectedEmail);
+      fetchConvs();
+    } finally { setSending(false); }
+  }
+
+  function formatTime(ts) {
+    return new Date(ts).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit' });
+  }
+  function formatDate(ts) {
+    const d = new Date(ts), now = new Date();
+    const h = (now - d) / 3600000;
+    if (h < 24) return formatTime(ts);
+    if (h < 168) return d.toLocaleDateString('fr-TN', { weekday: 'short' });
+    return d.toLocaleDateString('fr-TN', { day: '2-digit', month: 'short' });
+  }
+
+  const totalUnread   = conversations.reduce((s, c) => s + (Number(c.unread_count) || 0), 0);
+  const filteredConvs = conversations.filter(c => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return c.user_name?.toLowerCase().includes(q) || c.other_email?.toLowerCase().includes(q) || c.last_message?.toLowerCase().includes(q);
+  });
+  const selectedConv   = conversations.find(c => c.other_email === selectedEmail);
+  const selectedStatus = selectedConv ? chatOnlineStatus(selectedConv.user_last_seen) : null;
+
+  const pickerUsers = (allUsers || []).filter(u =>
+    u.email !== ADMIN_EMAIL && (
+      !pickerSearch.trim() ||
+      u.name?.toLowerCase().includes(pickerSearch.toLowerCase()) ||
+      u.email?.toLowerCase().includes(pickerSearch.toLowerCase())
+    )
+  );
+
+  return (
+    <div className="flex h-[calc(100vh-210px)] min-h-[520px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+
+      {/* ── Left: Conversations ──────────────────────────────────────────────── */}
+      <div className={`${selectedEmail ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 lg:w-96 border-r border-slate-100 dark:border-slate-800 shrink-0`}>
+
+        {/* Header */}
+        <div className="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="font-extrabold text-slate-900 dark:text-white text-sm">Messages</p>
+              <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold">{ADMIN_TEAM_NAME}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {totalUnread > 0 && (
+                <span className="px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-extrabold rounded-full">
+                  {totalUnread}
+                </span>
+              )}
+              <div data-picker className="relative">
+                <button
+                  onClick={e => { e.stopPropagation(); setShowPicker(p => !p); setPickerSearch(''); }}
+                  className="w-7 h-7 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center text-base font-bold transition-colors"
+                  title="Nouvelle conversation"
+                >+</button>
+                {showPicker && (
+                  <div className="absolute right-0 top-9 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
+                    <div className="p-3 border-b border-slate-100 dark:border-slate-700">
+                      <input
+                        autoFocus
+                        value={pickerSearch}
+                        onChange={e => setPickerSearch(e.target.value)}
+                        placeholder="Rechercher un utilisateur…"
+                        className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {pickerUsers.slice(0, 20).map(u => (
+                        <button key={u.email} onClick={() => { setSelectedEmail(u.email.toLowerCase()); setShowPicker(false); setPickerSearch(''); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 text-left transition-colors">
+                          <ChatAvatar name={u.name} email={u.email} photo={u.photo} size="sm" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">{u.name}</p>
+                            <p className="text-[10px] text-slate-400 capitalize">{u.role}</p>
+                          </div>
+                        </button>
+                      ))}
+                      {pickerUsers.length === 0 && <p className="text-xs text-slate-400 text-center py-4">Aucun résultat</p>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="relative">
+            <svg className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Nom, email, message…"
+              className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto">
+          {convsLoading ? (
+            <div className="space-y-px p-2">
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="flex items-center gap-3 p-3 rounded-xl animate-pulse">
+                  <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700 shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+                    <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredConvs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 p-6 text-center">
+              <span className="text-4xl mb-3">💬</span>
+              <p className="text-sm font-semibold">{search ? 'Aucun résultat' : 'Aucune conversation'}</p>
+              <p className="text-xs mt-1 opacity-60">{search ? 'Essayez un autre terme' : 'Les utilisateurs vous contacteront ici'}</p>
+            </div>
+          ) : filteredConvs.map(c => {
+            const unread    = Number(c.unread_count) || 0;
+            const status    = chatOnlineStatus(c.user_last_seen);
+            const isSelected = selectedEmail === c.other_email;
+            return (
+              <button
+                key={c.other_email}
+                onClick={() => setSelectedEmail(c.other_email)}
+                className={[
+                  'w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-150',
+                  'border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800',
+                  isSelected ? 'bg-indigo-50 dark:bg-indigo-900/20 border-l-[3px] border-l-indigo-500' : 'border-l-[3px] border-l-transparent',
+                ].join(' ')}
+              >
+                <ChatAvatar name={c.user_name} email={c.other_email} photo={c.user_photo} online={status.online} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1 mb-0.5">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className={`text-xs truncate ${unread > 0 ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-600 dark:text-slate-300'}`}>
+                        {c.user_name || c.other_email}
+                      </p>
+                      {c.user_role && (
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${c.user_role === 'client' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'}`}>
+                          {c.user_role === 'client' ? 'Client' : 'Freelancer'}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-slate-400 shrink-0">{formatDate(c.created_at)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <p className={`text-[11px] truncate ${unread > 0 ? 'text-slate-700 dark:text-slate-200 font-medium' : 'text-slate-400'}`}>
+                      {c.sender_email === ADMIN_EMAIL ? `Vous : ${c.last_message}` : c.last_message}
+                    </p>
+                    {unread > 0 && (
+                      <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-indigo-600 text-white text-[10px] font-extrabold rounded-full shrink-0 ml-1">
+                        {unread > 9 ? '9+' : unread}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Right: Chat window ───────────────────────────────────────────────── */}
+      {selectedEmail ? (
+        <div className="flex-1 flex flex-col min-w-0">
+
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <button className="md:hidden text-slate-400 hover:text-slate-700 mr-1 shrink-0" onClick={() => setSelectedEmail(null)}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <ChatAvatar name={selectedConv?.user_name} email={selectedEmail} photo={selectedConv?.user_photo} online={selectedStatus?.online} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{selectedConv?.user_name || selectedEmail}</p>
+                {selectedConv?.user_role && (
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${selectedConv.user_role === 'client' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600'}`}>
+                    {selectedConv.user_role === 'client' ? '💼 Client' : '🚀 Freelancer'}
+                  </span>
+                )}
+              </div>
+              <p className={`text-[11px] font-semibold ${selectedStatus?.online ? 'text-emerald-500' : 'text-slate-400'}`}>{selectedStatus?.text || 'Hors ligne'}</p>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 shrink-0">
+              <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{ADMIN_TEAM_NAME}</p>
+                <p className="text-[10px] text-slate-400">compte admin</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div ref={messagesBoxRef} className="flex-1 overflow-y-auto px-4 py-4 bg-slate-50 dark:bg-slate-950">
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                <span className="text-4xl mb-2">👋</span>
+                <p className="text-sm font-semibold">Démarrez la conversation</p>
+                <p className="text-xs mt-1 opacity-60">Répondez en tant que {ADMIN_TEAM_NAME}</p>
+              </div>
+            ) : (
+              <div className="space-y-0.5">
+                {messages.map((m, idx) => {
+                  const isMine  = m.sender_email === ADMIN_EMAIL;
+                  const prev    = messages[idx - 1];
+                  const next    = messages[idx + 1];
+                  const samePrev = prev?.sender_email === m.sender_email && (new Date(m.created_at) - new Date(prev.created_at)) < 120000;
+                  const sameNext = next?.sender_email === m.sender_email && (new Date(next.created_at) - new Date(m.created_at)) < 120000;
+                  const isFirst = !samePrev;
+                  const isLast  = !sameNext;
+                  const bubbleR = isMine
+                    ? `rounded-2xl ${isFirst ? 'rounded-tr-md' : ''} ${isLast ? 'rounded-br-md' : ''}`
+                    : `rounded-2xl ${isFirst ? 'rounded-tl-md' : ''} ${isLast ? 'rounded-bl-md' : ''}`;
+                  return (
+                    <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${isFirst ? 'mt-3' : 'mt-0.5'}`}>
+                      {!isMine && (
+                        <div className={`mr-2 self-end mb-1 ${!isLast ? 'opacity-0 pointer-events-none' : ''}`}>
+                          <ChatAvatar name={selectedConv?.user_name} email={selectedEmail} photo={selectedConv?.user_photo} size="sm" />
+                        </div>
+                      )}
+                      <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[72%]`}>
+                        {isFirst && (
+                          <p className="text-[10px] font-bold mb-0.5 px-1 text-slate-400">
+                            {isMine ? ADMIN_TEAM_NAME : (selectedConv?.user_name || selectedEmail)}
+                          </p>
+                        )}
+                        <div className={`text-sm px-3.5 py-2.5 shadow-sm ${bubbleR} ${
+                          isMine ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-700'
+                        }`}>
+                          <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>
+                        </div>
+                        <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
+                          <span className="text-[10px] text-slate-400 tabular-nums">{formatTime(m.created_at)}</span>
+                          {isMine && isLast && (
+                            m.is_read
+                              ? <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 10" fill="none"><path d="M1 5l3.5 3.5L12 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 5l3.5 3.5L18 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              : <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 14 10" fill="none"><path d="M1 5l3.5 3.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Input */}
+          <div className="flex gap-2 items-center px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <input
+              ref={inputRef}
+              value={newMsg}
+              onChange={e => setNewMsg(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
+              placeholder={`Répondre en tant que ${ADMIN_TEAM_NAME}…`}
+              className="flex-1 text-sm rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            />
+            <button
+              onClick={sendMsg}
+              disabled={!newMsg.trim() || sending}
+              className="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full transition-all shrink-0 shadow-sm shadow-indigo-500/30 active:scale-95"
+            >
+              <svg className="w-4 h-4 translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="hidden md:flex flex-1 items-center justify-center text-slate-400 bg-slate-50 dark:bg-slate-950">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+            </div>
+            <p className="font-bold text-slate-600 dark:text-slate-300 mb-1">{ADMIN_TEAM_NAME}</p>
+            <p className="text-sm">Sélectionnez une conversation</p>
+            <p className="text-xs mt-1 opacity-60">ou cliquez + pour en démarrer une</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── main AdminPage ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -673,6 +1064,9 @@ export default function AdminPage() {
   const [requestActing,       setRequestActing]       = useState({});
   const [rejectModal,         setRejectModal]         = useState(null);
   const [rejectNote,          setRejectNote]          = useState('');
+
+  // ── chat tab state ──
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
 
   // ── lessons tab state ──
   const [allLessons,      setAllLessons]      = useState([]);
@@ -951,7 +1345,20 @@ export default function AdminPage() {
   useEffect(() => { if (mainTab === 'courses') fetchCourses(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'lessons') fetchLessonsTab(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'paidaccess') fetchPaidCourses(); }, [mainTab]);
-  useEffect(() => { if (mainTab === 'requests') fetchAccessRequests(); }, [mainTab]);
+
+  // Chat unread badge — polled independently so it shows even when not on chat tab
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const data = await fetch(`${API}/messages/admin/conversations`).then(r => r.json());
+        if (Array.isArray(data)) setChatUnreadCount(data.reduce((s, c) => s + (Number(c.unread_count) || 0), 0));
+      } catch {}
+    };
+    poll();
+    const interval = setInterval(poll, 10000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const coursesByFilter = allCourses.filter(c =>
     courseFilter === 'all' ? true : c.status === courseFilter
@@ -1099,7 +1506,7 @@ export default function AdminPage() {
             { id: "courses",  label: `📚 Cours${courseCounts.all > 0 ? ` (${courseCounts.all})` : ''}` },
             { id: "lessons",  label: `📖 Leçons${allLessons.filter(l=>l.status==='pending').length > 0 ? ` (${allLessons.filter(l=>l.status==='pending').length})` : ''}` },
             { id: "paidaccess", label: `💳 Paid Course Access${paidCourses.length > 0 ? ` (${paidCourses.length})` : ''}` },
-            { id: "requests",   label: `📋 Demandes${accessRequests.filter(r=>r.status==='pending').length > 0 ? ` (${accessRequests.filter(r=>r.status==='pending').length})` : ''}` },
+            { id: "chat",       label: `💬 Chat${chatUnreadCount > 0 ? ` (${chatUnreadCount})` : ''}` },
           ].map(tab => (
             <button
               key={tab.id}
@@ -1831,151 +2238,6 @@ export default function AdminPage() {
       )}
 
       {/* ══ DEMANDES D'ACCÈS AUX COURS TAB ══ */}
-      {mainTab === 'requests' && (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              {requestsLoading ? 'Chargement…' : `${accessRequests.length} demande${accessRequests.length !== 1 ? 's' : ''}`}
-            </p>
-            <button onClick={fetchAccessRequests} disabled={requestsLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors disabled:opacity-40">
-              <svg className={`w-3.5 h-3.5 ${requestsLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              Actualiser
-            </button>
-          </div>
-
-          {/* Filter pills */}
-          <div className="flex gap-1 p-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 mb-5 overflow-x-auto">
-            {[['pending','⏳ En attente'],['approved','✅ Acceptées'],['rejected','❌ Refusées'],['all','Toutes']].map(([id, label]) => {
-              const count = id === 'all' ? accessRequests.length : accessRequests.filter(r => r.status === id).length;
-              return (
-                <button key={id} onClick={() => setRequestsFilter(id)}
-                  className={['px-4 py-1.5 text-xs font-bold rounded-xl transition-all duration-200 whitespace-nowrap flex items-center gap-1.5',
-                    requestsFilter === id ? 'bg-indigo-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'].join(' ')}>
-                  {label}
-                  {count > 0 && <span className={`text-[10px] font-extrabold rounded-full px-1.5 py-0.5 ${requestsFilter === id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{count}</span>}
-                </button>
-              );
-            })}
-          </div>
-
-          {requestsLoading ? (
-            <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse" />)}</div>
-          ) : (
-            (() => {
-              const filtered = requestsFilter === 'all' ? accessRequests : accessRequests.filter(r => r.status === requestsFilter);
-              if (filtered.length === 0) return (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
-                  <span className="text-5xl mb-3">📋</span>
-                  <p className="text-sm font-semibold">Aucune demande dans cette catégorie</p>
-                </div>
-              );
-              return (
-                <div className="space-y-3">
-                  {filtered.map(req => {
-                    const acting = requestActing[req.id];
-                    return (
-                      <div key={req.id} className={['bg-white dark:bg-slate-900 rounded-2xl border overflow-hidden transition-all',
-                        req.status === 'pending' ? 'border-amber-200 dark:border-amber-800' :
-                        req.status === 'approved' ? 'border-emerald-200 dark:border-emerald-800' :
-                        'border-rose-200 dark:border-rose-800'].join(' ')}>
-
-                        {req.status === 'pending' && (
-                          <div className="flex items-center gap-2 px-5 pt-3 pb-0">
-                            <span className="relative flex h-2.5 w-2.5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
-                            </span>
-                            <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Demande en attente</p>
-                          </div>
-                        )}
-
-                        <div className="p-4 sm:p-5">
-                          <div className="flex items-start gap-3 sm:gap-4">
-                            <div className="w-10 h-10 shrink-0">
-                              {req.user_photo
-                                ? <img src={req.user_photo} alt="" className="w-10 h-10 rounded-xl object-cover" />
-                                : <Avatar name={req.user_name || req.user_email} />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-wrap items-center gap-2 mb-1">
-                                <p className="font-bold text-slate-900 dark:text-white text-sm">{req.user_name || req.user_email}</p>
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                                  req.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' :
-                                  req.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
-                                  'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
-                                }`}>
-                                  {req.status === 'approved' ? '✅ Acceptée' : req.status === 'rejected' ? '❌ Refusée' : '⏳ En attente'}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-400 mb-1">📧 {req.user_email}</p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">📚 <span className="font-semibold text-slate-700 dark:text-slate-300">{req.course_title}</span></p>
-                              <p className="text-[10px] text-slate-400">📅 {new Date(req.requested_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                              {req.admin_note && req.status !== 'pending' && (
-                                <p className={`text-xs mt-1 ${req.status === 'approved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>💬 {req.admin_note}</p>
-                              )}
-
-                              {req.status === 'pending' && (
-                                <div className="flex gap-2 mt-3 flex-wrap">
-                                  <button onClick={() => approveRequest(req)} disabled={!!acting}
-                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white transition-colors active:scale-95">
-                                    {acting === 'approving' ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
-                                    {acting === 'approving' ? 'En cours…' : '✅ Accorder l\'accès'}
-                                  </button>
-                                  <button onClick={() => { setRejectModal(req); setRejectNote(''); }} disabled={!!acting}
-                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white transition-colors active:scale-95">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    Refuser
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()
-          )}
-        </div>
-      )}
-
-      {/* ── Reject Request Modal ── */}
-      {rejectModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(0,0,0,0.6)' }}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700">
-            <div className="flex justify-end px-4 pt-4">
-              <button onClick={() => { setRejectModal(null); setRejectNote(''); }} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div className="px-6 pb-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                </div>
-                <div>
-                  <p className="font-bold text-slate-900 dark:text-white text-sm">Refuser la demande</p>
-                  <p className="text-xs text-slate-400">{rejectModal.user_name || rejectModal.user_email}</p>
-                </div>
-              </div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Raison (optionnel)</p>
-              {['Cours non disponible pour le moment.', 'Paiement requis avant accès.', 'Profil incomplet.'].map(p => (
-                <button key={p} onClick={() => setRejectNote(p)} className={`w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all ${rejectNote === p ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-300 dark:border-rose-700 text-rose-700 font-semibold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-300'}`}>{p}</button>
-              ))}
-              <textarea value={rejectNote} onChange={e => setRejectNote(e.target.value)} rows={2} placeholder="Raison personnalisée…"
-                className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 mt-1" />
-            </div>
-            <div className="flex gap-3 px-6 pb-6 mt-2">
-              <button onClick={() => { setRejectModal(null); setRejectNote(''); }} className="flex-1 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
-              <button onClick={() => rejectRequest(rejectModal.id, rejectNote)} className="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-sm font-bold text-white transition-colors active:scale-95">❌ Confirmer</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── Revoke Access Confirmation Modal ── */}
       {revokeConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(0,0,0,0.6)' }}>
@@ -2148,6 +2410,13 @@ export default function AdminPage() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ══ CHAT TAB ══ */}
+      {mainTab === 'chat' && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <AdminChatPanel allUsers={users} />
         </div>
       )}
 

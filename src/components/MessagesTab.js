@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const API = 'https://famamennou-server.onrender.com/api';
+const API              = 'https://famamennou-server.onrender.com/api';
+const FM_ADMIN_EMAIL   = 'admin@famamennou.com';
+const FM_ADMIN_DISPLAY = { name: 'Fama Mennou TEAM', email: FM_ADMIN_EMAIL, role: 'admin', photo: null };
 
 const AVATAR_COLORS = ['bg-indigo-500','bg-emerald-500','bg-rose-500','bg-amber-500','bg-sky-500','bg-fuchsia-500'];
 
@@ -184,7 +186,10 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
     fetchConvs();
   }
 
-  const getUser     = email => usersMap[email?.toLowerCase()] || allUsersProp?.find(u => u.email?.toLowerCase() === email?.toLowerCase()) || null;
+  const getUser     = email => {
+    if (email?.toLowerCase() === FM_ADMIN_EMAIL) return FM_ADMIN_DISPLAY;
+    return usersMap[email?.toLowerCase()] || allUsersProp?.find(u => u.email?.toLowerCase() === email?.toLowerCase()) || null;
+  };
   const otherUser   = selectedChat ? getUser(selectedChat) : null;
   const otherStatus = otherUser ? getOnlineStatus(otherUser.last_seen || otherUser.lastSeen) : null;
   const unreadCount = conversations.filter(c => !c.is_read && c.sender_email !== user.email?.toLowerCase()).length;
@@ -388,7 +393,7 @@ export default function MessagesTab({ user, allUsers: allUsersProp, initialChat 
                             isMine ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-700'
                           } ${isMenuOpen && isMine ? 'ring-2 ring-indigo-300 dark:ring-indigo-700' : ''}`}
                         >
-                          <span className="break-words leading-relaxed">{m.content}</span>
+                          <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>
                         </button>
                       )}
 
