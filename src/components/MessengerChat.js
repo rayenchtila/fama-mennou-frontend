@@ -544,7 +544,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
             </svg>
             <input value={convSearch} onChange={e => setConvSearch(e.target.value)}
-              placeholder="Search by name or email…"
+              placeholder="Search by name…"
               className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-100 dark:bg-slate-800 rounded-xl outline-none text-slate-900 dark:text-white placeholder-slate-400"
             />
           </div>
@@ -1028,7 +1028,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 {/* Search */}
                 <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
                   <input autoFocus value={fwdSearch} onChange={e => setFwdSearch(e.target.value)}
-                    placeholder="Search by name or email…"
+                    placeholder="Search by name…"
                     className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none"/>
                 </div>
                 {/* Recipients list */}
