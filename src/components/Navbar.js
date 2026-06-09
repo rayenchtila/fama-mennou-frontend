@@ -306,10 +306,10 @@ function MessagesPanel({ conversations, senderEmail, isAdmin, onClose, onChatOpe
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 text-center">
+        <div className="border-t border-slate-100 dark:border-slate-800">
           <button
             onClick={() => { onClose(); onChatOpen(null); }}
-            className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+            className="w-full py-3.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
           >
             View all messages →
           </button>

@@ -177,10 +177,16 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   }, [loadConvs]);
 
   // React to initialChat prop changes (e.g. navigating to ?with=email while component is mounted)
+  const didMountRef = useRef(false);
   useEffect(() => {
+    if (!didMountRef.current) { didMountRef.current = true; return; }
     if (initialChat) {
       setSelectedChat(initialChat.toLowerCase());
       setMobileSide('chat');
+    } else {
+      // initialChat cleared (e.g. "View all messages" → /messages with no ?with=)
+      setSelectedChat(null);
+      setMobileSide('list');
     }
   }, [initialChat]);
 
