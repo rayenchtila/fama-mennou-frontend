@@ -131,6 +131,8 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const [showPicker,    setShowPicker]    = useState(false);
   const [pickerSearch,  setPickerSearch]  = useState('');
   const [convSearch,    setConvSearch]    = useState('');
+  const [forwardMsg,    setForwardMsg]    = useState(null);
+  const [fwdSearch,     setFwdSearch]     = useState('');
 
   const endRef           = useRef();
   const msgsContainerRef = useRef();   // scroll container
@@ -380,6 +382,25 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
       });
       loadMsgs(selectedChat); loadConvs();
     } catch {}
+  }
+
+  // ── Forward ──────────────────────────────────────────────────────────────────
+
+  async function forwardTo(targetEmail) {
+    if (!forwardMsg || !targetEmail) return;
+    try {
+      await fetch(`${API}/messages`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senderEmail,
+          receiverEmail: targetEmail,
+          content: forwardMsg.content || '',
+          attachmentUrl: forwardMsg.attachment_url || null,
+        }),
+      });
+      loadConvs();
+    } catch {}
+    setForwardMsg(null); setFwdSearch(''); setOpenMenuId(null); setHoveredMsg(null);
   }
 
   // ── React ────────────────────────────────────────────────────────────────────
@@ -903,31 +924,42 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             const canDelete = canEdit && (Date.now() - new Date(msg.created_at).getTime()) < 3600000;
             return (
               <div data-menu
-                className="fixed z-[60] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden min-w-[160px] py-1"
+                className="fixed z-[60] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden min-w-[170px] py-1"
                 style={{ top: menuPos.top, ...(menuPos.left !== undefined ? { left: menuPos.left } : { right: menuPos.right }) }}
                 onClick={e => e.stopPropagation()}
               >
+                {/* Copy text (only if has text) */}
                 {msg.content && (
                   <button onClick={() => copyMsg(msg.content)}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left">
+                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left">
                     <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                     </svg>
-                    Copy
+                    Copy text
                   </button>
                 )}
+                {/* Forward — works for both text and images */}
+                <button onClick={() => { setForwardMsg(msg); setFwdSearch(''); setOpenMenuId(null); setHoveredMsg(null); }}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left">
+                  <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Forward
+                </button>
+                {/* Edit — same for text and image */}
                 {canEdit && (
                   <button onClick={() => { setEditingId(openMenuId); setEditText(msg.content || ''); setEditStagedFile(null); setOpenMenuId(null); setHoveredMsg(null); }}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left">
+                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left">
                     <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                     Edit
                   </button>
                 )}
+                {/* Delete — same for text and image */}
                 {canDelete && (
                   <button onClick={() => deleteMsg(openMenuId)}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-left">
+                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-left">
                     <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
@@ -937,6 +969,84 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               </div>
             );
           })()}
+
+          {/* ── Forward dialog ────────────────────────────────────────────── */}
+          {forwardMsg && (
+            <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+              onClick={() => { setForwardMsg(null); setFwdSearch(''); }}>
+              <div className="w-full sm:w-96 bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col"
+                onClick={e => e.stopPropagation()}>
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                  <span className="font-semibold text-slate-900 dark:text-white text-sm">Forward message</span>
+                  <button onClick={() => { setForwardMsg(null); setFwdSearch(''); }}
+                    className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+                {/* Preview of what's being forwarded */}
+                <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                  {forwardMsg.attachment_url && (
+                    <img src={forwardMsg.attachment_url} alt="" className="w-12 h-12 object-cover rounded-lg mb-1"/>
+                  )}
+                  {forwardMsg.content && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{forwardMsg.content}</p>
+                  )}
+                </div>
+                {/* Search */}
+                <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                  <input autoFocus value={fwdSearch} onChange={e => setFwdSearch(e.target.value)}
+                    placeholder="Search by name or email…"
+                    className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none"/>
+                </div>
+                {/* Recipients list */}
+                <div className="overflow-y-auto flex-1">
+                  {(() => {
+                    const q = fwdSearch.trim().toLowerCase();
+                    // Build unified list: conversations first, then allUsers not already in convs
+                    const convEmails = new Set(convs.map(c => c.other_email));
+                    const convItems = convs.map(c => ({
+                      email: c.other_email,
+                      name: c.user_name || c.other_email,
+                      photo: c.user_photo,
+                    }));
+                    const extraUsers = (allUsers || []).filter(u => !convEmails.has(u.email) && u.email !== senderEmail).map(u => ({
+                      email: u.email,
+                      name: u.name || u.email,
+                      photo: u.photo,
+                    }));
+                    const all = [...convItems, ...extraUsers].filter(u =>
+                      !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+                    );
+                    if (all.length === 0) return (
+                      <p className="text-center text-sm text-slate-400 py-8">No results</p>
+                    );
+                    return all.map(u => (
+                      <button key={u.email} onClick={() => forwardTo(u.email)}
+                        className="flex items-center gap-3 w-full px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
+                        {u.photo
+                          ? <img src={u.photo} alt="" className="w-10 h-10 rounded-full object-cover shrink-0"/>
+                          : <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                              style={{ background: `hsl(${[...u.email].reduce((a,c)=>a+c.charCodeAt(0),0)%360},55%,50%)` }}>
+                              {u.name[0]?.toUpperCase()}
+                            </div>
+                        }
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{u.name}</p>
+                          <p className="text-xs text-slate-400 truncate">{u.email}</p>
+                        </div>
+                        <svg className="w-4 h-4 text-indigo-400 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </button>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Input area */}
           <div className="shrink-0 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
