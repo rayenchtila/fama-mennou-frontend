@@ -690,7 +690,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               if (!el) return;
               userScrolledUp.current = (el.scrollHeight - el.scrollTop - el.clientHeight) > 80;
             }}
-            className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 py-3 sm:py-4 space-y-1 bg-slate-50/80 dark:bg-slate-950/40"
+            className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 pt-12 pb-4 space-y-1 bg-slate-50/80 dark:bg-slate-950/40"
           >
             {groups.map((group, gi) => {
               const isMine    = group.sender === senderEmail;
