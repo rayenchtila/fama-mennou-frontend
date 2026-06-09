@@ -128,8 +128,8 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const [editingId,     setEditingId]     = useState(null);
   const [editText,      setEditText]      = useState('');
   const [editStagedFile,setEditStagedFile]= useState(null);
-  const [showPicker,    setShowPicker]    = useState(false);
-  const [pickerSearch,  setPickerSearch]  = useState('');
+  const [showPicker,    setShowPicker]    = useState(false);  // kept for legacy click-outside handler
+  const [pickerSearch,  setPickerSearch]  = useState('');    // unused — merged into convSearch
   const [convSearch,    setConvSearch]    = useState('');
   const [forwardMsg,    setForwardMsg]    = useState(null);
   const [fwdSearch,     setFwdSearch]     = useState('');
@@ -529,56 +529,9 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
       `}>
 
         {/* Header */}
-        <div className="px-4 pt-5 pb-3 relative">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Messages</h2>
-            <button data-picker
-              onClick={() => { setShowPicker(p => !p); setPickerSearch(''); }}
-              className="w-9 h-9 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors"
-              title="New conversation"
-            >
-              <svg className="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-              </svg>
-            </button>
-          </div>
-
-          {/* New conversation picker */}
-          <AnimatePresence>
-            {showPicker && (
-              <motion.div data-picker
-                initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.14 }}
-                className="absolute left-4 right-4 top-[72px] z-50 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
-              >
-                <div className="p-3 border-b border-slate-100 dark:border-slate-700">
-                  <input value={pickerSearch} onChange={e => setPickerSearch(e.target.value)}
-                    placeholder="Search users…" autoFocus
-                    className="w-full text-sm bg-slate-100 dark:bg-slate-700 rounded-xl px-3 py-2 outline-none text-slate-900 dark:text-white placeholder-slate-400"
-                  />
-                </div>
-                <div className="max-h-64 overflow-y-auto overscroll-contain">
-                  {filteredPicker.map(u => (
-                    <button key={u.email}
-                      onClick={() => { selectChat(u.email); setShowPicker(false); setPickerSearch(''); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors text-left"
-                    >
-                      <UserAvatar user={u} size="sm" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{u.name || u.email}</p>
-                        <p className="text-xs text-slate-400 truncate capitalize">{u.role || 'user'}</p>
-                      </div>
-                    </button>
-                  ))}
-                  {filteredPicker.length === 0 && (
-                    <p className="px-4 py-6 text-sm text-slate-400 text-center">No users found</p>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Search */}
+        <div className="px-4 pt-5 pb-3">
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">Messages</h2>
+          {/* Search — also discovers new users to chat with */}
           <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
@@ -592,7 +545,8 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
         {/* Conversations list */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-2 pb-4 space-y-0.5">
-          {filteredConvs.length === 0 && (
+          {/* Existing conversations */}
+          {filteredConvs.length === 0 && !convSearch && (
             <div className="flex flex-col items-center justify-center py-16 gap-2">
               <svg className="w-10 h-10 text-slate-300 dark:text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -633,6 +587,38 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               </button>
             );
           })}
+
+          {/* New users — only visible while searching, show users not yet in conversations */}
+          {convSearch.trim() && (() => {
+            const existingEmails = new Set(conversations.map(c => c.other_email?.toLowerCase()));
+            const q = convSearch.trim().toLowerCase();
+            const newUsers = pickerItems.filter(u => {
+              if (existingEmails.has(u.email?.toLowerCase())) return false;
+              return (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
+            }).slice(0, 20);
+            if (newUsers.length === 0) return null;
+            return (
+              <>
+                <p className="px-3 pt-2 pb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Start new chat</p>
+                {newUsers.map(u => (
+                  <button key={u.email} onClick={() => { selectChat(u.email); setConvSearch(''); }}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-900/20 active:bg-indigo-100 ${
+                      selectedChat === u.email ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''
+                    }`}
+                  >
+                    <UserAvatar user={u} size="md" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{u.name || u.email}</p>
+                      <p className="text-xs text-slate-400 truncate capitalize">{u.role || 'user'}</p>
+                    </div>
+                    <svg className="w-4 h-4 text-indigo-400 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                  </button>
+                ))}
+              </>
+            );
+          })()}
         </div>
       </div>
 
