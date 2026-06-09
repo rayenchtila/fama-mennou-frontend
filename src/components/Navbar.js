@@ -193,6 +193,7 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const [search,        setSearch]        = useState("");
   const [searchOpen,    setSearchOpen]    = useState(false);
+  const [msgUnread,     setMsgUnread]     = useState(0);
   const searchRef = useRef(null);
 
   const { t }          = useTranslation();
@@ -207,6 +208,26 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
     const id = setInterval(() => { fetchNotifications(); }, 8000);
     return () => clearInterval(id);
   }, [user, fetchNotifications]);
+
+  // Poll unread message count every 8 seconds
+  useEffect(() => {
+    if (!user) return;
+    const senderEmail = user.isAdmin ? 'admin@famamennou.com' : user.email;
+    const fetchMsgUnread = async () => {
+      try {
+        const url = user.isAdmin
+          ? 'https://famamennou-server.onrender.com/api/messages/admin/conversations'
+          : `https://famamennou-server.onrender.com/api/messages/conversations/${encodeURIComponent(senderEmail)}`;
+        const data = await fetch(url).then(r => r.json());
+        if (Array.isArray(data)) {
+          setMsgUnread(data.reduce((s, c) => s + (Number(c.unread_count) || 0), 0));
+        }
+      } catch {}
+    };
+    fetchMsgUnread();
+    const id = setInterval(fetchMsgUnread, 8000);
+    return () => clearInterval(id);
+  }, [user]);
 
   // Get user notifications (only for logged-in non-admin users)
   const userNotifications = (user && !user.isAdmin) ? getUserNotifications(user.email) : [];
@@ -430,6 +451,22 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
               {/* ── LOGGED IN: Notification Bell + Profile Avatar + Dropdown ── */}
               {user ? (
                 <>
+                  {/* ── Messages Icon ── */}
+                  <button
+                    onClick={() => navigate(user.isAdmin ? '/admin?tab=chat' : '/messages')}
+                    className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title="Messages"
+                  >
+                    <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    {msgUnread > 0 && (
+                      <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-indigo-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center leading-none">
+                        {msgUnread > 9 ? '9+' : msgUnread}
+                      </span>
+                    )}
+                  </button>
+
                   {/* ── Notification Bell ── */}
                   <button
                     onClick={() => {

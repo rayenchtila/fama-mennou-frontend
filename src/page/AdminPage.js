@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import MessengerChat from "../components/MessengerChat";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -2605,7 +2606,7 @@ export default function AdminPage() {
       {/* ══ CHAT TAB ══ */}
       {mainTab === 'chat' && (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <AdminChatPanel allUsers={users} />
+          <MessengerChat currentUser={user} allUsers={users} />
         </div>
       )}
 
