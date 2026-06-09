@@ -932,12 +932,14 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
             isAdmin={!!user.isAdmin}
             onClose={() => setMsgPanelOpen(false)}
             onChatOpen={(email) => {
+              // Close panel immediately then navigate — no batching delay
               setMsgPanelOpen(false);
-              if (email) {
-                navigate(user.isAdmin ? `/admin?tab=chat&with=${encodeURIComponent(email)}` : `/messages?with=${encodeURIComponent(email)}`);
-              } else {
-                navigate(user.isAdmin ? '/admin?tab=chat' : '/messages');
-              }
+              const dest = email
+                ? (user.isAdmin
+                    ? `/admin/dashboard?tab=chat&with=${encodeURIComponent(email)}`
+                    : `/messages?with=${encodeURIComponent(email)}`)
+                : (user.isAdmin ? '/admin/dashboard?tab=chat' : '/messages');
+              setTimeout(() => navigate(dest), 0);
             }}
           />
         )}

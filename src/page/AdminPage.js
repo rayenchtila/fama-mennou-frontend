@@ -1303,7 +1303,7 @@ export default function AdminPage() {
     if (kind.startsWith('course_access_granted')) {
       const courseId = kind.includes(':') ? kind.split(':')[1] : null;
       setMainTab('paidaccess');
-      navigate('/admin?tab=paidaccess');
+      navigate('/admin/dashboard?tab=paidaccess');
       if (courseId) {
         const found = paidCourses.find(c => String(c.id) === String(courseId));
         if (found) openAccessModal(found);
@@ -1314,28 +1314,28 @@ export default function AdminPage() {
 
     // lesson_pending_${lessonId} → lessons tab
     if (kind.startsWith('lesson_pending')) {
-      setMainTab('lessons'); navigate('/admin?tab=lessons'); return;
+      setMainTab('lessons'); navigate('/admin/dashboard?tab=lessons'); return;
     }
 
     // course_request:courseId → requests tab
     if (kind.startsWith('course_request')) {
-      setMainTab('requests'); navigate('/admin?tab=requests');
+      setMainTab('requests'); navigate('/admin/dashboard?tab=requests');
       fetchAccessRequests();
       return;
     }
 
     // course_pending → courses tab
     if (kind.startsWith('course_pending') || kind.startsWith('course_upload')) {
-      setMainTab('courses'); navigate('/admin?tab=courses'); return;
+      setMainTab('courses'); navigate('/admin/dashboard?tab=courses'); return;
     }
 
     // new_submission / CIN-related → cin tab
     if (kind.startsWith('new_submission') || kind.startsWith('new_user')) {
-      setMainTab('cin'); navigate('/admin?tab=cin'); return;
+      setMainTab('cin'); navigate('/admin/dashboard?tab=cin'); return;
     }
 
     // Default → cin tab
-    setMainTab('cin'); navigate('/admin?tab=cin');
+    setMainTab('cin'); navigate('/admin/dashboard?tab=cin');
   }
 
   const fetchCourses = async () => {
@@ -1689,29 +1689,46 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* ── MAIN TABS ── */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-3 flex gap-1 overflow-x-auto scrollbar-hide">
-          {[
-            { id: "cin",      label: t("admin.tab.cin") },
-            { id: "allusers", label: `${t("admin.tab.all_users")} (${(users ?? []).length})` },
-            { id: "courses",  label: `📚 Cours${courseCounts.all > 0 ? ` (${courseCounts.all})` : ''}` },
-            { id: "lessons",  label: `📖 Leçons${allLessons.filter(l=>l.status==='pending').length > 0 ? ` (${allLessons.filter(l=>l.status==='pending').length})` : ''}` },
-            { id: "paidaccess", label: `💳 Paid Course Access${paidCourses.length > 0 ? ` (${paidCourses.length})` : ''}` },
-            { id: "chat",       label: `💬 Chat${chatUnreadCount > 0 ? ` (${chatUnreadCount})` : ''}` },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setMainTab(tab.id)}
-              className={[
-                "px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 whitespace-nowrap",
-                mainTab === tab.id
-                  ? "bg-indigo-600 text-white shadow"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800",
-              ].join(" ")}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* ── MAIN TABS GRID — always 2 per row ── */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: "cin",        icon: "🪪", label: t("admin.tab.cin"),        count: counts.pending },
+              { id: "allusers",   icon: "👥", label: t("admin.tab.all_users"),  count: (users ?? []).length },
+              { id: "courses",    icon: "📚", label: "Cours",                    count: courseCounts.all },
+              { id: "lessons",    icon: "📖", label: "Leçons",                   count: allLessons.filter(l => l.status === 'pending').length },
+              { id: "paidaccess", icon: "💳", label: "Paid Access",              count: paidCourses.length },
+              { id: "chat",       icon: "💬", label: "Chat",                     count: chatUnreadCount },
+            ].map(tab => {
+              const active = mainTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setMainTab(tab.id)}
+                  className={[
+                    "relative flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 rounded-xl border transition-all duration-200 text-left w-full",
+                    active
+                      ? "bg-indigo-600 border-indigo-600 shadow-md shadow-indigo-500/20"
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm shrink-0">{tab.icon}</span>
+                    <span className={`text-xs font-bold truncate ${active ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>
+                      {tab.label}
+                    </span>
+                  </div>
+                  {tab.count > 0 && (
+                    <span className={`shrink-0 min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full text-[10px] font-extrabold leading-none ${
+                      active ? "bg-white/30 text-white" : "bg-rose-500 text-white"
+                    }`}>
+                      {tab.count > 99 ? "99+" : tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
