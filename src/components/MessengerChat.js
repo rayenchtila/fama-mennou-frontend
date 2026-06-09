@@ -854,9 +854,25 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                   <div className="relative w-fit">
                                     <img src={m.attachment_url} alt="Photo"
                                       className={`max-w-[220px] sm:max-w-[260px] w-full object-cover rounded-xl block cursor-zoom-in ${m.content ? 'mb-2' : ''}`}
-                                      onClick={e => { e.stopPropagation(); setViewerSrc(m.attachment_url); }}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        // First tap → show action bar; second tap → open viewer
+                                        if (hoveredMsg === m.id) {
+                                          setViewerSrc(m.attachment_url);
+                                        } else {
+                                          setHoveredMsg(m.id);
+                                        }
+                                      }}
                                     />
-                                    {/* Actions overlay — always visible on own images so mobile users can edit/delete */}
+                                    {/* Expand icon — always tappable to open viewer directly */}
+                                    <button
+                                      onClick={e => { e.stopPropagation(); setViewerSrc(m.attachment_url); }}
+                                      className="absolute bottom-1.5 left-1.5 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors z-10">
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                                      </svg>
+                                    </button>
+                                    {/* ⋯ menu — own images only */}
                                     {isMine && (
                                       <button data-menu
                                         onClick={e => { e.stopPropagation(); openContextMenu(e, m.id); }}
