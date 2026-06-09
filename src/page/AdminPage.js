@@ -1209,6 +1209,7 @@ export default function AdminPage() {
   // ── main tab: "cin" | "allusers" | "courses" ──
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const chatWith = searchParams.get("with") || null;
   const [mainTab,   setMainTab]   = useState(searchParams.get("tab") || "cin");
   const [filter,    setFilter]    = useState("pending");
   const [search,    setSearch]    = useState("");
@@ -2609,7 +2610,7 @@ export default function AdminPage() {
           className="max-w-5xl mx-auto px-0 md:px-4 lg:px-6 py-0 md:py-4"
           style={{ height: 'calc(100dvh - 130px)', minHeight: 480 }}
         >
-          <MessengerChat currentUser={user} allUsers={users} />
+          <MessengerChat currentUser={user} allUsers={users} initialChat={chatWith} />
         </div>
       )}
 

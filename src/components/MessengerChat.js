@@ -174,6 +174,14 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     return () => clearInterval(convPollRef.current);
   }, [loadConvs]);
 
+  // React to initialChat prop changes (e.g. navigating to ?with=email while component is mounted)
+  useEffect(() => {
+    if (initialChat) {
+      setSelectedChat(initialChat.toLowerCase());
+      setMobileSide('chat');
+    }
+  }, [initialChat]);
+
   // ── Messages ─────────────────────────────────────────────────────────────────
 
   const loadMsgs = useCallback(async (other) => {

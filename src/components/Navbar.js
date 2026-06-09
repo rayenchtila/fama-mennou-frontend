@@ -184,6 +184,144 @@ function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear,
   );
 }
 
+// ─── Messages Dropdown Panel ──────────────────────────────────────────────────
+
+const MSG_COLORS = ['bg-indigo-500','bg-emerald-500','bg-rose-500','bg-amber-500','bg-sky-500','bg-fuchsia-500','bg-violet-500','bg-teal-500'];
+const msgAvatarColor = email => MSG_COLORS[(email?.charCodeAt(0) ?? 0) % MSG_COLORS.length];
+
+function fmtMsgPanelTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts), h = (Date.now() - d) / 3600000;
+  if (h < 1)   return `${Math.max(1, Math.floor(h * 60))}m ago`;
+  if (h < 24)  return `${Math.floor(h)}h ago`;
+  if (h < 168) return d.toLocaleDateString([], { weekday: 'short' });
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function MessagesPanel({ conversations, senderEmail, isAdmin, onClose, onChatOpen }) {
+  const ADMIN_DISPLAY_NAME = 'Fama Mennou TEAM';
+  const ADMIN_EMAIL_CONST  = 'admin@famamennou.com';
+
+  const unreadConvs  = conversations.filter(c => Number(c.unread_count) > 0);
+  const displayList  = unreadConvs.length > 0 ? unreadConvs : conversations.slice(0, 8);
+  const totalUnread  = conversations.reduce((s, c) => s + Number(c.unread_count || 0), 0);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-end p-2 pt-14 sm:p-4 sm:pt-16"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: -8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: -8 }}
+        transition={{ duration: 0.15 }}
+        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <p className="font-bold text-slate-900 dark:text-white text-sm">Messages</p>
+            {totalUnread > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-extrabold leading-none">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* List */}
+        <div className="overflow-y-auto" style={{ maxHeight: 'min(420px, 62vh)' }}>
+          {displayList.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
+              <svg className="w-9 h-9 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              <p className="text-xs font-semibold">No messages yet</p>
+            </div>
+          ) : (
+            displayList.map(conv => {
+              const unread = Number(conv.unread_count || 0);
+              const email  = conv.other_email || '';
+              const isAdminConv = email.toLowerCase() === ADMIN_EMAIL_CONST;
+              const name   = isAdminConv
+                ? ADMIN_DISPLAY_NAME
+                : (conv.user_name || email.split('@')[0] || email);
+              const photo  = isAdminConv ? null : (conv.user_photo || null);
+
+              return (
+                <div
+                  key={email}
+                  onClick={() => { onClose(); onChatOpen(email); }}
+                  className={[
+                    "flex items-start gap-3 px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
+                    unread > 0
+                      ? "bg-rose-50/40 dark:bg-rose-900/10 hover:bg-rose-50 dark:hover:bg-rose-900/20"
+                      : "bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800",
+                  ].join(' ')}
+                >
+                  {/* Avatar with unread badge */}
+                  <div className="relative shrink-0">
+                    {photo
+                      ? <img src={photo} alt={name} className="w-10 h-10 rounded-full object-cover" />
+                      : <div className={`w-10 h-10 ${msgAvatarColor(email)} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
+                          {(name || '?').slice(0, 2).toUpperCase()}
+                        </div>
+                    }
+                    {unread > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 leading-none shadow">
+                        {unread > 9 ? '9+' : unread}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between gap-1">
+                      <p className={`text-sm truncate ${unread > 0 ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-700 dark:text-slate-200'}`}>
+                        {name}
+                      </p>
+                      <span className="text-[11px] text-slate-400 shrink-0 tabular-nums">
+                        {fmtMsgPanelTime(conv.created_at)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 truncate">{email}</p>
+                    <p className={`text-xs truncate mt-0.5 ${unread > 0 ? 'text-slate-600 dark:text-slate-300 font-medium' : 'text-slate-400'}`}>
+                      {conv.sender_email === senderEmail ? 'You: ' : ''}
+                      {conv.last_message || '📷 Photo'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 text-center">
+          <button
+            onClick={() => { onClose(); onChatOpen(null); }}
+            className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+          >
+            View all messages →
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
+
 export default function Navbar({ dark, toggleDark, onLogin, language = "en", onLanguageChange }) {
   const [scrolled,      setScrolled]      = useState(false);
   const [menuOpen,      setMenuOpen]      = useState(false);
@@ -193,7 +331,9 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const [search,        setSearch]        = useState("");
   const [searchOpen,    setSearchOpen]    = useState(false);
-  const [msgUnread,     setMsgUnread]     = useState(0);
+  const [msgUnread,       setMsgUnread]       = useState(0);
+  const [msgConversations,setMsgConversations] = useState([]);
+  const [msgPanelOpen,    setMsgPanelOpen]    = useState(false);
   const searchRef = useRef(null);
 
   const { t }          = useTranslation();
@@ -209,23 +349,24 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
     return () => clearInterval(id);
   }, [user, fetchNotifications]);
 
-  // Poll unread message count every 8 seconds
+  // Poll message conversations (unread count + full list for panel) every 5 seconds
   useEffect(() => {
     if (!user) return;
     const senderEmail = user.isAdmin ? 'admin@famamennou.com' : user.email;
-    const fetchMsgUnread = async () => {
+    const fetchMsgs = async () => {
       try {
         const url = user.isAdmin
           ? 'https://famamennou-server.onrender.com/api/messages/admin/conversations'
           : `https://famamennou-server.onrender.com/api/messages/conversations/${encodeURIComponent(senderEmail)}`;
         const data = await fetch(url).then(r => r.json());
         if (Array.isArray(data)) {
+          setMsgConversations(data);
           setMsgUnread(data.reduce((s, c) => s + (Number(c.unread_count) || 0), 0));
         }
       } catch {}
     };
-    fetchMsgUnread();
-    const id = setInterval(fetchMsgUnread, 8000);
+    fetchMsgs();
+    const id = setInterval(fetchMsgs, 5000);
     return () => clearInterval(id);
   }, [user]);
 
@@ -458,7 +599,7 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                       setProfOpen(false);
                       setMenuOpen(false);
                       setLangOpen(false);
-                      navigate(user.isAdmin ? '/admin?tab=chat' : '/messages');
+                      setMsgPanelOpen(v => !v);
                     }}
                     className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 transition-colors"
                     title="Messages"
@@ -467,7 +608,7 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
                     {msgUnread > 0 && (
-                      <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-indigo-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center leading-none">
+                      <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center leading-none">
                         {msgUnread > 9 ? '9+' : msgUnread}
                       </span>
                     )}
@@ -781,6 +922,26 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
           onClose={() => setNotifOpen(false)}
         />
       )}
+
+      {/* ── Messages Panel ── */}
+      <AnimatePresence>
+        {msgPanelOpen && user && (
+          <MessagesPanel
+            conversations={msgConversations}
+            senderEmail={user.isAdmin ? 'admin@famamennou.com' : user.email}
+            isAdmin={!!user.isAdmin}
+            onClose={() => setMsgPanelOpen(false)}
+            onChatOpen={(email) => {
+              setMsgPanelOpen(false);
+              if (email) {
+                navigate(user.isAdmin ? `/admin?tab=chat&with=${encodeURIComponent(email)}` : `/messages?with=${encodeURIComponent(email)}`);
+              } else {
+                navigate(user.isAdmin ? '/admin?tab=chat' : '/messages');
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Logout Confirmation Modal ── */}
       <AnimatePresence>
