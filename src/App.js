@@ -37,13 +37,15 @@ function ScrollToTop() {
 // ── Guard: blocks any route if user is not logged in or not yet approved ──────
 function PrivateRoute({ children, onLogin }) {
   const { user, logout } = useAuth();
+  const location         = useLocation();
 
   if (!user) {
     onLogin("login", false);
     return <Navigate to="/" replace />;
   }
 
-  if (!user.isAdmin && user.cinStatus === "pending") {
+  // Allow /messages for everyone — pending users must still be able to chat with admin
+  if (!user.isAdmin && user.cinStatus === "pending" && location.pathname !== '/messages') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-8 max-w-md w-full text-center">
