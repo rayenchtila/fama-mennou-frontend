@@ -132,7 +132,10 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const [pickerSearch,  setPickerSearch]  = useState('');
   const [convSearch,    setConvSearch]    = useState('');
 
-  const endRef        = useRef();
+  const endRef           = useRef();
+  const msgsContainerRef = useRef();   // scroll container
+  const userScrolledUp   = useRef(false);  // true when user has scrolled away from bottom
+  const prevMsgCount     = useRef(0);      // to detect genuinely new messages
   const inputRef      = useRef();
   const fileRef       = useRef();
   const editFileRef   = useRef();
@@ -194,9 +197,28 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     return () => clearInterval(msgPollRef.current);
   }, [selectedChat, loadMsgs]);
 
+  // Smart scroll: only auto-scroll when user is already near the bottom
+  // OR when a genuinely new message arrives (count increases)
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, otherTyping]);
+    const newCount = messages.length;
+    const isNewMessage = newCount > prevMsgCount.current;
+    prevMsgCount.current = newCount;
+    if (!userScrolledUp.current || isNewMessage) {
+      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (otherTyping && !userScrolledUp.current) {
+      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [otherTyping]);
+
+  // Reset scroll tracking when switching conversations
+  useEffect(() => {
+    userScrolledUp.current = false;
+    prevMsgCount.current = 0;
+  }, [selectedChat]);
 
   // ── Typing ───────────────────────────────────────────────────────────────────
 
@@ -292,6 +314,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     const content = newMsg.trim(), replyToId = replyTo?.id || null;
     setNewMsg(''); setReplyTo(null);
     clearTimeout(typingTimer.current); stopTypingSignal();
+    userScrolledUp.current = false; // snap to bottom after own send
 
     let attachmentUrl = null;
     if (stagedFile) {
@@ -357,11 +380,18 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     setShowEmojiFor(null); setHoveredMsg(null);
     setMessages(prev => prev.map(m => {
       if (m.id !== id) return m;
-      const r = { ...(m.reactions || {}) };
-      if (!r[emoji]) r[emoji] = [];
-      const idx = r[emoji].indexOf(senderEmail);
-      if (idx > -1) r[emoji].splice(idx, 1); else r[emoji].push(senderEmail);
-      if (r[emoji].length === 0) delete r[emoji];
+      const existing = m.reactions || {};
+      const alreadyOnThis = (existing[emoji] || []).includes(senderEmail);
+      // Build new reactions: remove user from all emojis first
+      const r = {};
+      for (const [k, arr] of Object.entries(existing)) {
+        const filtered = (arr || []).filter(e => e !== senderEmail);
+        if (filtered.length > 0) r[k] = filtered;
+      }
+      // Toggle-on only if they weren't already on this emoji
+      if (!alreadyOnThis) {
+        r[emoji] = [...(r[emoji] || []), senderEmail];
+      }
       return { ...m, reactions: r };
     }));
     try {
@@ -623,7 +653,15 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 py-3 sm:py-4 space-y-1 bg-slate-50/80 dark:bg-slate-950/40">
+          <div
+            ref={msgsContainerRef}
+            onScroll={() => {
+              const el = msgsContainerRef.current;
+              if (!el) return;
+              userScrolledUp.current = (el.scrollHeight - el.scrollTop - el.clientHeight) > 80;
+            }}
+            className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 py-3 sm:py-4 space-y-1 bg-slate-50/80 dark:bg-slate-950/40"
+          >
             {groups.map((group, gi) => {
               const isMine    = group.sender === senderEmail;
               const groupUser = isMine

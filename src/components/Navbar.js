@@ -453,8 +453,14 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                 <>
                   {/* ── Messages Icon ── */}
                   <button
-                    onClick={() => navigate(user.isAdmin ? '/admin?tab=chat' : '/messages')}
-                    className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    onClick={() => {
+                      setNotifOpen(false);
+                      setProfOpen(false);
+                      setMenuOpen(false);
+                      setLangOpen(false);
+                      navigate(user.isAdmin ? '/admin?tab=chat' : '/messages');
+                    }}
+                    className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 transition-colors"
                     title="Messages"
                   >
                     <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
