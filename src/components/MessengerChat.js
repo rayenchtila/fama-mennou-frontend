@@ -213,15 +213,22 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     return () => clearInterval(msgPollRef.current);
   }, [selectedChat, loadMsgs]);
 
-  // Smart scroll: jump instantly on first load, smooth only for new incoming messages
+  // Smart scroll: jump instantly on first load, smooth only for live new messages
   const isInitialLoad = useRef(true);
   useEffect(() => {
     const newCount = messages.length;
     const isNewMessage = newCount > prevMsgCount.current;
     prevMsgCount.current = newCount;
     if (!userScrolledUp.current || isNewMessage) {
-      const behavior = isInitialLoad.current ? 'instant' : 'smooth';
-      endRef.current?.scrollIntoView({ behavior });
+      if (isInitialLoad.current) {
+        // Use rAF so DOM is fully painted before we jump — guaranteed instant
+        requestAnimationFrame(() => {
+          const el = msgsContainerRef.current;
+          if (el) el.scrollTop = el.scrollHeight;
+        });
+      } else {
+        endRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
     }
     if (isInitialLoad.current && newCount > 0) isInitialLoad.current = false;
   }, [messages]);
