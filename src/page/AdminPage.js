@@ -1210,15 +1210,21 @@ export default function AdminPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const chatWith = searchParams.get("with") || null;
-  const [mainTab,   setMainTab]   = useState(searchParams.get("tab") || "cin");
-  const [filter,    setFilter]    = useState("pending");
-  const [search,    setSearch]    = useState("");
-  const [viewing,   setViewing]   = useState(null);
-  const [rejecting, setRejecting] = useState(null);
-  const [approving, setApproving] = useState(null);
-  const [justActed, setJustActed] = useState({});
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const [mainTab,      setMainTab]      = useState(searchParams.get("tab") || "cin");
+  const [tabDismissed, setTabDismissed] = useState(() => {
+    try {
+      const saved = localStorage.getItem('admin_tab_dismissed');
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+  const [filter,       setFilter]       = useState("pending");
+  const [search,       setSearch]       = useState("");
+  const [viewing,      setViewing]      = useState(null);
+  const [rejecting,    setRejecting]    = useState(null);
+  const [approving,    setApproving]    = useState(null);
+  const [justActed,    setJustActed]    = useState({});
+  const [notifOpen,    setNotifOpen]    = useState(false);
+  const [logoutConfirm,setLogoutConfirm]= useState(false);
 
   // ── courses tab state — init from localStorage so counts show on first render ──
   const [allCourses, setAllCourses] = useState(() => {
@@ -1690,46 +1696,59 @@ export default function AdminPage() {
         </div>
 
         {/* ── MAIN TABS GRID — always 2 per row ── */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { id: "cin",        icon: "🪪", label: t("admin.tab.cin"),        count: counts.pending },
-              { id: "allusers",   icon: "👥", label: t("admin.tab.all_users"),  count: (users ?? []).length },
-              { id: "courses",    icon: "📚", label: "Cours",                    count: courseCounts.all },
-              { id: "lessons",    icon: "📖", label: "Leçons",                   count: allLessons.filter(l => l.status === 'pending').length },
-              { id: "paidaccess", icon: "💳", label: "Paid Access",              count: paidCourses.length },
-              { id: "chat",       icon: "💬", label: "Chat",                     count: chatUnreadCount },
-            ].map(tab => {
-              const active = mainTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setMainTab(tab.id)}
-                  className={[
-                    "relative flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 rounded-xl border transition-all duration-200 text-left w-full",
-                    active
-                      ? "bg-indigo-600 border-indigo-600 shadow-md shadow-indigo-500/20"
-                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm shrink-0">{tab.icon}</span>
-                    <span className={`text-xs font-bold truncate ${active ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>
-                      {tab.label}
-                    </span>
-                  </div>
-                  {tab.count > 0 && (
-                    <span className={`shrink-0 min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full text-[10px] font-extrabold leading-none ${
-                      active ? "bg-white/30 text-white" : "bg-rose-500 text-white"
-                    }`}>
-                      {tab.count > 99 ? "99+" : tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {(() => {
+          const TABS = [
+            { id: "cin",        label: t("admin.tab.cin"),   count: counts.pending },
+            { id: "allusers",   label: t("admin.tab.all_users"), count: (users ?? []).length },
+            { id: "courses",    label: "📚 Cours",            count: courseCounts.all },
+            { id: "lessons",    label: "📖 Leçons",           count: allLessons.filter(l => l.status === 'pending').length },
+            { id: "paidaccess", label: "💳 Paid Access",      count: paidCourses.length },
+            { id: "chat",       label: "💬 Chat",             count: chatUnreadCount },
+          ];
+          return (
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
+              <div className="grid grid-cols-2 gap-2">
+                {TABS.map(tab => {
+                  const active  = mainTab === tab.id;
+                  // Badge shows only DELTA: new items added since admin last visited that tab
+                  const seenCnt = tabDismissed[tab.id] ?? 0;
+                  const delta = tab.count - seenCnt;
+                  const showBadge = delta > 0;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setMainTab(tab.id);
+                        setTabDismissed(p => {
+                          const next = { ...p, [tab.id]: tab.count };
+                          try { localStorage.setItem('admin_tab_dismissed', JSON.stringify(next)); } catch {}
+                          return next;
+                        });
+                      }}
+                      className={[
+                        "relative flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 rounded-xl border transition-all duration-200 text-left w-full",
+                        active
+                          ? "bg-indigo-600 border-indigo-600 shadow-md shadow-indigo-500/20"
+                          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700",
+                      ].join(" ")}
+                    >
+                      <span className={`text-xs font-bold truncate ${active ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>
+                        {tab.label}
+                      </span>
+                      {showBadge && (
+                        <span className={`shrink-0 min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full text-[10px] font-extrabold leading-none ${
+                          active ? "bg-white/30 text-white" : "bg-rose-500 text-white"
+                        }`}>
+                          {delta > 99 ? "99+" : delta}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
