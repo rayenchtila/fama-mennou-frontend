@@ -261,7 +261,7 @@ function MessagesPanel({ conversations, senderEmail, isAdmin, onClose, onChatOpe
               return (
                 <div
                   key={email}
-                  onClick={() => { onClose(); onChatOpen(email); }}
+                  onClick={() => onChatOpen(email)}
                   className={[
                     "flex items-start gap-3 px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
                     unread > 0
@@ -308,7 +308,7 @@ function MessagesPanel({ conversations, senderEmail, isAdmin, onClose, onChatOpe
         {/* Footer */}
         <div className="border-t border-slate-100 dark:border-slate-800">
           <button
-            onClick={() => { onClose(); onChatOpen(null); }}
+            onClick={() => onChatOpen(null)}
             className="w-full py-3.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
           >
             View all messages →
@@ -931,14 +931,15 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
             isAdmin={!!user.isAdmin}
             onClose={() => setMsgPanelOpen(false)}
             onChatOpen={(email) => {
-              // Close panel immediately then navigate — no batching delay
               setMsgPanelOpen(false);
+              if (!user) return;
+              const isAdmin = !!user.isAdmin;
               const dest = email
-                ? (user.isAdmin
+                ? (isAdmin
                     ? `/admin/dashboard?tab=chat&with=${encodeURIComponent(email)}`
                     : `/messages?with=${encodeURIComponent(email)}`)
-                : (user.isAdmin ? '/admin/dashboard?tab=chat' : '/messages');
-              setTimeout(() => navigate(dest), 0);
+                : (isAdmin ? '/admin/dashboard?tab=chat' : '/messages');
+              navigate(dest);
             }}
           />
         )}
