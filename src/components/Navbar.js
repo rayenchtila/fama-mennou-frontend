@@ -294,7 +294,6 @@ function MessagesPanel({ conversations, senderEmail, isAdmin, onClose, onChatOpe
                         {fmtMsgPanelTime(conv.created_at)}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 truncate">{email}</p>
                     <p className={`text-xs truncate mt-0.5 ${unread > 0 ? 'text-slate-600 dark:text-slate-300 font-medium' : 'text-slate-400'}`}>
                       {conv.sender_email === senderEmail ? 'You: ' : ''}
                       {conv.last_message || '📷 Photo'}

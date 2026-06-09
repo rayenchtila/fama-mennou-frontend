@@ -107,7 +107,7 @@ function AppInner() {
   const location = useLocation();
 
   const isAdminDashboard = location.pathname === "/admin/dashboard";
-  const isUserDashboard  = location.pathname === "/dashboard";
+  const isUserDashboard  = location.pathname === "/dashboard" || location.pathname === "/messages";
 
   const [dark, setDark] = useState(() => {
     if (typeof window !== "undefined") {
