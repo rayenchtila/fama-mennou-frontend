@@ -1206,11 +1206,11 @@ export default function AdminPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // ── main tab: "overview" | "cin" | "allusers" | "courses" | "lessons" | "paidaccess" | "requests" | "chat" ──
+  // ── main tab: "cin" | "allusers" | "courses" ──
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const chatWith = searchParams.get("with") || null;
-  const [mainTab,   setMainTab]   = useState(searchParams.get("tab") || "overview");
+  const [mainTab,   setMainTab]   = useState(searchParams.get("tab") || "cin");
   const [filter,    setFilter]    = useState("pending");
   const [search,    setSearch]    = useState("");
   const [viewing,   setViewing]   = useState(null);
@@ -1532,11 +1532,10 @@ export default function AdminPage() {
   }
 
   // Fetch courses on mount AND on tab switch — badge always ready
-  useEffect(() => { fetchCourses(); fetchLessonsTab(); fetchAccessRequests(); }, []);
+  useEffect(() => { fetchCourses(); fetchLessonsTab(); }, []);
   useEffect(() => { if (mainTab === 'courses') fetchCourses(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'lessons') fetchLessonsTab(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'paidaccess') fetchPaidCourses(); }, [mainTab]);
-  useEffect(() => { if (mainTab === 'requests') fetchAccessRequests(); }, [mainTab]);
 
   // Chat unread badge — polled independently so it shows even when not on chat tab
   useEffect(() => {
@@ -1693,18 +1692,16 @@ export default function AdminPage() {
         {/* ── MAIN TABS ── */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-3 flex gap-1 overflow-x-auto scrollbar-hide">
           {[
-            { id: "overview",   label: "🏠 Overview" },
-            { id: "cin",        label: t("admin.tab.cin") + (counts.pending > 0 ? ` (${counts.pending})` : '') },
-            { id: "allusers",   label: `${t("admin.tab.all_users")} (${(users ?? []).length})` },
-            { id: "courses",    label: `📚 Cours${courseCounts.all > 0 ? ` (${courseCounts.all})` : ''}` },
-            { id: "lessons",    label: `📖 Leçons${allLessons.filter(l=>l.status==='pending').length > 0 ? ` (${allLessons.filter(l=>l.status==='pending').length})` : ''}` },
-            { id: "paidaccess", label: `💳 Paid Access${paidCourses.length > 0 ? ` (${paidCourses.length})` : ''}` },
-            { id: "requests",   label: `🔑 Requests${accessRequests.filter(r=>r.status==='pending').length > 0 ? ` (${accessRequests.filter(r=>r.status==='pending').length})` : ''}` },
+            { id: "cin",      label: t("admin.tab.cin") },
+            { id: "allusers", label: `${t("admin.tab.all_users")} (${(users ?? []).length})` },
+            { id: "courses",  label: `📚 Cours${courseCounts.all > 0 ? ` (${courseCounts.all})` : ''}` },
+            { id: "lessons",  label: `📖 Leçons${allLessons.filter(l=>l.status==='pending').length > 0 ? ` (${allLessons.filter(l=>l.status==='pending').length})` : ''}` },
+            { id: "paidaccess", label: `💳 Paid Course Access${paidCourses.length > 0 ? ` (${paidCourses.length})` : ''}` },
             { id: "chat",       label: `💬 Chat${chatUnreadCount > 0 ? ` (${chatUnreadCount})` : ''}` },
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => { setMainTab(tab.id); navigate(`/admin?tab=${tab.id}`); }}
+              onClick={() => setMainTab(tab.id)}
               className={[
                 "px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 whitespace-nowrap",
                 mainTab === tab.id
@@ -1719,205 +1716,6 @@ export default function AdminPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-
-        {/* ══ OVERVIEW TAB ══ */}
-        {mainTab === "overview" && (() => {
-          const pendingLessons = allLessons.filter(l => l.status === 'pending').length;
-          const pendingRequests = accessRequests.filter(r => r.status === 'pending').length;
-          const overviewCards = [
-            {
-              id: 'cin',
-              emoji: '🪪',
-              iconBg: 'bg-indigo-100 dark:bg-indigo-900/30',
-              title: 'CIN Verification',
-              desc: 'Review & verify freelancer identity documents',
-              badge: counts.pending,
-              badgeColor: counts.pending > 0 ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600',
-              badgeLabel: 'pending',
-              borderHover: 'hover:border-indigo-300 dark:hover:border-indigo-700',
-              ringColor: 'group-hover:ring-indigo-200 dark:group-hover:ring-indigo-800',
-            },
-            {
-              id: 'allusers',
-              emoji: '👥',
-              iconBg: 'bg-sky-100 dark:bg-sky-900/30',
-              title: 'All Users',
-              desc: 'Manage platform members, roles and accounts',
-              badge: (users ?? []).length,
-              badgeColor: 'bg-sky-500',
-              badgeLabel: 'users',
-              borderHover: 'hover:border-sky-300 dark:hover:border-sky-700',
-              ringColor: 'group-hover:ring-sky-200 dark:group-hover:ring-sky-800',
-            },
-            {
-              id: 'courses',
-              emoji: '📚',
-              iconBg: 'bg-violet-100 dark:bg-violet-900/30',
-              title: 'Courses',
-              desc: 'Review pending courses and manage content',
-              badge: courseCounts.all,
-              badgeColor: 'bg-violet-500',
-              badgeLabel: 'total',
-              badge2: courseCounts.pending > 0 ? courseCounts.pending : null,
-              badge2Color: 'bg-amber-500',
-              badge2Label: 'pending',
-              borderHover: 'hover:border-violet-300 dark:hover:border-violet-700',
-              ringColor: 'group-hover:ring-violet-200 dark:group-hover:ring-violet-800',
-            },
-            {
-              id: 'lessons',
-              emoji: '📖',
-              iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
-              title: 'Lessons',
-              desc: 'Approve and manage individual course lessons',
-              badge: allLessons.length,
-              badgeColor: 'bg-emerald-500',
-              badgeLabel: 'total',
-              badge2: pendingLessons > 0 ? pendingLessons : null,
-              badge2Color: 'bg-amber-500',
-              badge2Label: 'pending',
-              borderHover: 'hover:border-emerald-300 dark:hover:border-emerald-700',
-              ringColor: 'group-hover:ring-emerald-200 dark:group-hover:ring-emerald-800',
-            },
-            {
-              id: 'paidaccess',
-              emoji: '💳',
-              iconBg: 'bg-amber-100 dark:bg-amber-900/30',
-              title: 'Paid Course Access',
-              desc: 'Track purchased access and manage grants',
-              badge: paidCourses.length,
-              badgeColor: 'bg-amber-500',
-              badgeLabel: 'entries',
-              borderHover: 'hover:border-amber-300 dark:hover:border-amber-700',
-              ringColor: 'group-hover:ring-amber-200 dark:group-hover:ring-amber-800',
-            },
-            {
-              id: 'requests',
-              emoji: '🔑',
-              iconBg: 'bg-rose-100 dark:bg-rose-900/30',
-              title: 'Course Requests',
-              desc: 'Handle user course access requests',
-              badge: accessRequests.length,
-              badgeColor: 'bg-slate-400',
-              badgeLabel: 'total',
-              badge2: pendingRequests > 0 ? pendingRequests : null,
-              badge2Color: 'bg-rose-500',
-              badge2Label: 'pending',
-              borderHover: 'hover:border-rose-300 dark:hover:border-rose-700',
-              ringColor: 'group-hover:ring-rose-200 dark:group-hover:ring-rose-800',
-            },
-            {
-              id: 'chat',
-              emoji: '💬',
-              iconBg: 'bg-slate-100 dark:bg-slate-800',
-              title: 'Chat & Messages',
-              desc: 'Respond to user messages and support requests',
-              badge: chatUnreadCount,
-              badgeColor: chatUnreadCount > 0 ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-600',
-              badgeLabel: 'unread',
-              borderHover: 'hover:border-slate-300 dark:hover:border-slate-600',
-              ringColor: 'group-hover:ring-slate-200 dark:group-hover:ring-slate-700',
-            },
-            {
-              id: 'cin',
-              emoji: '📊',
-              iconBg: 'bg-teal-100 dark:bg-teal-900/30',
-              title: 'Statistics',
-              desc: 'Platform analytics, user demographics & growth',
-              badge: (users ?? []).length,
-              badgeColor: 'bg-teal-500',
-              badgeLabel: 'users',
-              borderHover: 'hover:border-teal-300 dark:hover:border-teal-700',
-              ringColor: 'group-hover:ring-teal-200 dark:group-hover:ring-teal-800',
-            },
-          ];
-          return (
-            <div>
-              {/* Welcome banner */}
-              <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-5 sm:p-6 mb-6 text-white shadow-lg shadow-indigo-500/20">
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div>
-                    <h2 className="text-base sm:text-lg font-extrabold leading-tight">Admin Dashboard</h2>
-                    <p className="text-indigo-200 text-xs sm:text-sm mt-0.5">Fama Mennou — {user?.email}</p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {counts.pending > 0 && (
-                      <div className="bg-white/20 backdrop-blur-sm rounded-xl px-3 py-2 text-center">
-                        <p className="text-lg font-extrabold leading-none">{counts.pending}</p>
-                        <p className="text-[10px] text-indigo-200 font-semibold">CIN Pending</p>
-                      </div>
-                    )}
-                    {chatUnreadCount > 0 && (
-                      <div className="bg-rose-500/80 rounded-xl px-3 py-2 text-center">
-                        <p className="text-lg font-extrabold leading-none">{chatUnreadCount}</p>
-                        <p className="text-[10px] text-rose-200 font-semibold">New Messages</p>
-                      </div>
-                    )}
-                    <div className="bg-white/20 backdrop-blur-sm rounded-xl px-3 py-2 text-center">
-                      <p className="text-lg font-extrabold leading-none">{(users ?? []).length}</p>
-                      <p className="text-[10px] text-indigo-200 font-semibold">Total Users</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2-column grid of section cards */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {overviewCards.map((card, i) => (
-                  <button
-                    key={`${card.id}-${i}`}
-                    onClick={() => { setMainTab(card.id); navigate(`/admin?tab=${card.id}`); }}
-                    className={[
-                      "group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800",
-                      "shadow-sm hover:shadow-lg",
-                      "p-4 sm:p-5 text-left",
-                      "transition-all duration-200",
-                      "hover:-translate-y-0.5 active:scale-[0.98]",
-                      card.borderHover,
-                      "flex flex-col gap-3",
-                    ].join(' ')}
-                  >
-                    {/* Badge(s) top-right */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                      {card.badge2 != null && (
-                        <span className={`${card.badge2Color} text-white text-[9px] sm:text-[10px] font-extrabold px-1.5 py-0.5 rounded-full leading-none`}>
-                          {card.badge2 > 99 ? '99+' : card.badge2} {card.badge2Label}
-                        </span>
-                      )}
-                      {card.badge != null && (
-                        <span className={`${card.badgeColor} text-white text-[9px] sm:text-[10px] font-extrabold px-1.5 py-0.5 rounded-full leading-none`}>
-                          {card.badge > 99 ? '99+' : card.badge} {card.badgeLabel}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Icon */}
-                    <div className={`w-11 h-11 sm:w-12 sm:h-12 ${card.iconBg} rounded-xl flex items-center justify-center text-xl sm:text-2xl shrink-0`}>
-                      {card.emoji}
-                    </div>
-
-                    {/* Text */}
-                    <div className="flex-1 min-w-0 pr-2">
-                      <p className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-white leading-tight truncate">
-                        {card.title}
-                      </p>
-                      <p className="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1 leading-snug line-clamp-2">
-                        {card.desc}
-                      </p>
-                    </div>
-
-                    {/* Footer arrow */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] sm:text-xs font-semibold text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
-                        Open →
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
 
         {/* ══ CIN TAB ══ */}
         {mainTab === "cin" && (
@@ -2803,144 +2601,6 @@ export default function AdminPage() {
               )}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ══ REQUESTS TAB ══ */}
-      {mainTab === 'requests' && (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          {/* Header */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-            <div>
-              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">🔑 Course Access Requests</h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                {requestsLoading ? 'Loading…' : `${accessRequests.filter(r => r.status === 'pending').length} pending · ${accessRequests.length} total`}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {['pending','approved','rejected','all'].map(f => (
-                <button key={f} onClick={() => setRequestsFilter(f)}
-                  className={['px-3 py-1.5 text-xs font-bold rounded-xl transition-all duration-150',
-                    requestsFilter === f
-                      ? f === 'pending' ? 'bg-amber-500 text-white shadow' : f === 'approved' ? 'bg-emerald-600 text-white shadow' : f === 'rejected' ? 'bg-rose-600 text-white shadow' : 'bg-indigo-600 text-white shadow'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  ].join(' ')}>
-                  {f.charAt(0).toUpperCase() + f.slice(1)}
-                  {f !== 'all' && ` (${accessRequests.filter(r => r.status === f).length})`}
-                </button>
-              ))}
-              <button onClick={fetchAccessRequests} disabled={requestsLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors disabled:opacity-40">
-                <svg className={`w-3.5 h-3.5 ${requestsLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                Refresh
-              </button>
-            </div>
-          </div>
-
-          {requestsLoading ? (
-            <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse" />)}</div>
-          ) : (() => {
-            const filtered = accessRequests.filter(r => requestsFilter === 'all' ? true : r.status === requestsFilter);
-            if (filtered.length === 0) return (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
-                <span className="text-5xl mb-3">🔑</span>
-                <p className="text-sm font-semibold">No {requestsFilter === 'all' ? '' : requestsFilter} requests</p>
-              </div>
-            );
-            return (
-              <div className="space-y-3">
-                {filtered.map(req => {
-                  const acting = requestActing[req.id];
-                  const isPending = req.status === 'pending';
-                  return (
-                    <div key={req.id} className={[
-                      'bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-300 p-4 sm:p-5',
-                      req.status === 'approved' ? 'border-emerald-200 dark:border-emerald-800' :
-                      req.status === 'rejected' ? 'border-rose-200 dark:border-rose-800' :
-                      'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
-                    ].join(' ')}>
-                      <div className="flex items-start gap-3 sm:gap-4">
-                        {/* Avatar */}
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold shrink-0 shadow">
-                          {(req.user_name || req.user_email || '?').slice(0, 2).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                            <p className="font-bold text-slate-900 dark:text-white text-sm">{req.user_name || req.user_email}</p>
-                            <span className={['text-[10px] font-bold px-2 py-0.5 rounded-full border',
-                              req.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' :
-                              req.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
-                              'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
-                            ].join(' ')}>
-                              {req.status}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-400 mb-1">{req.user_email}</p>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">📚</span>
-                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">{req.course_title || `Course #${req.course_id}`}</span>
-                          </div>
-                          {req.created_at && (
-                            <p className="text-[11px] text-slate-400 mt-1">
-                              {new Date(req.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                          )}
-                        </div>
-                        {/* Actions */}
-                        {isPending && (
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              onClick={() => approveRequest(req)}
-                              disabled={!!acting}
-                              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors disabled:opacity-50 active:scale-95"
-                            >
-                              {acting === 'approving' ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : '✓'}
-                              <span className="hidden sm:inline">Approve</span>
-                            </button>
-                            <button
-                              onClick={() => setRejectModal(req)}
-                              disabled={!!acting}
-                              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-50 active:scale-95"
-                            >
-                              {acting === 'rejecting' ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : '✕'}
-                              <span className="hidden sm:inline">Reject</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
-
-          {/* Reject modal */}
-          {rejectModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setRejectModal(null)}>
-              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden" onClick={e => e.stopPropagation()}>
-                <div className="px-6 pt-5 pb-2">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex items-center justify-center shrink-0">
-                      <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900 dark:text-white text-sm">Reject Request</p>
-                      <p className="text-xs text-slate-400">{rejectModal.user_name || rejectModal.user_email}</p>
-                    </div>
-                  </div>
-                  {['Insufficient information provided.','Course not available for free access.','Request does not meet requirements.'].map(p => (
-                    <button key={p} onClick={() => setRejectNote(p)} className={['w-full text-left text-xs px-3 py-2.5 rounded-xl border mb-1.5 transition-all', rejectNote === p ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-400 font-semibold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-300'].join(' ')}>{p}</button>
-                  ))}
-                  <textarea value={rejectNote} onChange={e => setRejectNote(e.target.value)} rows={2} placeholder="Custom reason…" className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 focus:border-rose-400 transition-colors mt-2" />
-                </div>
-                <div className="flex gap-2 px-6 pb-6 pt-3">
-                  <button onClick={() => { setRejectModal(null); setRejectNote(''); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancel</button>
-                  <button disabled={!rejectNote.trim()} onClick={() => rejectRequest(rejectModal.id, rejectNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white transition-colors">Confirm Reject</button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
