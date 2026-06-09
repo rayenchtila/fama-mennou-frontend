@@ -851,10 +851,22 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 )}
                                 {/* Image */}
                                 {m.attachment_url && (
-                                  <img src={m.attachment_url} alt="Photo"
-                                    className={`max-w-[220px] sm:max-w-[260px] w-full object-cover rounded-xl block cursor-zoom-in ${m.content ? 'mb-2' : ''}`}
-                                    onClick={e => { e.stopPropagation(); setViewerSrc(m.attachment_url); }}
-                                  />
+                                  <div className="relative w-fit">
+                                    <img src={m.attachment_url} alt="Photo"
+                                      className={`max-w-[220px] sm:max-w-[260px] w-full object-cover rounded-xl block cursor-zoom-in ${m.content ? 'mb-2' : ''}`}
+                                      onClick={e => { e.stopPropagation(); setViewerSrc(m.attachment_url); }}
+                                    />
+                                    {/* Actions overlay — always visible on own images so mobile users can edit/delete */}
+                                    {isMine && (
+                                      <button data-menu
+                                        onClick={e => { e.stopPropagation(); openContextMenu(e, m.id); }}
+                                        className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors z-10">
+                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01"/>
+                                        </svg>
+                                      </button>
+                                    )}
+                                  </div>
                                 )}
                                 {/* Text */}
                                 {m.content && <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>}
