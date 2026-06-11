@@ -715,10 +715,9 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                               : user.role === "freelancer"
                                 ? [
                                     { label: t("Profil"),       to: "/dashboard?tab=profile",       emoji: "👤" },
-                                    { label: t("Dashboard"),    to: "/dashboard?tab=dashboard",     emoji: "📊" },
-                                    { label: "Trouver Projets", to: "/dashboard?tab=find-projects", emoji: "🔎" },
-                                    { label: "Mes Missions",    to: "/dashboard?tab=missions",      emoji: "📁" },
+                                    { label: "Trouver projet",  to: "/dashboard?tab=find-projects", emoji: "🔎" },
                                     { label: "Gains",           to: "/dashboard?tab=gains",         emoji: "💰" },
+                                    { label: "Chat",            to: "/messages",                    emoji: "💬" },
                                     { label: t("Paramètres"),   to: "/dashboard?tab=settings",      emoji: "⚙️" },
                                   ]
                                 : [

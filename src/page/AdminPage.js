@@ -662,6 +662,10 @@ function AdminChatPanel({ allUsers }) {
   const [editText,        setEditText]        = React.useState('');
   const [editStagedImage, setEditStagedImage] = React.useState(null);
 
+  const [userCourseReq, setUserCourseReq] = React.useState(null);
+  const [reqAmount,     setReqAmount]     = React.useState('');
+  const [statusSaving,  setStatusSaving]  = React.useState(false);
+
   const messagesBoxRef  = React.useRef();
   const convsPollRef    = React.useRef();
   const msgsPollRef     = React.useRef();
@@ -700,6 +704,40 @@ function AdminChatPanel({ allUsers }) {
     msgsPollRef.current = setInterval(() => fetchMsgs(selectedEmail), 3000);
     return () => clearInterval(msgsPollRef.current);
   }, [selectedEmail, fetchMsgs]);
+
+  // ── Latest pending/active course purchase request for this conversation ──────
+  const fetchUserCourseReq = React.useCallback(async (email) => {
+    if (!email) { setUserCourseReq(null); return; }
+    try {
+      const data = await fetch(`${API_CHAT}/course-requests`).then(r => r.json());
+      if (Array.isArray(data)) {
+        const mine = data
+          .filter(r => r.user_email === email.toLowerCase() && r.status !== 'rejected')
+          .sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
+        const req = mine[0] || null;
+        setUserCourseReq(req);
+        setReqAmount(req ? Number(req.amount || 0).toFixed(2) : '');
+      }
+    } catch {}
+  }, []);
+
+  React.useEffect(() => {
+    fetchUserCourseReq(selectedEmail);
+  }, [selectedEmail, fetchUserCourseReq]);
+
+  async function setPaymentStatus(status) {
+    if (!userCourseReq) return;
+    setStatusSaving(true);
+    try {
+      await fetch(`${API_CHAT}/course-requests/${userCourseReq.id}/payment-status`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, montant: reqAmount === '' ? null : Number(reqAmount) }),
+      });
+      await fetchUserCourseReq(selectedEmail);
+      await fetchMsgs(selectedEmail);
+    } catch {}
+    finally { setStatusSaving(false); }
+  }
 
   React.useEffect(() => {
     const box = messagesBoxRef.current;
@@ -984,6 +1022,39 @@ function AdminChatPanel({ allUsers }) {
               </div>
             </div>
           </div>
+
+          {/* Course payment status (3 buttons) */}
+          {userCourseReq && (
+            <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
+                📚 {userCourseReq.course_title}
+              </span>
+              <input
+                type="number" min="0" step="0.01"
+                value={reqAmount}
+                onChange={e => setReqAmount(e.target.value)}
+                placeholder="Montant TND"
+                className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+              />
+              {[
+                { id: 'en_attente', label: '🟡 En attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
+                { id: 'en_cours',   label: '🔵 En cours',   active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
+                { id: 'termine',    label: '🟢 Terminé',    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+              ].map(s => {
+                const active = userCourseReq.payment_status === s.id;
+                return (
+                  <button key={s.id} disabled={statusSaving} onClick={() => setPaymentStatus(s.id)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
+                      active
+                        ? s.active
+                        : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 ${s.idle}`
+                    }`}>
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Messages */}
           <div ref={messagesBoxRef} className="flex-1 overflow-y-auto px-4 py-4 bg-slate-50 dark:bg-slate-950">

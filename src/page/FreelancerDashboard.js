@@ -655,25 +655,39 @@ function MissionsTab({ user, users, navigate }) {
 // ── TAB: Gains ────────────────────────────────────────────────────────────────
 
 function GainsTab({ user }) {
-  const [missions, setMissions] = useState([]);
-  const [loading, setLoading]   = useState(true);
+  const [missions, setMissions]         = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [wallet, setWallet]             = useState(null);
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
     fetch(`${API}/projects/assigned/${encodeURIComponent(user.email)}`)
       .then(r => r.json()).catch(() => [])
       .then(data => { if (Array.isArray(data)) setMissions(data); setLoading(false); });
+
+    fetch(`${API}/wallets/me?email=${encodeURIComponent(user.email)}`)
+      .then(r => r.json()).catch(() => null)
+      .then(data => setWallet(data));
+
+    fetch(`${API}/wallets/transactions?email=${encodeURIComponent(user.email)}`)
+      .then(r => r.json()).catch(() => [])
+      .then(data => { if (Array.isArray(data)) setTransactions(data); });
   }, [user.email]);
 
   const completed = missions.filter(m => m.status === 'completed');
+  const incoming  = transactions.filter(t => t.direction === 'incoming');
+  const totalEarned = incoming.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const balance      = Number(wallet?.balance || 0);
+  const currency     = wallet?.currency || 'TND';
 
   return (
     <div className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Gains récents',       value: '—', icon: '📥', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-          { label: 'Paiements en attente', value: '—', icon: '⏳', color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/20'   },
-          { label: 'Total gagné',         value: '—', icon: '✅', color: 'text-indigo-600 dark:text-indigo-400',  bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+          { label: 'Solde disponible',    value: `${balance.toFixed(2)} ${currency}`,    icon: '💳', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+          { label: 'Transactions',        value: incoming.length,                        icon: '📥', color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/20'   },
+          { label: 'Total gagné',         value: `${totalEarned.toFixed(2)} ${currency}`, icon: '✅', color: 'text-indigo-600 dark:text-indigo-400',  bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
         ].map(item => (
           <div key={item.label} className={`${item.bg} rounded-2xl p-5 flex items-center gap-3`}>
             <span className="text-2xl">{item.icon}</span>
@@ -712,11 +726,32 @@ function GainsTab({ user }) {
         }
       </div>
 
-      {/* Coming soon */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 p-8 shadow-sm flex flex-col items-center justify-center gap-2 text-center">
-        <span className="text-3xl">🔧</span>
-        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Intégration paiement en cours</p>
-        <p className="text-xs text-slate-400">Le détail de vos gains et retraits apparaîtra ici</p>
+      {/* Historique des gains */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <SectionHeader icon="💰" title="Historique des gains" />
+        {incoming.length === 0
+          ? <Empty emoji="💰" text="Aucun gain pour l'instant" />
+          : (
+            <div className="space-y-3">
+              {incoming.map(t => (
+                <div key={`${t.payment_type}-${t.id}`} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-lg shrink-0">
+                    {t.payment_type === 'course' ? '📚' : '💼'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                      {t.payment_type === 'course' ? 'Vente de cours' : 'Paiement projet'}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">{new Date(t.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">+{Number(t.amount).toFixed(2)} {currency}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        }
       </div>
     </div>
   );
