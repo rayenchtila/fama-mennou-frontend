@@ -143,6 +143,14 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const [forwardMsg,    setForwardMsg]    = useState(null);
   const [fwdSearch,     setFwdSearch]     = useState('');
 
+  // Admin-only: payment status panels for the selected conversation
+  const [userCourseReq, setUserCourseReq] = useState(null);
+  const [reqAmount,     setReqAmount]     = useState('');
+  const [statusSaving,  setStatusSaving]  = useState(false);
+  const [userProject,   setUserProject]   = useState(null);
+  const [projAmount,    setProjAmount]    = useState('');
+  const [projSaving,    setProjSaving]    = useState(false);
+
   const endRef           = useRef();
   const msgsContainerRef = useRef();   // scroll container
   const userScrolledUp   = useRef(false);  // true when user has scrolled away from bottom
@@ -508,6 +516,72 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     return groups;
   }
 
+  // ── Admin: course purchase & freelancer gains payment-status panels ──────────
+
+  const fetchUserCourseReq = useCallback(async (email) => {
+    if (!email) { setUserCourseReq(null); return; }
+    try {
+      const data = await fetch(`${API}/course-requests`).then(r => r.json());
+      if (Array.isArray(data)) {
+        const mine = data
+          .filter(r => r.user_email === email.toLowerCase() && r.status !== 'rejected')
+          .sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
+        const req = mine[0] || null;
+        setUserCourseReq(req);
+        setReqAmount(req ? Number(req.amount || 0).toFixed(2) : '');
+      }
+    } catch {}
+  }, []);
+
+  const fetchUserProject = useCallback(async (email) => {
+    if (!email) { setUserProject(null); return; }
+    try {
+      const data = await fetch(`${API}/projects/assigned/${encodeURIComponent(email)}`).then(r => r.json());
+      if (Array.isArray(data)) {
+        const mine = data
+          .filter(p => p.freelancer_email === email.toLowerCase())
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const proj = mine[0] || null;
+        setUserProject(proj);
+        setProjAmount(proj ? Number(proj.amount || 0).toFixed(2) : '');
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser?.isAdmin || !selectedChat) { setUserCourseReq(null); setUserProject(null); return; }
+    fetchUserCourseReq(selectedChat);
+    fetchUserProject(selectedChat);
+  }, [currentUser?.isAdmin, selectedChat, fetchUserCourseReq, fetchUserProject]);
+
+  async function setPaymentStatus(status) {
+    if (!userCourseReq) return;
+    setStatusSaving(true);
+    try {
+      await fetch(`${API}/course-requests/${userCourseReq.id}/payment-status`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, montant: reqAmount === '' ? null : Number(reqAmount) }),
+      });
+      await fetchUserCourseReq(selectedChat);
+      loadMsgs(selectedChat);
+    } catch {}
+    finally { setStatusSaving(false); }
+  }
+
+  async function setProjectPaymentStatus(status) {
+    if (!userProject) return;
+    setProjSaving(true);
+    try {
+      await fetch(`${API}/projects/${userProject.id}/payment-status`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, montant: projAmount === '' ? null : Number(projAmount) }),
+      });
+      await fetchUserProject(selectedChat);
+      loadMsgs(selectedChat);
+    } catch {}
+    finally { setProjSaving(false); }
+  }
+
   // ── Derived data ──────────────────────────────────────────────────────────────
 
   const convLc        = convSearch.toLowerCase();
@@ -695,6 +769,68 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               </p>
             </div>
           </div>
+
+          {/* Admin: course payment status (3 buttons) */}
+          {currentUser?.isAdmin && userCourseReq && (
+            <div className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 z-10">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
+                📚 {userCourseReq.course_title}
+              </span>
+              <input
+                type="number" min="0" step="0.01"
+                value={reqAmount}
+                onChange={e => setReqAmount(e.target.value)}
+                placeholder="Montant TND"
+                className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+              />
+              {[
+                { id: 'en_attente', label: '🟡 En attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
+                { id: 'en_cours',   label: '🔵 En cours',   active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
+                { id: 'termine',    label: '🟢 Terminé',    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+              ].map(s => {
+                const active = userCourseReq.payment_status === s.id;
+                return (
+                  <button key={s.id} disabled={statusSaving} onClick={() => setPaymentStatus(s.id)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
+                      active ? s.active : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 ${s.idle}`
+                    }`}>
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Admin: freelancer gains status (3 buttons) */}
+          {currentUser?.isAdmin && userProject && (
+            <div className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 z-10">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
+                💼 {userProject.title}
+              </span>
+              <input
+                type="number" min="0" step="0.01"
+                value={projAmount}
+                onChange={e => setProjAmount(e.target.value)}
+                placeholder="Montant TND"
+                className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+              />
+              {[
+                { id: 'en_attente', label: '🟡 Gain en attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
+                { id: 'en_cours',   label: '🔵 Projet en cours', active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
+                { id: 'termine',    label: '🟢 Gain confirmé',   active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+              ].map(s => {
+                const active = userProject.payment_status === s.id;
+                return (
+                  <button key={s.id} disabled={projSaving} onClick={() => setProjectPaymentStatus(s.id)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
+                      active ? s.active : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 ${s.idle}`
+                    }`}>
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Messages */}
           <div
