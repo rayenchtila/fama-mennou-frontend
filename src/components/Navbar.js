@@ -722,9 +722,9 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                                   ]
                                 : [
                                     { label: t("Profil"),       to: "/profile",    emoji: "👤" },
-                                    { label: t("Dashboard"),    to: "/dashboard",  emoji: "📊" },
                                     { label: t("Projets"),      to: "/projects",   emoji: "🗂️" },
-                                    { label: t("Messages"),     to: "/messages",   emoji: "💬" },
+                                    { label: t("Paiements"),    to: "/payments",   emoji: "💳" },
+                                    { label: t("Chat"),         to: "/messages",   emoji: "💬" },
                                     { label: t("Paramètres"),   to: "/settings",   emoji: "⚙️" },
                                   ]
                             ).map(item => (
