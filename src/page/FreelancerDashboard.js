@@ -718,6 +718,15 @@ function GainsTab({ user }) {
                     <div className="text-right shrink-0">
                       <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{p.budget || '—'}</p>
                       <p className="text-[10px] text-slate-400">Budget</p>
+                      {p.payment_status && (
+                        <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          p.payment_status === 'termine'   ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
+                          p.payment_status === 'en_cours'  ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' :
+                                                              'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                        }`}>
+                          {p.payment_status === 'termine' ? '🟢 Gain confirmé' : p.payment_status === 'en_cours' ? '🔵 Projet en cours' : '🟡 Gain en attente'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}

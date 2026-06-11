@@ -50,6 +50,7 @@ export default function CourseDetailPage() {
   const [buyingLesson,   setBuyingLesson]   = useState(null);
   const [buyMsg,         setBuyMsg]         = useState('');
   const [requestStatus,  setRequestStatus]  = useState(null); // null | 'pending' | 'approved' | 'rejected'
+  const [paymentStatus,  setPaymentStatus]  = useState(null); // null | 'en_attente' | 'en_cours' | 'termine'
   const [requesting,     setRequesting]     = useState(false);
   const [lockedMsg,    setLockedMsg]    = useState(false);
 
@@ -174,6 +175,7 @@ export default function CourseDetailPage() {
         : [];
       setPurchases(filteredPurch);
       setRequestStatus(reqStatus?.status || null);
+      setPaymentStatus(reqStatus?.payment_status || null);
       setLoading(false); // ← paywall or hero renders immediately here
 
       // Phase 2 — rest only if user can access the course
@@ -390,9 +392,15 @@ export default function CourseDetailPage() {
                   ▶ Voir le cours
                 </button>
               ) : requestStatus === 'pending' ? (
-                <div className="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm font-bold text-center mb-3">
-                  ⏳ Demande en attente de validation
-                </div>
+                paymentStatus === 'en_cours' ? (
+                  <div className="w-full py-3 rounded-xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-400 text-sm font-bold text-center mb-3">
+                    🔵 Paiement en cours de traitement
+                  </div>
+                ) : (
+                  <div className="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm font-bold text-center mb-3">
+                    🟡 Demande en attente de validation
+                  </div>
+                )
               ) : requestStatus === 'rejected' ? (
                 <>
                   <div className="text-xs text-center text-rose-600 dark:text-rose-400 py-2 bg-rose-50 dark:bg-rose-900/20 rounded-xl mb-2">
