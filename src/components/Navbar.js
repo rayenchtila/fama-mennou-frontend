@@ -717,14 +717,14 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
                                     { label: t("Profil"),       to: "/dashboard?tab=profile",       emoji: "👤" },
                                     { label: "Trouver projet",  to: "/dashboard?tab=find-projects", emoji: "🔎" },
                                     { label: "Gains",           to: "/dashboard?tab=gains",         emoji: "💰" },
-                                    { label: "Chat",            to: "/messages",                    emoji: "💬" },
+                                    { label: t("Chat"),         to: "/messages",                    emoji: "💬" },
                                     { label: t("Paramètres"),   to: "/dashboard?tab=settings",      emoji: "⚙️" },
                                   ]
                                 : [
                                     { label: t("Profil"),       to: "/profile",    emoji: "👤" },
+                                    { label: t("Dashboard"),    to: "/dashboard",  emoji: "📊" },
                                     { label: t("Projets"),      to: "/projects",   emoji: "🗂️" },
-                                    { label: "Paiements",       to: "/payments",   emoji: "💳" },
-                                    { label: "Chat",            to: "/messages",   emoji: "💬" },
+                                    { label: t("Messages"),     to: "/messages",   emoji: "💬" },
                                     { label: t("Paramètres"),   to: "/settings",   emoji: "⚙️" },
                                   ]
                             ).map(item => (
