@@ -665,6 +665,9 @@ function AdminChatPanel({ allUsers }) {
   const [userCourseReq, setUserCourseReq] = React.useState(null);
   const [reqAmount,     setReqAmount]     = React.useState('');
   const [statusSaving,  setStatusSaving]  = React.useState(false);
+  const [userProject,   setUserProject]   = React.useState(null);
+  const [projAmount,    setProjAmount]    = React.useState('');
+  const [projSaving,    setProjSaving]    = React.useState(false);
 
   const messagesBoxRef  = React.useRef();
   const convsPollRef    = React.useRef();
@@ -737,6 +740,40 @@ function AdminChatPanel({ allUsers }) {
       await fetchMsgs(selectedEmail);
     } catch {}
     finally { setStatusSaving(false); }
+  }
+
+  // ── Latest assigned project (freelancer gains) for this conversation ─────────
+  const fetchUserProject = React.useCallback(async (email) => {
+    if (!email) { setUserProject(null); return; }
+    try {
+      const data = await fetch(`${API_CHAT}/projects/assigned/${encodeURIComponent(email)}`).then(r => r.json());
+      if (Array.isArray(data)) {
+        const mine = data
+          .filter(p => p.freelancer_email === email.toLowerCase())
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const proj = mine[0] || null;
+        setUserProject(proj);
+        setProjAmount(proj ? Number(proj.amount || 0).toFixed(2) : '');
+      }
+    } catch {}
+  }, []);
+
+  React.useEffect(() => {
+    fetchUserProject(selectedEmail);
+  }, [selectedEmail, fetchUserProject]);
+
+  async function setProjectPaymentStatus(status) {
+    if (!userProject) return;
+    setProjSaving(true);
+    try {
+      await fetch(`${API_CHAT}/projects/${userProject.id}/payment-status`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, montant: projAmount === '' ? null : Number(projAmount) }),
+      });
+      await fetchUserProject(selectedEmail);
+      await fetchMsgs(selectedEmail);
+    } catch {}
+    finally { setProjSaving(false); }
   }
 
   React.useEffect(() => {
@@ -1044,6 +1081,39 @@ function AdminChatPanel({ allUsers }) {
                 const active = userCourseReq.payment_status === s.id;
                 return (
                   <button key={s.id} disabled={statusSaving} onClick={() => setPaymentStatus(s.id)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
+                      active
+                        ? s.active
+                        : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 ${s.idle}`
+                    }`}>
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Freelancer gains status (3 buttons) */}
+          {userProject && (
+            <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
+                💼 {userProject.title}
+              </span>
+              <input
+                type="number" min="0" step="0.01"
+                value={projAmount}
+                onChange={e => setProjAmount(e.target.value)}
+                placeholder="Montant TND"
+                className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+              />
+              {[
+                { id: 'en_attente', label: '🟡 Gain en attente',  active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
+                { id: 'en_cours',   label: '🔵 Projet en cours',  active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
+                { id: 'termine',    label: '🟢 Gain confirmé',    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+              ].map(s => {
+                const active = userProject.payment_status === s.id;
+                return (
+                  <button key={s.id} disabled={projSaving} onClick={() => setProjectPaymentStatus(s.id)}
                     className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
                       active
                         ? s.active
