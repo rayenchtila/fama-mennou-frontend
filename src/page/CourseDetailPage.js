@@ -82,16 +82,27 @@ export default function CourseDetailPage() {
     const now = new Date().toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     const accountType = user.role === 'client' ? 'Client' : user.role === 'freelancer' ? 'Freelancer' : user.role || 'Utilisateur';
 
-    async function sendAdminMsg(courseTitle, courseId, type) {
+    async function sendAdminMsg(courseTitle, courseId, type, montant) {
       const msg = type === 'free'
         ? `Bonjour Fama Mennou TEAM 👋\n\nJe viens de m'inscrire au cours gratuit suivant.\n\n👤 Nom complet : ${user.name || 'N/A'}\n📧 Email : ${user.email}\n🏷️ Type de compte : ${accountType}\n\n📚 Cours : ${courseTitle} (ID: #${courseId})\n\n📅 Date : ${now}`
-        : `Bonjour Fama Mennou TEAM 👋\n\nUne nouvelle demande d'accès au cours a été soumise.\n\n👤 Nom complet : ${user.name || 'N/A'}\n📧 Email : ${user.email}\n🏷️ Type de compte : ${accountType}\n\n📚 Cours sélectionné :\n${courseTitle} (ID: #${courseId})\n\n📅 Date : ${now}\n\nMerci de bien vouloir traiter cette demande.`;
+        : `Je veux acheter ce cours "${courseTitle}" du ${now} avec montant ${montant} TND.`;
       try {
         await fetch(`${API}/messages`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ senderEmail: user.email, receiverEmail: 'admin@famamennou.com', content: msg }),
         });
       } catch {}
+
+      // Admin auto-reply for paid course purchase requests
+      if (type === 'paid') {
+        const reply = `Avec plaisir Mr/Mme ${user.name || ''}, merci d'envoyer votre preuve de paiement afin que nous puissions activer l'accès au cours. Merci pour votre confiance.`;
+        try {
+          await fetch(`${API}/messages`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ senderEmail: 'admin@famamennou.com', receiverEmail: user.email, content: reply }),
+          });
+        } catch {}
+      }
     }
 
     // FREE course — keep existing enrollment logic
@@ -126,8 +137,9 @@ export default function CourseDetailPage() {
           setPurchases(prev => [...prev, { course_id: id, lesson_id: null }]);
         } else {
           setRequestStatus(d.status || 'pending');
-          setBuyMsg('✅ Demande envoyée ! L\'admin examinera votre demande.');
-          sendAdminMsg(course?.title || `Cours #${id}`, id, 'paid');
+          setBuyMsg('✅ Demande envoyée ! Redirection vers le chat…');
+          await sendAdminMsg(course?.title || `Cours #${id}`, id, 'paid', Number(course?.full_price).toFixed(2));
+          navigate('/messages?with=admin@famamennou.com');
         }
       } else { setBuyMsg('Demande échouée. Réessaie.'); }
     } catch { setBuyMsg('Demande échouée. Réessaie.'); }
