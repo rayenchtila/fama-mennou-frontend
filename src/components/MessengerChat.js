@@ -23,6 +23,15 @@ function fmtTime(ts) {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function fmtDateSeparator(ts) {
+  const d = new Date(ts);
+  const day = d.toLocaleDateString('fr-FR', { day: '2-digit' });
+  const month = d.toLocaleDateString('fr-FR', { month: 'long' });
+  const monthCap = month.charAt(0).toUpperCase() + month.slice(1);
+  const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  return `Le ${day} ${monthCap}, ${time}`;
+}
+
 function fmtConvTime(ts) {
   const d = new Date(ts), h = (Date.now() - d) / 3600000;
   if (h < 24)  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -486,11 +495,15 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   function buildGroups(msgs) {
     const groups = [];
     let cur = null;
+    let prevTs = null;
     for (const m of msgs) {
       const gap  = cur ? (new Date(m.created_at) - new Date(cur.messages[cur.messages.length - 1].created_at)) : Infinity;
       const same = cur && cur.sender === m.sender_email && gap < 120000;
-      if (same) cur.messages.push(m);
-      else { cur = { sender: m.sender_email, messages: [m] }; groups.push(cur); }
+      const dayGap = prevTs ? (new Date(m.created_at) - prevTs) : Infinity;
+      const showSeparator = dayGap >= 86400000;
+      if (same && !showSeparator) cur.messages.push(m);
+      else { cur = { sender: m.sender_email, messages: [m], showSeparator }; groups.push(cur); }
+      prevTs = new Date(m.created_at);
     }
     return groups;
   }
@@ -700,7 +713,15 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 : resolveUser(group.sender);
 
               return (
-                <div key={gi} className={`flex flex-col gap-0.5 ${isMine ? 'items-end' : 'items-start'} mb-1`}>
+                <div key={gi} className="flex flex-col">
+                  {group.showSeparator && (
+                    <div className="flex justify-center my-3">
+                      <span className="px-3 py-1 rounded-full bg-slate-200/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 text-[11px] font-medium shadow-sm">
+                        {fmtDateSeparator(group.messages[0].created_at)}
+                      </span>
+                    </div>
+                  )}
+                <div className={`flex flex-col gap-0.5 ${isMine ? 'items-end' : 'items-start'} mb-1`}>
                   {group.messages.map((m, mi) => {
                     const isFirst   = mi === 0;
                     const isLast    = mi === group.messages.length - 1;
@@ -876,17 +897,15 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                               </motion.div>
 
                               {/* Time + receipt */}
-                              {isLast && (
-                                <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                  {m.edited_at && <span className="text-[10px] text-slate-400 italic">edited ·</span>}
-                                  <span className="text-[10px] text-slate-400 tabular-nums">{fmtTime(m.created_at)}</span>
-                                  {isMine && (
-                                    m.is_read
-                                      ? <svg className="w-4 h-4 text-indigo-400 shrink-0" viewBox="0 0 20 10" fill="none"><path d="M1 5l3.5 3.5L12 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 5l3.5 3.5L18 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                      : <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" viewBox="0 0 14 10" fill="none"><path d="M1 5l3.5 3.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                  )}
-                                </div>
-                              )}
+                              <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                                {m.edited_at && <span className="text-[10px] text-slate-400 italic">edited ·</span>}
+                                <span className="text-[10px] text-slate-400 tabular-nums">{fmtTime(m.created_at)}</span>
+                                {isMine && isLast && (
+                                  m.is_read
+                                    ? <svg className="w-4 h-4 text-indigo-400 shrink-0" viewBox="0 0 20 10" fill="none"><path d="M1 5l3.5 3.5L12 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 5l3.5 3.5L18 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                    : <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" viewBox="0 0 14 10" fill="none"><path d="M1 5l3.5 3.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                )}
+                              </div>
 
                               {/* Reaction pills */}
                               {hasReact && (
@@ -915,6 +934,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                       </div>
                     );
                   })}
+                </div>
                 </div>
               );
             })}
