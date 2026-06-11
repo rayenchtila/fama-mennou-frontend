@@ -1,9 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 const CLICK2PAY_MERCHANT_ID = process.env.REACT_APP_CLICK2PAY_MERCHANT_ID || 'YOUR_MERCHANT_ID';
 const CLICK2PAY_URL = 'https://www.clictopay.com.tn/paymentpage/payment';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+const STATUS_INFO = {
+  en_attente: { label: '🟡 En attente',  cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' },
+  en_cours:   { label: '🔵 En cours',    cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
+  termine:    { label: '🟢 Terminé',     cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
+};
 
 export default function PaymentsPage() {
   const { t } = useTranslation();
@@ -11,10 +18,17 @@ export default function PaymentsPage() {
   const [amount, setAmount]   = useState('');
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    fetch(`${API_URL}/api/course-requests/mine?email=${encodeURIComponent(user.email)}`)
+      .then(r => r.json())
+      .then(rows => setHistory(Array.isArray(rows) ? rows : []))
+      .catch(() => setHistory([]));
+  }, [user?.email]);
 
   if (!user) return null;
-
-  const history = [];
 
   function handlePay(e) {
     e.preventDefault();
@@ -169,15 +183,24 @@ export default function PaymentsPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {history.map((item, i) => (
-                <div key={i} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{item.label}</p>
-                    <p className="text-xs text-slate-400">{item.date}</p>
+              {history.map((item) => {
+                const info = STATUS_INFO[item.payment_status] || STATUS_INFO.en_attente;
+                const dateStr = new Date(item.requested_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
+                return (
+                  <div key={item.id} className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{item.course_title}</p>
+                      <p className="text-xs text-slate-400">{dateStr}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{Number(item.amount || 0).toFixed(2)} TND</p>
+                      <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${info.cls}`}>
+                        {info.label}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{item.amount}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
