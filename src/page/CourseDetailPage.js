@@ -80,7 +80,7 @@ export default function CourseDetailPage() {
     if (!user) return;
     const isFreeC = Number(course?.full_price) === 0;
 
-    const now = new Date().toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Tunis' });
     const accountType = user.role === 'client' ? 'Client' : user.role === 'freelancer' ? 'Freelancer' : user.role || 'Utilisateur';
 
     async function sendAdminMsg(courseTitle, courseId, type, montant) {

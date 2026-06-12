@@ -20,21 +20,21 @@ function onlineStatus(lastSeen) {
 }
 
 function fmtTime(ts) {
-  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return new Date(ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Tunis' });
 }
 
 function fmtDateSeparator(ts) {
   const d = new Date(ts);
-  const day = d.toLocaleDateString('fr-FR', { day: '2-digit' });
-  const month = d.toLocaleDateString('fr-FR', { month: 'long' });
+  const day = d.toLocaleDateString('fr-FR', { day: '2-digit', timeZone: 'Africa/Tunis' });
+  const month = d.toLocaleDateString('fr-FR', { month: 'long', timeZone: 'Africa/Tunis' });
   const monthCap = month.charAt(0).toUpperCase() + month.slice(1);
-  const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const time = fmtTime(ts);
   return `Le ${day} ${monthCap}, ${time}`;
 }
 
 function fmtConvTime(ts) {
   const d = new Date(ts), h = (Date.now() - d) / 3600000;
-  if (h < 24)  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (h < 24)  return fmtTime(ts);
   if (h < 168) return d.toLocaleDateString([], { weekday: 'short' });
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
@@ -776,16 +776,11 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
                 📚 {userCourseReq.course_title}
               </span>
-              <input
-                type="number" min="0" step="0.01"
-                value={reqAmount}
-                onChange={e => setReqAmount(e.target.value)}
-                placeholder="Montant TND"
-                className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-              />
+              <span className="text-xs font-bold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                {Number(reqAmount || 0).toFixed(2)} TND
+              </span>
               {[
                 { id: 'en_attente', label: '🟡 En attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
-                { id: 'en_cours',   label: '🔵 En cours',   active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
                 { id: 'termine',    label: '🟢 Terminé',    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
               ].map(s => {
                 const active = userCourseReq.payment_status === s.id;
