@@ -103,6 +103,12 @@ async function getNotifLink(n) {
   if (k === 'course_pending') return '/dashboard?tab=courses';
   if (k.startsWith('profile_saved')) return '/dashboard?tab=profile';
   if (k.startsWith('client_profile_saved')) return '/account?tab=profile';
+
+  // ── Proposals workflow ──
+  if (k.startsWith('new_proposal:'))       return '/projects';
+  if (k.startsWith('proposal_accepted:'))  return '/messages';
+  if (k.startsWith('proposal_rejected:'))  return '/dashboard?tab=find-projects';
+
   return '/courses';
 }
 
@@ -157,11 +163,14 @@ function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear,
               >
                 <div className={[
                   "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm",
-                  n.kind === "approved" ? "bg-emerald-100 dark:bg-emerald-900/30" :
-                  n.kind === "rejected" ? "bg-rose-100 dark:bg-rose-900/30" :
+                  n.kind === "approved" || n.kind?.startsWith("proposal_accepted") ? "bg-emerald-100 dark:bg-emerald-900/30" :
+                  n.kind === "rejected" || n.kind?.startsWith("proposal_rejected") ? "bg-rose-100 dark:bg-rose-900/30" :
+                  n.kind?.startsWith("new_proposal") ? "bg-indigo-100 dark:bg-indigo-900/30" :
                   "bg-amber-100 dark:bg-amber-900/30",
                 ].join(" ")}>
-                  {n.kind === "approved" ? "✅" : n.kind === "rejected" ? "❌" : "🔔"}
+                  {n.kind === "approved" || n.kind?.startsWith("proposal_accepted") ? "✅" :
+                   n.kind === "rejected" || n.kind?.startsWith("proposal_rejected") ? "❌" :
+                   n.kind?.startsWith("new_proposal") ? "📩" : "🔔"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-xs font-bold mb-0.5 ${n.read ? "text-slate-700 dark:text-slate-300" : "text-slate-900 dark:text-white"}`}>

@@ -757,16 +757,29 @@ function ProposalModal({ project, onClose, onSubmit }) {
 
 // ── TAB: Mes Missions ─────────────────────────────────────────────────────────
 
+const PROPOSAL_STATUS = {
+  pending:  { label: '🟡 En attente', cls: 'bg-amber-500/10 text-amber-400' },
+  accepted: { label: '✅ Acceptée',   cls: 'bg-emerald-500/10 text-emerald-400' },
+  rejected: { label: '❌ Refusée',    cls: 'bg-rose-500/10 text-rose-400' },
+};
+
 function MissionsTab({ user, users, navigate }) {
   const [missions, setMissions] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [filter, setFilter]     = useState('all');
+  const [proposals, setProposals] = useState([]);
+  const [proposalsLoading, setProposalsLoading] = useState(true);
 
   useEffect(() => {
     fetch(`${API}/projects/assigned/${encodeURIComponent(user.email)}`)
       .then(r => r.json())
       .catch(() => [])
       .then(data => { if (Array.isArray(data)) setMissions(data); setLoading(false); });
+
+    fetch(`${API}/proposals/mine?email=${encodeURIComponent(user.email)}`)
+      .then(r => r.json())
+      .catch(() => [])
+      .then(data => { if (Array.isArray(data)) setProposals(data); setProposalsLoading(false); });
   }, [user.email]);
 
   const getUser = email => (users ?? []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
@@ -820,6 +833,11 @@ function MissionsTab({ user, users, navigate }) {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <StatusPill status={p.status} />
+                        {p.chat_unlocked && (
+                          <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                            🔓 Chat débloqué
+                          </span>
+                        )}
                         <button
                           onClick={() => navigate(`/messages?with=${encodeURIComponent(p.client_email || p.user_email)}`)}
                           className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors whitespace-nowrap"
@@ -827,6 +845,43 @@ function MissionsTab({ user, users, navigate }) {
                           💬 Message
                         </button>
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+        }
+      </div>
+
+      {/* My Proposals */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <SectionHeader icon="📨" title="Mes Propositions" />
+        {proposalsLoading
+          ? [...Array(2)].map((_, i) => <SkeletonRow key={i} />)
+          : proposals.length === 0
+            ? <Empty emoji="📨" text="Vous n'avez envoyé aucune proposition pour le moment" />
+            : (
+              <div className="space-y-3 mt-3">
+                {proposals.map(pr => {
+                  const st = PROPOSAL_STATUS[pr.status] || PROPOSAL_STATUS.pending;
+                  return (
+                    <div key={pr.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                      <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center text-lg shrink-0">
+                        📨
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{pr.project_title}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          <span className="text-emerald-600 font-semibold">{pr.price} TND</span>
+                          <span className="mx-1.5">·</span>
+                          {pr.delivery_days}j de livraison
+                          <span className="mx-1.5">·</span>
+                          {new Date(pr.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short' })}
+                        </p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${st.cls}`}>
+                        {st.label}
+                      </span>
                     </div>
                   );
                 })}
