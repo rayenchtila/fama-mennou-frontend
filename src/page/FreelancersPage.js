@@ -129,7 +129,7 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all duration-300 flex flex-col group">
+      <div className="bg-slate-900 rounded-3xl border border-white/5 overflow-hidden hover:shadow-2xl hover:shadow-brand-violet/10 hover:border-brand-violet/30 hover:-translate-y-1 transition-all duration-300 flex flex-col group">
 
         {/* Cover banner */}
         <div className={`h-20 bg-gradient-to-br ${AVATAR_GRADIENTS[(key?.charCodeAt(0) ?? 0) % AVATAR_GRADIENTS.length]} opacity-80 relative`}>
@@ -343,7 +343,7 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
           <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
             {currentUser && !isOwnCard && (
               <button onClick={() => onMessage(key)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold transition-all shadow-sm shadow-indigo-500/20">
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia hover:shadow-lg hover:shadow-brand-violet/30 text-white text-xs font-bold transition-all">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 Envoyer un message
               </button>
@@ -470,30 +470,31 @@ export default function FreelancersPage() {
   const totalReviews = Object.values(reviews).flat().length;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 overflow-x-hidden">
+    <div className="dark min-h-screen bg-slate-950 overflow-x-hidden">
 
       {/* ── Hero ── */}
-      <div className="relative bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 pt-24 pb-14 px-4 overflow-hidden min-h-[420px] flex flex-col justify-center">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.1),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(139,92,246,0.3),transparent_60%)]" />
+      <div className="relative bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-950 pt-24 pb-14 px-4 overflow-hidden min-h-[420px] flex flex-col justify-center">
+        <div className="absolute -top-32 -right-24 w-96 h-96 bg-brand-violet/30 rounded-full blur-3xl animate-orb-1" />
+        <div className="absolute -bottom-40 -left-20 w-[28rem] h-[28rem] bg-brand-cyan/20 rounded-full blur-3xl animate-orb-2" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(124,58,237,0.15),transparent_60%)]" />
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
+          <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-4 py-1.5 mb-6">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-white/90 text-xs font-semibold">{approvedFreelancers.length} freelancers vérifiés disponibles</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold text-white mb-4 leading-tight tracking-tight">
-            Trouvez le talent<br className="hidden sm:block" /> qu'il vous faut
+            Trouvez le <span className="bg-gradient-to-r from-brand-violet-light to-brand-cyan-light bg-clip-text text-transparent">talent</span><br className="hidden sm:block" /> qu'il vous faut
           </h1>
-          <p className="text-indigo-200 text-sm sm:text-base mb-8 max-w-xl mx-auto leading-relaxed">
+          <p className="text-slate-400 text-sm sm:text-base mb-8 max-w-xl mx-auto leading-relaxed">
             Des freelancers tunisiens vérifiés, prêts à transformer vos projets en réalité.
           </p>
 
           {/* Search bar */}
           <div className="relative max-w-lg mx-auto mb-6">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Rechercher par nom, compétence, région…"
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm bg-white/10 backdrop-blur border border-white/20 text-white placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/15 transition-all" />
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm bg-white/5 backdrop-blur border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-violet focus:bg-white/10 transition-all shadow-xl" />
           </div>
 
           {/* Stats */}
@@ -505,7 +506,7 @@ export default function FreelancersPage() {
             ].map(s => (
               <div key={s.label} className="text-center">
                 <p className="text-2xl font-extrabold text-white">{s.value}</p>
-                <p className="text-[11px] text-indigo-300 font-medium">{s.label}</p>
+                <p className="text-[11px] text-slate-400 font-medium">{s.label}</p>
               </div>
             ))}
           </div>
@@ -513,14 +514,14 @@ export default function FreelancersPage() {
       </div>
 
       {/* ── Filters ── */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20">
+      <div className="bg-slate-900/80 backdrop-blur border-b border-white/5 sticky top-16 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Category scroll */}
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-1.5 py-3 w-max">
               {CATEGORIES.map(cat => (
                 <button key={cat} onClick={() => setCategory(cat)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${category === cat ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${category === cat ? 'bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white shadow-lg shadow-brand-violet/30' : 'text-slate-300 hover:bg-white/5'}`}>
                   {cat}
                 </button>
               ))}
@@ -533,7 +534,7 @@ export default function FreelancersPage() {
               {search ? ` pour "${search}"` : ''}
             </p>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              className="text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-0 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              className="text-xs font-semibold bg-white/5 text-slate-300 border border-white/10 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-violet">
               <option value="rating">Mieux notés</option>
               <option value="name">Par nom</option>
             </select>
