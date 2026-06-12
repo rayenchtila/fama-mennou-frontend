@@ -1024,7 +1024,18 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                   </div>
                                 )}
                                 {/* Text */}
-                                {m.content && <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>}
+                                {m.content && (
+                                  m.flagged ? (
+                                    <span className="block">
+                                      <span className="break-words leading-relaxed whitespace-pre-wrap blur-sm select-none">{m.content}</span>
+                                      <span className="block mt-1 text-[11px] font-bold text-rose-500">
+                                        🔒 Pour votre sécurité, la communication hors plateforme est interdite.
+                                      </span>
+                                    </span>
+                                  ) : (
+                                    <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>
+                                  )
+                                )}
                               </motion.div>
 
                               {/* Time + receipt */}
