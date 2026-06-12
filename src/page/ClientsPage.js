@@ -58,7 +58,7 @@ function ClientCard({ client, reviews, onAddReview, currentUser }) {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-2xl hover:shadow-sky-500/5 hover:-translate-y-1 transition-all duration-300 flex flex-col group">
+    <div className="bg-slate-900 rounded-3xl border border-white/5 overflow-hidden hover:shadow-2xl hover:shadow-brand-cyan/10 hover:border-brand-cyan/30 hover:-translate-y-1 transition-all duration-300 flex flex-col group">
 
       {/* Cover */}
       <div className={`h-20 bg-gradient-to-br ${grad} opacity-80 relative`}>
@@ -167,7 +167,7 @@ function ClientCard({ client, reviews, onAddReview, currentUser }) {
         <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
           {isFreelancer && !isOwnCard && (
             <button onClick={() => navigate(`/messages?with=${encodeURIComponent(client.email)}`)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold transition-all shadow-sm shadow-indigo-500/20">
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-violet hover:shadow-lg hover:shadow-brand-cyan/30 text-white text-xs font-bold transition-all">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
               Envoyer un message
             </button>
@@ -256,30 +256,31 @@ export default function ClientsPage() {
   const totalReviews = Object.values(reviews).flat().length;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 overflow-x-hidden">
+    <div className="dark min-h-screen bg-slate-950 overflow-x-hidden">
 
       {/* ── Hero ── */}
-      <div className="relative bg-gradient-to-br from-sky-600 via-cyan-600 to-teal-600 pt-24 pb-14 px-4 overflow-hidden min-h-[420px] flex flex-col justify-center">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.1),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(6,182,212,0.3),transparent_60%)]" />
+      <div className="relative bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 pt-24 pb-14 px-4 overflow-hidden min-h-[420px] flex flex-col justify-center">
+        <div className="absolute -top-32 -right-24 w-96 h-96 bg-brand-cyan/25 rounded-full blur-3xl animate-orb-1" />
+        <div className="absolute -bottom-40 -left-20 w-[28rem] h-[28rem] bg-brand-violet/20 rounded-full blur-3xl animate-orb-2" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(6,182,212,0.15),transparent_60%)]" />
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
+          <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-4 py-1.5 mb-6">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-white/90 text-xs font-semibold">{approvedClients.length} clients vérifiés disponibles</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold text-white mb-4 leading-tight tracking-tight">
-            Trouvez vos<br className="hidden sm:block" /> prochains clients
+            Trouvez vos <span className="bg-gradient-to-r from-brand-cyan-light to-brand-violet-light bg-clip-text text-transparent">prochains</span><br className="hidden sm:block" /> clients
           </h1>
-          <p className="text-sky-100 text-sm sm:text-base mb-8 max-w-xl mx-auto leading-relaxed">
+          <p className="text-slate-400 text-sm sm:text-base mb-8 max-w-xl mx-auto leading-relaxed">
             Des clients tunisiens vérifiés, à la recherche de freelancers talentueux pour leurs projets.
           </p>
 
           {/* Search */}
           <div className="relative max-w-lg mx-auto mb-6">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-sky-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Rechercher par nom, région…"
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm bg-white/10 backdrop-blur border border-white/20 text-white placeholder-sky-300 focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/15 transition-all" />
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm bg-white/5 backdrop-blur border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:bg-white/10 transition-all shadow-xl" />
           </div>
 
           {/* Stats */}
@@ -291,7 +292,7 @@ export default function ClientsPage() {
             ].map(s => (
               <div key={s.label} className="text-center">
                 <p className="text-2xl font-extrabold text-white">{s.value}</p>
-                <p className="text-[11px] text-sky-200 font-medium">{s.label}</p>
+                <p className="text-[11px] text-slate-400 font-medium">{s.label}</p>
               </div>
             ))}
           </div>
@@ -299,13 +300,13 @@ export default function ClientsPage() {
       </div>
 
       {/* ── Filters ── */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20">
+      <div className="bg-slate-900/80 backdrop-blur border-b border-white/5 sticky top-16 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-1.5 py-3 w-max">
               {INDUSTRIES.map(ind => (
                 <button key={ind} onClick={() => setIndustry(ind)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${industry === ind ? 'bg-sky-600 text-white shadow-sm shadow-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${industry === ind ? 'bg-gradient-to-r from-brand-cyan to-brand-violet text-white shadow-lg shadow-brand-cyan/30' : 'text-slate-300 hover:bg-white/5'}`}>
                   {ind}
                 </button>
               ))}
@@ -317,7 +318,7 @@ export default function ClientsPage() {
               {search ? ` pour "${search}"` : ''}
             </p>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              className="text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-0 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-500">
+              className="text-xs font-semibold bg-white/5 text-slate-300 border border-white/10 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-cyan">
               <option value="rating">Mieux notés</option>
               <option value="name">Par nom</option>
             </select>
