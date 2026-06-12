@@ -448,13 +448,20 @@ function FindProjectsTab({ user, users, navigate }) {
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
   const [sent, setSent]         = useState({});
+  const [myProposals, setMyProposals] = useState([]);
+  const [proposalModal, setProposalModal] = useState(null); // project being proposed to
 
   useEffect(() => {
-    fetch(`${API}/projects/open`)
+    fetch(`${API}/projects/browse/open`)
       .then(r => r.json())
       .catch(() => [])
       .then(data => { if (Array.isArray(data)) setProjects(data); setLoading(false); });
-  }, []);
+
+    fetch(`${API}/proposals/mine?email=${encodeURIComponent(user.email)}`)
+      .then(r => r.json())
+      .catch(() => [])
+      .then(data => { if (Array.isArray(data)) setMyProposals(data); });
+  }, [user.email]);
 
   const getUser = email => (users ?? []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
 
@@ -485,6 +492,28 @@ function FindProjectsTab({ user, users, navigate }) {
       });
     } catch {}
     navigate(`/messages?with=${encodeURIComponent(project.client_email || project.user_email)}`);
+  }
+
+  function hasProposal(projectId) {
+    return myProposals.some(pr => pr.project_id === projectId);
+  }
+
+  async function submitProposal(project, { price, deliveryDays, coverLetter }) {
+    const res = await fetch(`${API}/proposals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        projectId: project.id,
+        freelancerEmail: user.email,
+        price,
+        deliveryDays,
+        coverLetter,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur lors de l\'envoi');
+    setMyProposals(list => [...list, data]);
+    return data;
   }
 
   return (
@@ -546,11 +575,11 @@ function FindProjectsTab({ user, users, navigate }) {
 
                     <div className="flex gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
                       <button
-                        onClick={() => handleApply(p)}
-                        disabled={sent[applyKey]}
+                        onClick={() => setProposalModal(p)}
+                        disabled={hasProposal(p.id)}
                         className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors disabled:opacity-60"
                       >
-                        {sent[applyKey] ? '✅ Postulé' : '✉️ Postuler'}
+                        {hasProposal(p.id) ? '✅ Proposition envoyée' : '📩 Envoyer une proposition'}
                       </button>
                       <button
                         onClick={() => handleContact(p.client_email || p.user_email, p.id)}
@@ -565,6 +594,110 @@ function FindProjectsTab({ user, users, navigate }) {
             </div>
           )
       }
+
+      {proposalModal && (
+        <ProposalModal
+          project={proposalModal}
+          onClose={() => setProposalModal(null)}
+          onSubmit={submitProposal}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Modal: Envoyer une proposition ────────────────────────────────────────────
+
+function ProposalModal({ project, onClose, onSubmit }) {
+  const [price, setPrice] = useState(project.budget || '');
+  const [deliveryDays, setDeliveryDays] = useState('');
+  const [coverLetter, setCoverLetter] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!price || !deliveryDays) {
+      setError('Le prix et le délai sont requis.');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      await onSubmit(project, { price: Number(price), deliveryDays: Number(deliveryDays), coverLetter });
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de l\'envoi de la proposition.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl w-full max-w-md p-6 space-y-4"
+        onClick={e => e.stopPropagation()}
+      >
+        <div>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">📩 Envoyer une proposition</h3>
+          <p className="text-xs text-slate-400 mt-0.5 truncate">{project.title}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Votre prix (TND)</label>
+            <input
+              type="number"
+              min="1"
+              step="0.01"
+              value={price}
+              onChange={e => setPrice(e.target.value)}
+              className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Délai de livraison (jours)</label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={deliveryDays}
+              onChange={e => setDeliveryDays(e.target.value)}
+              className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Lettre de motivation (optionnel)</label>
+            <textarea
+              rows={4}
+              value={coverLetter}
+              onChange={e => setCoverLetter(e.target.value)}
+              placeholder="Expliquez pourquoi vous êtes le bon choix pour ce projet…"
+              className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            />
+          </div>
+
+          {error && <p className="text-xs text-rose-500 font-semibold">{error}</p>}
+
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors disabled:opacity-60"
+            >
+              {submitting ? 'Envoi…' : 'Envoyer'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
