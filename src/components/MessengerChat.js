@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 
 const API          = 'https://famamennou-server.onrender.com/api';
 const ADMIN_EMAIL  = 'admin@famamennou.com';
@@ -190,7 +191,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
   useEffect(() => {
     loadConvs();
-    convPollRef.current = setInterval(loadConvs, 10000);
+    convPollRef.current = setInterval(loadConvs, 60000);
     return () => clearInterval(convPollRef.current);
   }, [loadConvs]);
 
@@ -228,9 +229,23 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     if (!selectedChat) { setMessages([]); return; }
     loadMsgs(selectedChat);
     clearInterval(msgPollRef.current);
-    msgPollRef.current = setInterval(() => loadMsgs(selectedChat), 6000);
+    msgPollRef.current = setInterval(() => loadMsgs(selectedChat), 60000);
     return () => clearInterval(msgPollRef.current);
   }, [selectedChat, loadMsgs]);
+
+  // Realtime: instant updates for new messages, conversation list, and typing
+  useRealtimeChannel(senderEmail, {
+    new_message: useCallback(() => {
+      loadConvs();
+      if (selectedChat) loadMsgs(selectedChat);
+    }, [loadConvs, loadMsgs, selectedChat]),
+    typing: useCallback((payload) => {
+      if (payload?.from === selectedChat) setOtherTyping(true);
+    }, [selectedChat]),
+    'stop-typing': useCallback((payload) => {
+      if (payload?.from === selectedChat) setOtherTyping(false);
+    }, [selectedChat]),
+  });
 
   // Scroll: always jump instantly to last message — no visible scroll animation ever
   const isInitialLoad = useRef(true);
@@ -279,11 +294,13 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     try {
       await fetch(`${API}/messages/stop-typing`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: senderEmail }),
+        body: JSON.stringify({ from: senderEmail, to: selectedChat }),
       });
     } catch {}
-  }, [senderEmail]);
+  }, [senderEmail, selectedChat]);
 
+  // Typing indicator now arrives via realtime broadcast (see useRealtimeChannel below);
+  // this poll is just a fallback in case the socket misses an event.
   useEffect(() => {
     if (!selectedChat) { setOtherTyping(false); return; }
     const poll = async () => {
@@ -295,7 +312,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
       } catch {}
     };
     poll();
-    typingPollRef.current = setInterval(poll, 4000);
+    typingPollRef.current = setInterval(poll, 15000);
     return () => clearInterval(typingPollRef.current);
   }, [selectedChat, senderEmail]);
 

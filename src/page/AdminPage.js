@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import MessengerChat from "../components/MessengerChat";
+import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -687,7 +688,7 @@ function AdminChatPanel({ allUsers }) {
 
   React.useEffect(() => {
     fetchConvs();
-    convsPollRef.current = setInterval(fetchConvs, 10000);
+    convsPollRef.current = setInterval(fetchConvs, 60000);
     return () => clearInterval(convsPollRef.current);
   }, [fetchConvs]);
 
@@ -704,9 +705,17 @@ function AdminChatPanel({ allUsers }) {
     if (!selectedEmail) return;
     fetchMsgs(selectedEmail);
     clearInterval(msgsPollRef.current);
-    msgsPollRef.current = setInterval(() => fetchMsgs(selectedEmail), 6000);
+    msgsPollRef.current = setInterval(() => fetchMsgs(selectedEmail), 60000);
     return () => clearInterval(msgsPollRef.current);
   }, [selectedEmail, fetchMsgs]);
+
+  // Realtime: instant updates for new messages / conversation list
+  useRealtimeChannel(ADMIN_EMAIL, {
+    new_message: React.useCallback(() => {
+      fetchConvs();
+      if (selectedEmail) fetchMsgs(selectedEmail);
+    }, [fetchConvs, fetchMsgs, selectedEmail]),
+  });
 
   // ── Latest pending/active course purchase request for this conversation ──────
   const fetchUserCourseReq = React.useCallback(async (email) => {

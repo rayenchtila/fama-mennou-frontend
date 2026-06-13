@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -122,7 +123,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
 
   useEffect(() => {
     fetchConvs();
-    convPollRef.current = setInterval(fetchConvs, 10000);
+    convPollRef.current = setInterval(fetchConvs, 60000);
     return () => clearInterval(convPollRef.current);
   }, [fetchConvs]);
 
@@ -139,9 +140,17 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
     if (!selectedChat) return;
     fetchMsgs(selectedChat);
     clearInterval(msgPollRef.current);
-    msgPollRef.current = setInterval(() => fetchMsgs(selectedChat), 6000);
+    msgPollRef.current = setInterval(() => fetchMsgs(selectedChat), 60000);
     return () => clearInterval(msgPollRef.current);
   }, [selectedChat, fetchMsgs]);
+
+  // Realtime: instant updates for new messages / conversation list
+  useRealtimeChannel(user?.email, {
+    new_message: useCallback(() => {
+      fetchConvs();
+      if (selectedChat) fetchMsgs(selectedChat);
+    }, [fetchConvs, fetchMsgs, selectedChat]),
+  });
 
   // Scroll to bottom
   useEffect(() => {

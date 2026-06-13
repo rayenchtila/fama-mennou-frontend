@@ -1,11 +1,12 @@
 // src/components/Navbar.js
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./Button";
 import Searchbar from "./Searchbar";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 
 
 const MotionLink = motion(Link);
@@ -350,33 +351,43 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
   const { user, logout, getUserNotifications, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchNotifications } = useAuth();
   const profileRef     = useRef(null);
 
-  // Poll notifications periodically so new ones appear automatically
+  // Poll notifications periodically (fallback — realtime broadcast covers most updates)
   useEffect(() => {
     if (!user) return;
-    const id = setInterval(() => { fetchNotifications(); }, 20000);
+    fetchNotifications();
+    const id = setInterval(() => { fetchNotifications(); }, 60000);
     return () => clearInterval(id);
   }, [user, fetchNotifications]);
 
-  // Poll message conversations (unread count + full list for panel) periodically
+  const senderEmail = user ? (user.isAdmin ? 'admin@famamennou.com' : user.email) : null;
+
+  const fetchMsgs = useCallback(async () => {
+    if (!senderEmail) return;
+    try {
+      const url = user.isAdmin
+        ? 'https://famamennou-server.onrender.com/api/messages/admin/conversations'
+        : `https://famamennou-server.onrender.com/api/messages/conversations/${encodeURIComponent(senderEmail)}`;
+      const data = await fetch(url).then(r => r.json());
+      if (Array.isArray(data)) {
+        setMsgConversations(data);
+        setMsgUnread(data.reduce((s, c) => s + (Number(c.unread_count) || 0), 0));
+      }
+    } catch {}
+  }, [senderEmail, user]);
+
+  // Poll message conversations (unread count + full list for panel) — fallback only
   useEffect(() => {
-    if (!user) return;
-    const senderEmail = user.isAdmin ? 'admin@famamennou.com' : user.email;
-    const fetchMsgs = async () => {
-      try {
-        const url = user.isAdmin
-          ? 'https://famamennou-server.onrender.com/api/messages/admin/conversations'
-          : `https://famamennou-server.onrender.com/api/messages/conversations/${encodeURIComponent(senderEmail)}`;
-        const data = await fetch(url).then(r => r.json());
-        if (Array.isArray(data)) {
-          setMsgConversations(data);
-          setMsgUnread(data.reduce((s, c) => s + (Number(c.unread_count) || 0), 0));
-        }
-      } catch {}
-    };
+    if (!senderEmail) return;
     fetchMsgs();
-    const id = setInterval(fetchMsgs, 15000);
+    const id = setInterval(fetchMsgs, 60000);
     return () => clearInterval(id);
-  }, [user]);
+  }, [senderEmail, fetchMsgs]);
+
+  // Realtime: refresh instantly when a new message/notification is broadcast
+  useRealtimeChannel(senderEmail, {
+    new_message: fetchMsgs,
+    new_notification: fetchNotifications,
+  });
 
   // Get user notifications (only for logged-in non-admin users)
   const userNotifications = (user && !user.isAdmin) ? getUserNotifications(user.email) : [];
