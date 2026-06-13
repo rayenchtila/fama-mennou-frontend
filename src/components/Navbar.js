@@ -350,14 +350,14 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
   const { user, logout, getUserNotifications, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchNotifications } = useAuth();
   const profileRef     = useRef(null);
 
-  // Poll notifications every 8 seconds so new ones appear automatically
+  // Poll notifications periodically so new ones appear automatically
   useEffect(() => {
     if (!user) return;
-    const id = setInterval(() => { fetchNotifications(); }, 8000);
+    const id = setInterval(() => { fetchNotifications(); }, 20000);
     return () => clearInterval(id);
   }, [user, fetchNotifications]);
 
-  // Poll message conversations (unread count + full list for panel) every 5 seconds
+  // Poll message conversations (unread count + full list for panel) periodically
   useEffect(() => {
     if (!user) return;
     const senderEmail = user.isAdmin ? 'admin@famamennou.com' : user.email;
@@ -374,7 +374,7 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
       } catch {}
     };
     fetchMsgs();
-    const id = setInterval(fetchMsgs, 5000);
+    const id = setInterval(fetchMsgs, 15000);
     return () => clearInterval(id);
   }, [user]);
 

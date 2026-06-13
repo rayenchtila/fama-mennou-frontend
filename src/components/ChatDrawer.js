@@ -122,7 +122,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
 
   useEffect(() => {
     fetchConvs();
-    convPollRef.current = setInterval(fetchConvs, 3000);
+    convPollRef.current = setInterval(fetchConvs, 10000);
     return () => clearInterval(convPollRef.current);
   }, [fetchConvs]);
 
@@ -139,7 +139,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
     if (!selectedChat) return;
     fetchMsgs(selectedChat);
     clearInterval(msgPollRef.current);
-    msgPollRef.current = setInterval(() => fetchMsgs(selectedChat), 3000);
+    msgPollRef.current = setInterval(() => fetchMsgs(selectedChat), 6000);
     return () => clearInterval(msgPollRef.current);
   }, [selectedChat, fetchMsgs]);
 

@@ -190,7 +190,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
   useEffect(() => {
     loadConvs();
-    convPollRef.current = setInterval(loadConvs, 4000);
+    convPollRef.current = setInterval(loadConvs, 10000);
     return () => clearInterval(convPollRef.current);
   }, [loadConvs]);
 
@@ -228,7 +228,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     if (!selectedChat) { setMessages([]); return; }
     loadMsgs(selectedChat);
     clearInterval(msgPollRef.current);
-    msgPollRef.current = setInterval(() => loadMsgs(selectedChat), 3000);
+    msgPollRef.current = setInterval(() => loadMsgs(selectedChat), 6000);
     return () => clearInterval(msgPollRef.current);
   }, [selectedChat, loadMsgs]);
 
@@ -295,7 +295,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
       } catch {}
     };
     poll();
-    typingPollRef.current = setInterval(poll, 2000);
+    typingPollRef.current = setInterval(poll, 4000);
     return () => clearInterval(typingPollRef.current);
   }, [selectedChat, senderEmail]);
 

@@ -687,7 +687,7 @@ function AdminChatPanel({ allUsers }) {
 
   React.useEffect(() => {
     fetchConvs();
-    convsPollRef.current = setInterval(fetchConvs, 4000);
+    convsPollRef.current = setInterval(fetchConvs, 10000);
     return () => clearInterval(convsPollRef.current);
   }, [fetchConvs]);
 
@@ -704,7 +704,7 @@ function AdminChatPanel({ allUsers }) {
     if (!selectedEmail) return;
     fetchMsgs(selectedEmail);
     clearInterval(msgsPollRef.current);
-    msgsPollRef.current = setInterval(() => fetchMsgs(selectedEmail), 3000);
+    msgsPollRef.current = setInterval(() => fetchMsgs(selectedEmail), 6000);
     return () => clearInterval(msgsPollRef.current);
   }, [selectedEmail, fetchMsgs]);
 
