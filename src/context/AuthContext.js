@@ -1,5 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 const AuthContext = createContext(null);
 const API = "https://famamennou-server.onrender.com/api";
@@ -87,6 +88,18 @@ export function AuthProvider({ children }) {
     fetchAccounts();
     fetchNotifications();
   }, [fetchAccounts, fetchNotifications]);
+
+  // Realtime: refetch notifications whenever a row changes in the table
+  // (replaces all setInterval-based notification polling).
+  useEffect(() => {
+    const channel = supabase
+      .channel('notifications-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+        fetchNotifications();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchNotifications]);
 
   // ── Ping last_seen every 60s so other users see online status ──
   useEffect(() => {

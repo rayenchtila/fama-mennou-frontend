@@ -106,11 +106,9 @@ export default function ClientDashboard() {
   const [loading, setLoading]         = useState(true);
   const [notifOpen, setNotifOpen]     = useState(false);
 
-  // Fetch notifications on mount and poll every 30s
+  // Notifications are fetched on mount and kept fresh via Realtime (AuthContext)
   useEffect(() => {
     fetchNotifications();
-    const id = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -351,12 +351,10 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
   const { user, logout, getUserNotifications, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchNotifications } = useAuth();
   const profileRef     = useRef(null);
 
-  // Poll notifications periodically (fallback — realtime broadcast covers most updates)
+  // Notifications are kept fresh via Realtime postgres_changes (AuthContext)
   useEffect(() => {
     if (!user) return;
     fetchNotifications();
-    const id = setInterval(() => { fetchNotifications(); }, 60000);
-    return () => clearInterval(id);
   }, [user, fetchNotifications]);
 
   const senderEmail = user ? (user.isAdmin ? 'admin@famamennou.com' : user.email) : null;
@@ -383,10 +381,10 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
     return () => clearInterval(id);
   }, [senderEmail, fetchMsgs]);
 
-  // Realtime: refresh instantly when a new message/notification is broadcast
+  // Realtime: refresh instantly when a new message is broadcast
+  // (notifications are handled by postgres_changes in AuthContext)
   useRealtimeChannel(senderEmail, {
     new_message: fetchMsgs,
-    new_notification: fetchNotifications,
   });
 
   // Get user notifications (only for logged-in non-admin users)
