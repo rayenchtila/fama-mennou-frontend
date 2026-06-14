@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CreateCourseModal from '../components/CreateCourseModal';
+import { cldImg } from '../utils/cloudinary';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -38,7 +39,7 @@ function CourseCard({ course, onClick }) {
       className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-left group w-full">
       <div className="relative aspect-video bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30 overflow-hidden">
         {course.thumbnail_url
-          ? <img src={course.thumbnail_url} alt={course.title}
+          ? <img src={cldImg(course.thumbnail_url)} alt={course.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           : <div className="w-full h-full flex items-center justify-center text-5xl">📚</div>
         }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
+import { cldImg } from '../utils/cloudinary';
 
 const API          = 'https://famamennou-server.onrender.com/api';
 const ADMIN_EMAIL  = 'admin@famamennou.com';
@@ -48,7 +49,7 @@ function UserAvatar({ user, size = 'md', online }) {
   return (
     <div className="relative shrink-0">
       {user?.photo
-        ? <img src={user.photo} alt={user?.name || ''} className={`${sz} rounded-full object-cover`} />
+        ? <img src={cldImg(user.photo)} alt={user?.name || ''} className={`${sz} rounded-full object-cover`} />
         : <div className={`${sz} ${avatarColor(user?.email)} rounded-full flex items-center justify-center text-white font-bold`}>
             {(user?.name || user?.email || '?').slice(0, 2).toUpperCase()}
           </div>
@@ -980,7 +981,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                             <div className="flex flex-col gap-2 min-w-[200px]" onClick={e => e.stopPropagation()}>
                               {m.attachment_url && (
                                 <div className="relative w-fit">
-                                  <img src={editStagedFile?.previewUrl || m.attachment_url} alt="" className="w-28 h-28 object-cover rounded-xl" />
+                                  <img src={editStagedFile?.previewUrl || cldImg(m.attachment_url)} alt="" className="w-28 h-28 object-cover rounded-xl" />
                                   <button onClick={() => editFileRef.current?.click()}
                                     className="absolute bottom-1 right-1 bg-black/65 hover:bg-black/80 text-white text-xs rounded-lg px-2 py-0.5 transition-colors">
                                     Replace
@@ -1031,7 +1032,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 {/* Image */}
                                 {m.attachment_url && (
                                   <div className="relative w-fit">
-                                    <img src={m.attachment_url} alt="Photo"
+                                    <img src={cldImg(m.attachment_url)} alt="Photo"
                                       className={`max-w-[220px] sm:max-w-[260px] w-full object-cover rounded-xl block cursor-zoom-in ${m.content ? 'mb-2' : ''}`}
                                       onClick={e => { e.stopPropagation(); setViewerSrc(m.attachment_url); }}
                                     />
@@ -1204,7 +1205,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 {/* Preview of what's being forwarded */}
                 <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 shrink-0">
                   {forwardMsg.attachment_url && (
-                    <img src={forwardMsg.attachment_url} alt="" className="w-12 h-12 object-cover rounded-lg mb-1"/>
+                    <img src={cldImg(forwardMsg.attachment_url)} alt="" className="w-12 h-12 object-cover rounded-lg mb-1"/>
                   )}
                   {forwardMsg.content && (
                     <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{forwardMsg.content}</p>
@@ -1242,7 +1243,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                       <button key={u.email} onClick={() => forwardTo(u.email)}
                         className="flex items-center gap-3 w-full px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
                         {u.photo
-                          ? <img src={u.photo} alt="" className="w-10 h-10 rounded-full object-cover shrink-0"/>
+                          ? <img src={cldImg(u.photo)} alt="" className="w-10 h-10 rounded-full object-cover shrink-0"/>
                           : <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
                               style={{ background: `hsl(${[...u.email].reduce((a,c)=>a+c.charCodeAt(0),0)%360},55%,50%)` }}>
                               {u.name[0]?.toUpperCase()}

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { cldImg } from '../utils/cloudinary';
 
 const AVATAR_COLORS = ['bg-indigo-500','bg-emerald-500','bg-rose-500','bg-amber-500','bg-sky-500','bg-fuchsia-500'];
 
@@ -40,7 +41,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-5 mb-6">
             <div className="relative group cursor-pointer" onClick={() => fileRef.current?.click()}>
               {user.photo ? (
-                <img src={user.photo} alt={user.name} className="w-20 h-20 rounded-2xl object-cover shadow-md" />
+                <img src={cldImg(user.photo)} alt={user.name} className="w-20 h-20 rounded-2xl object-cover shadow-md" />
               ) : (
                 <div className={`w-20 h-20 rounded-2xl ${color} flex items-center justify-center text-white text-2xl font-bold shadow-md`}>
                   {user.name?.slice(0, 2).toUpperCase()}

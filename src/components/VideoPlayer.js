@@ -3,6 +3,7 @@
 // Optimized for: slow internet, mobile, buffering, autoplay policies
 
 import { useRef, useState, useEffect } from 'react';
+import { cldVideo } from '../utils/cloudinary';
 
 export default function VideoPlayer({ url, title = '', autoPlay = false, className = '' }) {
   const videoRef  = useRef(null);
@@ -123,7 +124,7 @@ export default function VideoPlayer({ url, title = '', autoPlay = false, classNa
         )}
         <video
           className="w-full h-full"
-          src={url}
+          src={cldVideo(url)}
           controls
           playsInline
           preload="metadata"

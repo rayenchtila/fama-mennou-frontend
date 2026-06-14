@@ -7,6 +7,7 @@ import Searchbar from "./Searchbar";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
+import { cldImg } from "../utils/cloudinary";
 
 
 const MotionLink = motion(Link);
@@ -282,7 +283,7 @@ function MessagesPanel({ conversations, senderEmail, isAdmin, onClose, onChatOpe
                   {/* Avatar with unread badge */}
                   <div className="relative shrink-0">
                     {photo
-                      ? <img src={photo} alt={name} className="w-10 h-10 rounded-full object-cover" />
+                      ? <img src={cldImg(photo)} alt={name} className="w-10 h-10 rounded-full object-cover" />
                       : <div className={`w-10 h-10 ${msgAvatarColor(email)} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
                           {(name || '?').slice(0, 2).toUpperCase()}
                         </div>

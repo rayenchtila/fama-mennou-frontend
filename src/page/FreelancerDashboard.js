@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { uploadVideo, uploadImage, warmVideoUpload } from '../utils/upload';
+import { cldImg } from '../utils/cloudinary';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -37,7 +38,7 @@ function getInitials(name = '') {
 function Avi({ user, size = 'md' }) {
   const sz = size === 'lg' ? 'w-14 h-14 text-lg' : size === 'md' ? 'w-10 h-10 text-sm' : 'w-8 h-8 text-xs';
   if (user?.photo)
-    return <img src={user.photo} alt={user.name} className={`${sz} rounded-2xl object-cover shrink-0`} />;
+    return <img src={cldImg(user.photo)} alt={user.name} className={`${sz} rounded-2xl object-cover shrink-0`} />;
   return (
     <div className={`${sz} rounded-2xl bg-gradient-to-br ${getGradient(user?.email)} flex items-center justify-center text-white font-bold shrink-0`}>
       {getInitials(user?.name || user?.email || '?')}
@@ -191,7 +192,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
       <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex items-center gap-4">
         <div className="relative shrink-0 group cursor-pointer" onClick={() => photoRef.current?.click()}>
           <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getGradient(user.email)} flex items-center justify-center text-white text-xl font-bold overflow-hidden`}>
-            {photo ? <img src={photo} alt="" className="w-16 h-16 object-cover" onError={e=>{e.target.style.display='none'}} /> : getInitials(user.name||user.email)}
+            {photo ? <img src={cldImg(photo)} alt="" className="w-16 h-16 object-cover" onError={e=>{e.target.style.display='none'}} /> : getInitials(user.name||user.email)}
           </div>
           <div className="absolute inset-0 rounded-xl bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -310,7 +311,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
           <div className="flex items-center gap-4">
             <div className="relative">
               {user.photo
-                ? <img src={user.photo} alt={user.name} className="w-14 h-14 rounded-2xl object-cover shadow-md" />
+                ? <img src={cldImg(user.photo)} alt={user.name} className="w-14 h-14 rounded-2xl object-cover shadow-md" />
                 : <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getGradient(user.email)} flex items-center justify-center text-white text-lg font-bold shadow-md`}>{getInitials(user.name)}</div>
               }
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900" />
@@ -1260,7 +1261,7 @@ function CoursesTab({ user }) {
                 {/* Top row: thumbnail + info */}
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 rounded-xl overflow-hidden bg-indigo-100 dark:bg-indigo-900/30 shrink-0 flex items-center justify-center text-xl">
-                    {course.thumbnail_url ? <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" /> : '📚'}
+                    {course.thumbnail_url ? <img src={cldImg(course.thumbnail_url)} alt="" className="w-full h-full object-cover" /> : '📚'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight break-words">{course.title}</p>

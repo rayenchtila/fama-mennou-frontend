@@ -1,6 +1,7 @@
 // components/CourseCard.jsx
 import Badge from "./Badge";
 import Button from "./Button";
+import { cldImg } from "../utils/cloudinary";
 const LEVEL_COLOR = { Beginner: "emerald", Intermediate: "amber", Advanced: "rose" };
  
 function Stars({ value }) {
@@ -27,7 +28,7 @@ export default function CourseCard({ title, author, price, category, students, r
         onClick={() => onPreview?.(course)}
       >
         {thumbnail ? (
-          <img src={thumbnail} alt={title} className="w-full h-full object-cover" />
+          <img src={cldImg(thumbnail)} alt={title} className="w-full h-full object-cover" />
         ) : (
           <span className="transform group-hover:scale-110 transition-transform duration-300">{img || "📚"}</span>
         )}

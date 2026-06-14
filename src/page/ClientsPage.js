@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { cldImg } from '../utils/cloudinary';
 
 const API = "https://famamennou-server.onrender.com/api";
 
@@ -75,7 +76,7 @@ function ClientCard({ client, reviews, onAddReview, currentUser }) {
       <div className="px-5 pb-0 -mt-8 flex items-end justify-between">
         <div className="w-16 h-16 rounded-2xl ring-4 ring-white dark:ring-slate-900 shadow-lg relative">
           {client.photo
-            ? <img src={client.photo} alt={client.name} className="w-full h-full object-cover rounded-2xl" />
+            ? <img src={cldImg(client.photo)} alt={client.name} className="w-full h-full object-cover rounded-2xl" />
             : <div className={`w-full h-full rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold text-lg`}>{client.name?.slice(0, 2).toUpperCase()}</div>
           }
         </div>

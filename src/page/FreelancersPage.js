@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ChatDrawer from '../components/ChatDrawer';
+import { cldImg } from '../utils/cloudinary';
 
 const API = "https://famamennou-server.onrender.com/api";
 
@@ -45,7 +46,7 @@ function Stars({ value, onChange, readonly = false, size = 'md' }) {
 function Avatar({ user: u, size = 'lg' }) {
   const sz = size === 'lg' ? 'w-16 h-16 text-lg' : size === 'md' ? 'w-10 h-10 text-sm' : 'w-7 h-7 text-[10px]';
   const grad = AVATAR_GRADIENTS[(u?.email?.charCodeAt(0) ?? 0) % AVATAR_GRADIENTS.length];
-  if (u?.photo) return <img src={u.photo} alt={u.name} className={`${sz} rounded-2xl object-cover`} />;
+  if (u?.photo) return <img src={cldImg(u.photo)} alt={u.name} className={`${sz} rounded-2xl object-cover`} />;
   return (
     <div className={`${sz} rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold shrink-0`}>
       {u?.name?.slice(0, 2).toUpperCase()}
@@ -122,7 +123,7 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
     <>
       {lightboxImg && (
         <div className="fixed inset-0 z-[300] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setLightboxImg(null)}>
-          <img src={lightboxImg} alt="portfolio" className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl" />
+          <img src={cldImg(lightboxImg)} alt="portfolio" className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl" />
           <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
@@ -207,7 +208,7 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
               {portfolio.filter(i => i.type === 'image').slice(0, 3).map((item, idx) => (
                 <button key={idx} onClick={() => setLightboxImg(item.data)}
                   className="w-14 h-10 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700 hover:scale-105 transition-transform shrink-0">
-                  <img src={item.data} alt="" className="w-full h-full object-cover" />
+                  <img src={cldImg(item.data)} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
               {portfolio.filter(i => i.type === 'image').length > 3 && (
@@ -265,7 +266,7 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
                       <div key={idx} className="flex items-center gap-2 group/p p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         {item.type === 'image' && (
                           <button onClick={() => setLightboxImg(item.data)} className="flex-1 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 hover:text-indigo-600 text-left">
-                            <img src={item.data} alt="" className="w-8 h-6 object-cover rounded" />
+                            <img src={cldImg(item.data)} alt="" className="w-8 h-6 object-cover rounded" />
                             <span className="truncate">{item.label || 'Image'}</span>
                           </button>
                         )}
@@ -303,7 +304,7 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
                           <div className="flex items-center gap-2 mb-1.5">
                             <div className="shrink-0">
                               {reviewer?.photo
-                                ? <img src={reviewer.photo} alt={r.clientName} className="w-6 h-6 rounded-full object-cover" />
+                                ? <img src={cldImg(reviewer.photo)} alt={r.clientName} className="w-6 h-6 rounded-full object-cover" />
                                 : <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-white text-[9px] font-bold">{r.clientName?.slice(0,2).toUpperCase()}</div>
                               }
                             </div>

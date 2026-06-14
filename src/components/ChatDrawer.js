@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { supabase } from '../lib/supabaseClient';
+import { cldImg } from '../utils/cloudinary';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -39,7 +40,7 @@ function Avi({ user, size = 'md', online }) {
   return (
     <div className="relative shrink-0">
       {user?.photo
-        ? <img src={user.photo} alt={user?.name} className={`${sz} rounded-xl object-cover`} />
+        ? <img src={cldImg(user.photo)} alt={user?.name} className={`${sz} rounded-xl object-cover`} />
         : <div className={`${sz} ${col} rounded-xl flex items-center justify-center text-white font-bold`}>
             {(user?.name || user?.email || '?').slice(0, 2).toUpperCase()}
           </div>

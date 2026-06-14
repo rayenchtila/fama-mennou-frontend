@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { uploadVideo, warmVideoUpload } from '../utils/upload';
+import { cldImg } from '../utils/cloudinary';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -352,7 +353,7 @@ export default function CourseDetailPage() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
                 {course.instructor_photo
-                  ? <img src={course.instructor_photo} alt="" className="w-full h-full object-cover" />
+                  ? <img src={cldImg(course.instructor_photo)} alt="" className="w-full h-full object-cover" />
                   : (course.instructor_name || '?')[0].toUpperCase()}
               </div>
               <div>
@@ -366,7 +367,7 @@ export default function CourseDetailPage() {
           <div className="w-full lg:w-80 shrink-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
             {course.thumbnail_url && (
               <div className="aspect-video overflow-hidden">
-                <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                <img src={cldImg(course.thumbnail_url)} alt="" className="w-full h-full object-cover" />
               </div>
             )}
             <div className="p-5">
@@ -750,7 +751,7 @@ export default function CourseDetailPage() {
               <div key={r.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 flex gap-4">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
                   {r.reviewer_photo
-                    ? <img src={r.reviewer_photo} alt="" className="w-full h-full object-cover" />
+                    ? <img src={cldImg(r.reviewer_photo)} alt="" className="w-full h-full object-cover" />
                     : (r.reviewer_name || r.reviewer_email || '?')[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">

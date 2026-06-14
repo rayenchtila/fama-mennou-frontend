@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import MessengerChat from "../components/MessengerChat";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 import { supabase } from "../lib/supabaseClient";
+import { cldImg, cldVideo } from "../utils/cloudinary";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -603,7 +604,7 @@ function CourseVideoPlayer({ url }) {
     const vid = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
     return <iframe className="w-full aspect-video rounded-xl" src={`https://www.youtube.com/embed/${vid}?rel=0`} allowFullScreen title="video" />;
   }
-  if (isURL || isB64 || isBlob) return <video className="w-full aspect-video rounded-xl bg-black" src={url} controls playsInline />;
+  if (isURL || isB64 || isBlob) return <video className="w-full aspect-video rounded-xl bg-black" src={cldVideo(url)} controls playsInline />;
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800">
       <p className="text-xs text-slate-500 dark:text-slate-400 truncate">📎 Lien non lisible — utilisez YouTube ou Mux</p>
@@ -634,7 +635,7 @@ function ChatAvatar({ name, email, photo, size = 'md', online }) {
   return (
     <div className="relative shrink-0">
       {photo
-        ? <img src={photo} alt={name} className={`${sz} rounded-xl object-cover`} />
+        ? <img src={cldImg(photo)} alt={name} className={`${sz} rounded-xl object-cover`} />
         : <div className={`${sz} ${chatAvatarColor(email)} rounded-xl flex items-center justify-center text-white font-bold`}>
             {(name || email)?.slice(0,2).toUpperCase()}
           </div>
@@ -2056,7 +2057,7 @@ export default function AdminPage() {
                           {/* Thumbnail */}
                           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-indigo-100 dark:bg-indigo-900/30 shrink-0 flex items-center justify-center text-2xl">
                             {course.thumbnail_url
-                              ? <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                              ? <img src={cldImg(course.thumbnail_url)} alt="" className="w-full h-full object-cover" />
                               : '📚'}
                           </div>
 
@@ -2144,7 +2145,7 @@ export default function AdminPage() {
                                   <p className="text-xs font-bold text-slate-700 dark:text-slate-300 px-1">📽 Vidéo du cours</p>
                                   <CourseVideoPlayer url={course.video_url} />
                                   {course.photo_url && (
-                                    <img src={course.photo_url} alt="cover" className="w-full h-32 object-cover rounded-xl border border-slate-200 dark:border-slate-700 mt-1" />
+                                    <img src={cldImg(course.photo_url)} alt="cover" className="w-full h-32 object-cover rounded-xl border border-slate-200 dark:border-slate-700 mt-1" />
                                   )}
                                 </div>
                               )}
@@ -2345,7 +2346,7 @@ export default function AdminPage() {
                   <div className="p-4 sm:p-5">
                     <div className="flex items-start gap-3 sm:gap-4">
                       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-indigo-100 dark:bg-indigo-900/30 shrink-0 flex items-center justify-center text-2xl">
-                        {course.thumbnail_url ? <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" /> : '📚'}
+                        {course.thumbnail_url ? <img src={cldImg(course.thumbnail_url)} alt="" className="w-full h-full object-cover" /> : '📚'}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -2390,7 +2391,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl flex items-center justify-center text-xl shrink-0">
-                  {accessModal.course?.thumbnail_url ? <img src={accessModal.course.thumbnail_url} alt="" className="w-full h-full object-cover rounded-xl" /> : '📚'}
+                  {accessModal.course?.thumbnail_url ? <img src={cldImg(accessModal.course.thumbnail_url)} alt="" className="w-full h-full object-cover rounded-xl" /> : '📚'}
                 </div>
                 <div>
                   <p className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{accessModal.course?.title}</p>
@@ -2534,7 +2535,7 @@ export default function AdminPage() {
                         <div className="flex items-center gap-3 px-4 py-3">
                           <div className="w-10 h-10 shrink-0">
                             {searchSelectedUser.photo
-                              ? <img src={searchSelectedUser.photo} alt="" className="w-10 h-10 rounded-xl object-cover" />
+                              ? <img src={cldImg(searchSelectedUser.photo)} alt="" className="w-10 h-10 rounded-xl object-cover" />
                               : <Avatar name={searchSelectedUser.name} />}
                           </div>
                           <div className="flex-1 min-w-0">

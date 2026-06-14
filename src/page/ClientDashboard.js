@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { cldImg } from '../utils/cloudinary';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -24,7 +25,7 @@ function getInitials(name = '') {
 
 function MiniAvatar({ user, size = 'sm' }) {
   const sz = size === 'md' ? 'w-10 h-10 text-sm' : 'w-8 h-8 text-xs';
-  if (user?.photo) return <img src={user.photo} alt={user?.name} className={`${sz} rounded-xl object-cover shrink-0`} />;
+  if (user?.photo) return <img src={cldImg(user.photo)} alt={user?.name} className={`${sz} rounded-xl object-cover shrink-0`} />;
   return (
     <div className={`${sz} rounded-xl bg-gradient-to-br ${getAvatarGradient(user?.email)} flex items-center justify-center text-white font-bold shrink-0`}>
       {getInitials(user?.name || user?.email || '?')}
@@ -160,7 +161,7 @@ export default function ClientDashboard() {
             <div className="flex items-center gap-4">
               <div className="relative">
                 {user.photo
-                  ? <img src={user.photo} alt={user.name} className="w-14 h-14 rounded-2xl object-cover shadow-md" />
+                  ? <img src={cldImg(user.photo)} alt={user.name} className="w-14 h-14 rounded-2xl object-cover shadow-md" />
                   : <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getAvatarGradient(user.email)} flex items-center justify-center text-white text-lg font-bold shadow-md`}>
                       {getInitials(user.name)}
                     </div>
