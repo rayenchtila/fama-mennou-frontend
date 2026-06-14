@@ -5,6 +5,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import MessengerChat from "../components/MessengerChat";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
+import { supabase } from "../lib/supabaseClient";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -1349,11 +1350,13 @@ export default function AdminPage() {
   useEffect(() => {
     fetchAccounts();
     fetchNotifications();
-    const interval = setInterval(() => {
-      fetchAccounts();
-      fetchNotifications();
-    }, 30000);
-    return () => clearInterval(interval);
+    const channel = supabase
+      .channel('admin-users-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        fetchAccounts();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   // ── main tab: "cin" | "allusers" | "courses" ──

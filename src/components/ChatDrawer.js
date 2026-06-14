@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
+import { supabase } from '../lib/supabaseClient';
 
 const API = 'https://famamennou-server.onrender.com/api';
 
@@ -90,7 +91,6 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
   const inputRef     = useRef();
   const convPollRef  = useRef();
   const msgPollRef   = useRef();
-  const usersPollRef = useRef();
 
   // Animate in
   useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
@@ -109,8 +109,13 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
 
   useEffect(() => {
     fetchUsers();
-    usersPollRef.current = setInterval(fetchUsers, 30000);
-    return () => clearInterval(usersPollRef.current);
+    const channel = supabase
+      .channel('chatdrawer-users-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        fetchUsers();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [fetchUsers]);
 
   // ── Conversations ──────────────────────────────────────────────────────────
