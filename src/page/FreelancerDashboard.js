@@ -517,8 +517,6 @@ function FindProjectsTab({ user, users, navigate }) {
     return data;
   }
 
-  const featured = filtered.slice(0, 6);
-
   return (
     <div className="space-y-8 -m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8 bg-slate-950 rounded-3xl">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
@@ -543,42 +541,6 @@ function FindProjectsTab({ user, users, navigate }) {
           </div>
         </div>
       </div>
-
-      {/* ── Featured row (horizontal scroll) ────────────────────────────────── */}
-      {!loading && featured.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-base font-extrabold text-white px-1">🔥 Nouveautés pour vous</h3>
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-thin">
-            {featured.map(p => {
-              const client = getUser(p.client_email || p.user_email);
-              return (
-                <div
-                  key={`feat-${p.id}`}
-                  className="snap-start shrink-0 w-72 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/5 p-5 hover:scale-[1.03] hover:border-brand-violet/50 hover:shadow-2xl hover:shadow-brand-violet/10 transition-all duration-300 flex flex-col gap-3 cursor-default"
-                >
-                  <div className="flex items-center justify-between">
-                    <Avi user={client || { email: p.client_email || p.user_email }} size="sm" />
-                    {p.budget && (
-                      <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20">
-                        💰 {p.budget} TND
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm font-bold text-white line-clamp-1">{p.title}</p>
-                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed flex-1">{p.description || '—'}</p>
-                  <button
-                    onClick={() => setProposalModal(p)}
-                    disabled={hasProposal(p.id)}
-                    className="w-full py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white text-xs font-bold hover:shadow-lg hover:shadow-brand-violet/30 transition-all disabled:opacity-50"
-                  >
-                    {hasProposal(p.id) ? '✅ Envoyée' : '📩 Proposer'}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* ── Full results grid ───────────────────────────────────────────────── */}
       <div className="space-y-3">
@@ -616,7 +578,7 @@ function FindProjectsTab({ user, users, navigate }) {
                       </div>
 
                       {p.description && (
-                        <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 relative z-10">{p.description}</p>
+                        <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap relative z-10">{p.description}</p>
                       )}
 
                       <div className="flex items-center gap-3 text-[10px] text-slate-500 flex-wrap relative z-10">

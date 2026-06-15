@@ -32,7 +32,7 @@ function Stars({ value, onChange, readonly = false, size = 'md' }) {
   );
 }
 
-function ClientCard({ client, reviews, onAddReview, currentUser }) {
+function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
   const navigate = useNavigate();
   const [showForm,       setShowForm]       = useState(false);
   const [newRating,      setNewRating]      = useState(0);
@@ -105,6 +105,32 @@ function ClientCard({ client, reviews, onAddReview, currentUser }) {
         {/* Bio */}
         {client.bio && (
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed line-clamp-2">{client.bio}</p>
+        )}
+
+        {/* Open projects posted by this client */}
+        {projects && projects.length > 0 && (
+          <div className="space-y-2 mb-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Projet{projects.length > 1 ? 's' : ''} ouvert{projects.length > 1 ? 's' : ''}</p>
+            {projects.map(p => (
+              <div key={p.id} className="bg-slate-800/60 border border-white/5 rounded-xl p-3 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-bold text-white truncate">{p.title}</p>
+                  {p.budget && (
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-slate-950 shrink-0">
+                      💰 {p.budget} TND
+                    </span>
+                  )}
+                </div>
+                {p.description && (
+                  <p className="text-[11px] text-slate-400 leading-relaxed whitespace-pre-wrap">{p.description}</p>
+                )}
+                <div className="flex flex-wrap gap-1.5 text-[10px]">
+                  {p.experience && <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">🎯 {p.experience}</span>}
+                  {p.period && <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">⏱️ {p.period}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Member since */}
@@ -203,8 +229,20 @@ export default function ClientsPage() {
   const [industry, setIndustry] = useState('All');
   const [sortBy,   setSortBy]   = useState('rating');
   const [reviews,  setReviews]  = useState({});
+  const [openProjects, setOpenProjects] = useState([]);
 
   const approvedClients = (users || []).filter(u => u?.role === 'client' && u?.cinStatus === 'approved');
+
+  useEffect(() => {
+    fetch(`${API}/projects/browse/open`).then(r => r.json()).then(d => { if (Array.isArray(d)) setOpenProjects(d); }).catch(() => {});
+  }, []);
+
+  const projectsByClient = openProjects.reduce((acc, p) => {
+    const key = p.client_email?.toLowerCase();
+    if (!key) return acc;
+    (acc[key] = acc[key] || []).push(p);
+    return acc;
+  }, {});
 
   const fetchAllReviews = useCallback(async () => {
     try {
@@ -332,7 +370,7 @@ export default function ClientsPage() {
         {filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map(c => (
-              <ClientCard key={c.email} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} />
+              <ClientCard key={c.email} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} projects={projectsByClient[c.email?.toLowerCase()]} />
             ))}
           </div>
         ) : (
