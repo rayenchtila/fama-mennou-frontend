@@ -19,6 +19,11 @@ async function getChannelName(email) {
   return data.channel;
 }
 
+// Shared registry — multiple components subscribing to the same user's channel
+// (Navbar, ChatDrawer, MessengerChat, AdminPage...) reuse a single Realtime
+// channel/socket join instead of opening one per component.
+const sharedChannels = new Map(); // channelName -> { channel, refCount, listeners: Map<event, Set<handlersRef>> }
+
 // Subscribes to the broadcast channel for `email` and calls `handlers[event](payload)`
 // whenever the backend broadcasts that event (e.g. 'new_message', 'new_notification',
 // 'typing', 'stop-typing'). Returns nothing; cleans up on unmount / email change.
@@ -28,25 +33,50 @@ export function useRealtimeChannel(email, handlers) {
 
   useEffect(() => {
     if (!email) return;
-    let channel;
     let cancelled = false;
+    let channelName;
 
     getChannelName(email).then(name => {
       if (cancelled) return;
-      channel = supabase.channel(name);
+      channelName = name;
+
+      let entry = sharedChannels.get(name);
+      if (!entry) {
+        entry = { channel: supabase.channel(name), refCount: 0, listeners: new Map(), subscribed: false };
+        sharedChannels.set(name, entry);
+      }
+      entry.refCount++;
+
       Object.keys(handlersRef.current || {}).forEach(event => {
-        channel.on('broadcast', { event }, ({ payload }) => {
-          handlersRef.current[event]?.(payload);
-        });
+        if (!entry.listeners.has(event)) {
+          const refs = new Set();
+          entry.listeners.set(event, refs);
+          entry.channel.on('broadcast', { event }, ({ payload }) => {
+            refs.forEach(ref => ref.current?.[event]?.(payload));
+          });
+        }
+        entry.listeners.get(event).add(handlersRef);
       });
-      channel.subscribe();
+
+      if (!entry.subscribed) {
+        entry.channel.subscribe();
+        entry.subscribed = true;
+      }
     }).catch(e => {
       console.error('useRealtimeChannel: failed to subscribe —', e.message);
     });
 
     return () => {
       cancelled = true;
-      if (channel) supabase.removeChannel(channel);
+      if (!channelName) return;
+      const entry = sharedChannels.get(channelName);
+      if (!entry) return;
+      entry.listeners.forEach(refs => refs.delete(handlersRef));
+      entry.refCount--;
+      if (entry.refCount <= 0) {
+        supabase.removeChannel(entry.channel);
+        sharedChannels.delete(channelName);
+      }
     };
   }, [email]);
 }
