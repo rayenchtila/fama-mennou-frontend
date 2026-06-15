@@ -140,22 +140,40 @@ export default function ProjectsPage() {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND)</label>
-              <input
-                type="number"
-                step="10"
-                min="10"
-                inputMode="numeric"
-                value={form.budget}
-                onChange={e => {
-                  const digits = e.target.value.replace(/[^0-9]/g, '');
-                  setForm(f => ({ ...f, budget: digits }));
-                }}
-                onBlur={e => {
-                  const n = Math.max(10, Number(e.target.value) || 10);
-                  setForm(f => ({ ...f, budget: String(n) }));
-                }}
-                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
+              <div className="mt-1 flex items-stretch rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, budget: String(Math.max(10, (Number(f.budget) || 10) - 10)) }))}
+                  className="px-4 text-lg font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  aria-label="Diminuer le budget"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  step="10"
+                  min="10"
+                  inputMode="numeric"
+                  value={form.budget}
+                  onChange={e => {
+                    const digits = e.target.value.replace(/[^0-9]/g, '');
+                    setForm(f => ({ ...f, budget: digits }));
+                  }}
+                  onBlur={e => {
+                    const n = Math.max(10, Number(e.target.value) || 10);
+                    setForm(f => ({ ...f, budget: String(n) }));
+                  }}
+                  className="flex-1 min-w-0 px-3 py-2 text-sm text-center bg-transparent text-slate-900 dark:text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, budget: String((Number(f.budget) || 10) + 10) }))}
+                  className="px-4 text-lg font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  aria-label="Augmenter le budget"
+                >
+                  +
+                </button>
+              </div>
             </div>
             <button
               type="submit"
