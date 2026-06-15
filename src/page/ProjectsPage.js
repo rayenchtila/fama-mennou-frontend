@@ -4,6 +4,23 @@ import { useAuth } from '../context/AuthContext';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
+const EXPERIENCE_OPTIONS = [
+  'Débutant (0-1 an)',
+  '1-2 ans',
+  '3-5 ans',
+  '5-10 ans',
+  '10+ ans',
+];
+
+const PERIOD_OPTIONS = [
+  'De 1 à 3 jours',
+  'De 4 à 7 jours',
+  'De 1 à 2 semaines',
+  'De 2 à 4 semaines',
+  'De 1 à 3 mois',
+  'Plus de 3 mois',
+];
+
 const STATUS_LABELS = {
   open:        { label: '🟢 Ouvert',     cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
   in_progress: { label: '🔵 En cours',   cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
@@ -100,6 +117,28 @@ export default function ProjectsPage() {
               />
             </div>
             <div>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience</label>
+              <select
+                value={form.experience}
+                onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
+                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Sélectionner...</option>
+                {EXPERIENCE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Période estimée</label>
+              <select
+                value={form.period}
+                onChange={e => setForm(f => ({ ...f, period: e.target.value }))}
+                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Sélectionner...</option>
+                {PERIOD_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+            <div>
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND)</label>
               <input
                 type="number"
@@ -108,22 +147,6 @@ export default function ProjectsPage() {
                 inputMode="numeric"
                 value={form.budget}
                 onChange={e => setForm(f => ({ ...f, budget: e.target.value.replace(/[^0-9]/g, '') }))}
-                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience</label>
-              <input
-                value={form.experience}
-                onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
-                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Période estimée</label>
-              <input
-                value={form.period}
-                onChange={e => setForm(f => ({ ...f, period: e.target.value }))}
                 className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
