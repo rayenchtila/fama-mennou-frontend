@@ -621,6 +621,8 @@ function FindProjectsTab({ user, users, navigate }) {
 
                       <div className="flex items-center gap-3 text-[10px] text-slate-500 flex-wrap relative z-10">
                         {p.budget && <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">💰 {p.budget} TND</span>}
+                        {p.experience && <span className="px-2 py-0.5 rounded-full bg-white/5">🎯 {p.experience}</span>}
+                        {p.period && <span className="px-2 py-0.5 rounded-full bg-white/5">⏱️ {p.period}</span>}
                         {p.deadline && <span>📅 {new Date(p.deadline).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short' })}</span>}
                         {p.company && <span>🏢 {p.company}</span>}
                       </div>
@@ -696,6 +698,17 @@ function ProposalModal({ project, onClose, onSubmit }) {
         <div className="relative z-10">
           <h3 className="text-sm font-bold text-white">📩 Envoyer une proposition</h3>
           <p className="text-xs text-slate-400 mt-0.5 truncate">{project.title}</p>
+        </div>
+
+        <div className="relative z-10 bg-white/5 border border-white/10 rounded-xl p-3 space-y-2 max-h-40 overflow-y-auto">
+          {project.description && (
+            <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">{project.description}</p>
+          )}
+          <div className="flex flex-wrap gap-2 text-[10px]">
+            {project.budget && <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">💰 Budget : {project.budget} TND</span>}
+            {project.experience && <span className="px-2 py-0.5 rounded-full bg-white/10 text-slate-300">🎯 Expérience : {project.experience}</span>}
+            {project.period && <span className="px-2 py-0.5 rounded-full bg-white/10 text-slate-300">⏱️ Période : {project.period}</span>}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3 relative z-10">

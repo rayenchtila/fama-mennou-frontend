@@ -671,6 +671,9 @@ function AdminChatPanel({ allUsers }) {
   const [userProject,   setUserProject]   = React.useState(null);
   const [projAmount,    setProjAmount]    = React.useState('');
   const [projSaving,    setProjSaving]    = React.useState(false);
+  const [clientProject, setClientProject] = React.useState(null);
+  const [clientAmount,  setClientAmount]  = React.useState('');
+  const [clientSaving,  setClientSaving]  = React.useState(false);
 
   const messagesBoxRef  = React.useRef();
   const convsPollRef    = React.useRef();
@@ -773,18 +776,54 @@ function AdminChatPanel({ allUsers }) {
     fetchUserProject(selectedEmail);
   }, [selectedEmail, fetchUserProject]);
 
-  async function setProjectPaymentStatus(status) {
+  // Freelancer chat actions: Projet terminé / Paiement en attente / Paiement reçu
+  async function notifyFreelancerProject(action) {
     if (!userProject) return;
     setProjSaving(true);
     try {
-      await fetch(`${API_CHAT}/projects/${userProject.id}/payment-status`, {
+      await fetch(`${API_CHAT}/projects/${userProject.id}/notify`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, montant: projAmount === '' ? null : Number(projAmount) }),
+        body: JSON.stringify({ target: 'freelancer', action, montant: projAmount === '' ? null : Number(projAmount) }),
       });
       await fetchUserProject(selectedEmail);
       await fetchMsgs(selectedEmail);
     } catch {}
     finally { setProjSaving(false); }
+  }
+
+  // ── Latest accepted project (client side) for this conversation ──────────────
+  const fetchClientProject = React.useCallback(async (email) => {
+    if (!email) { setClientProject(null); return; }
+    try {
+      const data = await fetch(`${API_CHAT}/projects/${encodeURIComponent(email)}`).then(r => r.json());
+      if (Array.isArray(data)) {
+        const mine = data
+          .filter(p => p.status !== 'open')
+          .sort((a, b) => new Date(b.accepted_at || b.created_at) - new Date(a.accepted_at || a.created_at));
+        const proj = mine[0] || null;
+        setClientProject(proj);
+        setClientAmount(proj ? Number(proj.amount || 0).toFixed(2) : '');
+      }
+    } catch {}
+  }, []);
+
+  React.useEffect(() => {
+    fetchClientProject(selectedEmail);
+  }, [selectedEmail, fetchClientProject]);
+
+  // Client chat actions: Projet en cours / Projet terminé / Paiement en attente / Paiement reçu
+  async function notifyClientProject(action) {
+    if (!clientProject) return;
+    setClientSaving(true);
+    try {
+      await fetch(`${API_CHAT}/projects/${clientProject.id}/notify`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target: 'client', action, montant: clientAmount === '' ? null : Number(clientAmount) }),
+      });
+      await fetchClientProject(selectedEmail);
+      await fetchMsgs(selectedEmail);
+    } catch {}
+    finally { setClientSaving(false); }
   }
 
   React.useEffect(() => {
@@ -1118,13 +1157,47 @@ function AdminChatPanel({ allUsers }) {
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'en_attente', label: '🟡 Gain en attente',  active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
-                { id: 'en_cours',   label: '🔵 Projet en cours',  active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
-                { id: 'termine',    label: '🟢 Gain confirmé',    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+                { id: 'completed',        action: 'completed',        label: '✅ Projet terminé',    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.status === 'completed' },
+                { id: 'payment_pending',  action: 'payment_pending',  label: '🟡 Paiement en attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => userProject.payment_status === 'en_attente' },
+                { id: 'payment_received', action: 'payment_received', label: '🟢 Paiement reçu',      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.payment_status === 'recu' },
               ].map(s => {
-                const active = userProject.payment_status === s.id;
+                const active = s.isActive();
                 return (
-                  <button key={s.id} disabled={projSaving} onClick={() => setProjectPaymentStatus(s.id)}
+                  <button key={s.id} disabled={projSaving} onClick={() => notifyFreelancerProject(s.action)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
+                      active
+                        ? s.active
+                        : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 ${s.idle}`
+                    }`}>
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Client project status (4 buttons) */}
+          {clientProject && (
+            <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
+                📁 {clientProject.title}
+              </span>
+              <input
+                type="number" min="0" step="0.01"
+                value={clientAmount}
+                onChange={e => setClientAmount(e.target.value)}
+                placeholder="Montant TND"
+                className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+              />
+              {[
+                { id: 'in_progress',      action: 'in_progress',      label: '🔵 Projet en cours',    active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400',    isActive: () => clientProject.status === 'in_progress' },
+                { id: 'completed',        action: 'completed',        label: '✅ Projet terminé',     active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.status === 'completed' },
+                { id: 'payment_pending',  action: 'payment_pending',  label: '🟡 Paiement en attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => clientProject.payment_status === 'en_attente' },
+                { id: 'payment_received', action: 'payment_received', label: '🟢 Paiement reçu',      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.payment_status === 'recu' },
+              ].map(s => {
+                const active = s.isActive();
+                return (
+                  <button key={s.id} disabled={clientSaving} onClick={() => notifyClientProject(s.action)}
                     className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
                       active
                         ? s.active
@@ -1394,6 +1467,10 @@ export default function AdminPage() {
   const [paidCourses,         setPaidCourses]         = useState([]);
   const [paidCoursesLoading,  setPaidCoursesLoading]  = useState(false);
   const [accessModal,         setAccessModal]         = useState(null);   // { course, lessons, students }
+
+  // ── admin "Projects" tab state ──
+  const [adminProjects,        setAdminProjects]        = useState([]);
+  const [adminProjectsLoading, setAdminProjectsLoading] = useState(false);
   const [accessModalLoading,  setAccessModalLoading]  = useState(false);
   const [watchLesson,         setWatchLesson]         = useState(null);   // lesson object with video_url
   const [grantEmail,          setGrantEmail]          = useState('');
@@ -1697,6 +1774,18 @@ export default function AdminPage() {
   useEffect(() => { if (mainTab === 'lessons') fetchLessonsTab(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'paidaccess') fetchPaidCourses(); }, [mainTab]);
 
+  // ── Admin "Projects" tab — accepted/assigned client↔freelancer projects ──────
+  const fetchAdminProjects = React.useCallback(async () => {
+    setAdminProjectsLoading(true);
+    try {
+      const r = await fetch(`${API}/projects/admin/all`);
+      const d = await r.json();
+      if (Array.isArray(d)) setAdminProjects(d);
+    } catch {}
+    setAdminProjectsLoading(false);
+  }, [API]);
+  useEffect(() => { if (mainTab === 'projects') fetchAdminProjects(); }, [mainTab, fetchAdminProjects]);
+
   // Chat unread badge — polled independently so it shows even when not on chat tab
   useEffect(() => {
     const poll = async () => {
@@ -1858,6 +1947,7 @@ export default function AdminPage() {
             { id: "lessons",    label: "📖 Leçons",           count: allLessons.filter(l => l.status === 'pending').length },
             { id: "paidaccess", label: "💳 Paid Access",      count: paidCourses.length },
             { id: "chat",       label: "💬 Chat",             count: chatUnreadCount },
+            { id: "projects",   label: "📁 Projects",         count: adminProjects.length },
           ];
           return (
             <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
@@ -2801,6 +2891,76 @@ export default function AdminPage() {
           style={{ height: 'calc(100dvh - 130px)', minHeight: 480 }}
         >
           <MessengerChat currentUser={user} allUsers={users} initialChat={chatWith} />
+        </div>
+      )}
+
+      {/* ══ PROJECTS TAB ══ */}
+      {mainTab === 'projects' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">📁 Projets (Client ↔ Freelance)</h2>
+            <button onClick={fetchAdminProjects} className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 transition-colors">
+              ⟳ Actualiser
+            </button>
+          </div>
+
+          {adminProjectsLoading ? (
+            <p className="text-sm text-slate-400">Chargement…</p>
+          ) : adminProjects.length === 0 ? (
+            <p className="text-sm text-slate-400">Aucun projet accepté pour le moment.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                    <th className="px-4 py-3 font-bold">Projet</th>
+                    <th className="px-4 py-3 font-bold">Client</th>
+                    <th className="px-4 py-3 font-bold">Freelance</th>
+                    <th className="px-4 py-3 font-bold">Montant</th>
+                    <th className="px-4 py-3 font-bold">Date d'acceptation</th>
+                    <th className="px-4 py-3 font-bold">Statut</th>
+                    <th className="px-4 py-3 font-bold">Paiement</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminProjects.map(p => {
+                    const STATUS_BADGE = {
+                      in_progress: 'bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400',
+                      completed:   'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+                    };
+                    const STATUS_LABEL = { in_progress: 'En cours', completed: 'Terminé' };
+                    const PAY_BADGE = {
+                      en_attente: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+                      recu:       'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+                    };
+                    const PAY_LABEL = { en_attente: 'Paiement en attente', recu: 'Paiement reçu' };
+                    const acceptedDate = p.accepted_at
+                      ? new Date(p.accepted_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+                      : '-';
+                    return (
+                      <tr key={p.id} className="border-b border-slate-50 dark:border-slate-800/60 last:border-0">
+                        <td className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200 max-w-[180px] truncate">{p.title}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{p.client_name || p.client_email}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{p.freelancer_name || p.freelancer_email || '-'}</td>
+                        <td className="px-4 py-3 font-bold text-slate-700 dark:text-slate-200">{Number(p.amount || 0).toFixed(2)} TND</td>
+                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{acceptedDate}</td>
+                        <td className="px-4 py-3">
+                          <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${STATUS_BADGE[p.status] || 'bg-slate-100 text-slate-500'}`}>
+                            {STATUS_LABEL[p.status] || p.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${PAY_BADGE[p.payment_status] || 'bg-slate-100 text-slate-500'}`}>
+                            {PAY_LABEL[p.payment_status] || p.payment_status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
