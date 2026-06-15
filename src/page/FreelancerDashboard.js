@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { uploadVideo, uploadImage, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
 
@@ -449,19 +450,11 @@ function FindProjectsTab({ user, users, navigate }) {
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
   const [sent, setSent]         = useState({});
-  const [myProposals, setMyProposals] = useState([]);
-  const [proposalModal, setProposalModal] = useState(null); // project being proposed to
-
   useEffect(() => {
     fetch(`${API}/projects/browse/open`)
       .then(r => r.json())
       .catch(() => [])
       .then(data => { if (Array.isArray(data)) setProjects(data); setLoading(false); });
-
-    fetch(`${API}/proposals/mine?email=${encodeURIComponent(user.email)}`)
-      .then(r => r.json())
-      .catch(() => [])
-      .then(data => { if (Array.isArray(data)) setMyProposals(data); });
   }, [user.email]);
 
   const getUser = email => (users ?? []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
@@ -475,6 +468,29 @@ function FindProjectsTab({ user, users, navigate }) {
     const key = `${clientEmail}-${projectId}`;
     setSent(s => ({ ...s, [key]: true }));
     navigate(`/messages?with=${encodeURIComponent(clientEmail)}`);
+  }
+
+  async function handleProposer(project) {
+    const key = `propose-${project.id}`;
+    setSent(s => ({ ...s, [key]: true }));
+    try {
+      const res = await fetch(`${API}/proposals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: project.id,
+          freelancerEmail: user.email,
+          price: project.budget || 0,
+          deliveryDays: 7,
+          coverLetter: '',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de l\'envoi');
+    } catch (err) {
+      setSent(s => ({ ...s, [key]: false }));
+      alert(err.message || 'Erreur lors de l\'envoi de la proposition.');
+    }
   }
 
   async function handleApply(project) {
@@ -493,28 +509,6 @@ function FindProjectsTab({ user, users, navigate }) {
       });
     } catch {}
     navigate(`/messages?with=${encodeURIComponent(project.client_email || project.user_email)}`);
-  }
-
-  function hasProposal(projectId) {
-    return myProposals.some(pr => pr.project_id === projectId);
-  }
-
-  async function submitProposal(project, { price, deliveryDays, coverLetter }) {
-    const res = await fetch(`${API}/proposals`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        projectId: project.id,
-        freelancerEmail: user.email,
-        price,
-        deliveryDays,
-        coverLetter,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erreur lors de l\'envoi');
-    setMyProposals(list => [...list, data]);
-    return data;
   }
 
   return (
@@ -585,23 +579,34 @@ function FindProjectsTab({ user, users, navigate }) {
                         {p.budget && <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">💰 {p.budget} TND</span>}
                         {p.experience && <span className="px-2 py-0.5 rounded-full bg-white/5">🎯 {p.experience}</span>}
                         {p.period && <span className="px-2 py-0.5 rounded-full bg-white/5">⏱️ {p.period}</span>}
+                        {p.created_at && <span className="px-2 py-0.5 rounded-full bg-white/5">📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
                         {p.deadline && <span>📅 {new Date(p.deadline).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short' })}</span>}
                         {p.company && <span>🏢 {p.company}</span>}
                       </div>
 
+                      {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 relative z-10">
+                          {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
+                            <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300">
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
                       <div className="flex gap-2 pt-2 border-t border-white/5 relative z-10">
-                        <button
-                          onClick={() => setProposalModal(p)}
-                          disabled={hasProposal(p.id)}
-                          className="flex-1 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white text-xs font-bold hover:shadow-lg hover:shadow-brand-violet/30 transition-all disabled:opacity-50"
-                        >
-                          {hasProposal(p.id) ? '✅ Proposition envoyée' : '📩 Proposer'}
-                        </button>
                         <button
                           onClick={() => handleContact(p.client_email || p.user_email, p.id)}
                           className="flex-1 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 transition-colors"
                         >
                           💬 Contacter
+                        </button>
+                        <button
+                          onClick={() => handleProposer(p)}
+                          disabled={sent[`propose-${p.id}`]}
+                          className="flex-1 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white text-xs font-bold hover:shadow-lg hover:shadow-brand-violet/30 transition-all disabled:opacity-60"
+                        >
+                          {sent[`propose-${p.id}`] ? '✅ Envoyée' : '📩 Proposer'}
                         </button>
                       </div>
                     </div>
@@ -612,121 +617,6 @@ function FindProjectsTab({ user, users, navigate }) {
         }
       </div>
 
-      {proposalModal && (
-        <ProposalModal
-          project={proposalModal}
-          onClose={() => setProposalModal(null)}
-          onSubmit={submitProposal}
-        />
-      )}
-    </div>
-  );
-}
-
-// ── Modal: Envoyer une proposition ────────────────────────────────────────────
-
-function ProposalModal({ project, onClose, onSubmit }) {
-  const [price, setPrice] = useState(project.budget || '');
-  const [deliveryDays, setDeliveryDays] = useState('');
-  const [coverLetter, setCoverLetter] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!price || !deliveryDays) {
-      setError('Le prix et le délai sont requis.');
-      return;
-    }
-    setSubmitting(true);
-    setError('');
-    try {
-      await onSubmit(project, { price: Number(price), deliveryDays: Number(deliveryDays), coverLetter });
-      onClose();
-    } catch (err) {
-      setError(err.message || 'Erreur lors de l\'envoi de la proposition.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
-      <div
-        className="relative bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl border border-white/10 shadow-2xl shadow-brand-violet/10 w-full max-w-md p-6 space-y-4 overflow-hidden"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="absolute -top-20 -right-20 w-56 h-56 bg-brand-violet/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10">
-          <h3 className="text-sm font-bold text-white">📩 Envoyer une proposition</h3>
-          <p className="text-xs text-slate-400 mt-0.5 truncate">{project.title}</p>
-        </div>
-
-        <div className="relative z-10 bg-white/5 border border-white/10 rounded-xl p-3 space-y-2 max-h-40 overflow-y-auto">
-          {project.description && (
-            <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">{project.description}</p>
-          )}
-          <div className="flex flex-wrap gap-2 text-[10px]">
-            {project.budget && <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">💰 Budget : {project.budget} TND</span>}
-            {project.experience && <span className="px-2 py-0.5 rounded-full bg-white/10 text-slate-300">🎯 Expérience : {project.experience}</span>}
-            {project.period && <span className="px-2 py-0.5 rounded-full bg-white/10 text-slate-300">⏱️ Période : {project.period}</span>}
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-3 relative z-10">
-          <div>
-            <label className="text-xs font-semibold text-slate-300">Votre prix (TND)</label>
-            <input
-              type="number"
-              min="1"
-              step="0.01"
-              value={price}
-              onChange={e => setPrice(e.target.value)}
-              className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-white/10 bg-white/5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-violet"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-300">Délai de livraison (jours)</label>
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={deliveryDays}
-              onChange={e => setDeliveryDays(e.target.value)}
-              className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-white/10 bg-white/5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-violet"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-300">Lettre de motivation (optionnel)</label>
-            <textarea
-              rows={4}
-              value={coverLetter}
-              onChange={e => setCoverLetter(e.target.value)}
-              placeholder="Expliquez pourquoi vous êtes le bon choix pour ce projet…"
-              className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-white/10 bg-white/5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-violet resize-none"
-            />
-          </div>
-
-          {error && <p className="text-xs text-rose-400 font-semibold">{error}</p>}
-
-          <div className="flex gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 transition-colors"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex-1 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white text-xs font-bold hover:shadow-lg hover:shadow-brand-violet/30 transition-all disabled:opacity-60"
-            >
-              {submitting ? 'Envoi…' : 'Envoyer'}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }
@@ -746,17 +636,34 @@ function MissionsTab({ user, users, navigate }) {
   const [proposals, setProposals] = useState([]);
   const [proposalsLoading, setProposalsLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchMissions = useCallback(() => {
     fetch(`${API}/projects/assigned/${encodeURIComponent(user.email)}`)
       .then(r => r.json())
       .catch(() => [])
       .then(data => { if (Array.isArray(data)) setMissions(data); setLoading(false); });
+  }, [user.email]);
 
+  const fetchProposals = useCallback(() => {
     fetch(`${API}/proposals/mine?email=${encodeURIComponent(user.email)}`)
       .then(r => r.json())
       .catch(() => [])
       .then(data => { if (Array.isArray(data)) setProposals(data); setProposalsLoading(false); });
   }, [user.email]);
+
+  useEffect(() => {
+    fetchMissions();
+    fetchProposals();
+  }, [fetchMissions, fetchProposals]);
+
+  // Refresh missions/proposals as soon as a client accepts/rejects one of our proposals
+  useRealtimeChannel(user.email, {
+    new_notification: useCallback((payload) => {
+      if (payload?.kind?.startsWith('proposal_accepted') || payload?.kind?.startsWith('proposal_rejected')) {
+        fetchMissions();
+        fetchProposals();
+      }
+    }, [fetchMissions, fetchProposals]),
+  });
 
   const getUser = email => (users ?? []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
 

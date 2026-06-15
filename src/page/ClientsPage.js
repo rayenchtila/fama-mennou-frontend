@@ -127,7 +127,21 @@ function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
                 <div className="flex flex-wrap gap-1.5 text-[10px]">
                   {p.experience && <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">🎯 {p.experience}</span>}
                   {p.period && <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">⏱️ {p.period}</span>}
+                  {p.created_at && (
+                    <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">
+                      📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  )}
                 </div>
+                {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
+                      <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300">
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

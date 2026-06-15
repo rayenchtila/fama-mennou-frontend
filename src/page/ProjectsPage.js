@@ -34,7 +34,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [proposals, setProposals] = useState({}); // projectId -> array
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', budget: '10', experience: '', period: '' });
+  const [form, setForm] = useState({ title: '', description: '', budget: '10', experience: '', period: '', keywords: ['', '', '', '', ''] });
   const [posting, setPosting] = useState(false);
 
   function loadProjects() {
@@ -65,9 +65,9 @@ export default function ProjectsPage() {
       await fetch(`${API_URL}/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientEmail: user.email, ...form }),
+        body: JSON.stringify({ clientEmail: user.email, ...form, keywords: form.keywords.filter(k => k.trim()).map(k => `#${k.trim()}`).join(' ') }),
       });
-      setForm({ title: '', description: '', budget: '10', experience: '', period: '' });
+      setForm({ title: '', description: '', budget: '10', experience: '', period: '', keywords: ['', '', '', '', ''] });
       setShowForm(false);
       loadProjects();
     } catch {} finally { setPosting(false); }
@@ -78,6 +78,13 @@ export default function ProjectsPage() {
       await fetch(`${API_URL}/proposals/${proposalId}/accept`, { method: 'PATCH' });
       loadProjects();
       setProposals(prev => ({ ...prev, [projectId]: undefined }));
+    } catch {}
+  }
+
+  async function handleReject(proposalId, projectId) {
+    try {
+      await fetch(`${API_URL}/proposals/${proposalId}/reject`, { method: 'PATCH' });
+      setProposals(prev => ({ ...prev, [projectId]: (prev[projectId] || []).filter(pr => pr.id !== proposalId) }));
     } catch {}
   }
 
@@ -125,6 +132,30 @@ export default function ProjectsPage() {
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                 className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Mots clés</label>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {form.keywords.map((kw, i) => (
+                  <div
+                    key={i}
+                    style={{ width: `${Math.max(5.5, kw.length + 2)}ch` }}
+                    className="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 transition-[width] duration-150"
+                  >
+                    <span className="pl-2.5 text-sm font-semibold text-slate-400">#</span>
+                    <input
+                      maxLength={25}
+                      value={kw}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[#\s]/g, '').slice(0, 25);
+                        setForm(f => ({ ...f, keywords: f.keywords.map((k, idx) => idx === i ? val : k) }));
+                      }}
+                      placeholder={`mot ${i + 1}`}
+                      className="w-full min-w-0 px-1 py-2 text-sm font-semibold bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience <span className="text-rose-500">*</span></label>
@@ -215,14 +246,11 @@ export default function ProjectsPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
-                      {p.budget && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">💰 {p.budget} TND</p>}
-                      {(p.experience || p.period) && (
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          {p.experience && `🎯 ${p.experience}`}
-                          {p.experience && p.period && ' · '}
-                          {p.period && `⏱️ ${p.period}`}
-                        </p>
-                      )}
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">💰 {p.budget ? `${p.budget} TND` : '—'}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        🎯 {p.experience || '—'} · ⏱️ {p.period || '—'}
+                        {p.created_at && <> · 📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</>}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${st.cls}`}>{st.label}</span>
@@ -236,7 +264,18 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  {p.description && <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{p.description}</p>}
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{p.description || '—'}</p>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0
+                      ? p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
+                          <span key={i} className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">
+                            {kw}
+                          </span>
+                        ))
+                      : <span className="text-[11px] text-slate-400">Mots clés : —</span>
+                    }
+                  </div>
 
                   {p.status === 'open' && (
                     <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
@@ -259,12 +298,20 @@ export default function ProjectsPage() {
                                 </p>
                                 {pr.cover_letter && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{pr.cover_letter}</p>}
                               </div>
-                              <button
-                                onClick={() => handleAccept(pr.id, p.id)}
-                                className="shrink-0 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors"
-                              >
-                                Accepter
-                              </button>
+                              <div className="shrink-0 flex gap-2">
+                                <button
+                                  onClick={() => handleAccept(pr.id, p.id)}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors"
+                                >
+                                  Accepter
+                                </button>
+                                <button
+                                  onClick={() => handleReject(pr.id, p.id)}
+                                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition-colors"
+                                >
+                                  Annuler
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
