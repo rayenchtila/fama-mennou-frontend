@@ -34,7 +34,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [proposals, setProposals] = useState({}); // projectId -> array
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', budget: '', experience: '', period: '' });
+  const [form, setForm] = useState({ title: '', description: '', budget: '10', experience: '', period: '' });
   const [posting, setPosting] = useState(false);
 
   function loadProjects() {
@@ -67,7 +67,7 @@ export default function ProjectsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientEmail: user.email, ...form }),
       });
-      setForm({ title: '', description: '', budget: '', experience: '', period: '' });
+      setForm({ title: '', description: '', budget: '10', experience: '', period: '' });
       setShowForm(false);
       loadProjects();
     } catch {} finally { setPosting(false); }
@@ -142,11 +142,18 @@ export default function ProjectsPage() {
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND)</label>
               <input
                 type="number"
-                step="1"
-                min="0"
+                step="10"
+                min="10"
                 inputMode="numeric"
                 value={form.budget}
-                onChange={e => setForm(f => ({ ...f, budget: e.target.value.replace(/[^0-9]/g, '') }))}
+                onChange={e => {
+                  const digits = e.target.value.replace(/[^0-9]/g, '');
+                  setForm(f => ({ ...f, budget: digits }));
+                }}
+                onBlur={e => {
+                  const n = Math.max(10, Number(e.target.value) || 10);
+                  setForm(f => ({ ...f, budget: String(n) }));
+                }}
                 className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
