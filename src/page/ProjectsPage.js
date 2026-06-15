@@ -17,7 +17,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [proposals, setProposals] = useState({}); // projectId -> array
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', budget: '' });
+  const [form, setForm] = useState({ title: '', description: '', budget: '', experience: '', period: '' });
   const [posting, setPosting] = useState(false);
 
   function loadProjects() {
@@ -50,7 +50,7 @@ export default function ProjectsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientEmail: user.email, ...form }),
       });
-      setForm({ title: '', description: '', budget: '' });
+      setForm({ title: '', description: '', budget: '', experience: '', period: '' });
       setShowForm(false);
       loadProjects();
     } catch {} finally { setPosting(false); }
@@ -102,8 +102,28 @@ export default function ProjectsPage() {
             <div>
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND)</label>
               <input
+                type="number"
+                step="1"
+                min="0"
+                inputMode="numeric"
                 value={form.budget}
-                onChange={e => setForm(f => ({ ...f, budget: e.target.value }))}
+                onChange={e => setForm(f => ({ ...f, budget: e.target.value.replace(/[^0-9]/g, '') }))}
+                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience</label>
+              <input
+                value={form.experience}
+                onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
+                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Période estimée</label>
+              <input
+                value={form.period}
+                onChange={e => setForm(f => ({ ...f, period: e.target.value }))}
                 className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -136,6 +156,13 @@ export default function ProjectsPage() {
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
                       {p.budget && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">💰 {p.budget} TND</p>}
+                      {(p.experience || p.period) && (
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          {p.experience && `🎯 ${p.experience}`}
+                          {p.experience && p.period && ' · '}
+                          {p.period && `⏱️ ${p.period}`}
+                        </p>
+                      )}
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${st.cls}`}>{st.label}</span>
                   </div>
