@@ -8,7 +8,13 @@ const channelCache = new Map(); // email -> channel name
 async function getChannelName(email) {
   const key = email.toLowerCase();
   if (channelCache.has(key)) return channelCache.get(key);
-  const data = await fetch(`${API}/realtime/channel?email=${encodeURIComponent(key)}`).then(r => r.json());
+  const res = await fetch(`${API}/realtime/channel?email=${encodeURIComponent(key)}`);
+  const contentType = res.headers.get('content-type') || '';
+  if (!res.ok || !contentType.includes('application/json')) {
+    throw new Error(`Unexpected /realtime/channel response (status ${res.status})`);
+  }
+  const data = await res.json();
+  if (!data.channel) throw new Error('No channel name returned');
   channelCache.set(key, data.channel);
   return data.channel;
 }
@@ -34,6 +40,8 @@ export function useRealtimeChannel(email, handlers) {
         });
       });
       channel.subscribe();
+    }).catch(e => {
+      console.error('useRealtimeChannel: failed to subscribe —', e.message);
     });
 
     return () => {

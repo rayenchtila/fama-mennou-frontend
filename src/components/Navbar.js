@@ -10,7 +10,7 @@ import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 import { cldImg } from "../utils/cloudinary";
 
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 const LANGUAGES = [
   { code: "en", label: "English",  flag: "https://flagcdn.com/w40/us.png" },
