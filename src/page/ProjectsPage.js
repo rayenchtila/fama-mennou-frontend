@@ -59,7 +59,7 @@ export default function ProjectsPage() {
 
   async function handlePost(e) {
     e.preventDefault();
-    if (!form.title.trim()) return;
+    if (!form.title.trim() || !form.description.trim() || !form.experience || !form.period || !form.budget) return;
     setPosting(true);
     try {
       await fetch(`${API_URL}/projects`, {
@@ -81,11 +81,19 @@ export default function ProjectsPage() {
     } catch {}
   }
 
+  async function handleDelete(projectId) {
+    if (!window.confirm('Supprimer ce projet ?')) return;
+    try {
+      await fetch(`${API_URL}/projects/${projectId}`, { method: 'DELETE' });
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+    } catch {}
+  }
+
   if (!user) return null;
 
   return (
     <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-10">
 
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">🗂️ {t('Projets')}</h1>
@@ -100,16 +108,18 @@ export default function ProjectsPage() {
         {showForm && (
           <form onSubmit={handlePost} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-3 shadow-sm">
             <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Titre du projet</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Titre du projet <span className="text-rose-500">*</span></label>
               <input
+                required
                 value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Description</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Description <span className="text-rose-500">*</span></label>
               <textarea
+                required
                 rows={3}
                 value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -117,8 +127,9 @@ export default function ProjectsPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience <span className="text-rose-500">*</span></label>
               <select
+                required
                 value={form.experience}
                 onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
                 className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -128,8 +139,9 @@ export default function ProjectsPage() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Période estimée</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Période estimée <span className="text-rose-500">*</span></label>
               <select
+                required
                 value={form.period}
                 onChange={e => setForm(f => ({ ...f, period: e.target.value }))}
                 className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -139,7 +151,7 @@ export default function ProjectsPage() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND)</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND) <span className="text-rose-500">*</span></label>
               <div className="mt-1 flex items-stretch rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
                 <button
                   type="button"
@@ -194,7 +206,7 @@ export default function ProjectsPage() {
             <p className="text-sm text-slate-500 dark:text-slate-400">{t('Your projects will appear here.')}</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6 pt-2">
             {projects.map(p => {
               const st = STATUS_LABELS[p.status] || STATUS_LABELS.open;
               const projProposals = proposals[p.id] || [];
@@ -212,7 +224,16 @@ export default function ProjectsPage() {
                         </p>
                       )}
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${st.cls}`}>{st.label}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${st.cls}`}>{st.label}</span>
+                      <button
+                        onClick={() => handleDelete(p.id)}
+                        className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors"
+                        aria-label="Supprimer le projet"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
 
                   {p.description && <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{p.description}</p>}
