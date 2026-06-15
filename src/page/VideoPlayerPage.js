@@ -247,36 +247,36 @@ export default function VideoPlayerPage() {
     <div className="min-h-screen bg-slate-950 flex flex-col pt-16">
 
       {/* Top bar */}
-      <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center gap-4">
+      <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center gap-3">
         <button onClick={() => navigate(`/courses/${courseId}`)}
-          className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-sm">
+          className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-sm shrink-0 whitespace-nowrap">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
           </svg>
-          Back to course
+          Back
         </button>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 order-3 sm:order-none basis-full sm:basis-auto">
           <p className="text-white text-sm font-semibold truncate">{course?.title}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-slate-400">{Math.round(progress.pct)}% complete</span>
-          <div className="w-24 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+          <span className="text-xs text-slate-400 whitespace-nowrap">{Math.round(progress.pct)}%</span>
+          <div className="w-16 sm:w-24 h-1.5 bg-slate-700 rounded-full overflow-hidden">
             <div className="h-full bg-indigo-500 rounded-full transition-all duration-500"
               style={{ width: `${progress.pct}%` }} />
           </div>
         </div>
         <button onClick={() => setSidebarOpen(v => !v)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
 
         {/* Main video area */}
-        <div className="flex-1 flex flex-col overflow-y-auto">
+        <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
           <div className="bg-black">
             {canWatch(lesson) ? (
               <VideoPlayer url={lesson?.video_url} />
@@ -358,7 +358,7 @@ export default function VideoPlayerPage() {
 
         {/* Sidebar */}
         {sidebarOpen && (
-          <div className="w-80 bg-slate-900 border-l border-slate-800 flex flex-col overflow-hidden shrink-0">
+          <div className="w-full lg:w-80 bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col overflow-hidden shrink-0 max-h-[60vh] lg:max-h-none">
             <div className="p-4 border-b border-slate-800">
               <p className="text-white font-bold text-sm">Course Content</p>
               <p className="text-xs text-slate-400 mt-0.5">
