@@ -88,6 +88,17 @@ export default function ProjectsPage() {
     } catch {}
   }
 
+  async function handlePayment(projectId, action) {
+    try {
+      await fetch(`${API_URL}/projects/${projectId}/notify`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target: 'freelancer', action }),
+      });
+      loadProjects();
+    } catch {}
+  }
+
   async function handleDelete(projectId) {
     if (!window.confirm('Supprimer ce projet ?')) return;
     try {
@@ -320,10 +331,27 @@ export default function ProjectsPage() {
                   )}
 
                   {p.status === 'in_progress' && p.freelancer_email && (
-                    <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
+                    <div className="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-3">
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         👤 Freelance assigné : <span className="font-bold text-slate-700 dark:text-slate-300">{p.freelancer_email}</span>
                       </p>
+                      <div>
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Statut du paiement</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handlePayment(p.id, 'payment_pending')}
+                            className={`flex-1 py-1.5 rounded-xl text-[11px] font-bold border transition-colors ${p.payment_status === 'en_attente' ? 'bg-amber-500 border-amber-500 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-amber-400 hover:text-amber-500'}`}
+                          >
+                            🟡 Montant en attente
+                          </button>
+                          <button
+                            onClick={() => handlePayment(p.id, 'payment_received')}
+                            className={`flex-1 py-1.5 rounded-xl text-[11px] font-bold border transition-colors ${p.payment_status === 'recu' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-emerald-400 hover:text-emerald-500'}`}
+                          >
+                            🟢 Montant payé
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
