@@ -107,10 +107,9 @@ function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed line-clamp-2">{client.bio}</p>
         )}
 
-        {/* Open projects posted by this client */}
+        {/* Project for this card */}
         {projects && projects.length > 0 && (
           <div className="space-y-2 mb-4">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Projet{projects.length > 1 ? 's' : ''} ouvert{projects.length > 1 ? 's' : ''}</p>
             {projects.map(p => (
               <div key={p.id} className="bg-slate-800/60 border border-white/5 rounded-xl p-3 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
@@ -367,7 +366,7 @@ export default function ClientsPage() {
           </div>
           <div className="flex items-center justify-between pb-3">
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              {filtered.length} client{filtered.length !== 1 ? 's' : ''} trouvé{filtered.length !== 1 ? 's' : ''}
+              {openProjects.filter(p => filtered.some(c => c.email?.toLowerCase() === p.client_email?.toLowerCase())).length || filtered.length} projet{openProjects.length !== 1 ? 's' : ''} ouvert{openProjects.length !== 1 ? 's' : ''}
               {search ? ` pour "${search}"` : ''}
             </p>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
@@ -379,13 +378,19 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* ── Grid ── */}
+      {/* ── Grid — one card per project ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map(c => (
-              <ClientCard key={c.email} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} projects={projectsByClient[c.email?.toLowerCase()]} />
-            ))}
+            {filtered.flatMap(c =>
+              (projectsByClient[c.email?.toLowerCase()] || []).map(p => (
+                <ClientCard key={`${c.email}-${p.id}`} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} projects={[p]} />
+              ))
+            ).concat(
+              filtered
+                .filter(c => !(projectsByClient[c.email?.toLowerCase()]?.length))
+                .map(c => <ClientCard key={c.email} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} projects={[]} />)
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-24 text-center">
