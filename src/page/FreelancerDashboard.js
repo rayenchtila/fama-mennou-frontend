@@ -778,11 +778,25 @@ function MissionsTab({ user, users, navigate }) {
 
 // ── TAB: Gains ────────────────────────────────────────────────────────────────
 
+const PROJECT_PAY_STATUS = {
+  en_attente: { label: '🟡 Gain en attente', desc: 'Le paiement de votre mission est en attente de confirmation.',    cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' },
+  en_cours:   { label: '🔵 Projet en cours', desc: 'Votre mission est en cours de traitement.',                       cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
+  termine:    { label: '🟢 Gain confirmé',   desc: 'Paiement confirmé et ajouté à votre solde. Merci pour votre confiance.', cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
+  recu:       { label: '🟢 Payé',            desc: 'Paiement reçu pour cette mission.',                                cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
+};
+
+const COURSE_PAY_STATUS = {
+  en_attente: { label: '🟡 En attente', desc: 'Votre preuve de paiement est en cours de vérification par notre équipe.', cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' },
+  en_cours:   { label: '🔵 En cours',   desc: 'Votre paiement est en cours de traitement.',                              cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
+  termine:    { label: '🟢 Terminé',    desc: 'Paiement confirmé et accès activé. Merci pour votre confiance.',          cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
+};
+
 function GainsTab({ user }) {
-  const [missions, setMissions]         = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [wallet, setWallet]             = useState(null);
-  const [transactions, setTransactions] = useState([]);
+  const [missions,      setMissions]      = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [wallet,        setWallet]        = useState(null);
+  const [transactions,  setTransactions]  = useState([]);
+  const [courseHistory, setCourseHistory] = useState([]);
 
   useEffect(() => {
     fetch(`${API}/projects/assigned/${encodeURIComponent(user.email)}`)
@@ -796,22 +810,26 @@ function GainsTab({ user }) {
     fetch(`${API}/wallets/transactions?email=${encodeURIComponent(user.email)}`)
       .then(r => r.json()).catch(() => [])
       .then(data => { if (Array.isArray(data)) setTransactions(data); });
+
+    fetch(`${API}/course-requests/mine?email=${encodeURIComponent(user.email)}`)
+      .then(r => r.json()).catch(() => [])
+      .then(data => { if (Array.isArray(data)) setCourseHistory(data); });
   }, [user.email]);
 
-  const completed = missions.filter(m => m.status === 'completed');
-  const incoming  = transactions.filter(t => t.direction === 'incoming');
+  const completed   = missions.filter(m => m.status === 'completed' || m.status === 'in_progress');
+  const incoming    = transactions.filter(t => t.direction === 'incoming');
   const totalEarned = incoming.reduce((sum, t) => sum + Number(t.amount || 0), 0);
-  const balance      = Number(wallet?.balance || 0);
-  const currency     = wallet?.currency || 'TND';
+  const balance     = Number(wallet?.balance || 0);
+  const currency    = wallet?.currency || 'TND';
 
   return (
     <div className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Solde disponible',    value: `${balance.toFixed(2)} ${currency}`,    icon: '💳', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-          { label: 'Transactions',        value: incoming.length,                        icon: '📥', color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/20'   },
-          { label: 'Total gagné',         value: `${totalEarned.toFixed(2)} ${currency}`, icon: '✅', color: 'text-indigo-600 dark:text-indigo-400',  bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+          { label: 'Solde disponible', value: `${balance.toFixed(2)} ${currency}`,     icon: '💳', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+          { label: 'Transactions',     value: incoming.length,                          icon: '📥', color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/20'   },
+          { label: 'Total gagné',      value: `${totalEarned.toFixed(2)} ${currency}`, icon: '✅', color: 'text-indigo-600 dark:text-indigo-400',  bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
         ].map(item => (
           <div key={item.label} className={`${item.bg} rounded-2xl p-5 flex items-center gap-3`}>
             <span className="text-2xl">{item.icon}</span>
@@ -843,12 +861,8 @@ function GainsTab({ user }) {
                       <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{p.budget || '—'}</p>
                       <p className="text-[10px] text-slate-400">Budget</p>
                       {p.payment_status && (
-                        <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          p.payment_status === 'termine'   ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
-                          p.payment_status === 'en_cours'  ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' :
-                                                              'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
-                        }`}>
-                          {p.payment_status === 'termine' ? '🟢 Gain confirmé' : p.payment_status === 'en_cours' ? '🔵 Projet en cours' : '🟡 Gain en attente'}
+                        <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${(PROJECT_PAY_STATUS[p.payment_status] || PROJECT_PAY_STATUS.en_attente).cls}`}>
+                          {(PROJECT_PAY_STATUS[p.payment_status] || PROJECT_PAY_STATUS.en_attente).label}
                         </span>
                       )}
                     </div>
@@ -859,29 +873,64 @@ function GainsTab({ user }) {
         }
       </div>
 
-      {/* Historique des gains */}
+      {/* Historique des gains ( PROJECTS ) */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-        <SectionHeader icon="💰" title="Historique des gains" />
-        {incoming.length === 0
+        <SectionHeader icon="💰" title="Historique des gains ( PROJECTS ) :" />
+        {completed.length === 0
           ? <Empty emoji="💰" text="Aucun gain pour l'instant" />
           : (
             <div className="space-y-3">
-              {incoming.map(t => (
-                <div key={`${t.payment_type}-${t.id}`} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-lg shrink-0">
-                    {t.payment_type === 'course' ? '📚' : '💼'}
+              {completed.map(p => {
+                const info = PROJECT_PAY_STATUS[p.payment_status] || PROJECT_PAY_STATUS.en_attente;
+                const dateStr = new Date(p.accepted_at || p.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
+                return (
+                  <div key={p.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Client : {p.client_name || p.client_email || '—'}</p>
+                        <p className="text-xs text-slate-400">{dateStr}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-extrabold text-slate-900 dark:text-white">{Number(p.amount || 0).toFixed(2)} TND</p>
+                        <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${info.cls}`}>{info.label}</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-2">{info.desc}</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                      {t.payment_type === 'course' ? 'Vente de cours' : 'Paiement projet'}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-0.5">{new Date(t.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                );
+              })}
+            </div>
+          )
+        }
+      </div>
+
+      {/* Historique des paiements ( COURSES ) */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <SectionHeader icon="💰" title="Historique des paiements ( COURSES ) :" />
+        {courseHistory.length === 0
+          ? <Empty emoji="🧾" text="Aucun paiement pour le moment" />
+          : (
+            <div className="space-y-3">
+              {courseHistory.map(item => {
+                const info = COURSE_PAY_STATUS[item.payment_status] || COURSE_PAY_STATUS.en_attente;
+                const dateStr = new Date(item.requested_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
+                return (
+                  <div key={item.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.course_title}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{dateStr}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-extrabold text-slate-900 dark:text-white">{Number(item.amount || 0).toFixed(2)} TND</p>
+                        <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${info.cls}`}>{info.label}</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-2">{info.desc}</p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">+{Number(t.amount).toFixed(2)} {currency}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )
         }
