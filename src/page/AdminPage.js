@@ -2888,7 +2888,7 @@ export default function AdminPage() {
       {mainTab === 'chat' && (
         <div
           className="max-w-5xl mx-auto px-0 md:px-4 lg:px-6 py-0 md:py-4"
-          style={{ height: 'calc(100dvh - 130px)', minHeight: 480 }}
+          style={{ height: 'calc(100dvh - 180px)', minHeight: 400 }}
         >
           <MessengerChat currentUser={user} allUsers={users} initialChat={chatWith} />
         </div>

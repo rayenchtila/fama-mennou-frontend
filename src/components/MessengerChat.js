@@ -260,6 +260,8 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
         requestAnimationFrame(() => {
           const el = msgsContainerRef.current;
           if (el) el.scrollTop = el.scrollHeight;
+          // Fallback: scrollIntoView on the sentinel div (reliable on mobile)
+          endRef.current?.scrollIntoView({ block: 'end' });
         });
       });
     }
