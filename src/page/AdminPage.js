@@ -1414,6 +1414,121 @@ function AdminChatPanel({ allUsers }) {
   );
 }
 
+// ─── Admin Gains Tab ──────────────────────────────────────────────────────────
+
+function AdminGainsTab({ API }) {
+  const [commissions, setCommissions] = React.useState([]);
+  const [platform,    setPlatform]    = React.useState(null);
+  const [loading,     setLoading]     = React.useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const [comm, plat] = await Promise.all([
+        fetch(`${API}/wallets/commissions`).then(r => r.json()),
+        fetch(`${API}/wallets/platform`).then(r => r.json()),
+      ]);
+      if (Array.isArray(comm)) setCommissions(comm);
+      if (plat) setPlatform(plat);
+    } catch {}
+    setLoading(false);
+  }, [API]);
+
+  React.useEffect(() => { load(); }, [load]);
+
+  const totalCommission = commissions.reduce((s, c) => s + Number(c.commission_amount || 0), 0);
+
+  const TYPE_INFO = {
+    freelancer: { label: 'Projet Freelance', icon: '💼', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+    course:     { label: 'Vente de Cours',   icon: '📚', color: 'text-sky-600 dark:text-sky-400',     bg: 'bg-sky-50 dark:bg-sky-900/20' },
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-4 py-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">💰 Gains Plateforme (5%)</h2>
+        <button onClick={load} className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 transition-colors">⟳ Actualiser</button>
+      </div>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-5 flex items-center gap-3">
+          <span className="text-2xl">💰</span>
+          <div>
+            <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{Number(platform?.balance || 0).toFixed(2)} TND</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Solde plateforme</p>
+          </div>
+        </div>
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl p-5 flex items-center gap-3">
+          <span className="text-2xl">📊</span>
+          <div>
+            <p className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">{Number(platform?.total_collected || 0).toFixed(2)} TND</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Total collecté</p>
+          </div>
+        </div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-5 flex items-center gap-3">
+          <span className="text-2xl">🔢</span>
+          <div>
+            <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">{commissions.length}</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Transactions</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Transactions list */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Historique des commissions (5%) :</p>
+        {loading ? (
+          <div className="text-center py-8 text-sm text-slate-400">Chargement…</div>
+        ) : commissions.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-3xl mb-2">💰</p>
+            <p className="text-sm text-slate-400">Aucune commission pour le moment</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {commissions.map(c => {
+              const info = TYPE_INFO[c.payment_type] || TYPE_INFO.freelancer;
+              const dateStr = new Date(c.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
+              const fromName = c.payer_name || c.payer_email || '—';
+              const toName   = c.freelancer_name || c.freelancer_email || '—';
+              return (
+                <div key={c.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="min-w-0 flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-xl ${info.bg} flex items-center justify-center text-lg shrink-0`}>{info.icon}</div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{c.description || info.label}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {c.payment_type === 'freelancer'
+                            ? <>Client : <span className="font-semibold text-slate-600 dark:text-slate-300">{fromName}</span> → Freelance : <span className="font-semibold text-slate-600 dark:text-slate-300">{toName}</span></>
+                            : <>Acheteur : <span className="font-semibold text-slate-600 dark:text-slate-300">{fromName}</span></>
+                          }
+                        </p>
+                        <p className="text-xs text-slate-400">{dateStr}</p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-slate-400">Montant total</p>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{Number(c.gross_amount).toFixed(2)} TND</p>
+                      <p className="text-xs text-slate-400 mt-1">Notre commission (5%)</p>
+                      <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">+{Number(c.commission_amount).toFixed(2)} TND</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="mt-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex justify-between items-center">
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Total gagné ({commissions.length} transactions)</p>
+              <p className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">+{totalCommission.toFixed(2)} TND</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── main AdminPage ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -1948,6 +2063,7 @@ export default function AdminPage() {
             { id: "paidaccess", label: "💳 Paid Access",      count: paidCourses.length },
             { id: "chat",       label: "💬 Chat",             count: chatUnreadCount },
             { id: "projects",   label: "📁 Projects",         count: adminProjects.length },
+            { id: "gains",      label: "💰 Gains",            count: 0 },
           ];
           return (
             <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
@@ -2965,6 +3081,9 @@ export default function AdminPage() {
           )}
         </div>
       )}
+
+      {/* ══ GAINS TAB ══ */}
+      {mainTab === 'gains' && <AdminGainsTab API={API} />}
 
       {/* ── Logout Confirmation Modal ── */}
       {logoutConfirm && (
