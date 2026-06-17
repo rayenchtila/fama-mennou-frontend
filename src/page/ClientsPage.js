@@ -128,7 +128,7 @@ function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
                   <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">⏱️ {p.period || '—'}</span>
                   {p.created_at && (
                     <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">
-                      📅 {new Date(p.created_at).toLocaleString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                   )}
                 </div>

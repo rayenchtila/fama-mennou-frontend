@@ -260,7 +260,7 @@ export default function ProjectsPage() {
                       <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">💰 {p.budget ? `${p.budget} TND` : '—'}</p>
                       <p className="text-[11px] text-slate-400 mt-0.5">
                         🎯 {p.experience || '—'} · ⏱️ {p.period || '—'}
-                        {p.created_at && <> · 📅 {new Date(p.created_at).toLocaleString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</>}
+                        {p.created_at && <> · 📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</>}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
