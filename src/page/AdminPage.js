@@ -2940,8 +2940,18 @@ export default function AdminPage() {
                     return (
                       <tr key={p.id} className="border-b border-slate-50 dark:border-slate-800/60 last:border-0">
                         <td className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200 max-w-[180px] truncate">{p.title}</td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{p.client_name || p.client_email}</td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{p.freelancer_name || p.freelancer_email || '-'}</td>
+                        <td className="px-4 py-3">
+                          <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.client_email)}`)} className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline text-left">
+                            {p.client_name || p.client_email}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          {p.freelancer_email ? (
+                            <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.freelancer_email)}`)} className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline text-left">
+                              {p.freelancer_name || p.freelancer_email}
+                            </button>
+                          ) : <span className="text-slate-400">-</span>}
+                        </td>
                         <td className="px-4 py-3 font-bold text-slate-700 dark:text-slate-200">{Number(p.amount || 0).toFixed(2)} TND</td>
                         <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{acceptedDate}</td>
                         <td className="px-4 py-3">
