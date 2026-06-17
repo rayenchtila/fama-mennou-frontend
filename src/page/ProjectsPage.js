@@ -37,6 +37,7 @@ export default function ProjectsPage() {
   const [form, setForm] = useState({ title: '', description: '', budget: '10', experience: '', period: '', keywords: ['', '', '', '', ''] });
   const [posting, setPosting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [postError, setPostError] = useState('');
 
   function loadProjects() {
     if (!user?.email) return;
@@ -67,18 +68,27 @@ export default function ProjectsPage() {
     if (!form.period) errors.period = true;
     if (Object.keys(errors).length) { setFormErrors(errors); return; }
     setFormErrors({});
+    setPostError('');
     setPosting(true);
     try {
-      await fetch(`${API_URL}/projects`, {
+      const res = await fetch(`${API_URL}/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientEmail: user.email, ...form, keywords: form.keywords.filter(k => k.trim()).map(k => `#${k.trim()}`).join(' ') }),
       });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setPostError(data.error || 'Erreur serveur');
+        return;
+      }
       setForm({ title: '', description: '', budget: '10', experience: '', period: '', keywords: ['', '', '', '', ''] });
       setFormErrors({});
+      setPostError('');
       setShowForm(false);
       loadProjects();
-    } catch {} finally { setPosting(false); }
+    } catch (err) {
+      setPostError('Impossible de joindre le serveur. Réessayez.');
+    } finally { setPosting(false); }
   }
 
   async function handleAccept(proposalId, projectId) {
@@ -237,6 +247,9 @@ export default function ProjectsPage() {
                 </button>
               </div>
             </div>
+            {postError && (
+              <p className="text-red-500 text-sm text-center font-medium">{postError}</p>
+            )}
             <button
               type="submit"
               disabled={posting || !form.title.trim() || !form.description.trim() || !form.experience || !form.period}
