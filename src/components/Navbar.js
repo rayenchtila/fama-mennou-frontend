@@ -107,8 +107,19 @@ async function getNotifLink(n) {
   if (k.startsWith('client_profile_saved')) return '/account?tab=profile';
 
   // ── Proposals workflow ──
-  if (k.startsWith('new_proposal:'))       return '/projects';
-  if (k.startsWith('proposal_accepted:'))  return '/messages';
+  if (k.startsWith('new_proposal:'))  return '/projects';
+  if (k.startsWith('proposal_accepted:')) {
+    const parts = k.split(':');
+    const projectId = parts[1];
+    if (projectId) {
+      try {
+        const r = await fetch(`${API_URL}/projects/by-id/${projectId}`);
+        const p = await r.json();
+        if (p?.client_email) return `/messages?with=${encodeURIComponent(p.client_email)}`;
+      } catch {}
+    }
+    return '/messages';
+  }
   if (k.startsWith('proposal_rejected:'))  return '/dashboard?tab=find-projects';
 
   return '/courses';

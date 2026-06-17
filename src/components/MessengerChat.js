@@ -254,22 +254,22 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     const isNewMessage = newCount > prevMsgCount.current;
     prevMsgCount.current = newCount;
     if (!userScrolledUp.current || isNewMessage) {
-      // Double rAF guarantees layout is complete before we measure scrollHeight
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const el = msgsContainerRef.current;
-          if (el) el.scrollTop = el.scrollHeight;
-          // Fallback: scrollIntoView on the sentinel div (reliable on mobile)
-          endRef.current?.scrollIntoView({ block: 'end' });
-        });
-      });
+      const snap = () => {
+        const el = msgsContainerRef.current;
+        if (el) el.scrollTop = el.scrollHeight;
+      };
+      // Double rAF for layout flush, then a 120ms timeout as fallback
+      // (images in messages can delay the container's final scrollHeight)
+      requestAnimationFrame(() => { requestAnimationFrame(snap); });
+      setTimeout(snap, 120);
     }
     if (isInitialLoad.current && newCount > 0) isInitialLoad.current = false;
   }, [messages]);
 
   useEffect(() => {
     if (otherTyping && !userScrolledUp.current) {
-      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+      const el = msgsContainerRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
     }
   }, [otherTyping]);
 
@@ -500,7 +500,6 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     if (!email || email === selectedChat) return;
     setSelectedChat(email);
     setMobileSide('chat');
-    setMessages([]);
     setNewMsg(''); setReplyTo(null); setStagedFile(null); setLockError('');
     setEditingId(null); setEditText('');
     setOtherTyping(false); setHoveredMsg(null);
