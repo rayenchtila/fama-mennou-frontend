@@ -124,23 +124,24 @@ function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
                   <p className="text-[11px] text-slate-400 leading-relaxed whitespace-pre-wrap">{p.description}</p>
                 )}
                 <div className="flex flex-wrap gap-1.5 text-[10px]">
-                  {p.experience && <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">🎯 {p.experience}</span>}
-                  {p.period && <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">⏱️ {p.period}</span>}
+                  <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">🎯 {p.experience || '—'}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">⏱️ {p.period || '—'}</span>
                   {p.created_at && (
                     <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">
-                      📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      📅 {new Date(p.created_at).toLocaleString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   )}
                 </div>
-                {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
-                      <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300">
-                        {kw}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-1.5">
+                  {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0
+                    ? p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
+                        <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300">
+                          {kw}
+                        </span>
+                      ))
+                    : <span className="text-[10px] text-slate-400">Mots clés : —</span>
+                  }
+                </div>
               </div>
             ))}
           </div>

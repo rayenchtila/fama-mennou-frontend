@@ -576,10 +576,10 @@ function FindProjectsTab({ user, users, navigate }) {
                       )}
 
                       <div className="flex items-center gap-3 text-[10px] text-slate-500 flex-wrap relative z-10">
-                        {p.budget && <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">💰 {p.budget} TND</span>}
-                        {p.experience && <span className="px-2 py-0.5 rounded-full bg-white/5">🎯 {p.experience}</span>}
-                        {p.period && <span className="px-2 py-0.5 rounded-full bg-white/5">⏱️ {p.period}</span>}
-                        {p.created_at && <span className="px-2 py-0.5 rounded-full bg-white/5">📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                        <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">💰 {p.budget ? `${p.budget} TND` : '—'}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-white/5">🎯 {p.experience || '—'}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-white/5">⏱️ {p.period || '—'}</span>
+                        {p.created_at && <span className="px-2 py-0.5 rounded-full bg-white/5">📅 {new Date(p.created_at).toLocaleString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>}
                         {p.deadline && <span>📅 {new Date(p.deadline).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short' })}</span>}
                         {p.company && <span>🏢 {p.company}</span>}
                       </div>
