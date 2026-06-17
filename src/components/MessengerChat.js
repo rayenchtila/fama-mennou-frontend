@@ -203,7 +203,6 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     if (initialChat) {
       setSelectedChat(initialChat.toLowerCase());
       setMobileSide('chat');
-      setMessages([]);
     } else {
       setSelectedChat(null);
       setMobileSide('list');
@@ -829,13 +828,9 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
                 💼 {userProject.title}
               </span>
-              <input
-                type="number" min="0" step="0.01"
-                value={projAmount}
-                onChange={e => setProjAmount(e.target.value)}
-                placeholder="Montant TND"
-                className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-              />
+              <span className="text-xs font-bold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                {projAmount ? `${Number(projAmount).toFixed(2)} TND` : '— TND'}
+              </span>
               {[
                 { id: 'en_attente', label: '🟡 Gain en attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
                 { id: 'en_cours',   label: '🔵 Projet en cours', active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
