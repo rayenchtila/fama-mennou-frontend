@@ -36,6 +36,7 @@ export default function ProjectsPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', budget: '10', experience: '', period: '', keywords: ['', '', '', '', ''] });
   const [posting, setPosting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   function loadProjects() {
     if (!user?.email) return;
@@ -59,7 +60,13 @@ export default function ProjectsPage() {
 
   async function handlePost(e) {
     e.preventDefault();
-    if (!form.title.trim() || !form.description.trim() || !form.experience || !form.period || !form.budget) return;
+    const errors = {};
+    if (!form.title.trim()) errors.title = true;
+    if (!form.description.trim()) errors.description = true;
+    if (!form.experience) errors.experience = true;
+    if (!form.period) errors.period = true;
+    if (Object.keys(errors).length) { setFormErrors(errors); return; }
+    setFormErrors({});
     setPosting(true);
     try {
       await fetch(`${API_URL}/projects`, {
@@ -68,6 +75,7 @@ export default function ProjectsPage() {
         body: JSON.stringify({ clientEmail: user.email, ...form, keywords: form.keywords.filter(k => k.trim()).map(k => `#${k.trim()}`).join(' ') }),
       });
       setForm({ title: '', description: '', budget: '10', experience: '', period: '', keywords: ['', '', '', '', ''] });
+      setFormErrors({});
       setShowForm(false);
       loadProjects();
     } catch {} finally { setPosting(false); }
@@ -116,7 +124,7 @@ export default function ProjectsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">🗂️ {t('Projets')}</h1>
           <button
-            onClick={() => setShowForm(s => !s)}
+            onClick={() => { setShowForm(s => !s); setFormErrors({}); }}
             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors"
           >
             {showForm ? 'Annuler' : '+ Nouveau projet'}
@@ -171,26 +179,26 @@ export default function ProjectsPage() {
             <div>
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience <span className="text-rose-500">*</span></label>
               <select
-                required
                 value={form.experience}
-                onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
-                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                onChange={e => { setForm(f => ({ ...f, experience: e.target.value })); setFormErrors(fe => ({ ...fe, experience: false })); }}
+                className={`mt-1 w-full px-3 py-2 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${formErrors.experience ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200 dark:border-slate-700'}`}
               >
                 <option value="">Sélectionner...</option>
                 {EXPERIENCE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
+              {formErrors.experience && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner l'expérience requise.</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Période estimée <span className="text-rose-500">*</span></label>
               <select
-                required
                 value={form.period}
-                onChange={e => setForm(f => ({ ...f, period: e.target.value }))}
-                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                onChange={e => { setForm(f => ({ ...f, period: e.target.value })); setFormErrors(fe => ({ ...fe, period: false })); }}
+                className={`mt-1 w-full px-3 py-2 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${formErrors.period ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200 dark:border-slate-700'}`}
               >
                 <option value="">Sélectionner...</option>
                 {PERIOD_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
+              {formErrors.period && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner la période estimée.</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND) <span className="text-rose-500">*</span></label>
