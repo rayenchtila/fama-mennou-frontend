@@ -2909,17 +2909,17 @@ export default function AdminPage() {
           ) : adminProjects.length === 0 ? (
             <p className="text-sm text-slate-400">Aucun projet accepté pour le moment.</p>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-              <table className="w-full text-sm" style={{ minWidth: 700 }}>
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+              <table className="w-full">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800">
-                    <th className="px-4 py-3 font-bold">Projet</th>
-                    <th className="px-4 py-3 font-bold">Client</th>
-                    <th className="px-4 py-3 font-bold">Freelance</th>
-                    <th className="px-4 py-3 font-bold">Montant</th>
-                    <th className="px-4 py-3 font-bold">Date d'acceptation</th>
-                    <th className="px-4 py-3 font-bold">Statut</th>
-                    <th className="px-4 py-3 font-bold">Paiement</th>
+                  <tr className="text-left text-[9px] md:text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                    <th className="px-1.5 md:px-4 py-2 md:py-3 font-bold">Projet</th>
+                    <th className="px-1.5 md:px-4 py-2 md:py-3 font-bold">Client</th>
+                    <th className="px-1.5 md:px-4 py-2 md:py-3 font-bold">Freelance</th>
+                    <th className="px-1.5 md:px-4 py-2 md:py-3 font-bold">Montant</th>
+                    <th className="px-1.5 md:px-4 py-2 md:py-3 font-bold">Date</th>
+                    <th className="px-1.5 md:px-4 py-2 md:py-3 font-bold">Statut</th>
+                    <th className="px-1.5 md:px-4 py-2 md:py-3 font-bold">Paiement</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2927,30 +2927,34 @@ export default function AdminPage() {
                     const STATUS_BADGE = { in_progress: 'bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400', completed: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' };
                     const STATUS_LABEL = { in_progress: 'En cours', completed: 'Terminé' };
                     const PAY_BADGE    = { en_attente: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400', recu: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' };
-                    const PAY_LABEL    = { en_attente: 'Paiement en attente', recu: 'Paiement reçu' };
+                    const PAY_LABEL    = { en_attente: 'En attente', recu: 'Payé' };
+                    const PAY_LABEL_FULL = { en_attente: 'Paiement en attente', recu: 'Paiement reçu' };
                     const acceptedDate = p.accepted_at ? new Date(p.accepted_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
                     return (
                       <tr key={p.id} className="border-b border-slate-50 dark:border-slate-800/60 last:border-0">
-                        <td className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200 max-w-[180px] truncate">{p.title}</td>
-                        <td className="px-4 py-3">
-                          <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.client_email)}`)} className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline text-left">
+                        <td className="px-1.5 md:px-4 py-2 md:py-3 font-semibold text-[10px] md:text-sm text-slate-700 dark:text-slate-200 max-w-[60px] md:max-w-[180px] truncate">{p.title}</td>
+                        <td className="px-1.5 md:px-4 py-2 md:py-3">
+                          <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.client_email)}`)} className="text-indigo-500 font-medium text-[10px] md:text-sm text-left truncate block max-w-[60px] md:max-w-none">
                             {p.client_name || p.client_email}
                           </button>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-1.5 md:px-4 py-2 md:py-3">
                           {p.freelancer_email ? (
-                            <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.freelancer_email)}`)} className="text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline text-left">
+                            <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.freelancer_email)}`)} className="text-indigo-500 font-medium text-[10px] md:text-sm text-left truncate block max-w-[60px] md:max-w-none">
                               {p.freelancer_name || p.freelancer_email}
                             </button>
-                          ) : <span className="text-slate-400">-</span>}
+                          ) : <span className="text-slate-400 text-[10px] md:text-sm">-</span>}
                         </td>
-                        <td className="px-4 py-3 font-bold text-slate-700 dark:text-slate-200">{Number(p.amount || 0).toFixed(2)} TND</td>
-                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{acceptedDate}</td>
-                        <td className="px-4 py-3">
-                          <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${STATUS_BADGE[p.status] || 'bg-slate-100 text-slate-500'}`}>{STATUS_LABEL[p.status] || p.status}</span>
+                        <td className="px-1.5 md:px-4 py-2 md:py-3 font-bold text-[10px] md:text-sm text-slate-700 dark:text-slate-200 whitespace-nowrap">{Number(p.amount || 0).toFixed(0)} TND</td>
+                        <td className="px-1.5 md:px-4 py-2 md:py-3 text-[10px] md:text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{acceptedDate}</td>
+                        <td className="px-1.5 md:px-4 py-2 md:py-3">
+                          <span className={`text-[9px] md:text-[11px] font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded-full whitespace-nowrap ${STATUS_BADGE[p.status] || 'bg-slate-100 text-slate-500'}`}>{STATUS_LABEL[p.status] || p.status}</span>
                         </td>
-                        <td className="px-4 py-3">
-                          <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${PAY_BADGE[p.payment_status] || 'bg-slate-100 text-slate-500'}`}>{PAY_LABEL[p.payment_status] || p.payment_status}</span>
+                        <td className="px-1.5 md:px-4 py-2 md:py-3">
+                          <span className={`text-[9px] md:text-[11px] font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded-full whitespace-nowrap ${PAY_BADGE[p.payment_status] || 'bg-slate-100 text-slate-500'}`}>
+                            <span className="md:hidden">{PAY_LABEL[p.payment_status] || p.payment_status || '—'}</span>
+                            <span className="hidden md:inline">{PAY_LABEL_FULL[p.payment_status] || p.payment_status || '—'}</span>
+                          </span>
                         </td>
                       </tr>
                     );
