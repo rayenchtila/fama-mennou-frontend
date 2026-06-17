@@ -816,7 +816,8 @@ function GainsTab({ user }) {
       .then(data => { if (Array.isArray(data)) setCourseHistory(data); });
   }, [user.email]);
 
-  const completed   = missions.filter(m => m.status === 'completed' || m.status === 'in_progress');
+  const completed        = missions.filter(m => m.status === 'completed');
+  const projectPayments  = missions.filter(m => m.status === 'in_progress' || m.status === 'completed');
   const incoming    = transactions.filter(t => t.direction === 'incoming');
   const totalEarned = incoming.reduce((sum, t) => sum + Number(t.amount || 0), 0);
   const balance     = Number(wallet?.balance || 0);
@@ -876,11 +877,11 @@ function GainsTab({ user }) {
       {/* Historique des gains ( PROJECTS ) */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
         <SectionHeader icon="💰" title="Historique des gains ( PROJECTS ) :" />
-        {completed.length === 0
+        {projectPayments.length === 0
           ? <Empty emoji="💰" text="Aucun gain pour l'instant" />
           : (
             <div className="space-y-3">
-              {completed.map(p => {
+              {projectPayments.map(p => {
                 const info = PROJECT_PAY_STATUS[p.payment_status] || PROJECT_PAY_STATUS.en_attente;
                 const dateStr = new Date(p.accepted_at || p.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
                 return (
