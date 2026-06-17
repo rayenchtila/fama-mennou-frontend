@@ -111,7 +111,7 @@ export default function ProjectsPage() {
       await fetch(`${API_URL}/projects/${projectId}/notify`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ target: 'freelancer', action }),
+        body: JSON.stringify({ target: 'client', action }),
       });
       loadProjects();
     } catch {}
