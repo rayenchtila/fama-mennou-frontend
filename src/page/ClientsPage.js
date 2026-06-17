@@ -382,7 +382,7 @@ export default function ClientsPage() {
       {/* ── Grid — one card per project ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filtered.flatMap(c =>
               (projectsByClient[c.email?.toLowerCase()] || []).map(p => (
                 <ClientCard key={`${c.email}-${p.id}`} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} projects={[p]} />

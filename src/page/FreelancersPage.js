@@ -546,7 +546,7 @@ export default function FreelancersPage() {
       {/* ── Grid ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filtered.map(f => (
               <RealFreelancerCard key={f.email} freelancer={f} reviews={reviews} onAddReview={handleAddReview}
                 currentUser={user} updateUser={updateUser} completedWith={completedWith}
