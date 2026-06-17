@@ -37,6 +37,8 @@ export default function ProjectsPage() {
   const [form, setForm] = useState({ title: '', description: '', budget: '10', experience: '', period: '', keywords: ['', '', '', '', ''] });
   const [posting, setPosting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
   function loadProjects() {
     if (!user?.email) return;
@@ -103,6 +105,26 @@ export default function ProjectsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ target: 'freelancer', action }),
       });
+      loadProjects();
+    } catch {}
+  }
+
+  function startEdit(p) {
+    const kws = (p.keywords || '').split(/\s+/).filter(Boolean).map(k => k.replace(/^#/, ''));
+    const padded = [...kws, '', '', '', '', ''].slice(0, 5);
+    setEditForm({ experience: p.experience || '', period: p.period || '', keywords: padded });
+    setEditingId(p.id);
+  }
+
+  async function handleSaveEdit(projectId) {
+    const kwStr = editForm.keywords.filter(k => k.trim()).map(k => `#${k.trim()}`).join(' ');
+    try {
+      await fetch(`${API_URL}/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ experience: editForm.experience, period: editForm.period, keywords: kwStr }),
+      });
+      setEditingId(null);
       loadProjects();
     } catch {}
   }
@@ -274,6 +296,13 @@ export default function ProjectsPage() {
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${st.cls}`}>{st.label}</span>
                       <button
+                        onClick={() => editingId === p.id ? setEditingId(null) : startEdit(p)}
+                        className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors"
+                        aria-label="Modifier le projet"
+                      >
+                        ✏️
+                      </button>
+                      <button
                         onClick={() => handleDelete(p.id)}
                         className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors"
                         aria-label="Supprimer le projet"
@@ -285,16 +314,63 @@ export default function ProjectsPage() {
 
                   <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{p.description || '—'}</p>
 
-                  <div className="flex flex-wrap gap-1.5">
-                    {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0
-                      ? p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
-                          <span key={i} className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">
-                            {kw}
-                          </span>
-                        ))
-                      : <span className="text-[11px] text-slate-400">Mots clés : —</span>
-                    }
-                  </div>
+                  {editingId === p.id ? (
+                    <div className="border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 space-y-2 bg-indigo-50 dark:bg-indigo-950/30">
+                      <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Modifier les détails</p>
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Expérience</label>
+                        <select
+                          value={editForm.experience}
+                          onChange={e => setEditForm(f => ({ ...f, experience: e.target.value }))}
+                          className="mt-0.5 w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value="">Sélectionner...</option>
+                          {EXPERIENCE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Période estimée</label>
+                        <select
+                          value={editForm.period}
+                          onChange={e => setEditForm(f => ({ ...f, period: e.target.value }))}
+                          className="mt-0.5 w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value="">Sélectionner...</option>
+                          {PERIOD_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Mots clés</label>
+                        <div className="mt-0.5 flex flex-wrap gap-1.5">
+                          {editForm.keywords.map((kw, i) => (
+                            <div key={i} style={{ width: `${Math.max(5.5, kw.length + 2)}ch` }}
+                              className="flex items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 transition-[width] duration-150">
+                              <span className="pl-2 text-xs font-semibold text-slate-400">#</span>
+                              <input maxLength={25} value={kw}
+                                onChange={e => { const val = e.target.value.replace(/[#\s]/g, '').slice(0, 25); setEditForm(f => ({ ...f, keywords: f.keywords.map((k, idx) => idx === i ? val : k) })); }}
+                                placeholder={`mot ${i+1}`}
+                                className="w-full min-w-0 px-1 py-1.5 text-xs bg-transparent text-slate-900 dark:text-white focus:outline-none" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 pt-1">
+                        <button onClick={() => handleSaveEdit(p.id)} className="flex-1 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors">Enregistrer</button>
+                        <button onClick={() => setEditingId(null)} className="flex-1 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuler</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0
+                        ? p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
+                            <span key={i} className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">
+                              {kw}
+                            </span>
+                          ))
+                        : <span className="text-[11px] text-slate-400">Mots clés : —</span>
+                      }
+                    </div>
+                  )}
 
                   {p.status === 'open' && (
                     <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
