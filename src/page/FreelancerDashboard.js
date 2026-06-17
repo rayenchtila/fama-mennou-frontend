@@ -541,11 +541,12 @@ function FindProjectsTab({ user, users, navigate }) {
         <h3 className="text-base font-extrabold text-white px-1">📂 Tous les projets ouverts</h3>
 
         {loading
-          ? <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{[...Array(6)].map((_, i) => (
+          ? <div className="space-y-3">{[...Array(5)].map((_, i) => (
               <div key={i} className="bg-slate-900 rounded-2xl border border-white/5 p-5 animate-pulse space-y-3">
-                <div className="h-4 bg-slate-800 rounded w-3/4" />
+                <div className="h-4 bg-slate-800 rounded w-2/3" />
+                <div className="h-3 bg-slate-800 rounded w-1/3" />
                 <div className="h-3 bg-slate-800 rounded w-full" />
-                <div className="h-3 bg-slate-800 rounded w-2/3" />
+                <div className="h-3 bg-slate-800 rounded w-4/5" />
               </div>
             ))}</div>
           : filtered.length === 0
@@ -553,58 +554,69 @@ function FindProjectsTab({ user, users, navigate }) {
                 <Empty emoji="🔎" text={search ? 'Aucun projet correspond à votre recherche.' : 'Aucun projet ouvert pour l\'instant.'} />
               </div>
             : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-0 bg-slate-900 rounded-2xl border border-white/5 overflow-hidden divide-y divide-white/5">
                 {filtered.map(p => {
-                  const client = getUser(p.client_email || p.user_email);
+                  const client     = getUser(p.client_email || p.user_email);
+                  const clientName = client?.name || (p.client_email || p.user_email)?.split('@')[0];
+                  const timeAgo = p.created_at ? (() => {
+                    const diff = Date.now() - new Date(p.created_at).getTime();
+                    const h = Math.floor(diff / 3600000);
+                    const d = Math.floor(diff / 86400000);
+                    return h < 1 ? 'il y a moins d\'1h' : h < 24 ? `il y a ${h}h` : `il y a ${d}j`;
+                  })() : '';
+                  const keywords = p.keywords ? p.keywords.split(/\s+/).filter(Boolean) : [];
                   return (
-                    <div key={p.id} className="group relative bg-slate-900 rounded-2xl border border-white/5 p-5 hover:border-brand-cyan/40 hover:shadow-2xl hover:shadow-brand-cyan/5 hover:-translate-y-1 transition-all duration-300 flex flex-col gap-3 overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-brand-violet/0 to-brand-cyan/0 group-hover:from-brand-violet/5 group-hover:to-brand-cyan/5 transition-all duration-300 pointer-events-none" />
-
-                      <div className="flex items-start justify-between gap-2 relative z-10">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <Avi user={client || { email: p.client_email || p.user_email }} size="sm" />
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-white truncate">{p.title}</p>
-                            <p className="text-[10px] text-slate-500">{client?.name || (p.client_email || p.user_email)?.split('@')[0]}</p>
-                          </div>
+                    <div key={p.id} className="group p-5 sm:p-6 hover:bg-white/[0.02] transition-colors cursor-default">
+                      {/* Top row: time + client */}
+                      <div className="flex items-center gap-3 mb-2">
+                        {timeAgo && <span className="text-[11px] text-slate-500">Publié {timeAgo}</span>}
+                        <span className="text-slate-700">·</span>
+                        <div className="flex items-center gap-1.5">
+                          <Avi user={client || { email: p.client_email || p.user_email }} size="xs" />
+                          <span className="text-[11px] text-slate-400 font-medium">{clientName}</span>
                         </div>
-                        <StatusPill status={p.status || 'open'} />
                       </div>
 
+                      {/* Title */}
+                      <h3 className="text-base font-bold text-brand-cyan-light group-hover:text-brand-violet-light transition-colors mb-1.5 truncate">{p.title}</h3>
+
+                      {/* Meta row */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-3">
+                        <span className="font-bold text-emerald-400">Prix fixe</span>
+                        {p.budget && <><span className="text-slate-600">·</span><span className="font-semibold text-white">{p.budget} TND</span></>}
+                        {p.experience && <><span className="text-slate-600">·</span><span>{p.experience}</span></>}
+                        {p.period && <><span className="text-slate-600">·</span><span>Durée estimée : {p.period}</span></>}
+                        {p.created_at && <><span className="text-slate-600">·</span><span>📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</span></>}
+                      </div>
+
+                      {/* Description */}
                       {p.description && (
-                        <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap relative z-10">{p.description}</p>
+                        <p className="text-sm text-slate-400 leading-relaxed line-clamp-3 mb-3">{p.description}</p>
                       )}
 
-                      <div className="flex items-center gap-3 text-[10px] text-slate-500 flex-wrap relative z-10">
-                        <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">💰 {p.budget ? `${p.budget} TND` : '—'}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-white/5">🎯 {p.experience || '—'}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-white/5">⏱️ {p.period || '—'}</span>
-                        {p.created_at && <span className="px-2 py-0.5 rounded-full bg-white/5">📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
-                        {p.deadline && <span>📅 {new Date(p.deadline).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short' })}</span>}
-                        {p.company && <span>🏢 {p.company}</span>}
-                      </div>
-
-                      {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 relative z-10">
-                          {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
-                            <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300">
+                      {/* Keywords */}
+                      {keywords.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                          {keywords.map((kw, i) => (
+                            <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-white/5">
                               {kw}
                             </span>
                           ))}
                         </div>
                       )}
 
-                      <div className="flex gap-2 pt-2 border-t border-white/5 relative z-10">
+                      {/* Action buttons */}
+                      <div className="flex gap-2">
                         <button
                           onClick={() => handleContact(p.client_email || p.user_email, p.id)}
-                          className="flex-1 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 transition-colors"
+                          className="px-4 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 transition-colors"
                         >
                           💬 Contacter
                         </button>
                         <button
                           onClick={() => handleProposer(p)}
                           disabled={sent[`propose-${p.id}`]}
-                          className="flex-1 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white text-xs font-bold hover:shadow-lg hover:shadow-brand-violet/30 transition-all disabled:opacity-60"
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white text-xs font-bold hover:shadow-lg hover:shadow-brand-violet/30 transition-all disabled:opacity-60"
                         >
                           {sent[`propose-${p.id}`] ? '✅ Envoyée' : '📩 Proposer'}
                         </button>
