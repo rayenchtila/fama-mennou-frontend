@@ -824,7 +824,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
           {/* Admin: freelancer project payment status bars — one row per project */}
           {currentUser?.isAdmin && userProjects.map(proj => (
-            <div key={proj.id} className="shrink-0 flex flex-nowrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 z-10 overflow-x-auto">
+            <div key={proj.id} className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 z-10">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
                 💼 {proj.title}
               </span>
