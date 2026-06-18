@@ -822,33 +822,40 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             </div>
           )}
 
-          {/* Admin: freelancer project payment status bars — one row per project */}
-          {currentUser?.isAdmin && userProjects.map(proj => (
-            <div key={proj.id} className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 z-10">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
-                💼 {proj.title}
-              </span>
-              <span className="text-xs font-bold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200">
-                {proj.amount ? `${Number(proj.amount).toFixed(2)} TND` : '— TND'}
-              </span>
-              {[
-                { id: 'en_attente',     label: '🟡 Montant en attente', active: 'bg-amber-500 border-amber-500 text-white',   idle: 'hover:border-amber-400' },
-                { id: 'en_cours',       label: '🔵 Projet en cours',    active: 'bg-sky-500 border-sky-500 text-white',       idle: 'hover:border-sky-400' },
-                { id: 'projet_termine', label: '✅ Projet terminée',     active: 'bg-violet-500 border-violet-500 text-white', idle: 'hover:border-violet-400' },
-                { id: 'termine',        label: '🟢 Montant confirmée',  active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
-              ].map(s => {
-                const isActive = proj.payment_status === s.id;
-                return (
-                  <button key={s.id} disabled={projSavingId === proj.id} onClick={() => setProjectPaymentStatus(s.id, proj.id)}
-                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
-                      isActive ? s.active : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 ${s.idle}`
-                    }`}>
-                    {s.label}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+          {/* Admin: show the ONE project referenced in the chat's automatic messages */}
+          {currentUser?.isAdmin && (() => {
+            const lastProjId = [...messages].reverse().find(m => m.project_id)?.project_id;
+            const proj = lastProjId
+              ? (userProjects.find(p => p.id === lastProjId) || userProjects[0])
+              : userProjects[0];
+            if (!proj) return null;
+            return (
+              <div className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 z-10">
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
+                  💼 {proj.title}
+                </span>
+                <span className="text-xs font-bold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                  {proj.amount ? `${Number(proj.amount).toFixed(2)} TND` : '— TND'}
+                </span>
+                {[
+                  { id: 'en_attente',     label: '🟡 Montant en attente', active: 'bg-amber-500 border-amber-500 text-white',   idle: 'hover:border-amber-400' },
+                  { id: 'en_cours',       label: '🔵 Projet en cours',    active: 'bg-sky-500 border-sky-500 text-white',       idle: 'hover:border-sky-400' },
+                  { id: 'projet_termine', label: '✅ Projet terminée',     active: 'bg-violet-500 border-violet-500 text-white', idle: 'hover:border-violet-400' },
+                  { id: 'termine',        label: '🟢 Montant confirmée',  active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+                ].map(s => {
+                  const isActive = proj.payment_status === s.id;
+                  return (
+                    <button key={s.id} disabled={projSavingId === proj.id} onClick={() => setProjectPaymentStatus(s.id, proj.id)}
+                      className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
+                        isActive ? s.active : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 ${s.idle}`
+                      }`}>
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {/* Messages */}
           <div
