@@ -426,12 +426,6 @@ export default function CourseDetailPage() {
                   </svg>
                   Full lifetime access
                 </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                  Certificate of completion
-                </div>
                 {course.first_lesson_free && (
                   <div className="flex items-center gap-2">
                     <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
