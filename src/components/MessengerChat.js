@@ -150,9 +150,11 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const [userCourseReq, setUserCourseReq] = useState(null);
   const [reqAmount,     setReqAmount]     = useState('');
   const [statusSaving,  setStatusSaving]  = useState(false);
-  const [userProject,   setUserProject]   = useState(null);
-  const [projAmount,    setProjAmount]    = useState('');
-  const [projSaving,    setProjSaving]    = useState(false);
+  const [userProjects,  setUserProjects]  = useState([]);   // ALL projects for this freelancer
+  const [projSavingId,  setProjSavingId]  = useState(null); // id of project currently saving
+  // legacy aliases kept for compatibility
+  const userProject = userProjects[0] || null;
+  const projAmount  = userProject ? Number(userProject.amount || 0).toFixed(2) : '';
 
   const endRef           = useRef();
   const msgsContainerRef = useRef();   // scroll container
@@ -559,22 +561,20 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   }, []);
 
   const fetchUserProject = useCallback(async (email) => {
-    if (!email) { setUserProject(null); return; }
+    if (!email) { setUserProjects([]); return; }
     try {
       const data = await fetch(`${API}/projects/assigned/${encodeURIComponent(email)}`).then(r => r.json());
       if (Array.isArray(data)) {
         const mine = data
           .filter(p => p.freelancer_email === email.toLowerCase())
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        const proj = mine[0] || null;
-        setUserProject(proj);
-        setProjAmount(proj ? Number(proj.amount || 0).toFixed(2) : '');
+        setUserProjects(mine);
       }
     } catch {}
   }, []);
 
   useEffect(() => {
-    if (!currentUser?.isAdmin || !selectedChat) { setUserCourseReq(null); setUserProject(null); return; }
+    if (!currentUser?.isAdmin || !selectedChat) { setUserCourseReq(null); setUserProjects([]); return; }
     fetchUserCourseReq(selectedChat);
     fetchUserProject(selectedChat);
   }, [currentUser?.isAdmin, selectedChat, fetchUserCourseReq, fetchUserProject]);
@@ -593,18 +593,19 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     finally { setStatusSaving(false); }
   }
 
-  async function setProjectPaymentStatus(status) {
-    if (!userProject) return;
-    setProjSaving(true);
+  async function setProjectPaymentStatus(status, projectId) {
+    const proj = userProjects.find(p => p.id === projectId);
+    if (!proj) return;
+    setProjSavingId(projectId);
     try {
-      await fetch(`${API}/projects/${userProject.id}/payment-status`, {
+      await fetch(`${API}/projects/${projectId}/payment-status`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, montant: projAmount === '' ? null : Number(projAmount) }),
+        body: JSON.stringify({ status, montant: Number(proj.amount || 0) }),
       });
       await fetchUserProject(selectedChat);
       loadMsgs(selectedChat);
     } catch {}
-    finally { setProjSaving(false); }
+    finally { setProjSavingId(null); }
   }
 
   // ── Derived data ──────────────────────────────────────────────────────────────
@@ -821,33 +822,33 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             </div>
           )}
 
-          {/* Admin: freelancer gains status (3 buttons) */}
-          {currentUser?.isAdmin && userProject && (
-            <div className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 z-10">
+          {/* Admin: freelancer project payment status bars — one row per project */}
+          {currentUser?.isAdmin && userProjects.map(proj => (
+            <div key={proj.id} className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 z-10">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
-                💼 {userProject.title}
+                💼 {proj.title}
               </span>
               <span className="text-xs font-bold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200">
-                {projAmount ? `${Number(projAmount).toFixed(2)} TND` : '— TND'}
+                {proj.amount ? `${Number(proj.amount).toFixed(2)} TND` : '— TND'}
               </span>
               {[
                 { id: 'en_attente',     label: '🟡 Montant en attente', active: 'bg-amber-500 border-amber-500 text-white',   idle: 'hover:border-amber-400' },
-                { id: 'en_cours',       label: '🔵 Projet en cours',   active: 'bg-sky-500 border-sky-500 text-white',     idle: 'hover:border-sky-400' },
-                { id: 'projet_termine', label: '✅ Projet terminée',    active: 'bg-violet-500 border-violet-500 text-white', idle: 'hover:border-violet-400' },
+                { id: 'en_cours',       label: '🔵 Projet en cours',    active: 'bg-sky-500 border-sky-500 text-white',       idle: 'hover:border-sky-400' },
+                { id: 'projet_termine', label: '✅ Projet terminée',     active: 'bg-violet-500 border-violet-500 text-white', idle: 'hover:border-violet-400' },
                 { id: 'termine',        label: '🟢 Montant confirmée',  active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
               ].map(s => {
-                const active = userProject.payment_status === s.id;
+                const isActive = proj.payment_status === s.id;
                 return (
-                  <button key={s.id} disabled={projSaving} onClick={() => setProjectPaymentStatus(s.id)}
+                  <button key={s.id} disabled={projSavingId === proj.id} onClick={() => setProjectPaymentStatus(s.id, proj.id)}
                     className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50 ${
-                      active ? s.active : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 ${s.idle}`
+                      isActive ? s.active : `bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 ${s.idle}`
                     }`}>
                     {s.label}
                   </button>
                 );
               })}
             </div>
-          )}
+          ))}
 
           {/* Messages */}
           <div
