@@ -808,7 +808,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               {[
                 { id: 'en_attente', label: '🟡 En attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
                 { id: 'termine',    label: '🟢 Terminé',    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
-                { id: 'refuse',     label: '🔴 Refusée',    active: 'bg-rose-500 border-rose-500 text-white',       idle: 'hover:border-rose-400' },
+                { id: 'refuse',     label: '🔴 Refusé',    active: 'bg-rose-500 border-rose-500 text-white',       idle: 'hover:border-rose-400' },
               ].map(s => {
                 const active = userCourseReq.payment_status === s.id;
                 return (
