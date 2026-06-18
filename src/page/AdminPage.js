@@ -2560,7 +2560,10 @@ export default function AdminPage() {
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Par <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400">👥 {course.total_buyers ?? 0} acheteur{(course.total_buyers ?? 0) !== 1 ? 's' : ''}</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            👥 {course.total_buyers ?? 0} acheteur{(course.total_buyers ?? 0) !== 1 ? 's' : ''}
+                            {course.buyer_names ? <span className="font-semibold text-slate-600 dark:text-slate-300"> : {course.buyer_names}</span> : ''}
+                          </span>
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">📖 {course.approved_lessons ?? 0} leçon{(course.approved_lessons ?? 0) !== 1 ? 's' : ''}</span>
                         </div>
                         <button
