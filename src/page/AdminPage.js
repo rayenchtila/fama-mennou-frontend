@@ -1446,7 +1446,7 @@ function AdminGainsTab({ API }) {
   return (
     <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-4 py-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">💰 Gains Plateforme (5%)</h2>
+        <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">💰 Gains Plateforme (6%)</h2>
         <button onClick={load} className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 transition-colors">⟳ Actualiser</button>
       </div>
 
@@ -1477,7 +1477,7 @@ function AdminGainsTab({ API }) {
 
       {/* Transactions list */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Historique des commissions (5%) :</p>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Historique des commissions (6%) :</p>
         {loading ? (
           <div className="text-center py-8 text-sm text-slate-400">Chargement…</div>
         ) : commissions.length === 0 ? (
@@ -1511,7 +1511,7 @@ function AdminGainsTab({ API }) {
                     <div className="text-right shrink-0">
                       <p className="text-xs text-slate-400">Montant total</p>
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{Number(c.gross_amount).toFixed(2)} TND</p>
-                      <p className="text-xs text-slate-400 mt-1">Notre commission (5%)</p>
+                      <p className="text-xs text-slate-400 mt-1">Notre commission (6%)</p>
                       <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">+{Number(c.commission_amount).toFixed(2)} TND</p>
                     </div>
                   </div>

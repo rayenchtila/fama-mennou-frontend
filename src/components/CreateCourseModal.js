@@ -274,8 +274,8 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               <p className="text-[11px] text-indigo-700 dark:text-indigo-400 leading-relaxed">
-                La plateforme retient une commission de <strong>5 %</strong> sur chaque vente.
-                Vous recevez <strong>95 %</strong> du prix affiché.
+                La plateforme retient une commission de <strong>6 %</strong> sur chaque vente.
+                Vous recevez <strong>94 %</strong> du prix affiché.
               </p>
             </div>
 
