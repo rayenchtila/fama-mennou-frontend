@@ -831,9 +831,10 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 {projAmount ? `${Number(projAmount).toFixed(2)} TND` : '— TND'}
               </span>
               {[
-                { id: 'en_attente', label: '🟡 Gain en attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
-                { id: 'en_cours',   label: '🔵 Projet en cours', active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
-                { id: 'termine',    label: '🟢 Gain confirmé',   active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+                { id: 'en_attente',     label: '🟡 Montant en attente', active: 'bg-amber-500 border-amber-500 text-white',   idle: 'hover:border-amber-400' },
+                { id: 'en_cours',       label: '🔵 Projet en cours',   active: 'bg-sky-500 border-sky-500 text-white',     idle: 'hover:border-sky-400' },
+                { id: 'projet_termine', label: '✅ Projet terminée',    active: 'bg-violet-500 border-violet-500 text-white', idle: 'hover:border-violet-400' },
+                { id: 'termine',        label: '🟢 Montant confirmée',  active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
               ].map(s => {
                 const active = userProject.payment_status === s.id;
                 return (
