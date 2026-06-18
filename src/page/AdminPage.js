@@ -1451,18 +1451,11 @@ function AdminGainsTab({ API }) {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-5 flex items-center gap-3">
           <span className="text-2xl">💰</span>
           <div>
-            <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{Number(platform?.balance || 0).toFixed(2)} TND</p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Solde plateforme</p>
-          </div>
-        </div>
-        <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl p-5 flex items-center gap-3">
-          <span className="text-2xl">📊</span>
-          <div>
-            <p className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">{Number(platform?.total_collected || 0).toFixed(2)} TND</p>
+            <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{Number(platform?.total_collected || 0).toFixed(2)} TND</p>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Total collecté</p>
           </div>
         </div>
