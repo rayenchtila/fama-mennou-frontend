@@ -452,9 +452,9 @@ export default function CourseDetailPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8">
         <div className="flex gap-1 border-b border-slate-200 dark:border-slate-800 mb-6">
           {[
-            { id: 'curriculum', label: `Curriculum (${lessons.length})` },
-            { id: 'reviews',    label: `Reviews (${reviews.length})` },
-            { id: 'live',       label: `Live Sessions (${liveSessions.length})` },
+            { id: 'curriculum', label: 'Mes Leçons' },
+            { id: 'reviews',    label: 'Mes Reviews' },
+            { id: 'live',       label: 'Live Sessions' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all ${
@@ -764,12 +764,11 @@ export default function CourseDetailPage() {
         {/* ── Live Sessions ─────────────────────────────────────────────────── */}
         {activeTab === 'live' && (
           <div className="space-y-4 mb-10">
-            {liveSessions.length === 0 ? (
-              <div className="text-center py-16 text-slate-400">
-                <p className="text-3xl mb-2">📡</p>
-                <p className="text-sm">No live sessions scheduled</p>
-              </div>
-            ) : liveSessions.map(s => {
+            <div className="text-center py-16 text-slate-400">
+              <p className="text-4xl mb-3">🚀</p>
+              <p className="text-lg font-bold text-slate-500 dark:text-slate-400">SOON</p>
+            </div>
+            {false && liveSessions.map(s => {
               const isPast = s.scheduled_at && new Date(s.scheduled_at) < new Date();
               return (
                 <div key={s.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 flex items-center gap-4">
