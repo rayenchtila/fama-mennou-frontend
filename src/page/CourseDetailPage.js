@@ -65,6 +65,11 @@ export default function CourseDetailPage() {
   const [replyingId,   setReplyingId]   = useState(null);
   const [replySending, setReplySending] = useState(false);
 
+  // Discount (instructor only)
+  const [showDiscount,   setShowDiscount]   = useState(false);
+  const [discountInput,  setDiscountInput]  = useState('');
+  const [discountSaving, setDiscountSaving] = useState(false);
+
   // Add lesson inline (instructor only)
   const [showAddLesson,    setShowAddLesson]    = useState(false);
   const [lessonSubmitted,  setLessonSubmitted]  = useState(false);
@@ -157,6 +162,26 @@ export default function CourseDetailPage() {
       } else { setBuyMsg('Demande échouée. Réessaie.'); }
     } catch { setBuyMsg('Demande échouée. Réessaie.'); }
     finally { setRequesting(false); }
+  }
+
+  async function saveDiscount() {
+    const pct = Math.max(0, Math.min(100, Math.round(Number(discountInput))));
+    setDiscountSaving(true);
+    try {
+      const r = await fetch(`${API}/courses/${id}/discount`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discount_pct: pct, instructor_email: user.email }),
+      });
+      const d = await r.json();
+      if (d.id) {
+        // update local course data
+        setCourse(prev => ({ ...prev, discount_pct: pct }));
+        setShowDiscount(false);
+        setDiscountInput('');
+      }
+    } catch {}
+    setDiscountSaving(false);
   }
 
   function canWatch(lesson) {
@@ -445,8 +470,77 @@ export default function CourseDetailPage() {
               )}
 
               {isInstructor ? (
-                <div className="text-xs text-center text-slate-500 dark:text-slate-400 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                  You are the instructor of this course
+                <div className="space-y-3">
+                  <div className="text-xs text-center text-slate-500 dark:text-slate-400 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                    Vous êtes l'instructeur de ce cours
+                  </div>
+
+                  {/* Discount control */}
+                  {!isFree && (
+                    <div>
+                      {/* Current discount badge */}
+                      {discountPct > 0 && (
+                        <div className="flex items-center justify-between mb-2 px-1">
+                          <span className="text-[11px] font-bold text-rose-400 flex items-center gap-1">
+                            🏷️ Remise active : -{discountPct}%
+                          </span>
+                          <span className="text-[11px] text-slate-500">
+                            Prix final : {finalPrice.toFixed(2)} TND
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Toggle button */}
+                      <button
+                        onClick={() => {
+                          setShowDiscount(v => !v);
+                          setDiscountInput(discountPct > 0 ? String(discountPct) : '');
+                        }}
+                        className={`w-full py-2.5 rounded-xl text-xs font-bold transition-colors ${
+                          discountPct > 0
+                            ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}>
+                        🏷️ {discountPct > 0 ? `Modifier la remise (${discountPct}% actif)` : 'Appliquer une remise'}
+                      </button>
+
+                      {/* Inline discount form */}
+                      {showDiscount && (
+                        <div className="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-3">
+                          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Réduction (%)</p>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number" min="0" max="100" step="1"
+                              value={discountInput}
+                              onChange={e => setDiscountInput(e.target.value)}
+                              placeholder="ex: 20"
+                              className="w-20 text-sm font-bold text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-900 dark:text-white"
+                            />
+                            <span className="text-sm text-slate-400 font-semibold">%</span>
+                            {discountInput !== '' && Number(discountInput) > 0 && (
+                              <span className="text-xs text-emerald-500 font-bold">
+                                → {(Number(course.full_price) * (1 - Number(discountInput) / 100)).toFixed(2)} TND
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500">Mettez 0 pour supprimer la remise.</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={saveDiscount}
+                              disabled={discountSaving || discountInput === ''}
+                              className="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors disabled:opacity-50">
+                              {discountSaving ? 'Enregistrement…' : 'Appliquer'}
+                            </button>
+                            <button
+                              onClick={() => { setShowDiscount(false); setDiscountInput(''); }}
+                              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : hasFull || requestStatus === 'approved' ? (
                 <button
