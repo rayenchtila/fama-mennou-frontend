@@ -842,6 +842,17 @@ function GainsTab({ user }) {
 
   return (
     <div className="space-y-6">
+
+      {/* Comment ça marche */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-3">
+        <p className="text-sm font-bold text-slate-900 dark:text-white">Comment ça marche ?</p>
+        <ol className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+          <li className="flex gap-2"><span className="font-bold text-indigo-600 dark:text-indigo-400">1.</span> Terminez une mission ou vendez un cours pour générer un gain ou un paiement.</li>
+          <li className="flex gap-2"><span className="font-bold text-indigo-600 dark:text-indigo-400">2.</span> Une commission de 6% est déduite automatiquement par la plateforme.</li>
+          <li className="flex gap-2"><span className="font-bold text-indigo-600 dark:text-indigo-400">3.</span> Le reste est ajouté à votre solde et vous recevez un reçu PDF par email.</li>
+        </ol>
+      </div>
+
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
@@ -864,30 +875,38 @@ function GainsTab({ user }) {
         <SectionHeader icon="✅" title="Missions terminées" />
         {loading
           ? [...Array(3)].map((_, i) => <SkeletonRow key={i} />)
-          : completed.length === 0
-            ? <Empty emoji="💰" text="Aucune mission terminée pour l'instant" />
-            : (
-              <div className="space-y-3">
-                {completed.map(p => (
-                  <div key={p.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-lg shrink-0">✅</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{p.budget || '—'}</p>
-                      <p className="text-[10px] text-slate-400">Budget</p>
-                      {p.payment_status && (
-                        <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${(PROJECT_PAY_STATUS[p.payment_status] || PROJECT_PAY_STATUS.en_attente).cls}`}>
-                          {(PROJECT_PAY_STATUS[p.payment_status] || PROJECT_PAY_STATUS.en_attente).label}
-                        </span>
-                      )}
-                    </div>
+          : (() => {
+              const completedCoursesBuyer = courseHistory.filter(c => c.payment_status === 'termine');
+              const allDone = [
+                ...missions.filter(m => m.status === 'completed' || m.payment_status === 'termine').map(p => ({ _type: 'project', _key: `p-${p.id}`, title: p.title, amount: `${Number(p.amount || 0).toFixed(2)} TND`, date: p.accepted_at || p.created_at, tag: '🗂 Projet', sub: `Client : ${p.client_name || p.client_email || '—'}` })),
+                ...instructorGains.map(g => ({ _type: 'course_sale', _key: `s-${g.id}`, title: g.course_title, amount: `+${Number(g.instructor_net || 0).toFixed(2)} TND`, date: g.processed_at || g.requested_at, tag: '🎓 Cours vendu', sub: `Acheteur : ${g.buyer_name || g.buyer_email || '—'}` })),
+                ...completedCoursesBuyer.map(c => ({ _type: 'course_buy', _key: `b-${c.id}`, title: c.course_title, amount: `${Number(c.amount || 0).toFixed(2)} TND`, date: c.requested_at, tag: '📚 Cours acheté', sub: `Instructeur : ${c.instructor_name || c.instructor_email || '—'}` })),
+              ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+              return allDone.length === 0
+                ? <Empty emoji="💰" text="Aucune mission terminée pour l'instant" />
+                : (
+                  <div className="space-y-3">
+                    {allDone.map(item => (
+                      <div key={item._key} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-lg shrink-0">✅</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.title}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">{item.sub}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">{item.tag}</span>
+                            <p className="text-xs text-slate-400">{new Date(item.date).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' })} , {new Date(item.date).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}</p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{item.amount}</p>
+                          <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">🟢 Terminé</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )
+                );
+            })()
         }
       </div>
 
@@ -900,7 +919,8 @@ function GainsTab({ user }) {
             <div className="space-y-3">
               {projectPayments.map(p => {
                 const info = PROJECT_PAY_STATUS[p.payment_status] || PROJECT_PAY_STATUS.en_attente;
-                const dateStr = new Date(p.accepted_at || p.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
+                const _d0 = new Date(p.accepted_at || p.created_at);
+                const dateStr = _d0.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' }) + ' , ' + _d0.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false });
                 return (
                   <div key={p.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className="flex justify-between items-start gap-3">
@@ -931,7 +951,8 @@ function GainsTab({ user }) {
           : (
             <div className="space-y-3">
               {instructorGains.map(item => {
-                const dateStr = new Date(item.processed_at || item.requested_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
+                const _d1 = new Date(item.processed_at || item.requested_at);
+                const dateStr = _d1.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' }) + ' , ' + _d1.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false });
                 return (
                   <div key={item.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className="flex justify-between items-start gap-3">
@@ -972,7 +993,8 @@ function GainsTab({ user }) {
             <div className="space-y-3">
               {courseHistory.map(item => {
                 const info = COURSE_PAY_STATUS[item.payment_status] || COURSE_PAY_STATUS.en_attente;
-                const dateStr = new Date(item.requested_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
+                const _d2 = new Date(item.requested_at);
+                const dateStr = _d2.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' }) + ' , ' + _d2.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false });
                 return (
                   <div key={item.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className="flex justify-between items-start gap-3">
