@@ -59,140 +59,115 @@ function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
   }
 
   return (
-    <div className="py-6 flex gap-4">
+    <div className="group p-5 sm:p-6 hover:bg-white/[0.02] transition-colors cursor-default">
 
-      {/* Small avatar inline */}
-      <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 mt-0.5">
-        {client.photo
-          ? <img src={cldImg(client.photo)} alt={client.name} className="w-full h-full object-cover" />
-          : <div className={`w-full h-full bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold text-sm`}>{client.name?.slice(0, 2).toUpperCase()}</div>
-        }
+      {/* Top row: meta */}
+      <div className="flex items-center gap-2 flex-wrap mb-2">
+        <span className="text-[11px] text-slate-500">Client</span>
+        <span className="text-slate-700">·</span>
+        <span className="text-[11px] font-semibold text-sky-400">✓ Vérifié</span>
+        {client.registeredAt && (<><span className="text-slate-700">·</span><span className="text-[11px] text-slate-500">Membre depuis {new Date(client.registeredAt).toLocaleDateString('fr-TN', { month: 'long', year: 'numeric' })}</span></>)}
+        {client.region && (<><span className="text-slate-700">·</span><span className="text-[11px] text-slate-500">{client.region}</span></>)}
       </div>
 
-      <div className="flex-1 min-w-0">
+      {/* Name */}
+      <h3 className="text-base font-bold text-brand-cyan-light group-hover:text-brand-violet-light transition-colors mb-1.5">
+        {client.name}
+      </h3>
 
-        {/* Meta line */}
-        <p className="text-xs text-slate-500 mb-1">
-          Client &nbsp;·&nbsp; <span className="text-sky-400 font-semibold">✓ Vérifié</span>
-          {client.registeredAt && <> &nbsp;·&nbsp; Membre depuis {new Date(client.registeredAt).toLocaleDateString('fr-TN', { month: 'long', year: 'numeric' })}</>}
-        </p>
+      {/* Meta row: rating · avis */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-3">
+        <Stars value={Math.round(avgRating)} readonly size="sm" />
+        <span className="font-semibold text-white">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
+        <span className="text-slate-600">·</span>
+        <span>{myReviews.length} avis</span>
+      </div>
 
-        {/* Name */}
-        <h3 className="text-base font-extrabold text-brand-cyan-light hover:text-brand-violet-light transition-colors cursor-default mb-1 leading-tight">
-          {client.name}
-        </h3>
+      {/* Bio */}
+      {client.bio && (
+        <p dir="auto" className="text-sm text-slate-400 leading-relaxed line-clamp-3 mb-3">{client.bio}</p>
+      )}
 
-        {/* Location · Rating */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-3">
-          <span className="flex items-center gap-1">
-            <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            {client.region || 'Tunisie'}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Stars value={Math.round(avgRating)} readonly size="sm" />
-            <span className="font-bold text-white">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
-            <span className="text-slate-500">({myReviews.length} avis)</span>
-          </span>
-        </div>
-
-        {/* Bio */}
-        {client.bio && (
-          <p dir="auto" className="text-sm text-slate-400 leading-relaxed mb-3 line-clamp-2">{client.bio}</p>
-        )}
-
-        {/* Open projects */}
-        {projects && projects.length > 0 && projects.map(p => (
-          <div key={p.id} className="mb-3">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-1">
-              <span className="font-bold text-white">{p.title}</span>
-              {p.budget && <span className="font-extrabold text-emerald-400">{p.budget} TND</span>}
-              {p.experience && <span>Expérience : {p.experience}</span>}
-              {p.period && <span>Période : {p.period}</span>}
-            </div>
-            {p.description && (
-              <p dir="auto" className="text-sm text-slate-400 leading-relaxed mb-2 line-clamp-2">{p.description}</p>
-            )}
-            {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
-                  <span key={i} className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-white/10 text-slate-300">{kw}</span>
-                ))}
-              </div>
-            )}
+      {/* Open projects — like mission listing */}
+      {projects && projects.length > 0 && projects.map(p => (
+        <div key={p.id} className="mb-4">
+          <h4 className="text-sm font-bold text-white mb-1">{p.title}</h4>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-2">
+            {p.budget && <><span className="font-bold text-emerald-400">Budget fixe</span><span className="text-slate-600">·</span><span className="font-semibold text-white">{p.budget} TND</span></>}
+            {p.experience && <><span className="text-slate-600">·</span><span>Expérience : {p.experience}</span></>}
+            {p.period && <><span className="text-slate-600">·</span><span>Durée estimée : {p.period}</span></>}
           </div>
-        ))}
+          {p.description && (
+            <p dir="auto" className="text-sm text-slate-400 leading-relaxed line-clamp-3 mb-2">{p.description}</p>
+          )}
+          {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-1">
+              {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
+                <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-white/5">{kw}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
 
-        {/* Expanded: reviews + form */}
-        {expanded && (
-          <div className="space-y-3 mt-4 pt-4 border-t border-white/8">
-            {myReviews.length > 0 ? (
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Avis des freelancers</p>
-                <div className="space-y-2">
-                  {displayedReviews.map((r, i) => (
-                    <div key={i} className="pl-3 border-l-2 border-white/10">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-5 h-5 rounded-full bg-sky-500/70 flex items-center justify-center text-white text-[8px] font-bold shrink-0">
-                          {r.freelancerName?.slice(0,2).toUpperCase()}
-                        </div>
-                        <Stars value={r.rating} readonly size="sm" />
-                        <span className="text-xs font-semibold text-slate-300">{r.freelancerName}</span>
-                      </div>
+      {/* Expanded: reviews + form */}
+      {expanded && (
+        <div className="space-y-5 mb-4 pt-4 border-t border-white/8">
+          {myReviews.length > 0 ? (
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Avis des freelancers</p>
+              <div className="space-y-3">
+                {displayedReviews.map((r, i) => (
+                  <div key={i} className="flex gap-3">
+                    <div className="w-6 h-6 rounded-full bg-sky-500/70 flex items-center justify-center text-white text-[9px] font-bold shrink-0 mt-0.5">{r.freelancerName?.slice(0,2).toUpperCase()}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5"><span className="text-xs font-semibold text-slate-300">{r.freelancerName}</span><Stars value={r.rating} readonly size="sm" /></div>
                       <p dir="auto" className="text-xs text-slate-400 leading-relaxed">{r.comment}</p>
                     </div>
-                  ))}
-                  {myReviews.length > 2 && (
-                    <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-sky-400 hover:underline">
-                      {showAllReviews ? 'Voir moins' : `Voir ${myReviews.length - 2} avis de plus`}
-                    </button>
-                  )}
-                </div>
+                  </div>
+                ))}
+                {myReviews.length > 2 && <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-sky-400 hover:underline">{showAllReviews ? 'Voir moins' : `Voir ${myReviews.length - 2} avis de plus`}</button>}
               </div>
-            ) : !showForm && (
-              <p className="text-xs text-slate-500">Aucun avis pour le moment.</p>
-            )}
+            </div>
+          ) : !showForm && <p className="text-xs text-slate-500">Aucun avis pour le moment.</p>}
 
-            {showForm && (
-              <form onSubmit={handleSubmit} className="space-y-2.5 pl-3 border-l-2 border-sky-500/40">
-                <p className="text-xs font-bold text-slate-300">Votre avis sur ce client</p>
-                <Stars value={newRating} onChange={v => { setNewRating(v); setRatingError(false); }} />
-                {ratingError && <p className="text-[11px] text-rose-500">Choisissez une note avant d'envoyer.</p>}
-                <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Votre commentaire..." rows={2}
-                  className="w-full text-xs rounded-xl border border-white/10 bg-slate-800 text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500" required />
-                <div className="flex gap-2">
-                  <button type="submit" disabled={!newComment.trim()} className="text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-xl transition-colors disabled:opacity-50">Envoyer</button>
-                  <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); setRatingError(false); }} className="text-xs font-semibold text-slate-400 hover:text-slate-300 px-3 py-1.5 transition-colors">Annuler</button>
-                </div>
-              </form>
-            )}
-          </div>
-        )}
-
-        {/* Actions row */}
-        <div className="flex flex-wrap items-center gap-2 mt-4">
-          {isFreelancer && !isOwnCard && (
-            <button onClick={() => navigate(`/messages?with=${encodeURIComponent(client.email)}`)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-violet hover:opacity-90 text-white text-xs font-bold transition-all">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-              Envoyer un message
-            </button>
+          {showForm && (
+            <form onSubmit={handleSubmit} className="space-y-2.5">
+              <p className="text-xs font-bold text-slate-300">Votre avis sur ce client</p>
+              <Stars value={newRating} onChange={v => { setNewRating(v); setRatingError(false); }} />
+              {ratingError && <p className="text-[11px] text-rose-500">Choisissez une note avant d'envoyer.</p>}
+              <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Votre commentaire..." rows={3}
+                className="w-full text-xs rounded-xl border border-white/10 bg-slate-800 text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500" required />
+              <div className="flex gap-2">
+                <button type="submit" disabled={!newComment.trim()} className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-colors disabled:opacity-50">Envoyer</button>
+                <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); setRatingError(false); }} className="px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-slate-400 hover:bg-white/5 transition-colors">Annuler</button>
+              </div>
+            </form>
           )}
-          <button onClick={() => setExpanded(v => !v)}
-            className="flex items-center gap-1 px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 hover:bg-white/5 transition-colors">
-            {expanded ? 'Réduire' : 'Voir profil'}
-            <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          {isFreelancer && !isOwnCard && !alreadyReviewed && !showForm && (
-            <button onClick={() => { setExpanded(true); setShowForm(true); }}
-              className="px-4 py-2 rounded-xl border border-sky-500/30 text-sky-400 text-xs font-semibold hover:bg-sky-500/10 transition-colors">
-              ⭐ Laisser un avis
-            </button>
-          )}
-          {isOwnCard && <span className="text-[10px] text-slate-500">Votre profil client</span>}
-          {alreadyReviewed && <span className="text-[10px] text-slate-500">Vous avez déjà laissé un avis.</span>}
         </div>
+      )}
 
+      {/* Actions */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        {isFreelancer && !isOwnCard && (
+          <button onClick={() => navigate(`/messages?with=${encodeURIComponent(client.email)}`)}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-violet text-white text-xs font-bold hover:shadow-lg hover:shadow-brand-cyan/30 transition-all">
+            💬 Envoyer un message
+          </button>
+        )}
+        <button onClick={() => setExpanded(v => !v)} className="px-4 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 transition-colors flex items-center gap-1">
+          {expanded ? 'Réduire' : 'Voir profil'}
+          <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        {isFreelancer && !isOwnCard && !alreadyReviewed && !showForm && (
+          <button onClick={() => { setExpanded(true); setShowForm(true); }} className="px-4 py-2 rounded-xl border border-white/10 text-xs font-bold text-sky-400 hover:bg-white/5 transition-colors">
+            ⭐ Laisser un avis
+          </button>
+        )}
+        {isOwnCard && <span className="text-xs text-slate-500 self-center">Votre profil client</span>}
+        {alreadyReviewed && <span className="text-xs text-slate-500 self-center">Vous avez déjà laissé un avis.</span>}
       </div>
+
     </div>
   );
 }
@@ -345,7 +320,7 @@ export default function ClientsPage() {
       {/* ── List ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
         {filtered.length > 0 ? (
-          <div className="divide-y divide-white/8">
+          <div className="bg-slate-900 rounded-2xl border border-white/5 overflow-hidden divide-y divide-white/5">
             {filtered.flatMap(c =>
               (projectsByClient[c.email?.toLowerCase()] || []).map(p => (
                 <ClientCard key={`${c.email}-${p.id}`} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} projects={[p]} />
