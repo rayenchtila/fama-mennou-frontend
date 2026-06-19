@@ -804,6 +804,7 @@ const COURSE_PAY_STATUS = {
 };
 
 function GainsTab({ user }) {
+  const { resolveEmail } = useAuth();
   const [missions,           setMissions]           = useState([]);
   const [loading,            setLoading]            = useState(true);
   const [wallet,             setWallet]             = useState(null);
@@ -878,9 +879,9 @@ function GainsTab({ user }) {
           : (() => {
               const completedCoursesBuyer = courseHistory.filter(c => c.payment_status === 'termine');
               const allDone = [
-                ...missions.filter(m => m.status === 'completed' || m.payment_status === 'termine').map(p => ({ _type: 'project', _key: `p-${p.id}`, title: p.title, amount: `${Number(p.amount || 0).toFixed(2)} TND`, date: p.accepted_at || p.created_at, tag: '🗂 Projet', sub: `Client : ${p.client_name || p.client_email || '—'}` })),
-                ...instructorGains.map(g => ({ _type: 'course_sale', _key: `s-${g.id}`, title: g.course_title, amount: `+${Number(g.instructor_net || 0).toFixed(2)} TND`, date: g.processed_at || g.requested_at, tag: '🎓 Cours vendu', sub: `Acheteur : ${g.buyer_name || g.buyer_email || '—'}` })),
-                ...completedCoursesBuyer.map(c => ({ _type: 'course_buy', _key: `b-${c.id}`, title: c.course_title, amount: `${Number(c.amount || 0).toFixed(2)} TND`, date: c.requested_at, tag: '📚 Cours acheté', sub: `Instructeur : ${c.instructor_name || c.instructor_email || '—'}` })),
+                ...missions.filter(m => m.status === 'completed' || m.payment_status === 'termine').map(p => ({ _type: 'project', _key: `p-${p.id}`, title: p.title, amount: `${Number(p.amount || 0).toFixed(2)} TND`, date: p.accepted_at || p.created_at, tag: '🗂 Projet', sub: `Client : ${resolveEmail(p.client_email)}` })),
+                ...instructorGains.map(g => ({ _type: 'course_sale', _key: `s-${g.id}`, title: g.course_title, amount: `+${Number(g.instructor_net || 0).toFixed(2)} TND`, date: g.processed_at || g.requested_at, tag: '🎓 Cours vendu', sub: `Acheteur : ${resolveEmail(g.buyer_email)}` })),
+                ...completedCoursesBuyer.map(c => ({ _type: 'course_buy', _key: `b-${c.id}`, title: c.course_title, amount: `${Number(c.amount || 0).toFixed(2)} TND`, date: c.requested_at, tag: '📚 Cours acheté', sub: `Instructeur : ${resolveEmail(c.instructor_email)}` })),
               ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
               return allDone.length === 0
@@ -926,7 +927,7 @@ function GainsTab({ user }) {
                     <div className="flex justify-between items-start gap-3">
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Client : {p.client_name || p.client_email || '—'}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Client : {resolveEmail(p.client_email)}</p>
                         <p className="text-xs text-slate-400">{dateStr}</p>
                       </div>
                       <div className="text-right shrink-0">
@@ -958,7 +959,7 @@ function GainsTab({ user }) {
                     <div className="flex justify-between items-start gap-3">
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.course_title}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Acheteur : {item.buyer_name || item.buyer_email}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Acheteur : {resolveEmail(item.buyer_email)}</p>
                         <p className="text-xs text-slate-400">{dateStr}</p>
                       </div>
                       <div className="text-right shrink-0">
@@ -1000,7 +1001,7 @@ function GainsTab({ user }) {
                     <div className="flex justify-between items-start gap-3">
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.course_title}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Instructeur : {item.instructor_name || item.instructor_email || '—'}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Instructeur : {resolveEmail(item.instructor_email)}</p>
                         <p className="text-xs text-slate-400">{dateStr}</p>
                       </div>
                       <div className="text-right shrink-0">

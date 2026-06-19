@@ -347,6 +347,14 @@ export function AuthProvider({ children }) {
     } catch {}
   }
 
+  // Resolve any email to the user's full name — falls back to email if not found or name is empty.
+  // Use this everywhere instead of displaying raw emails.
+  const resolveEmail = (email) => {
+    if (!email) return '—';
+    const acc = accounts[email.toLowerCase()];
+    return (acc?.name && acc.name.trim()) ? acc.name.trim() : email;
+  };
+
   return (
     <AuthContext.Provider value={{
       user, accounts, users, register, login, logout, updateUser, deleteUser,
@@ -359,6 +367,7 @@ export function AuthProvider({ children }) {
       addNotification,
       fetchAccounts,
       fetchNotifications,
+      resolveEmail,
     }}>
       {children}
     </AuthContext.Provider>
