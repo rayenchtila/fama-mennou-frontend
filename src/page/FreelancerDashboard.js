@@ -1000,7 +1000,8 @@ function GainsTab({ user }) {
                     <div className="flex justify-between items-start gap-3">
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.course_title}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{dateStr}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Instructeur : {item.instructor_name || item.instructor_email || '—'}</p>
+                        <p className="text-xs text-slate-400">{dateStr}</p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-extrabold text-slate-900 dark:text-white">{Number(item.amount || 0).toFixed(2)} TND</p>
