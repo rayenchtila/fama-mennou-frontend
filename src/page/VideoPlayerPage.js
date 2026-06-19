@@ -73,7 +73,9 @@ function MuxPlayer({ playbackId }) {
       controls
       playsInline
       preload="auto"
-      controlsList="nodownload"
+      controlsList="nodownload nofullscreen"
+      onContextMenu={e => e.preventDefault()}
+      draggable={false}
     />
   );
 }
@@ -114,7 +116,9 @@ function VideoPlayer({ url }) {
       src={url}
       controls
       playsInline
-      controlsList="nodownload"
+      controlsList="nodownload nofullscreen"
+      onContextMenu={e => e.preventDefault()}
+      draggable={false}
     />
   );
 }
@@ -279,7 +283,34 @@ export default function VideoPlayerPage() {
         <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
           <div className="bg-black">
             {canWatch(lesson) ? (
-              <VideoPlayer url={lesson?.video_url} />
+              <div
+                className="relative select-none"
+                onContextMenu={e => e.preventDefault()}
+                style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
+              >
+                <VideoPlayer url={lesson?.video_url} />
+                {/* Floating watermark — deters screen recording by embedding user identity */}
+                <div
+                  className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                  style={{ zIndex: 10 }}
+                >
+                  <p
+                    style={{
+                      color: 'rgba(255,255,255,0.10)',
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.05em',
+                      transform: 'rotate(-25deg)',
+                      whiteSpace: 'nowrap',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                      userSelect: 'none',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {user?.name || user?.email}
+                  </p>
+                </div>
+              </div>
             ) : (
               <div className="w-full aspect-video bg-slate-900 flex flex-col items-center justify-center gap-4 px-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center">

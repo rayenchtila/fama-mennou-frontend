@@ -143,6 +143,37 @@ function AppInner() {
 
   const toggleDark = () => setDark(prev => !prev);
 
+  // Global Enter-key handler — makes every focused interactive element respond to Enter
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== 'Enter') return;
+      const el = document.activeElement;
+      if (!el) return;
+      const tag = el.tagName.toLowerCase();
+      // textarea: Enter = newline, never intercept
+      if (tag === 'textarea') return;
+      // Native button/a: browser already handles Enter → skip
+      if (tag === 'button' || tag === 'a') return;
+      // input: if inside a real <form> the browser submits it; otherwise find
+      // the nearest enabled button sibling and click it
+      if (tag === 'input') {
+        const form = el.closest('form');
+        if (form) return; // browser handles it
+        const container = el.closest('[class]') || el.parentElement;
+        const btn = container?.querySelector('button:not([disabled])');
+        if (btn) { e.preventDefault(); btn.click(); }
+        return;
+      }
+      // div / span / li / label / etc. acting as buttons (has tabIndex)
+      if (el.tabIndex >= 0) {
+        e.preventDefault();
+        el.click();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
     i18n.changeLanguage(lang);

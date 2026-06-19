@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { uploadVideo, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
@@ -39,6 +39,8 @@ export default function CourseDetailPage() {
   const { id }    = useParams();
   const navigate  = useNavigate();
   const { user }  = useAuth();
+  const location  = useLocation();
+  const [searchParams] = useSearchParams();
 
   const [course,       setCourse]       = useState(null);
   const [lessons,      setLessons]      = useState([]);
@@ -59,6 +61,9 @@ export default function CourseDetailPage() {
   const [myRating,     setMyRating]     = useState(0);
   const [myReview,     setMyReview]     = useState('');
   const [submitting,   setSubmitting]   = useState(false);
+  const [replyDraft,   setReplyDraft]   = useState({});
+  const [replyingId,   setReplyingId]   = useState(null);
+  const [replySending, setReplySending] = useState(false);
 
   // Add lesson inline (instructor only)
   const [showAddLesson,    setShowAddLesson]    = useState(false);
@@ -70,11 +75,14 @@ export default function CourseDetailPage() {
   const [uploadFileName,   setUploadFileName]   = useState('');
   const muxFileRef = { current: null };
 
-  const isInstructor = course && user?.email === course.creator_email;
+  const isInstructor = course && user?.email?.toLowerCase() === course.creator_email?.toLowerCase();
 
   // What has the user purchased?
   const hasFull     = purchases.some(p => !p.lesson_id);
   const ownedLesson = id => purchases.some(p => Number(p.lesson_id) === Number(id));
+
+  // Lessons visible to this user (hide rejected lessons unless admin/instructor)
+  const visibleLessons = lessons.filter(l => l.status !== 'rejected' || user?.isAdmin || isInstructor);
 
 
   async function buyFull() {
@@ -189,6 +197,20 @@ export default function CourseDetailPage() {
         setLessons(Array.isArray(ls)   ? ls   : []);
         setReviews(Array.isArray(rv)   ? rv   : []);
         setLiveSessions(Array.isArray(live) ? live : []);
+
+        // Auto-navigate to review from notification link (?tab=reviews#review-N)
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'reviews') {
+          setActiveTab('reviews');
+          const hash = window.location.hash;
+          if (hash.startsWith('#review-')) {
+            const reviewId = hash.replace('#review-', '');
+            setTimeout(() => {
+              const el = document.getElementById(`review-${reviewId}`);
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 200);
+          }
+        }
       }).catch(() => {});
     }).catch(() => setLoading(false));
   }, [id, user?.email]);
@@ -228,6 +250,30 @@ export default function CourseDetailPage() {
         alert(d.error || 'Failed to submit review');
       }
     } catch {} finally { setSubmitting(false); }
+  }
+
+  async function submitReply(reviewId, text) {
+    const trimmed = (text || '').trim();
+    if (!trimmed || !user) return;
+    setReplySending(true);
+    try {
+      const res = await fetch(`${API}/course-reviews/${reviewId}/reply`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instructor_email: user.email, reply: trimmed }),
+      });
+      const d = await res.json();
+      if (d.id) {
+        setReviews(prev => prev.map(rv => rv.id === reviewId ? { ...rv, instructor_reply: d.instructor_reply, replied_at: d.replied_at } : rv));
+        setReplyingId(null);
+        setReplyDraft(prev => { const n = { ...prev }; delete n[reviewId]; return n; });
+      } else {
+        alert(d.error || 'Erreur lors de l\'envoi');
+      }
+    } catch (err) {
+      alert('Erreur réseau : ' + err.message);
+    } finally {
+      setReplySending(false);
+    }
   }
 
   async function handleMuxUpload(file) {
@@ -306,7 +352,7 @@ export default function CourseDetailPage() {
   );
 
   const isFree       = Number(course.full_price) === 0;
-  const totalMinutes = lessons.reduce((s, l) => s + (Number(l.duration_min) || 0), 0);
+  const totalMinutes = visibleLessons.reduce((s, l) => s + (Number(l.duration_min) || 0), 0);
 
 
   return (
@@ -345,7 +391,7 @@ export default function CourseDetailPage() {
                 {Number(course.avg_rating).toFixed(1)} ({reviews.length} reviews)
               </span>
               <span>👥 {course.total_students} students</span>
-              <span>📖 {lessons.length} lessons</span>
+              <span>📖 {visibleLessons.length} lessons</span>
               {totalMinutes > 0 && <span>⏱ {Math.floor(totalMinutes/60)}h {totalMinutes%60}m total</span>}
             </div>
 
@@ -436,13 +482,15 @@ export default function CourseDetailPage() {
                 )}
               </div>
 
-              <button onClick={messageInstructor}
-                className="w-full mt-4 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:border-indigo-400 dark:hover:border-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center justify-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-                Message Instructor
-              </button>
+              {!isInstructor && (
+                <button onClick={messageInstructor}
+                  className="w-full mt-4 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:border-indigo-400 dark:hover:border-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                  </svg>
+                  Message Instructor
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -452,8 +500,8 @@ export default function CourseDetailPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8">
         <div className="flex gap-1 border-b border-slate-200 dark:border-slate-800 mb-6">
           {[
-            { id: 'curriculum', label: 'Mes Leçons' },
-            { id: 'reviews',    label: 'Mes Reviews' },
+            { id: 'curriculum', label: isInstructor ? `Mes Leçons (${visibleLessons.length})` : `Leçons (${visibleLessons.length})` },
+            { id: 'reviews',    label: isInstructor ? `Mes Reviews (${reviews.length})` : `Reviews (${reviews.length})` },
             { id: 'live',       label: 'Live Sessions' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -616,14 +664,12 @@ export default function CourseDetailPage() {
               </div>
             )}
 
-            {lessons.length === 0 ? (
+            {visibleLessons.length === 0 ? (
               <div className="text-center py-16 text-slate-400">
                 <p className="text-3xl mb-2">📂</p>
-                <p className="text-sm">No lessons added yet</p>
+                <p className="text-sm">{lessons.length === 0 ? 'No lessons added yet' : 'Aucune leçon disponible pour l\'instant'}</p>
               </div>
-            ) : lessons.filter(lesson =>
-                lesson.status !== 'rejected' || user?.isAdmin || isInstructor
-              ).map((lesson, idx) => {
+            ) : visibleLessons.map((lesson, idx) => {
               const watchable = canWatch(lesson);
               return (
                 <div key={lesson.id}
@@ -721,17 +767,23 @@ export default function CourseDetailPage() {
             </div>
 
             {/* Leave a review */}
-            {hasFull && !isInstructor && (
+            {hasFull && !isInstructor && !reviews.some(r => r.reviewer_email === user?.email) && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
                 <p className="text-sm font-bold text-slate-900 dark:text-white mb-3">Leave a Review</p>
                 <StarRating rating={myRating} interactive onRate={setMyRating} />
                 <textarea value={myReview} onChange={e => setMyReview(e.target.value)} rows={3}
                   placeholder="Share your experience…"
                   className="mt-3 w-full text-sm px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                <button onClick={submitReview} disabled={!myRating || submitting}
-                  className="mt-3 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-bold transition-colors">
-                  {submitting ? 'Submitting…' : 'Submit Review'}
-                </button>
+                <div className="flex gap-2 mt-3">
+                  <button type="button" onClick={submitReview} disabled={!myRating || submitting}
+                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-bold transition-colors">
+                    {submitting ? 'Submitting…' : 'Submit Review'}
+                  </button>
+                  <button type="button" onClick={() => { setMyRating(0); setMyReview(''); }}
+                    className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm font-bold hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+                    Annuler
+                  </button>
+                </div>
               </div>
             )}
 
@@ -742,7 +794,7 @@ export default function CourseDetailPage() {
                 <p className="text-sm">No reviews yet — be the first!</p>
               </div>
             ) : reviews.map(r => (
-              <div key={r.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 flex gap-4">
+              <div key={r.id} id={`review-${r.id}`} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 flex gap-4 scroll-mt-24">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
                   {r.reviewer_photo
                     ? <img src={cldImg(r.reviewer_photo)} alt="" className="w-full h-full object-cover" />
@@ -754,7 +806,53 @@ export default function CourseDetailPage() {
                     <StarRating rating={r.rating} />
                   </div>
                   {r.review_text && <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{r.review_text}</p>}
-                  <p className="text-[10px] text-slate-400 mt-1">{new Date(r.created_at).toLocaleDateString()}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{`${new Date(r.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: '2-digit', year: 'numeric' })} ,${new Date(r.created_at).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}`}</p>
+
+                  {/* Instructor reply — show existing */}
+                  {r.instructor_reply && (
+                    <div className="mt-3 ml-2 pl-3 border-l-2 border-indigo-300 dark:border-indigo-700 flex gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden">
+                        {course?.instructor_photo
+                          ? <img src={cldImg(course.instructor_photo)} alt="" className="w-full h-full object-cover" />
+                          : (course?.instructor_name || course?.creator_email || '?')[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 mb-0.5">{course?.instructor_name || course?.creator_email}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{r.instructor_reply}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">{`${new Date(r.replied_at).toLocaleDateString('fr-TN', { day: '2-digit', month: '2-digit', year: 'numeric' })} ,${new Date(r.replied_at).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}`}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Instructor reply form — only if instructor and no reply yet */}
+                  {isInstructor && !r.instructor_reply && (
+                    replyingId === r.id ? (
+                      <div className="mt-3 ml-2">
+                        <textarea
+                          value={replyDraft[r.id] || ''}
+                          onChange={e => setReplyDraft(prev => ({ ...prev, [r.id]: e.target.value }))}
+                          rows={2}
+                          placeholder="Votre réponse…"
+                          className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                        <div className="flex gap-2 mt-2">
+                          <button type="button" onClick={() => submitReply(r.id, replyDraft[r.id])} disabled={!replyDraft[r.id]?.trim() || replySending}
+                            className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition-colors">
+                            {replySending ? 'Envoi…' : 'Répondre'}
+                          </button>
+                          <button type="button" onClick={e => { e.stopPropagation(); setReplyingId(null); setReplyDraft(prev => { const n = { ...prev }; delete n[r.id]; return n; }); }}
+                            className="px-4 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 text-xs font-bold hover:text-slate-800 transition-colors">
+                            Annuler
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => setReplyingId(r.id)}
+                        className="mt-2 text-xs text-indigo-500 hover:text-indigo-700 font-semibold">
+                        ↩ Répondre
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             ))}
@@ -765,8 +863,13 @@ export default function CourseDetailPage() {
         {activeTab === 'live' && (
           <div className="space-y-4 mb-10">
             <div className="text-center py-16 text-slate-400">
-              <p className="text-4xl mb-3">🚀</p>
-              <p className="text-lg font-bold text-slate-500 dark:text-slate-400">SOON</p>
+              <style>{`@keyframes soonDot{0%,80%,100%{opacity:0}40%{opacity:1}}`}</style>
+              <p className="text-lg font-bold text-slate-500 dark:text-slate-400">
+                SOON
+                <span style={{animation:'soonDot 1.4s infinite',animationDelay:'0s'}}>.</span>
+                <span style={{animation:'soonDot 1.4s infinite',animationDelay:'0.2s'}}>.</span>
+                <span style={{animation:'soonDot 1.4s infinite',animationDelay:'0.4s'}}>.</span>
+              </p>
             </div>
             {false && liveSessions.map(s => {
               const isPast = s.scheduled_at && new Date(s.scheduled_at) < new Date();

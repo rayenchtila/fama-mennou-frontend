@@ -804,11 +804,12 @@ const COURSE_PAY_STATUS = {
 };
 
 function GainsTab({ user }) {
-  const [missions,      setMissions]      = useState([]);
-  const [loading,       setLoading]       = useState(true);
-  const [wallet,        setWallet]        = useState(null);
-  const [transactions,  setTransactions]  = useState([]);
-  const [courseHistory, setCourseHistory] = useState([]);
+  const [missions,           setMissions]           = useState([]);
+  const [loading,            setLoading]            = useState(true);
+  const [wallet,             setWallet]             = useState(null);
+  const [transactions,       setTransactions]       = useState([]);
+  const [courseHistory,      setCourseHistory]      = useState([]);
+  const [instructorGains,    setInstructorGains]    = useState([]);
 
   useEffect(() => {
     fetch(`${API}/projects/assigned/${encodeURIComponent(user.email)}`)
@@ -826,6 +827,10 @@ function GainsTab({ user }) {
     fetch(`${API}/course-requests/mine?email=${encodeURIComponent(user.email)}`)
       .then(r => r.json()).catch(() => [])
       .then(data => { if (Array.isArray(data)) setCourseHistory(data); });
+
+    fetch(`${API}/course-requests/instructor-gains?email=${encodeURIComponent(user.email)}`)
+      .then(r => r.json()).catch(() => [])
+      .then(data => { if (Array.isArray(data)) setInstructorGains(data); });
   }, [user.email]);
 
   const completed        = missions.filter(m => m.status === 'completed');
@@ -916,6 +921,46 @@ function GainsTab({ user }) {
             </div>
           )
         }
+      </div>
+
+      {/* Historique des Gains ( COURSES ) — instructor earnings */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <SectionHeader icon="🎓" title="Historique des Gains ( COURSES ) :" />
+        {instructorGains.length === 0
+          ? <Empty emoji="🎓" text="Aucun gain de cours pour l'instant" />
+          : (
+            <div className="space-y-3">
+              {instructorGains.map(item => {
+                const dateStr = new Date(item.processed_at || item.requested_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
+                return (
+                  <div key={item.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.course_title}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Acheteur : {item.buyer_name || item.buyer_email}</p>
+                        <p className="text-xs text-slate-400">{dateStr}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">+{Number(item.instructor_net || 0).toFixed(2)} TND</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Brut : {Number(item.gross_amount || 0).toFixed(2)} TND</p>
+                        <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">🟢 Gain confirmé</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-2">Commission plateforme (6%) : -{Number(item.commission || 0).toFixed(2)} TND</p>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        }
+        {instructorGains.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total gagné (cours)</p>
+            <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
+              {instructorGains.reduce((s, i) => s + Number(i.instructor_net || 0), 0).toFixed(2)} TND
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Historique des paiements ( COURSES ) */}

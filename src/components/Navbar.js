@@ -122,6 +122,12 @@ async function getNotifLink(n) {
   }
   if (k.startsWith('proposal_rejected:'))  return '/dashboard?tab=find-projects';
 
+  // ── Course reviews ──
+  // course_review:courseId:reviewId  → instructor gets notified of new review
+  // course_review_reply:courseId:reviewId → reviewer gets notified of reply
+  const reviewNotif = k.match(/^course_review(?:_reply)?:(\d+):(\d+)$/);
+  if (reviewNotif) return `/courses/${reviewNotif[1]}?tab=reviews#review-${reviewNotif[2]}`;
+
   return '/courses';
 }
 
@@ -166,6 +172,8 @@ function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear,
             notifications.map(n => (
               <div
                 key={n.id}
+                tabIndex={0}
+                role="button"
                 onClick={async () => { onMarkRead(n.id); const link = await getNotifLink(n); onClose(); navigate(link); }}
                 className={[
                   "flex items-start gap-3 px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
