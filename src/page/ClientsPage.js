@@ -34,6 +34,7 @@ function Stars({ value, onChange, readonly = false, size = 'md' }) {
 
 function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
   const navigate = useNavigate();
+  const { resolveEmail } = useAuth();
   const [showForm,       setShowForm]       = useState(false);
   const [newRating,      setNewRating]      = useState(0);
   const [newComment,     setNewComment]     = useState('');
@@ -88,27 +89,44 @@ function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
         <p dir="auto" className="text-sm text-slate-400 leading-relaxed line-clamp-3 mb-3">{client.bio}</p>
       )}
 
-      {/* Open projects — like mission listing */}
-      {projects && projects.length > 0 && projects.map(p => (
-        <div key={p.id} className="mb-4">
-          <h4 className="text-sm font-bold text-white mb-1">{p.title}</h4>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-2">
-            {p.budget && <><span className="font-bold text-emerald-400">Budget fixe</span><span className="text-slate-600">·</span><span className="font-semibold text-white">{p.budget} TND</span></>}
-            {p.experience && <><span className="text-slate-600">·</span><span>Expérience : {p.experience}</span></>}
-            {p.period && <><span className="text-slate-600">·</span><span>Durée estimée : {p.period}</span></>}
-          </div>
-          {p.description && (
-            <p dir="auto" className="text-sm text-slate-400 leading-relaxed line-clamp-3 mb-2">{p.description}</p>
-          )}
-          {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-1">
-              {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
-                <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-white/5">{kw}</span>
-              ))}
+      {/* Projects */}
+      {projects && projects.length > 0 && projects.map(p => {
+        const isTaken = p.status && p.status !== 'open';
+        return (
+          <div key={p.id} className="mb-4">
+            {/* Title + taken badge */}
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h4 className={`text-sm font-bold ${isTaken ? 'text-slate-400' : 'text-white'}`}>{p.title}</h4>
+              {isTaken && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400">
+                  🔒 Projet déjà pris
+                </span>
+              )}
             </div>
-          )}
-        </div>
-      ))}
+            {/* Taken-by line */}
+            {isTaken && p.freelancer_email && (
+              <p className="text-xs text-slate-500 mb-2">
+                Assigné à : <span className="font-semibold text-slate-300">{resolveEmail(p.freelancer_email)}</span>
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-2">
+              {p.budget && <><span className={`font-bold ${isTaken ? 'text-slate-500' : 'text-emerald-400'}`}>Budget fixe</span><span className="text-slate-600">·</span><span className={`font-semibold ${isTaken ? 'text-slate-400' : 'text-white'}`}>{p.budget} TND</span></>}
+              {p.experience && <><span className="text-slate-600">·</span><span>Expérience : {p.experience}</span></>}
+              {p.period && <><span className="text-slate-600">·</span><span>Durée estimée : {p.period}</span></>}
+            </div>
+            {p.description && (
+              <p dir="auto" className="text-sm text-slate-400 leading-relaxed line-clamp-3 mb-2">{p.description}</p>
+            )}
+            {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-1">
+                {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
+                  <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-white/5">{kw}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
 
       {/* Expanded: reviews + form */}
       {expanded && (
@@ -175,7 +193,7 @@ function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
 const INDUSTRIES = ['All','Technology','Design','Marketing','Finance','E-commerce','Education','Health'];
 
 export default function ClientsPage() {
-  const { users, user } = useAuth();
+  const { users, user, resolveEmail } = useAuth();
   const [searchParams] = useSearchParams();
   const [search,   setSearch]   = useState(searchParams.get('q') || '');
   const [industry, setIndustry] = useState('All');
