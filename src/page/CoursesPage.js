@@ -32,8 +32,13 @@ function StarRating({ rating = 0 }) {
 }
 
 function CourseCard({ course, onClick }) {
-  const isFree = Number(course.full_price) === 0;
+  const fullPrice     = Number(course.full_price);
+  const discountPct   = Number(course.discount_pct) || 0;
+  const finalPrice    = discountPct > 0 ? fullPrice * (1 - discountPct / 100) : fullPrice;
+  const isFree        = fullPrice === 0;
+  const hasDiscount   = !isFree && discountPct > 0;
   const instructorFirst = (course.instructor_name || course.creator_email?.split('@')[0] || '').split(' ')[0];
+
   return (
     <button onClick={onClick}
       className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-left group w-full">
@@ -46,6 +51,12 @@ function CourseCard({ course, onClick }) {
         <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 dark:bg-slate-900/90 text-indigo-700 dark:text-indigo-400">
           {course.category}
         </span>
+        {/* Discount ribbon */}
+        {hasDiscount && (
+          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500 text-white shadow-sm">
+            -{discountPct}%
+          </span>
+        )}
       </div>
 
       <div className="p-4">
@@ -60,10 +71,19 @@ function CourseCard({ course, onClick }) {
           <span className="text-[10px] text-slate-400">({course.total_students})</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className={`text-base font-extrabold ${isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-            {isFree ? 'Gratuit' : `${Number(course.full_price).toFixed(2)} TND`}
-          </span>
-          <span className="text-[10px] text-slate-400">{course.lesson_count ?? 0} lessons</span>
+          <div className="flex items-baseline gap-1.5">
+            {isFree ? (
+              <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">Gratuit</span>
+            ) : hasDiscount ? (
+              <>
+                <span className="text-base font-extrabold text-rose-500">{finalPrice.toFixed(2)} TND</span>
+                <span className="text-xs text-slate-400 line-through">{fullPrice.toFixed(2)}</span>
+              </>
+            ) : (
+              <span className="text-base font-extrabold text-slate-900 dark:text-white">{fullPrice.toFixed(2)} TND</span>
+            )}
+          </div>
+          <span className="text-[10px] text-slate-400">{course.lesson_count ?? 0} leçons</span>
         </div>
       </div>
     </button>

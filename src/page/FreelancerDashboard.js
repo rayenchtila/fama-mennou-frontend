@@ -1069,6 +1069,9 @@ function CoursesTab({ user }) {
   const [createError,   setCreateError]   = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [createdCourse, setCreatedCourse] = useState(null);
+  const [discountCourseId, setDiscountCourseId] = useState(null);
+  const [discountInput,    setDiscountInput]    = useState('');
+  const [discountSaving,   setDiscountSaving]   = useState(false);
 
   const fetchCourses = useCallback(async () => {
     setLoading(true);
@@ -1182,6 +1185,22 @@ function CoursesTab({ user }) {
       fetchCourses();
     } catch {}
     setSavingCourseName(false);
+  }
+
+  async function saveDiscount(courseId) {
+    const pct = Math.max(0, Math.min(100, Math.round(Number(discountInput))));
+    setDiscountSaving(true);
+    try {
+      await fetch(`${API}/courses/${courseId}/discount`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discount_pct: pct, instructor_email: user.email }),
+      });
+      fetchCourses();
+      setDiscountCourseId(null);
+      setDiscountInput('');
+    } catch {}
+    setDiscountSaving(false);
   }
 
   async function addLesson(e) {
@@ -1301,8 +1320,48 @@ function CoursesTab({ user }) {
                     )}
                   </div>
                 </div>
-                {/* Action buttons — 2 rows on mobile */}
-                <div className="grid grid-cols-4 gap-1.5">
+                {/* Discount badge */}
+                {course.discount_pct > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-400">
+                      🏷️ -{course.discount_pct}% de remise active
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Prix final : {(Number(course.full_price) * (1 - course.discount_pct / 100)).toFixed(2)} TND
+                    </span>
+                  </div>
+                )}
+
+                {/* Inline discount form */}
+                {discountCourseId === course.id && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    <span className="text-xs font-semibold text-slate-500 shrink-0">Remise (%)</span>
+                    <input
+                      type="number" min="0" max="100" step="1"
+                      value={discountInput}
+                      onChange={e => setDiscountInput(e.target.value)}
+                      placeholder="ex: 20"
+                      className="w-20 text-sm font-bold text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-900 dark:text-white"
+                    />
+                    <span className="text-xs text-slate-400">%</span>
+                    {discountInput !== '' && Number(discountInput) > 0 && Number(course.full_price) > 0 && (
+                      <span className="text-xs text-emerald-500 font-semibold">
+                        → {(Number(course.full_price) * (1 - Number(discountInput) / 100)).toFixed(2)} TND
+                      </span>
+                    )}
+                    <button onClick={() => saveDiscount(course.id)} disabled={discountSaving}
+                      className="ml-auto px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors disabled:opacity-50">
+                      {discountSaving ? '…' : 'Appliquer'}
+                    </button>
+                    <button onClick={() => { setDiscountCourseId(null); setDiscountInput(''); }}
+                      className="text-xs text-slate-400 hover:text-slate-300 transition-colors">
+                      Annuler
+                    </button>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="grid grid-cols-5 gap-1.5">
                   <button onClick={() => setShowLessons(course.id)}
                     className="py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/40 active:scale-95 transition-all">
                     Leçons
@@ -1314,6 +1373,18 @@ function CoursesTab({ user }) {
                   <button onClick={() => navigate(`/courses/${course.id}`)}
                     className="py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold hover:bg-sky-100 dark:hover:bg-sky-900/40 active:scale-95 transition-all">
                     Voir
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDiscountCourseId(discountCourseId === course.id ? null : course.id);
+                      setDiscountInput(course.discount_pct > 0 ? String(course.discount_pct) : '');
+                    }}
+                    className={`py-2 rounded-xl text-[10px] font-bold active:scale-95 transition-all ${
+                      course.discount_pct > 0
+                        ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-100 dark:hover:bg-rose-900/30 hover:text-rose-600 dark:hover:text-rose-400'
+                    }`}>
+                    🏷️ Remise
                   </button>
                   <button onClick={() => setDeleteConfirmId(course.id)}
                     className="py-2 rounded-xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-[10px] font-bold hover:bg-rose-200 active:scale-95 transition-all">

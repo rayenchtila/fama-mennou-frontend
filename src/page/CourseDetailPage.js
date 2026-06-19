@@ -148,7 +148,10 @@ export default function CourseDetailPage() {
         } else {
           setRequestStatus(d.status || 'pending');
           setBuyMsg('✅ Demande envoyée ! Redirection vers le chat…');
-          await sendAdminMsg(course?.title || `Cours #${id}`, id, 'paid', Number(course?.full_price).toFixed(2));
+          const _disc = Number(course?.discount_pct) || 0;
+          const _fp   = Number(course?.full_price) || 0;
+          const _final = _disc > 0 ? _fp * (1 - _disc / 100) : _fp;
+          await sendAdminMsg(course?.title || `Cours #${id}`, id, 'paid', _final.toFixed(2));
           navigate('/messages?with=admin@famamennou.com');
         }
       } else { setBuyMsg('Demande échouée. Réessaie.'); }
@@ -352,6 +355,9 @@ export default function CourseDetailPage() {
   );
 
   const isFree       = Number(course.full_price) === 0;
+  const discountPct  = Number(course.discount_pct) || 0;
+  const finalPrice   = discountPct > 0 ? Number(course.full_price) * (1 - discountPct / 100) : Number(course.full_price);
+  const hasDiscount  = !isFree && discountPct > 0;
   const totalMinutes = visibleLessons.reduce((s, l) => s + (Number(l.duration_min) || 0), 0);
 
 
@@ -418,9 +424,19 @@ export default function CourseDetailPage() {
             )}
             <div className="p-5">
               {/* Price */}
-              <p className={`text-3xl font-extrabold mb-4 ${isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-                {isFree ? 'Gratuit' : `${Number(course.full_price).toFixed(2)} TND`}
-              </p>
+              <div className="mb-4">
+                {isFree ? (
+                  <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">Gratuit</p>
+                ) : hasDiscount ? (
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <p className="text-3xl font-extrabold text-rose-500">{finalPrice.toFixed(2)} TND</p>
+                    <p className="text-base text-slate-400 line-through">{Number(course.full_price).toFixed(2)} TND</p>
+                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-rose-500 text-white">-{discountPct}%</span>
+                  </div>
+                ) : (
+                  <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{Number(course.full_price).toFixed(2)} TND</p>
+                )}
+              </div>
 
               {buyMsg && (
                 <div className={`text-xs rounded-xl px-3 py-2 mb-3 ${buyMsg.startsWith('🎉') || buyMsg.startsWith('✅') ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600'}`}>
