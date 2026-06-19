@@ -584,9 +584,9 @@ function FindProjectsTab({ user, users, navigate }) {
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-3">
                         <span className="font-bold text-emerald-400">Prix fixe</span>
                         {p.budget && <><span className="text-slate-600">·</span><span className="font-semibold text-white">{p.budget} TND</span></>}
-                        {p.experience && <><span className="text-slate-600">·</span><span>{p.experience}</span></>}
-                        {p.period && <><span className="text-slate-600">·</span><span>Durée estimée : {p.period}</span></>}
-                        {p.created_at && <><span className="text-slate-600">·</span><span>📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}</span></>}
+                        {p.experience && <><span className="text-slate-600">·</span><span>Expérience : {p.experience}</span></>}
+                        {p.period && <><span className="text-slate-600">·</span><span>Période estimée : {p.period}</span></>}
+                        {p.created_at && (() => { const _d = new Date(p.created_at); return <><span className="text-slate-600">·</span><span>Date : {_d.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' })} , {_d.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}</span></>; })()}
                       </div>
 
                       {/* Description */}

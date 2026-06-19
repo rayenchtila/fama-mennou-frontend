@@ -124,13 +124,13 @@ function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
                   <p className="text-[11px] text-slate-400 leading-relaxed whitespace-pre-wrap">{p.description}</p>
                 )}
                 <div className="flex flex-wrap gap-1.5 text-[10px]">
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">🎯 {p.experience || '—'}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">⏱️ {p.period || '—'}</span>
-                  {p.created_at && (
+                  <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">Expérience : {p.experience || '—'}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">Période estimée : {p.period || '—'}</span>
+                  {p.created_at && (() => { const _d = new Date(p.created_at); return (
                     <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">
-                      📅 {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      Date : {_d.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' })} , {_d.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}
                     </span>
-                  )}
+                  ); })()}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0
