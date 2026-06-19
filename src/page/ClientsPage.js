@@ -59,176 +59,139 @@ function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
   }
 
   return (
-    <div className="bg-slate-900 rounded-3xl border border-white/5 overflow-hidden hover:shadow-2xl hover:shadow-brand-cyan/10 hover:border-brand-cyan/30 hover:-translate-y-1 transition-all duration-300 flex flex-col group">
+    <div className="py-6 flex gap-4">
 
-      {/* Cover */}
-      <div className={`h-20 bg-gradient-to-br ${grad} opacity-80 relative`}>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)]" />
-        {myReviews.length > 0 && (
-          <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
-            <svg className="w-3 h-3 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <span className="text-white text-[10px] font-bold">{avgRating.toFixed(1)}</span>
-          </div>
-        )}
+      {/* Small avatar inline */}
+      <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 mt-0.5">
+        {client.photo
+          ? <img src={cldImg(client.photo)} alt={client.name} className="w-full h-full object-cover" />
+          : <div className={`w-full h-full bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold text-sm`}>{client.name?.slice(0, 2).toUpperCase()}</div>
+        }
       </div>
 
-      {/* Avatar overlap */}
-      <div className="px-5 pb-0 -mt-8 flex items-end justify-between">
-        <div className="w-16 h-16 rounded-2xl ring-4 ring-white dark:ring-slate-900 shadow-lg relative">
-          {client.photo
-            ? <img src={cldImg(client.photo)} alt={client.name} className="w-full h-full object-cover rounded-2xl" />
-            : <div className={`w-full h-full rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold text-lg`}>{client.name?.slice(0, 2).toUpperCase()}</div>
-          }
-        </div>
-        <span className="mb-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
-          Client ✓
-        </span>
-      </div>
+      <div className="flex-1 min-w-0">
 
-      <div className="px-5 pt-3 pb-5 flex flex-col flex-1">
-        {/* Name + location */}
-        <div className="mb-3">
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">{client.name?.split(' ')[0]}</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+        {/* Meta line */}
+        <p className="text-xs text-slate-500 mb-1">
+          Client &nbsp;·&nbsp; <span className="text-sky-400 font-semibold">✓ Vérifié</span>
+          {client.registeredAt && <> &nbsp;·&nbsp; Membre depuis {new Date(client.registeredAt).toLocaleDateString('fr-TN', { month: 'long', year: 'numeric' })}</>}
+        </p>
+
+        {/* Name */}
+        <h3 className="text-base font-extrabold text-brand-cyan-light hover:text-brand-violet-light transition-colors cursor-default mb-1 leading-tight">
+          {client.name}
+        </h3>
+
+        {/* Location · Rating */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-3">
+          <span className="flex items-center gap-1">
             <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             {client.region || 'Tunisie'}
-          </p>
-        </div>
-
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-3">
-          <Stars value={Math.round(avgRating)} readonly size="sm" />
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
-          <span className="text-xs text-slate-400">({myReviews.length} avis)</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Stars value={Math.round(avgRating)} readonly size="sm" />
+            <span className="font-bold text-white">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
+            <span className="text-slate-500">({myReviews.length} avis)</span>
+          </span>
         </div>
 
         {/* Bio */}
         {client.bio && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed line-clamp-2">{client.bio}</p>
+          <p dir="auto" className="text-sm text-slate-400 leading-relaxed mb-3 line-clamp-2">{client.bio}</p>
         )}
 
-        {/* Project for this card */}
-        {projects && projects.length > 0 && (
-          <div className="space-y-2 mb-4">
-            {projects.map(p => (
-              <div key={p.id} className="bg-slate-800/60 border border-white/5 rounded-xl p-3 space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-bold text-white truncate">{p.title}</p>
-                  {p.budget && (
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-slate-950 shrink-0">
-                      💰 {p.budget} TND
-                    </span>
-                  )}
-                </div>
-                {p.description && (
-                  <p className="text-[11px] text-slate-400 leading-relaxed whitespace-pre-wrap">{p.description}</p>
-                )}
-                <div className="flex flex-wrap gap-1.5 text-[10px]">
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">Expérience : {p.experience || '—'}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">Période estimée : {p.period || '—'}</span>
-                  {p.created_at && (() => { const _d = new Date(p.created_at); return (
-                    <span className="px-2 py-0.5 rounded-full bg-white/5 text-slate-300">
-                      Date : {_d.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' })} , {_d.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                    </span>
-                  ); })()}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0
-                    ? p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
-                        <span key={i} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300">
-                          {kw}
-                        </span>
-                      ))
-                    : <span className="text-[10px] text-slate-400">Mots clés : —</span>
-                  }
-                </div>
+        {/* Open projects */}
+        {projects && projects.length > 0 && projects.map(p => (
+          <div key={p.id} className="mb-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-1">
+              <span className="font-bold text-white">{p.title}</span>
+              {p.budget && <span className="font-extrabold text-emerald-400">{p.budget} TND</span>}
+              {p.experience && <span>Expérience : {p.experience}</span>}
+              {p.period && <span>Période : {p.period}</span>}
+            </div>
+            {p.description && (
+              <p dir="auto" className="text-sm text-slate-400 leading-relaxed mb-2 line-clamp-2">{p.description}</p>
+            )}
+            {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
+                  <span key={i} className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-white/10 text-slate-300">{kw}</span>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
-
-        {/* Member since */}
-        {client.registeredAt && (
-          <div className="flex items-center gap-1.5 mb-4">
-            <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            <span className="text-[10px] text-slate-400">Membre depuis {new Date(client.registeredAt).toLocaleDateString('fr-TN', { month: 'long', year: 'numeric' })}</span>
-          </div>
-        )}
+        ))}
 
         {/* Expanded: reviews + form */}
         {expanded && (
-          <div className="space-y-3 mb-4">
+          <div className="space-y-3 mt-4 pt-4 border-t border-white/8">
             {myReviews.length > 0 ? (
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Avis des freelancers</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Avis des freelancers</p>
                 <div className="space-y-2">
                   {displayedReviews.map((r, i) => (
-                    <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <div className="w-6 h-6 rounded-full bg-sky-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+                    <div key={i} className="pl-3 border-l-2 border-white/10">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-5 h-5 rounded-full bg-sky-500/70 flex items-center justify-center text-white text-[8px] font-bold shrink-0">
                           {r.freelancerName?.slice(0,2).toUpperCase()}
                         </div>
                         <Stars value={r.rating} readonly size="sm" />
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{r.freelancerName}</span>
+                        <span className="text-xs font-semibold text-slate-300">{r.freelancerName}</span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{r.comment}</p>
+                      <p dir="auto" className="text-xs text-slate-400 leading-relaxed">{r.comment}</p>
                     </div>
                   ))}
                   {myReviews.length > 2 && (
-                    <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-sky-600 dark:text-sky-400 hover:underline">
+                    <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-sky-400 hover:underline">
                       {showAllReviews ? 'Voir moins' : `Voir ${myReviews.length - 2} avis de plus`}
                     </button>
                   )}
                 </div>
               </div>
             ) : !showForm && (
-              <div className="flex items-center gap-2 py-3 px-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                <svg className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Aucun avis pour le moment.</p>
-              </div>
+              <p className="text-xs text-slate-500">Aucun avis pour le moment.</p>
             )}
 
             {showForm && (
-              <form onSubmit={handleSubmit} className="space-y-2.5 bg-sky-50 dark:bg-sky-900/20 rounded-xl p-3 border border-sky-100 dark:border-sky-800/40">
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Votre avis sur ce client</p>
+              <form onSubmit={handleSubmit} className="space-y-2.5 pl-3 border-l-2 border-sky-500/40">
+                <p className="text-xs font-bold text-slate-300">Votre avis sur ce client</p>
                 <Stars value={newRating} onChange={v => { setNewRating(v); setRatingError(false); }} />
                 {ratingError && <p className="text-[11px] text-rose-500">Choisissez une note avant d'envoyer.</p>}
                 <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Votre commentaire..." rows={2}
-                  className="w-full text-xs rounded-xl border border-sky-200 dark:border-sky-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500" required />
+                  className="w-full text-xs rounded-xl border border-white/10 bg-slate-800 text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500" required />
                 <div className="flex gap-2">
-                  <button type="submit" disabled={!newComment.trim()} className="flex-1 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white px-3 py-2 rounded-xl transition-colors disabled:opacity-50">Envoyer</button>
-                  <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); setRatingError(false); }} className="flex-1 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl transition-colors">Annuler</button>
+                  <button type="submit" disabled={!newComment.trim()} className="text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-xl transition-colors disabled:opacity-50">Envoyer</button>
+                  <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); setRatingError(false); }} className="text-xs font-semibold text-slate-400 hover:text-slate-300 px-3 py-1.5 transition-colors">Annuler</button>
                 </div>
               </form>
             )}
           </div>
         )}
 
-        {/* Actions */}
-        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        {/* Actions row */}
+        <div className="flex flex-wrap items-center gap-2 mt-4">
           {isFreelancer && !isOwnCard && (
             <button onClick={() => navigate(`/messages?with=${encodeURIComponent(client.email)}`)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-violet hover:shadow-lg hover:shadow-brand-cyan/30 text-white text-xs font-bold transition-all">
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-violet hover:opacity-90 text-white text-xs font-bold transition-all">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
               Envoyer un message
             </button>
           )}
-          <div className="flex gap-2">
-            <button onClick={() => setExpanded(v => !v)}
-              className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1">
-              {expanded ? 'Réduire' : 'Voir profil'}
-              <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          <button onClick={() => setExpanded(v => !v)}
+            className="flex items-center gap-1 px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 hover:bg-white/5 transition-colors">
+            {expanded ? 'Réduire' : 'Voir profil'}
+            <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          {isFreelancer && !isOwnCard && !alreadyReviewed && !showForm && (
+            <button onClick={() => { setExpanded(true); setShowForm(true); }}
+              className="px-4 py-2 rounded-xl border border-sky-500/30 text-sky-400 text-xs font-semibold hover:bg-sky-500/10 transition-colors">
+              ⭐ Laisser un avis
             </button>
-            {isFreelancer && !isOwnCard && !alreadyReviewed && !showForm && (
-              <button onClick={() => { setExpanded(true); setShowForm(true); }}
-                className="flex-1 py-2 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 text-xs font-semibold hover:bg-sky-100 transition-colors">
-                ⭐ Laisser un avis
-              </button>
-            )}
-          </div>
-          {isOwnCard && <p className="text-[10px] text-slate-400 text-center">Votre profil client</p>}
-          {alreadyReviewed && <p className="text-[10px] text-slate-400 text-center">Vous avez déjà laissé un avis.</p>}
+          )}
+          {isOwnCard && <span className="text-[10px] text-slate-500">Votre profil client</span>}
+          {alreadyReviewed && <span className="text-[10px] text-slate-500">Vous avez déjà laissé un avis.</span>}
         </div>
+
       </div>
     </div>
   );
@@ -379,10 +342,10 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* ── Grid — one card per project ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {/* ── List ── */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="divide-y divide-white/8">
             {filtered.flatMap(c =>
               (projectsByClient[c.email?.toLowerCase()] || []).map(p => (
                 <ClientCard key={`${c.email}-${p.id}`} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} projects={[p]} />

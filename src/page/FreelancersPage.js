@@ -55,6 +55,7 @@ function Avatar({ user: u, size = 'lg' }) {
 }
 
 function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, updateUser, completedWith, onMarkComplete, allUsers, onMessage }) {
+  // renamed internally but kept as list row — no card
   const [showForm,         setShowForm]         = useState(false);
   const [newRating,        setNewRating]        = useState(0);
   const [newComment,       setNewComment]       = useState('');
@@ -130,73 +131,67 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
         </div>
       )}
 
-      <div className="bg-slate-900 rounded-3xl border border-white/5 overflow-hidden hover:shadow-2xl hover:shadow-brand-violet/10 hover:border-brand-violet/30 hover:-translate-y-1 transition-all duration-300 flex flex-col group">
+      {/* ── List row — no card ── */}
+      <div className="py-6 flex gap-4">
 
-        {/* Cover banner */}
-        <div className={`h-20 bg-gradient-to-br ${AVATAR_GRADIENTS[(key?.charCodeAt(0) ?? 0) % AVATAR_GRADIENTS.length]} opacity-80 relative`}>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)]" />
-          {myReviews.length > 0 && (
-            <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
-              <svg className="w-3 h-3 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              <span className="text-white text-[10px] font-bold">{avgRating.toFixed(1)}</span>
-            </div>
+        {/* Small avatar — inline, not dominant */}
+        <div className="relative group/av shrink-0 mt-0.5">
+          <div className="w-10 h-10 rounded-xl overflow-hidden">
+            <Avatar user={freelancer} size="md" />
+          </div>
+          {isOwnCard && (
+            <>
+              <button onClick={() => fileRef.current?.click()}
+                className="absolute inset-0 rounded-xl bg-black/60 opacity-0 group-hover/av:opacity-100 flex items-center justify-center transition-opacity">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </button>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+            </>
           )}
         </div>
 
-        {/* Avatar overlap */}
-        <div className="px-5 pb-0 -mt-8 flex items-end justify-between">
-          <div className="relative group/av">
-            <div className="w-16 h-16 rounded-2xl ring-4 ring-white dark:ring-slate-900 overflow-hidden shadow-lg">
-              <Avatar user={freelancer} size="lg" />
-            </div>
-            {isOwnCard && (
-              <>
-                <button onClick={() => fileRef.current?.click()}
-                  className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover/av:opacity-100 flex items-center justify-center transition-opacity">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </button>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
-              </>
-            )}
-          </div>
-          <span className="mb-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-            ✓ Vérifié
-          </span>
-        </div>
+        <div className="flex-1 min-w-0">
 
-        <div className="px-5 pt-3 pb-5 flex flex-col flex-1">
-          {/* Name + location */}
-          <div className="mb-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">{freelancer.name}</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+          {/* Meta line */}
+          <p className="text-xs text-slate-500 mb-1">
+            Freelancer &nbsp;·&nbsp; <span className="text-emerald-400 font-semibold">✓ Vérifié</span>
+            {freelancer.registeredAt && <> &nbsp;·&nbsp; Membre depuis {new Date(freelancer.registeredAt).toLocaleDateString('fr-TN', { month: 'long', year: 'numeric' })}</>}
+          </p>
+
+          {/* Name */}
+          <h3 className="text-base font-extrabold text-brand-violet-light hover:text-brand-fuchsia transition-colors cursor-default mb-1 leading-tight">
+            {freelancer.name}
+          </h3>
+
+          {/* Location · Rating */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-3">
+            <span className="flex items-center gap-1">
               <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
               {freelancer.region || 'Tunisie'}
-            </p>
-          </div>
-
-          {/* Rating row */}
-          <div className="flex items-center gap-2 mb-3">
-            <Stars value={Math.round(avgRating)} readonly size="sm" />
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
-            <span className="text-xs text-slate-400">({myReviews.length} avis)</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Stars value={Math.round(avgRating)} readonly size="sm" />
+              <span className="font-bold text-white">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
+              <span className="text-slate-500">({myReviews.length} avis)</span>
+            </span>
           </div>
 
           {/* Bio */}
           {freelancer.bio && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed line-clamp-2">{freelancer.bio}</p>
+            <p dir="auto" className="text-sm text-slate-400 leading-relaxed mb-3 line-clamp-2">{freelancer.bio}</p>
           )}
 
           {/* Skills */}
           {skillTags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {skillTags.slice(0, 4).map((tag, i) => (
-                <span key={i} className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg border ${SKILL_COLORS[i % SKILL_COLORS.length]}`}>
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {skillTags.slice(0, 6).map((tag, i) => (
+                <span key={i} className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-white/10 text-slate-300">
                   {tag}
                 </span>
               ))}
-              {skillTags.length > 4 && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400">
-                  +{skillTags.length - 4}
+              {skillTags.length > 6 && (
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800/60 border border-white/8 text-slate-500">
+                  +{skillTags.length - 6}
                 </span>
               )}
             </div>
@@ -204,16 +199,16 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
 
           {/* Portfolio thumbnails */}
           {portfolio.filter(i => i.type === 'image').length > 0 && (
-            <div className="flex gap-1.5 mb-4">
-              {portfolio.filter(i => i.type === 'image').slice(0, 3).map((item, idx) => (
+            <div className="flex gap-1.5 mb-3">
+              {portfolio.filter(i => i.type === 'image').slice(0, 5).map((item, idx) => (
                 <button key={idx} onClick={() => setLightboxImg(item.data)}
-                  className="w-14 h-10 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700 hover:scale-105 transition-transform shrink-0">
+                  className="w-14 h-10 rounded-lg overflow-hidden border border-white/10 hover:opacity-80 transition-opacity shrink-0">
                   <img src={cldImg(item.data)} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
-              {portfolio.filter(i => i.type === 'image').length > 3 && (
-                <div className="w-14 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
-                  +{portfolio.filter(i => i.type === 'image').length - 3}
+              {portfolio.filter(i => i.type === 'image').length > 5 && (
+                <div className="w-14 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500 border border-white/10 shrink-0">
+                  +{portfolio.filter(i => i.type === 'image').length - 5}
                 </div>
               )}
             </div>
@@ -221,62 +216,58 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
 
           {/* Expanded section */}
           {expanded && (
-            <div className="space-y-4 mb-4">
+            <div className="space-y-4 mt-4 pt-4 border-t border-white/8">
               {/* Portfolio manager */}
               {(portfolio.length > 0 || isOwnCard) && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Portfolio</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Portfolio</span>
                     {isOwnCard && (
-                      <button onClick={() => setShowPortfolioForm(v => !v)} className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                      <button onClick={() => setShowPortfolioForm(v => !v)} className="text-[10px] font-semibold text-indigo-400 hover:underline">
                         {showPortfolioForm ? 'Annuler' : '+ Ajouter'}
                       </button>
                     )}
                   </div>
                   {showPortfolioForm && isOwnCard && (
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-3 space-y-2">
-                      <div className="flex gap-0.5 p-0.5 bg-slate-200 dark:bg-slate-700 rounded-lg">
+                    <div className="bg-slate-800/60 rounded-xl p-3 mb-3 space-y-2">
+                      <div className="flex gap-0.5 p-0.5 bg-slate-700 rounded-lg">
                         {[{id:'image',icon:'🖼',label:'Image'},{id:'file',icon:'📄',label:'Fichier'}].map(tab => (
                           <button key={tab.id} onClick={() => setPortfolioType(tab.id)}
-                            className={['flex-1 py-1 text-[10px] font-semibold rounded-md transition-all', portfolioType === tab.id ? 'bg-white dark:bg-slate-600 text-indigo-600 shadow-sm' : 'text-slate-500'].join(' ')}>
+                            className={['flex-1 py-1 text-[10px] font-semibold rounded-md transition-all', portfolioType === tab.id ? 'bg-slate-600 text-indigo-400 shadow-sm' : 'text-slate-400'].join(' ')}>
                             {tab.icon} {tab.label}
                           </button>
                         ))}
                       </div>
                       {portfolioType === 'image' && (
-                        <button onClick={() => portfolioImgRef.current?.click()} className="w-full text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition-colors">
-                          📂 Choisir une image
-                        </button>
+                        <button onClick={() => portfolioImgRef.current?.click()} className="w-full text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition-colors">📂 Choisir une image</button>
                       )}
                       {portfolioType === 'file' && (
                         <div className="space-y-2">
                           <input type="text" value={portfolioLabel} onChange={e => setPortfolioLabel(e.target.value)} placeholder="Titre du fichier"
-                            className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                          <button onClick={() => portfolioFileRef.current?.click()} className="w-full text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition-colors">
-                            📄 Choisir un fichier
-                          </button>
+                            className="w-full text-xs rounded-lg border border-white/10 bg-slate-900 text-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                          <button onClick={() => portfolioFileRef.current?.click()} className="w-full text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition-colors">📄 Choisir un fichier</button>
                         </div>
                       )}
                       <input ref={portfolioImgRef} type="file" accept="image/*" className="hidden" onChange={e => handlePortfolioFile(e, 'image')} />
                       <input ref={portfolioFileRef} type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" className="hidden" onChange={e => handlePortfolioFile(e, 'file')} />
                     </div>
                   )}
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     {portfolio.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 group/p p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <div key={idx} className="flex items-center gap-2 group/p py-1.5">
                         {item.type === 'image' && (
-                          <button onClick={() => setLightboxImg(item.data)} className="flex-1 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 hover:text-indigo-600 text-left">
+                          <button onClick={() => setLightboxImg(item.data)} className="flex-1 flex items-center gap-2 text-xs text-slate-400 hover:text-indigo-400 text-left">
                             <img src={cldImg(item.data)} alt="" className="w-8 h-6 object-cover rounded" />
                             <span className="truncate">{item.label || 'Image'}</span>
                           </button>
                         )}
                         {item.type === 'file' && (
-                          <a href={item.data} download={item.filename || item.label} className="flex-1 flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline truncate">
+                          <a href={item.data} download={item.filename || item.label} className="flex-1 flex items-center gap-2 text-xs text-indigo-400 hover:underline truncate">
                             <span>📄</span><span className="truncate">{item.label || item.filename}</span>
                           </a>
                         )}
                         {isOwnCard && (
-                          <button onClick={() => handleRemovePortfolio(idx)} className="opacity-0 group-hover/p:opacity-100 text-rose-400 hover:text-rose-600 transition-opacity shrink-0">
+                          <button onClick={() => handleRemovePortfolio(idx)} className="opacity-0 group-hover/p:opacity-100 text-rose-400 hover:text-rose-300 transition-opacity shrink-0">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                           </button>
                         )}
@@ -287,36 +278,33 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
               )}
 
               {/* Reviews */}
-              {myReviews.length === 0 && !showForm && portfolio.length === 0 && !isOwnCard && (
-                <div className="flex items-center gap-2 py-3 px-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                  <svg className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Aucun avis pour le moment.</p>
-                </div>
+              {myReviews.length === 0 && !showForm && !isOwnCard && (
+                <p className="text-xs text-slate-500">Aucun avis pour le moment.</p>
               )}
               {myReviews.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Avis clients</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Avis clients</p>
                   <div className="space-y-2">
                     {displayedReviews.map((r, i) => {
                       const reviewer = allUsers?.find(u => u.email?.toLowerCase() === r.clientEmail?.toLowerCase());
                       return (
-                        <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
-                          <div className="flex items-center gap-2 mb-1.5">
+                        <div key={i} className="pl-3 border-l-2 border-white/10">
+                          <div className="flex items-center gap-2 mb-1">
                             <div className="shrink-0">
                               {reviewer?.photo
-                                ? <img src={cldImg(reviewer.photo)} alt={r.clientName} className="w-6 h-6 rounded-full object-cover" />
-                                : <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-white text-[9px] font-bold">{r.clientName?.slice(0,2).toUpperCase()}</div>
+                                ? <img src={cldImg(reviewer.photo)} alt={r.clientName} className="w-5 h-5 rounded-full object-cover" />
+                                : <div className="w-5 h-5 rounded-full bg-indigo-500/70 flex items-center justify-center text-white text-[8px] font-bold">{r.clientName?.slice(0,2).toUpperCase()}</div>
                               }
                             </div>
                             <Stars value={r.rating} readonly size="sm" />
-                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{r.clientName}</span>
+                            <span className="text-xs font-semibold text-slate-300">{r.clientName}</span>
                           </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{r.comment}</p>
+                          <p dir="auto" className="text-xs text-slate-400 leading-relaxed">{r.comment}</p>
                         </div>
                       );
                     })}
                     {myReviews.length > 2 && (
-                      <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
+                      <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-indigo-400 hover:underline">
                         {showAllReviews ? 'Voir moins' : `Voir ${myReviews.length - 2} avis de plus`}
                       </button>
                     )}
@@ -326,58 +314,51 @@ function RealFreelancerCard({ freelancer, reviews, onAddReview, currentUser, upd
 
               {/* Review form */}
               {showForm && (
-                <form onSubmit={handleSubmit} className="space-y-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-3 border border-indigo-100 dark:border-indigo-800/40">
-                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Votre avis</p>
+                <form onSubmit={handleSubmit} className="space-y-2.5 pl-3 border-l-2 border-indigo-500/40">
+                  <p className="text-xs font-bold text-slate-300">Votre avis</p>
                   <Stars value={newRating} onChange={setNewRating} />
                   <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Votre commentaire..." rows={2}
-                    className="w-full text-xs rounded-xl border border-indigo-200 dark:border-indigo-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+                    className="w-full text-xs rounded-xl border border-white/10 bg-slate-800 text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
                   <div className="flex gap-2">
-                    <button type="submit" disabled={!newRating || !newComment.trim()} className="flex-1 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-colors disabled:opacity-50">Envoyer</button>
-                    <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); }} className="flex-1 text-xs font-semibold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors">Annuler</button>
+                    <button type="submit" disabled={!newRating || !newComment.trim()} className="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-xl transition-colors disabled:opacity-40">Envoyer</button>
+                    <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); }} className="text-xs font-semibold text-slate-400 hover:text-slate-300 px-3 py-1.5 transition-colors">Annuler</button>
                   </div>
                 </form>
               )}
             </div>
           )}
 
-          {/* Actions */}
-          <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+          {/* Actions row */}
+          <div className="flex flex-wrap items-center gap-2 mt-4">
             {currentUser && !isOwnCard && (
               <button onClick={() => onMessage(key)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia hover:shadow-lg hover:shadow-brand-violet/30 text-white text-xs font-bold transition-all">
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia hover:opacity-90 text-white text-xs font-bold transition-all">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 Envoyer un message
               </button>
             )}
-
-            <div className="flex gap-2">
-              <button onClick={() => setExpanded(v => !v)}
-                className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1">
-                {expanded ? 'Réduire' : 'Voir profil'}
-                <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            <button onClick={() => setExpanded(v => !v)}
+              className="flex items-center gap-1 px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 hover:bg-white/5 transition-colors">
+              {expanded ? 'Réduire' : 'Voir profil'}
+              <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            {isClient && !isOwnCard && !hasCompletedTask && (
+              <button onClick={handleMarkComplete} disabled={markingComplete}
+                className="px-4 py-2 rounded-xl border border-amber-500/30 text-amber-400 text-xs font-semibold hover:bg-amber-500/10 transition-colors disabled:opacity-40">
+                {markingComplete ? '...' : '✓ Travaillé ensemble'}
               </button>
-
-              {isClient && !isOwnCard && !hasCompletedTask && (
-                <button onClick={handleMarkComplete} disabled={markingComplete}
-                  className="flex-1 py-2 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-semibold hover:bg-amber-100 transition-colors disabled:opacity-50">
-                  {markingComplete ? '...' : '✓ Travaillé ensemble'}
-                </button>
-              )}
-
-              {isClient && !isOwnCard && hasCompletedTask && !alreadyReviewed && !showForm && (
-                <button onClick={() => { setExpanded(true); setShowForm(true); }}
-                  className="flex-1 py-2 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-semibold hover:bg-indigo-100 transition-colors">
-                  ⭐ Laisser un avis
-                </button>
-              )}
-            </div>
-
+            )}
+            {isClient && !isOwnCard && hasCompletedTask && !alreadyReviewed && !showForm && (
+              <button onClick={() => { setExpanded(true); setShowForm(true); }}
+                className="px-4 py-2 rounded-xl border border-indigo-500/30 text-indigo-400 text-xs font-semibold hover:bg-indigo-500/10 transition-colors">
+                ⭐ Laisser un avis
+              </button>
+            )}
             {isOwnCard && portfolio.length === 0 && (
-              <p className="text-[10px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-lg text-center">
-                ⚠️ Ajoutez au moins un élément au portfolio
-              </p>
+              <span className="text-[10px] font-semibold text-amber-500">⚠️ Ajoutez un élément au portfolio</span>
             )}
           </div>
+
         </div>
       </div>
     </>
@@ -543,10 +524,10 @@ export default function FreelancersPage() {
         </div>
       </div>
 
-      {/* ── Grid ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {/* ── List ── */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="divide-y divide-white/8">
             {filtered.map(f => (
               <RealFreelancerCard key={f.email} freelancer={f} reviews={reviews} onAddReview={handleAddReview}
                 currentUser={user} updateUser={updateUser} completedWith={completedWith}
