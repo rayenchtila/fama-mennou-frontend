@@ -538,21 +538,23 @@ function FindProjectsTab({ user, navigate }) {
 
           {/* Titre */}
           <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Titre du projet <span className="text-rose-500">*</span></label>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Titre de l'offre <span className="text-rose-500">*</span></label>
             <input required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              placeholder="ex: Développement d'une application web React"
               className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
 
           {/* Description */}
           <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Description <span className="text-rose-500">*</span></label>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Description de vos services <span className="text-rose-500">*</span></label>
             <textarea required rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              placeholder="Décrivez ce que vous proposez, vos méthodes de travail…"
               className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
           </div>
 
-          {/* Mots clés */}
+          {/* Compétences */}
           <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Mots clés</label>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Compétences</label>
             <div className="mt-1 flex flex-wrap gap-2">
               {form.keywords.map((kw, i) => (
                 <div key={i}
@@ -561,43 +563,43 @@ function FindProjectsTab({ user, navigate }) {
                   <span className="pl-2.5 text-sm font-semibold text-slate-400">#</span>
                   <input maxLength={25} value={kw}
                     onChange={e => { const val = e.target.value.replace(/[#\s]/g, '').slice(0, 25); setForm(f => ({ ...f, keywords: f.keywords.map((k, idx) => idx === i ? val : k) })); }}
-                    placeholder={`mot ${i + 1}`}
+                    placeholder={`skill ${i + 1}`}
                     className="w-full min-w-0 px-1 py-2 text-sm font-semibold bg-transparent text-slate-900 dark:text-white focus:outline-none" />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Expérience */}
+          {/* Mon niveau d'expérience */}
           <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience <span className="text-rose-500">*</span></label>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Mon niveau d'expérience <span className="text-rose-500">*</span></label>
             <select value={form.experience}
               onChange={e => { setForm(f => ({ ...f, experience: e.target.value })); setFormErrors(fe => ({ ...fe, experience: false })); }}
               className={`mt-1 w-full px-3 py-2 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${formErrors.experience ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200 dark:border-slate-700'}`}>
               <option value="">Sélectionner...</option>
               {EXPERIENCE_OPTIONS_FL.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
-            {formErrors.experience && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner l'expérience requise.</p>}
+            {formErrors.experience && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner votre niveau d'expérience.</p>}
           </div>
 
-          {/* Période estimée */}
+          {/* Délai de livraison */}
           <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Période estimée <span className="text-rose-500">*</span></label>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Délai de livraison <span className="text-rose-500">*</span></label>
             <select value={form.period}
               onChange={e => { setForm(f => ({ ...f, period: e.target.value })); setFormErrors(fe => ({ ...fe, period: false })); }}
               className={`mt-1 w-full px-3 py-2 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${formErrors.period ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200 dark:border-slate-700'}`}>
               <option value="">Sélectionner...</option>
               {PERIOD_OPTIONS_FL.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
-            {formErrors.period && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner la période estimée.</p>}
+            {formErrors.period && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner le délai de livraison.</p>}
           </div>
 
-          {/* Budget */}
+          {/* Tarif */}
           <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND) <span className="text-rose-500">*</span></label>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Tarif (TND) <span className="text-rose-500">*</span></label>
             <div className="mt-1 flex items-stretch rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
               <button type="button"
-                onClick={() => setForm(f => ({ ...f, budget: String(Math.max(10, (Number(f.budget) || 10) - 10) ) }))}
+                onClick={() => setForm(f => ({ ...f, budget: String(Math.max(10, (Number(f.budget) || 10) - 10)) }))}
                 className="px-4 text-lg font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">−</button>
               <input type="number" step="10" min="10" inputMode="numeric" value={form.budget}
                 onChange={e => setForm(f => ({ ...f, budget: e.target.value.replace(/[^0-9]/g, '') }))}
@@ -624,11 +626,8 @@ function FindProjectsTab({ user, navigate }) {
       ) : projects.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center shadow-sm">
           <span className="text-5xl mb-4 block">🗂️</span>
-          <p className="text-base font-bold text-slate-900 dark:text-white mb-1">Aucun projet pour l'instant</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Publiez votre premier projet et trouvez le bon freelancer.</p>
-          <button onClick={() => setShowForm(true)} className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors">
-            + Créer un projet
-          </button>
+          <p className="text-base font-bold text-slate-900 dark:text-white mb-1">Aucune offre pour l'instant</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Publiez votre première offre de service en cliquant sur + Nouveau projet.</p>
         </div>
       ) : (
         <div className="space-y-4">
