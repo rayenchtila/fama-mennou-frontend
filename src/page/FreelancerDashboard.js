@@ -463,7 +463,7 @@ function FindProjectsTab({ user, navigate }) {
   const [form, setForm] = useState({
     title: '', description: '',
     keywords: ['', '', '', '', ''],
-    experience: '', period: '', budget: '10',
+    experience: '',
   });
 
   const loadProjects = useCallback(() => {
@@ -479,7 +479,6 @@ function FindProjectsTab({ user, navigate }) {
     e.preventDefault();
     const errors = {};
     if (!form.experience) errors.experience = true;
-    if (!form.period)     errors.period     = true;
     if (Object.keys(errors).length) { setFormErrors(errors); return; }
 
     setPosting(true); setPostError('');
@@ -494,14 +493,12 @@ function FindProjectsTab({ user, navigate }) {
           description:  form.description.trim(),
           keywords,
           experience:   form.experience,
-          period:       form.period,
-          budget:       Number(form.budget) || 10,
         }),
       });
       const data = await res.json();
       if (!res.ok) { setPostError(data.error || 'Erreur lors de la publication.'); }
       else {
-        setForm({ title:'', description:'', keywords:['','','','',''], experience:'', period:'', budget:'10' });
+        setForm({ title:'', description:'', keywords:['','','','',''], experience:'' });
         setFormErrors({});
         setShowForm(false);
         loadProjects();
@@ -582,38 +579,9 @@ function FindProjectsTab({ user, navigate }) {
             {formErrors.experience && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner votre niveau d'expérience.</p>}
           </div>
 
-          {/* Délai de livraison */}
-          <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Délai de livraison <span className="text-rose-500">*</span></label>
-            <select value={form.period}
-              onChange={e => { setForm(f => ({ ...f, period: e.target.value })); setFormErrors(fe => ({ ...fe, period: false })); }}
-              className={`mt-1 w-full px-3 py-2 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${formErrors.period ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200 dark:border-slate-700'}`}>
-              <option value="">Sélectionner...</option>
-              {PERIOD_OPTIONS_FL.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-            {formErrors.period && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner le délai de livraison.</p>}
-          </div>
-
-          {/* Tarif */}
-          <div>
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Tarif (TND) <span className="text-rose-500">*</span></label>
-            <div className="mt-1 flex items-stretch rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
-              <button type="button"
-                onClick={() => setForm(f => ({ ...f, budget: String(Math.max(10, (Number(f.budget) || 10) - 10)) }))}
-                className="px-4 text-lg font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">−</button>
-              <input type="number" step="10" min="10" inputMode="numeric" value={form.budget}
-                onChange={e => setForm(f => ({ ...f, budget: e.target.value.replace(/[^0-9]/g, '') }))}
-                onBlur={e => setForm(f => ({ ...f, budget: String(Math.max(10, Number(e.target.value) || 10)) }))}
-                className="flex-1 min-w-0 px-3 py-2 text-sm text-center bg-transparent text-slate-900 dark:text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-              <button type="button"
-                onClick={() => setForm(f => ({ ...f, budget: String((Number(f.budget) || 10) + 10) }))}
-                className="px-4 text-lg font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">+</button>
-            </div>
-          </div>
-
           {postError && <p className="text-red-500 text-sm text-center font-medium">{postError}</p>}
 
-          <button type="submit" disabled={posting || !form.title.trim() || !form.description.trim() || !form.experience || !form.period}
+          <button type="submit" disabled={posting || !form.title.trim() || !form.description.trim() || !form.experience}
             className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
             {posting ? 'Publication…' : 'Publier le projet'}
           </button>
