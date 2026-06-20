@@ -488,7 +488,7 @@ function FindProjectsTab({ user, navigate }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client_email: user.email,
+          clientEmail:  user.email,
           title:        form.title.trim(),
           description:  form.description.trim(),
           keywords,
