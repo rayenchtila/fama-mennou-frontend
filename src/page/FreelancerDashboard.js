@@ -445,208 +445,234 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
 
 // ── TAB: Trouver Projets ──────────────────────────────────────────────────────
 
-function FindProjectsTab({ user, users, navigate }) {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [search, setSearch]     = useState('');
-  const [sent, setSent]         = useState({});
-  useEffect(() => {
-    fetch(`${API}/projects/browse/open`)
-      .then(r => r.json())
-      .catch(() => [])
+const EXPERIENCE_OPTIONS_FL = ['Débutant (0-1 an)', '1-2 ans', '3-5 ans', '5-10 ans', '10+ ans'];
+const PERIOD_OPTIONS_FL     = ['De 1 à 3 jours', 'De 4 à 7 jours', 'De 1 à 2 semaines', 'De 2 à 4 semaines', 'De 1 à 3 mois', 'Plus de 3 mois'];
+const STATUS_LABELS_FL      = {
+  open:        { label: '🟢 Ouvert',   cls: 'bg-emerald-500/10 text-emerald-400' },
+  in_progress: { label: '🔵 En cours', cls: 'bg-sky-500/10 text-sky-400' },
+  completed:   { label: '✅ Terminé',  cls: 'bg-slate-700 text-slate-300' },
+};
+
+function FindProjectsTab({ user, navigate }) {
+  const [projects,    setProjects]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [showForm,    setShowForm]    = useState(false);
+  const [posting,     setPosting]     = useState(false);
+  const [postError,   setPostError]   = useState('');
+  const [formErrors,  setFormErrors]  = useState({});
+  const [form, setForm] = useState({
+    title: '', description: '',
+    keywords: ['', '', '', '', ''],
+    experience: '', period: '', budget: '10',
+  });
+
+  const loadProjects = useCallback(() => {
+    setLoading(true);
+    fetch(`${API}/projects/${encodeURIComponent(user.email)}`)
+      .then(r => r.json()).catch(() => [])
       .then(data => { if (Array.isArray(data)) setProjects(data); setLoading(false); });
   }, [user.email]);
 
-  const getUser = email => (users ?? []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
+  useEffect(() => { loadProjects(); }, [loadProjects]);
 
-  const filtered = projects.filter(p => {
-    const q = search.toLowerCase();
-    return !search || p.title?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.company?.toLowerCase().includes(q);
-  });
+  async function handlePost(e) {
+    e.preventDefault();
+    const errors = {};
+    if (!form.experience) errors.experience = true;
+    if (!form.period)     errors.period     = true;
+    if (Object.keys(errors).length) { setFormErrors(errors); return; }
 
-  async function handleContact(clientEmail, projectId) {
-    const key = `${clientEmail}-${projectId}`;
-    setSent(s => ({ ...s, [key]: true }));
-    navigate(`/messages?with=${encodeURIComponent(clientEmail)}`);
-  }
-
-  async function handleProposer(project) {
-    const key = `propose-${project.id}`;
-    setSent(s => ({ ...s, [key]: true }));
+    setPosting(true); setPostError('');
+    const keywords = form.keywords.filter(k => k.trim()).join(' ');
     try {
-      const res = await fetch(`${API}/proposals`, {
+      const res = await fetch(`${API}/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId: project.id,
-          freelancerEmail: user.email,
-          price: project.budget || 0,
-          deliveryDays: 7,
-          coverLetter: '',
+          client_email: user.email,
+          title:        form.title.trim(),
+          description:  form.description.trim(),
+          keywords,
+          experience:   form.experience,
+          period:       form.period,
+          budget:       Number(form.budget) || 10,
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erreur lors de l\'envoi');
-    } catch (err) {
-      setSent(s => ({ ...s, [key]: false }));
-      alert(err.message || 'Erreur lors de l\'envoi de la proposition.');
-    }
+      if (!res.ok) { setPostError(data.error || 'Erreur lors de la publication.'); }
+      else {
+        setForm({ title:'', description:'', keywords:['','','','',''], experience:'', period:'', budget:'10' });
+        setFormErrors({});
+        setShowForm(false);
+        loadProjects();
+      }
+    } catch { setPostError('Erreur réseau. Réessayez.'); }
+    setPosting(false);
   }
 
-  async function handleApply(project) {
-    const key = `apply-${project.id}`;
-    setSent(s => ({ ...s, [key]: true }));
+  async function handleDelete(projectId) {
+    if (!window.confirm('Supprimer ce projet ?')) return;
     try {
-      await fetch(`${API}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sender_email:   user.email,
-          receiver_email: project.client_email || project.user_email,
-          content: `Bonjour, je suis intéressé par votre projet "${project.title}". Je souhaite proposer mes services.`,
-          project_id: project.id,
-        }),
-      });
+      await fetch(`${API}/projects/${projectId}`, { method: 'DELETE' });
+      setProjects(prev => prev.filter(p => p.id !== projectId));
     } catch {}
-    navigate(`/messages?with=${encodeURIComponent(project.client_email || project.user_email)}`);
   }
 
   return (
-    <div className="space-y-0">
+    <div className="max-w-2xl mx-auto space-y-6">
 
       {/* ── Header ── */}
-      <div className="pb-6 border-b border-slate-800/60">
-        <p className="text-[11px] font-semibold text-indigo-400 uppercase tracking-widest mb-3">Marketplace · Projets</p>
-        <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">Projets disponibles</h2>
-        <p className="text-[13px] text-slate-500 mb-5">Parcourez les projets ouverts par des clients vérifiés.</p>
-
-        {/* Underline search */}
-        <div className="relative max-w-xl">
-          <svg className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Titre, compétence, description…"
-            className="w-full pl-6 pr-8 py-2 bg-transparent border-b border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-700"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-700 hover:text-slate-400 transition-colors">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-          )}
-        </div>
-
-        <p className="text-[12px] text-slate-700 mt-3">
-          <span className="text-slate-400 font-semibold">{filtered.length}</span> projet{filtered.length !== 1 ? 's' : ''} trouvé{filtered.length !== 1 ? 's' : ''}
-        </p>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">🗂️ Projets</h2>
+        <button
+          onClick={() => { setShowForm(s => !s); setFormErrors({}); setPostError(''); }}
+          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors"
+        >
+          {showForm ? 'Annuler' : '+ Nouveau projet'}
+        </button>
       </div>
 
-      {/* ── List ── */}
-      {loading ? (
-        <div className="divide-y divide-slate-800/50">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="py-5 space-y-2 animate-pulse">
-              <div className="h-3 bg-slate-800 rounded w-1/4" />
-              <div className="h-4 bg-slate-800 rounded w-2/3" />
-              <div className="h-3 bg-slate-800 rounded w-1/2" />
-              <div className="h-3 bg-slate-800 rounded w-full" />
+      {/* ── Form ── */}
+      {showForm && (
+        <form onSubmit={handlePost} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-sm">
+
+          {/* Titre */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Titre du projet <span className="text-rose-500">*</span></label>
+            <input required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Description <span className="text-rose-500">*</span></label>
+            <textarea required rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+          </div>
+
+          {/* Mots clés */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Mots clés</label>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {form.keywords.map((kw, i) => (
+                <div key={i}
+                  style={{ width: `${Math.max(5.5, kw.length + 2)}ch` }}
+                  className="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 transition-[width] duration-150">
+                  <span className="pl-2.5 text-sm font-semibold text-slate-400">#</span>
+                  <input maxLength={25} value={kw}
+                    onChange={e => { const val = e.target.value.replace(/[#\s]/g, '').slice(0, 25); setForm(f => ({ ...f, keywords: f.keywords.map((k, idx) => idx === i ? val : k) })); }}
+                    placeholder={`mot ${i + 1}`}
+                    className="w-full min-w-0 px-1 py-2 text-sm font-semibold bg-transparent text-slate-900 dark:text-white focus:outline-none" />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="text-[13px] font-semibold text-slate-400 mb-1">Aucun projet trouvé</p>
-          <p className="text-[12px] text-slate-700">
-            {search ? `Aucun résultat pour "${search}".` : 'Aucun projet disponible pour le moment.'}
-          </p>
-          {search && (
-            <button onClick={() => setSearch('')} className="mt-4 text-[12px] text-indigo-400 hover:text-indigo-300 transition-colors">
-              Effacer la recherche
-            </button>
-          )}
+          </div>
+
+          {/* Expérience */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience <span className="text-rose-500">*</span></label>
+            <select value={form.experience}
+              onChange={e => { setForm(f => ({ ...f, experience: e.target.value })); setFormErrors(fe => ({ ...fe, experience: false })); }}
+              className={`mt-1 w-full px-3 py-2 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${formErrors.experience ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200 dark:border-slate-700'}`}>
+              <option value="">Sélectionner...</option>
+              {EXPERIENCE_OPTIONS_FL.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+            {formErrors.experience && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner l'expérience requise.</p>}
+          </div>
+
+          {/* Période estimée */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Période estimée <span className="text-rose-500">*</span></label>
+            <select value={form.period}
+              onChange={e => { setForm(f => ({ ...f, period: e.target.value })); setFormErrors(fe => ({ ...fe, period: false })); }}
+              className={`mt-1 w-full px-3 py-2 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${formErrors.period ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200 dark:border-slate-700'}`}>
+              <option value="">Sélectionner...</option>
+              {PERIOD_OPTIONS_FL.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+            {formErrors.period && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner la période estimée.</p>}
+          </div>
+
+          {/* Budget */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND) <span className="text-rose-500">*</span></label>
+            <div className="mt-1 flex items-stretch rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
+              <button type="button"
+                onClick={() => setForm(f => ({ ...f, budget: String(Math.max(10, (Number(f.budget) || 10) - 10) ) }))}
+                className="px-4 text-lg font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">−</button>
+              <input type="number" step="10" min="10" inputMode="numeric" value={form.budget}
+                onChange={e => setForm(f => ({ ...f, budget: e.target.value.replace(/[^0-9]/g, '') }))}
+                onBlur={e => setForm(f => ({ ...f, budget: String(Math.max(10, Number(e.target.value) || 10)) }))}
+                className="flex-1 min-w-0 px-3 py-2 text-sm text-center bg-transparent text-slate-900 dark:text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+              <button type="button"
+                onClick={() => setForm(f => ({ ...f, budget: String((Number(f.budget) || 10) + 10) }))}
+                className="px-4 text-lg font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">+</button>
+            </div>
+          </div>
+
+          {postError && <p className="text-red-500 text-sm text-center font-medium">{postError}</p>}
+
+          <button type="submit" disabled={posting || !form.title.trim() || !form.description.trim() || !form.experience || !form.period}
+            className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+            {posting ? 'Publication…' : 'Publier le projet'}
+          </button>
+        </form>
+      )}
+
+      {/* ── Projects list ── */}
+      {loading ? (
+        <div className="text-center py-8 text-sm text-slate-400">Chargement…</div>
+      ) : projects.length === 0 ? (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center shadow-sm">
+          <span className="text-5xl mb-4 block">🗂️</span>
+          <p className="text-base font-bold text-slate-900 dark:text-white mb-1">Aucun projet pour l'instant</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Publiez votre premier projet et trouvez le bon freelancer.</p>
+          <button onClick={() => setShowForm(true)} className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors">
+            + Créer un projet
+          </button>
         </div>
       ) : (
-        <div className="divide-y divide-slate-800/50">
-          {filtered.map(p => {
-            const client     = getUser(p.client_email || p.user_email);
-            const clientName = client?.name || (p.client_email || p.user_email)?.split('@')[0];
-            const isTaken    = p.status && p.status !== 'open';
-            const keywords   = p.keywords ? p.keywords.split(/\s+/).filter(Boolean) : [];
-            const timeAgo    = p.created_at ? (() => {
-              const diff = Date.now() - new Date(p.created_at).getTime();
-              const h = Math.floor(diff / 3600000);
-              const d = Math.floor(diff / 86400000);
-              return h < 1 ? 'moins d\'1h' : h < 24 ? `${h}h` : `${d}j`;
-            })() : '';
-
+        <div className="space-y-4">
+          {projects.map(p => {
+            const st       = STATUS_LABELS_FL[p.status] || STATUS_LABELS_FL.open;
+            const keywords = p.keywords ? p.keywords.split(/\s+/).filter(Boolean) : [];
+            const dateStr  = p.created_at ? (() => { const _d = new Date(p.created_at); return _d.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' }) + ' , ' + _d.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false }); })() : '';
             return (
-              <div key={p.id} className="group py-5 sm:py-6 hover:bg-white/[0.018] transition-colors duration-150 -mx-4 px-4 sm:-mx-6 sm:px-6">
-
-                {/* Line 1: meta */}
-                <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 mb-1">
-                  {timeAgo && <span className="text-[11px] text-slate-600">il y a {timeAgo}</span>}
-                  <span className="text-slate-800 text-xs">·</span>
-                  <span className="text-[11px] text-slate-500 font-medium">{clientName}</span>
-                  {isTaken && (
-                    <>
-                      <span className="text-slate-800 text-xs">·</span>
-                      <span className="text-[11px] font-semibold text-amber-400">🔒 Déjà pris</span>
-                    </>
-                  )}
-                  {!isTaken && (
-                    <>
-                      <span className="text-slate-800 text-xs">·</span>
-                      <span className="text-[11px] font-semibold text-emerald-400">Ouvert</span>
-                    </>
-                  )}
+              <div key={p.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
+                      {dateStr && <span className="text-[11px] text-slate-500">{dateStr}</span>}
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">{p.title}</h3>
+                  </div>
+                  <button onClick={() => handleDelete(p.id)}
+                    className="shrink-0 text-slate-400 hover:text-rose-500 transition-colors p-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
                 </div>
 
-                {/* Line 2: title */}
-                <h3 className={`text-[15px] font-semibold leading-snug mb-1.5 ${isTaken ? 'text-slate-500' : 'text-white'}`}>
-                  {p.title}
-                </h3>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                  {p.budget     && <span className="font-semibold text-emerald-600 dark:text-emerald-400">{p.budget} TND</span>}
+                  {p.experience && <span>Expérience : {p.experience}</span>}
+                  {p.period     && <span>Période : {p.period}</span>}
+                </div>
 
-                {/* Line 3: budget · experience · period */}
-                <p className="text-[12px] text-slate-500 leading-relaxed mb-2">
-                  {[
-                    p.budget    ? `${p.budget} TND`          : null,
-                    p.experience ? `Expérience : ${p.experience}` : null,
-                    p.period    ? `Durée : ${p.period}`      : null,
-                  ].filter(Boolean).join(' · ')}
-                </p>
-
-                {/* Description */}
                 {p.description && (
-                  <p dir="auto" className="text-[13px] text-slate-400 leading-relaxed line-clamp-2 mb-2">{p.description}</p>
+                  <p dir="auto" className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">{p.description}</p>
                 )}
 
-                {/* Keywords — plain inline text */}
                 {keywords.length > 0 && (
-                  <p className="text-[12px] text-slate-600 mb-3">{keywords.join(' · ')}</p>
-                )}
-
-                {/* Actions — text links */}
-                {!isTaken && (
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] font-medium mt-1">
-                    <button
-                      onClick={() => handleContact(p.client_email || p.user_email, p.id)}
-                      className="text-indigo-400 hover:text-indigo-300 transition-colors">
-                      💬 Contacter
-                    </button>
-                    <button
-                      onClick={() => handleProposer(p)}
-                      disabled={sent[`propose-${p.id}`]}
-                      className="text-slate-500 hover:text-emerald-400 transition-colors disabled:text-emerald-400 disabled:cursor-default">
-                      {sent[`propose-${p.id}`] ? '✅ Proposition envoyée' : '📩 Proposer'}
-                    </button>
+                  <div className="flex flex-wrap gap-1.5">
+                    {keywords.map((kw, i) => (
+                      <span key={i} className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/5">
+                        #{kw}
+                      </span>
+                    ))}
                   </div>
                 )}
-                {isTaken && (
-                  <p className="text-[11px] text-slate-700 mt-1">Ce projet a déjà été assigné à un freelancer.</p>
-                )}
-
               </div>
             );
           })}
