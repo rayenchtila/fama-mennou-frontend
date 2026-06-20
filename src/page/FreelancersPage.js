@@ -213,6 +213,38 @@ function FreelancerRow({ freelancer, reviews, onAddReview, currentUser, updateUs
               </p>
             )}
 
+            {/* ── Service offers — visible inline, no expansion needed ── */}
+            {serviceOffers?.length > 0 && (
+              <div className="mb-3 space-y-2">
+                {serviceOffers.map(offer => {
+                  const kws = (offer.keywords || '').split(',').map(k => k.trim()).filter(Boolean);
+                  const isOpen = !offer.status || offer.status === 'open';
+                  return (
+                    <div key={offer.id} className="pl-3 border-l-2 border-indigo-500/30">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                        <span className="text-[12px] font-semibold text-slate-200">{offer.title}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-px rounded-full ${
+                          isOpen
+                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                            : 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
+                        }`}>
+                          {isOpen ? '🟢 Disponible' : '🔒 Pris'}
+                        </span>
+                      </div>
+                      {offer.description && (
+                        <p dir="auto" className="text-[11px] text-slate-500 line-clamp-1">{offer.description}</p>
+                      )}
+                      {(offer.experience || kws.length > 0) && (
+                        <p className="text-[11px] text-slate-700 mt-0.5">
+                          {[offer.experience, kws.join(' · ')].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* ── Portfolio thumbnails strip ── */}
             {portfolioImages.length > 0 && (
               <div className="flex gap-1.5 mb-3.5">
@@ -272,44 +304,6 @@ function FreelancerRow({ freelancer, reviews, onAddReview, currentUser, updateUs
             {/* ── EXPANDED PANEL ── */}
             {expanded && (
               <div className="mt-5 pt-5 border-t border-slate-800/70 space-y-6">
-
-                {/* Service offers */}
-                {serviceOffers?.length > 0 && (
-                  <div>
-                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest mb-3">
-                      Services proposés — {serviceOffers.length}
-                    </p>
-                    <div className="space-y-3">
-                      {serviceOffers.map(offer => {
-                        const kws = (offer.keywords || '').split(',').map(k => k.trim()).filter(Boolean);
-                        const isOpen = !offer.status || offer.status === 'open';
-                        return (
-                          <div key={offer.id} className="border-l-2 border-slate-800 pl-3">
-                            <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                              <span className="text-[13px] font-semibold text-white">{offer.title}</span>
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                                isOpen
-                                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                                  : 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
-                              }`}>
-                                {isOpen ? '🟢 Disponible' : '🔒 Pris'}
-                              </span>
-                            </div>
-                            {offer.description && (
-                              <p dir="auto" className="text-[12px] text-slate-500 line-clamp-2 mb-1">{offer.description}</p>
-                            )}
-                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-600">
-                              {offer.experience && <span>Expérience : {offer.experience}</span>}
-                            </div>
-                            {kws.length > 0 && (
-                              <p className="text-[11px] text-slate-700 mt-1">{kws.join(' · ')}</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
                 {/* Portfolio manager */}
                 {(portfolio.length > 0 || isOwnCard) && (
