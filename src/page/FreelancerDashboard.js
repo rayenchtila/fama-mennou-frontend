@@ -512,122 +512,146 @@ function FindProjectsTab({ user, users, navigate }) {
   }
 
   return (
-    <div className="space-y-8 -m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8 bg-slate-950 rounded-3xl">
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-950 px-6 py-10 sm:px-10 sm:py-14">
-        <div className="absolute -top-24 -right-24 w-72 h-72 bg-brand-violet/30 rounded-full blur-3xl animate-orb-1" />
-        <div className="absolute -bottom-32 -left-16 w-80 h-80 bg-brand-cyan/20 rounded-full blur-3xl animate-orb-2" />
-        <div className="relative z-10 max-w-2xl">
-          <p className="text-[11px] font-bold tracking-[0.2em] text-brand-cyan-light uppercase mb-3">Opportunités fraîches</p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-            Trouvez votre prochaine <span className="bg-gradient-to-r from-brand-violet-light to-brand-cyan-light bg-clip-text text-transparent">mission</span>
-          </h2>
-          <p className="text-sm text-slate-400 mt-3">Parcourez les projets ouverts et envoyez une proposition en quelques clics.</p>
+    <div className="space-y-0">
 
-          <div className="relative mt-6 max-w-md">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Rechercher un projet, une compétence…"
-              className="w-full pl-11 pr-4 py-3.5 text-sm rounded-2xl border border-white/10 bg-white/5 backdrop-blur text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-violet shadow-xl"
-            />
-          </div>
+      {/* ── Header ── */}
+      <div className="pb-6 border-b border-slate-800/60">
+        <p className="text-[11px] font-semibold text-indigo-400 uppercase tracking-widest mb-3">Marketplace · Projets</p>
+        <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">Projets disponibles</h2>
+        <p className="text-[13px] text-slate-500 mb-5">Parcourez les projets ouverts par des clients vérifiés.</p>
+
+        {/* Underline search */}
+        <div className="relative max-w-xl">
+          <svg className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Titre, compétence, description…"
+            className="w-full pl-6 pr-8 py-2 bg-transparent border-b border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-700"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-700 hover:text-slate-400 transition-colors">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          )}
         </div>
+
+        <p className="text-[12px] text-slate-700 mt-3">
+          <span className="text-slate-400 font-semibold">{filtered.length}</span> projet{filtered.length !== 1 ? 's' : ''} trouvé{filtered.length !== 1 ? 's' : ''}
+        </p>
       </div>
 
-      {/* ── Full results grid ───────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <h3 className="text-base font-extrabold text-white px-1">📂 Tous les projets ouverts</h3>
+      {/* ── List ── */}
+      {loading ? (
+        <div className="divide-y divide-slate-800/50">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="py-5 space-y-2 animate-pulse">
+              <div className="h-3 bg-slate-800 rounded w-1/4" />
+              <div className="h-4 bg-slate-800 rounded w-2/3" />
+              <div className="h-3 bg-slate-800 rounded w-1/2" />
+              <div className="h-3 bg-slate-800 rounded w-full" />
+            </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="py-16 text-center">
+          <p className="text-[13px] font-semibold text-slate-400 mb-1">Aucun projet trouvé</p>
+          <p className="text-[12px] text-slate-700">
+            {search ? `Aucun résultat pour "${search}".` : 'Aucun projet disponible pour le moment.'}
+          </p>
+          {search && (
+            <button onClick={() => setSearch('')} className="mt-4 text-[12px] text-indigo-400 hover:text-indigo-300 transition-colors">
+              Effacer la recherche
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-800/50">
+          {filtered.map(p => {
+            const client     = getUser(p.client_email || p.user_email);
+            const clientName = client?.name || (p.client_email || p.user_email)?.split('@')[0];
+            const isTaken    = p.status && p.status !== 'open';
+            const keywords   = p.keywords ? p.keywords.split(/\s+/).filter(Boolean) : [];
+            const timeAgo    = p.created_at ? (() => {
+              const diff = Date.now() - new Date(p.created_at).getTime();
+              const h = Math.floor(diff / 3600000);
+              const d = Math.floor(diff / 86400000);
+              return h < 1 ? 'moins d\'1h' : h < 24 ? `${h}h` : `${d}j`;
+            })() : '';
 
-        {loading
-          ? <div className="space-y-3">{[...Array(5)].map((_, i) => (
-              <div key={i} className="bg-slate-900 rounded-2xl border border-white/5 p-5 animate-pulse space-y-3">
-                <div className="h-4 bg-slate-800 rounded w-2/3" />
-                <div className="h-3 bg-slate-800 rounded w-1/3" />
-                <div className="h-3 bg-slate-800 rounded w-full" />
-                <div className="h-3 bg-slate-800 rounded w-4/5" />
+            return (
+              <div key={p.id} className="group py-5 sm:py-6 hover:bg-white/[0.018] transition-colors duration-150 -mx-4 px-4 sm:-mx-6 sm:px-6">
+
+                {/* Line 1: meta */}
+                <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 mb-1">
+                  {timeAgo && <span className="text-[11px] text-slate-600">il y a {timeAgo}</span>}
+                  <span className="text-slate-800 text-xs">·</span>
+                  <span className="text-[11px] text-slate-500 font-medium">{clientName}</span>
+                  {isTaken && (
+                    <>
+                      <span className="text-slate-800 text-xs">·</span>
+                      <span className="text-[11px] font-semibold text-amber-400">🔒 Déjà pris</span>
+                    </>
+                  )}
+                  {!isTaken && (
+                    <>
+                      <span className="text-slate-800 text-xs">·</span>
+                      <span className="text-[11px] font-semibold text-emerald-400">Ouvert</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Line 2: title */}
+                <h3 className={`text-[15px] font-semibold leading-snug mb-1.5 ${isTaken ? 'text-slate-500' : 'text-white'}`}>
+                  {p.title}
+                </h3>
+
+                {/* Line 3: budget · experience · period */}
+                <p className="text-[12px] text-slate-500 leading-relaxed mb-2">
+                  {[
+                    p.budget    ? `${p.budget} TND`          : null,
+                    p.experience ? `Expérience : ${p.experience}` : null,
+                    p.period    ? `Durée : ${p.period}`      : null,
+                  ].filter(Boolean).join(' · ')}
+                </p>
+
+                {/* Description */}
+                {p.description && (
+                  <p dir="auto" className="text-[13px] text-slate-400 leading-relaxed line-clamp-2 mb-2">{p.description}</p>
+                )}
+
+                {/* Keywords — plain inline text */}
+                {keywords.length > 0 && (
+                  <p className="text-[12px] text-slate-600 mb-3">{keywords.join(' · ')}</p>
+                )}
+
+                {/* Actions — text links */}
+                {!isTaken && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] font-medium mt-1">
+                    <button
+                      onClick={() => handleContact(p.client_email || p.user_email, p.id)}
+                      className="text-indigo-400 hover:text-indigo-300 transition-colors">
+                      💬 Contacter
+                    </button>
+                    <button
+                      onClick={() => handleProposer(p)}
+                      disabled={sent[`propose-${p.id}`]}
+                      className="text-slate-500 hover:text-emerald-400 transition-colors disabled:text-emerald-400 disabled:cursor-default">
+                      {sent[`propose-${p.id}`] ? '✅ Proposition envoyée' : '📩 Proposer'}
+                    </button>
+                  </div>
+                )}
+                {isTaken && (
+                  <p className="text-[11px] text-slate-700 mt-1">Ce projet a déjà été assigné à un freelancer.</p>
+                )}
+
               </div>
-            ))}</div>
-          : filtered.length === 0
-            ? <div className="bg-slate-900 rounded-2xl border border-white/5 p-8">
-                <Empty emoji="🔎" text={search ? 'Aucun projet correspond à votre recherche.' : 'Aucun projet ouvert pour l\'instant.'} />
-              </div>
-            : (
-              <div className="space-y-0 bg-slate-900 rounded-2xl border border-white/5 overflow-hidden divide-y divide-white/5">
-                {filtered.map(p => {
-                  const client     = getUser(p.client_email || p.user_email);
-                  const clientName = client?.name || (p.client_email || p.user_email)?.split('@')[0];
-                  const timeAgo = p.created_at ? (() => {
-                    const diff = Date.now() - new Date(p.created_at).getTime();
-                    const h = Math.floor(diff / 3600000);
-                    const d = Math.floor(diff / 86400000);
-                    return h < 1 ? 'il y a moins d\'1h' : h < 24 ? `il y a ${h}h` : `il y a ${d}j`;
-                  })() : '';
-                  const keywords = p.keywords ? p.keywords.split(/\s+/).filter(Boolean) : [];
-                  return (
-                    <div key={p.id} className="group p-5 sm:p-6 hover:bg-white/[0.02] transition-colors cursor-default">
-                      {/* Top row: time + client */}
-                      <div className="flex items-center gap-3 mb-2">
-                        {timeAgo && <span className="text-[11px] text-slate-500">Publié {timeAgo}</span>}
-                        <span className="text-slate-700">·</span>
-                        <div className="flex items-center gap-1.5">
-                          <Avi user={client || { email: p.client_email || p.user_email }} size="xs" />
-                          <span className="text-[11px] text-slate-400 font-medium">{clientName}</span>
-                        </div>
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-base font-bold text-brand-cyan-light group-hover:text-brand-violet-light transition-colors mb-1.5 truncate">{p.title}</h3>
-
-                      {/* Meta row */}
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-3">
-                        <span className="font-bold text-emerald-400">Prix fixe</span>
-                        {p.budget && <><span className="text-slate-600">·</span><span className="font-semibold text-white">{p.budget} TND</span></>}
-                        {p.experience && <><span className="text-slate-600">·</span><span>Expérience : {p.experience}</span></>}
-                        {p.period && <><span className="text-slate-600">·</span><span>Période estimée : {p.period}</span></>}
-                        {p.created_at && (() => { const _d = new Date(p.created_at); return <><span className="text-slate-600">·</span><span>Date : {_d.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' })} , {_d.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}</span></>; })()}
-                      </div>
-
-                      {/* Description */}
-                      {p.description && (
-                        <p className="text-sm text-slate-400 leading-relaxed line-clamp-3 mb-3">{p.description}</p>
-                      )}
-
-                      {/* Keywords */}
-                      {keywords.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-4">
-                          {keywords.map((kw, i) => (
-                            <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-white/5">
-                              {kw}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Action buttons */}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleContact(p.client_email || p.user_email, p.id)}
-                          className="px-4 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 transition-colors"
-                        >
-                          💬 Contacter
-                        </button>
-                        <button
-                          onClick={() => handleProposer(p)}
-                          disabled={sent[`propose-${p.id}`]}
-                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white text-xs font-bold hover:shadow-lg hover:shadow-brand-violet/30 transition-all disabled:opacity-60"
-                        >
-                          {sent[`propose-${p.id}`] ? '✅ Envoyée' : '📩 Proposer'}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )
-        }
-      </div>
+            );
+          })}
+        </div>
+      )}
 
     </div>
   );
