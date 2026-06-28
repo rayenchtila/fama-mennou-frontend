@@ -1,17 +1,9 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { tokenStore } from "../lib/tokenStore";
 
 const AuthContext = createContext(null);
 const API = process.env.REACT_APP_API_URL || "https://famamennou-server.onrender.com/api";
-
-const ADMIN_CREDENTIALS = {
-  email: "admin@famamennou.com",
-  password: "rayen kast 001",
-  name: "Admin",
-  role: "admin",
-  plan: "premium",
-  isAdmin: true,
-};
 
 export function AuthProvider({ children }) {
   // ── Clean up old localStorage keys from pre-backend version ──
@@ -19,8 +11,17 @@ export function AuthProvider({ children }) {
   localStorage.removeItem("fm_notifications");
   localStorage.removeItem("fm_reviews");
 
-  // Access token stored in memory (not localStorage) — more secure
+  // Access token in memory ref + module-level tokenStore (for the fetch interceptor)
   const accessTokenRef = useRef(null);
+
+  function storeToken(t) {
+    accessTokenRef.current = t;
+    tokenStore.set(t);
+  }
+  function clearToken() {
+    accessTokenRef.current = null;
+    tokenStore.clear();
+  }
 
   const [user, setUser] = useState(() => {
     try {
@@ -56,12 +57,21 @@ export function AuthProvider({ children }) {
       const res  = await fetch(`${API}/auth/refresh`, { method: 'POST', credentials: 'include' });
       const data = await res.json();
       if (data.accessToken) {
-        accessTokenRef.current = data.accessToken;
+        storeToken(data.accessToken);
         return data.accessToken;
       }
     } catch {}
     return null;
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // On mount: restore token from httpOnly cookie if user is in localStorage
+  // This handles page refresh — token is in-memory and lost on refresh,
+  // but the 7-day httpOnly cookie survives and can re-issue a new access token.
+  useEffect(() => {
+    if (user && !user.isAdmin) {
+      refreshAccessToken();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-refresh every 13 minutes (access token expires at 15 min)
   useEffect(() => {
@@ -183,7 +193,7 @@ export function AuthProvider({ children }) {
       company:            r.company      ?? null,
       registeredAt:       r.registered_at,
       lastSeen:           r.last_seen    ?? null,
-      isAdmin:            false,
+      isAdmin:            r.role === 'admin',
     };
   }
 
@@ -246,14 +256,6 @@ export function AuthProvider({ children }) {
   }
 
   async function login(email, password, totpCode) {
-    if (
-      email.toLowerCase() === ADMIN_CREDENTIALS.email &&
-      password === ADMIN_CREDENTIALS.password
-    ) {
-      setUser(ADMIN_CREDENTIALS);
-      return { success: true, user: ADMIN_CREDENTIALS };
-    }
-
     const deviceId = getOrCreateDeviceId();
 
     try {
@@ -282,7 +284,7 @@ export function AuthProvider({ children }) {
         };
       }
 
-      if (data.accessToken) accessTokenRef.current = data.accessToken;
+      if (data.accessToken) storeToken(data.accessToken);
       const loggedUser = normalizeUser(data.user);
       setUser(loggedUser);
       return { success: true, user: loggedUser };
@@ -302,7 +304,7 @@ export function AuthProvider({ children }) {
       });
       const data = await res.json();
       if (data.error) return { error: data.error };
-      if (data.accessToken) accessTokenRef.current = data.accessToken;
+      if (data.accessToken) storeToken(data.accessToken);
       const loggedUser = normalizeUser(data.user);
       setUser(loggedUser);
       return { success: true, user: loggedUser };
@@ -312,7 +314,7 @@ export function AuthProvider({ children }) {
   }
 
   function loginWithUserData(rawUser, accessToken) {
-    if (accessToken) accessTokenRef.current = accessToken;
+    if (accessToken) storeToken(accessToken);
     const loggedUser = normalizeUser(rawUser);
     setUser(loggedUser);
     return loggedUser;
@@ -326,7 +328,7 @@ export function AuthProvider({ children }) {
       credentials: 'include',
       body: JSON.stringify({ email }),
     }).catch(() => {});
-    accessTokenRef.current = null;
+    clearToken();
     setUser(null);
   }
 
