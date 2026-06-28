@@ -1,371 +1,735 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { cldImg } from '../utils/cloudinary';
 
-const API = "https://famamennou-server.onrender.com/api";
+const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
-const AVATAR_GRADIENTS = [
-  'from-sky-500 to-cyan-600',
-  'from-emerald-500 to-teal-600',
-  'from-violet-500 to-purple-600',
-  'from-amber-500 to-orange-600',
-  'from-rose-500 to-pink-600',
-  'from-indigo-500 to-blue-600',
+/* ────────────────────────────────────────────────────────────────
+   Design tokens — CYAN / TEAL palette (distinct from FreelancersPage purple)
+   ──────────────────────────────────────────────────────────────── */
+const C = {
+  accent:     '#0ea5e9',          // sky-500
+  accentDim:  'rgba(14,165,233,0.12)',
+  accentBord: 'rgba(14,165,233,0.3)',
+  accentGlow: '0 6px 22px -4px rgba(14,165,233,0.45)',
+  emerald:    '#10b981',
+  emeraldDim: 'rgba(16,185,129,0.1)',
+  emeraldBord:'rgba(16,185,129,0.25)',
+  indigo:     '#6366f1',
+  indigoDim:  'rgba(99,102,241,0.1)',
+  amber:      '#f59e0b',
+  amberDim:   'rgba(245,158,11,0.1)',
+  amberBord:  'rgba(245,158,11,0.22)',
+};
+
+const PERIOD_OPTIONS = ['De 1 à 3 jours','De 4 à 7 jours','De 1 à 2 semaines','De 2 à 4 semaines','De 1 à 3 mois','Plus de 3 mois'];
+const PERIOD_DAYS    = {'De 1 à 3 jours':2,'De 4 à 7 jours':5,'De 1 à 2 semaines':10,'De 2 à 4 semaines':21,'De 1 à 3 mois':60,'Plus de 3 mois':90};
+const CATEGORIES = ['All', 'Technology', 'Design', 'Marketing', 'Writing', 'E-commerce', 'Finance'];
+
+const CAT_SVG = {
+  All: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
+  Technology: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
+  Design: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="13.5" cy="17.5" r="2.5"/><path d="M11 7.5 8.5 11M11 16.5 8.5 13"/></svg>,
+  Marketing: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
+  Writing: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+  'E-commerce': <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>,
+  Finance: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+};
+
+const CAT_KEYS = {
+  Technology:   ['react','node','javascript','python','java','flutter','mobile','backend','frontend','api','web','app','software','dev','code','tech','saas','angular','vue','typescript'],
+  Design:       ['design','figma','ui','ux','graphic','logo','brand','visual','creative','illustration','photoshop','sketch'],
+  Marketing:    ['marketing','seo','ads','social','content','growth','campaign','email','analytics','digital'],
+  Writing:      ['writing','copywriting','blog','article','editorial','rédact','translation','video','motion','animation','montage','editing','cinema','vfx','premiere'],
+  'E-commerce': ['ecommerce','e-commerce','shop','store','woocommerce','shopify','payment','cart','boutique','retail'],
+  Finance:      ['finance','compta','accounting','audit','tax','budget','invoice','facture','invest','excel'],
+};
+
+const TINTS = [
+  ['#0ea5e9','rgba(14,165,233,0.18)'],  ['#6366f1','rgba(99,102,241,0.18)'],
+  ['#10b981','rgba(16,185,129,0.18)'],  ['#f59e0b','rgba(245,158,11,0.18)'],
+  ['#ec4899','rgba(236,72,153,0.18)'],  ['#8b5cf6','rgba(139,92,246,0.18)'],
+  ['#06b6d4','rgba(6,182,212,0.18)'],   ['#f97316','rgba(249,115,22,0.18)'],
 ];
+const getTint     = s => TINTS[((s||'').charCodeAt(0)||0) % TINTS.length];
+const getInitials = n => (n||'').trim().split(/\s+/).map(w=>w[0]?.toUpperCase()||'').slice(0,2).join('');
 
-function Stars({ value, onChange, readonly = false, size = 'md' }) {
-  const [hovered, setHovered] = useState(0);
-  const sz = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4';
-  return (
-    <span className="flex items-center gap-0.5">
-      {[1,2,3,4,5].map(i => (
-        <svg key={i} onClick={() => !readonly && onChange?.(i)}
-          onMouseEnter={() => !readonly && setHovered(i)} onMouseLeave={() => !readonly && setHovered(0)}
-          className={[sz, 'transition-colors', readonly ? 'cursor-default' : 'cursor-pointer',
-            i <= (hovered || value) ? 'text-amber-400' : 'text-slate-200 dark:text-slate-700'].join(' ')}
-          fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-        </svg>
-      ))}
-    </span>
-  );
+function timeAgo(date) {
+  if (!date) return '';
+  const d = Math.floor((Date.now() - new Date(date)) / 86400000);
+  if (d < 1)   return 'Today';
+  if (d === 1) return '1d ago';
+  if (d < 7)   return `${d}d ago`;
+  if (d < 30)  return `${Math.floor(d/7)}w ago`;
+  return `${Math.floor(d/30)}mo ago`;
 }
 
-function ClientCard({ client, reviews, onAddReview, currentUser, projects }) {
-  const navigate = useNavigate();
-  const { resolveEmail } = useAuth();
-  const [showForm,       setShowForm]       = useState(false);
-  const [newRating,      setNewRating]      = useState(0);
-  const [newComment,     setNewComment]     = useState('');
-  const [showAllReviews, setShowAllReviews] = useState(false);
-  const [ratingError,    setRatingError]    = useState(false);
-  const [expanded,       setExpanded]       = useState(false);
+/* ── Icons ── */
+const IcSearch   = () => <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>;
+const IcChev     = () => <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>;
+const IcVerified = () => <svg width="9"  height="9"  viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"/></svg>;
+const IcPin      = () => <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
+const IcDollar   = () => <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
+const IcClock    = () => <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>;
+const IcLevel    = () => <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>;
+const IcUsers    = () => <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const IcMsg      = () => <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
+const IcStar     = () => <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>;
+const IcX        = () => <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>;
 
-  const key           = client.email?.toLowerCase();
-  const myReviews     = reviews[key] || [];
-  const avgRating     = myReviews.length > 0 ? myReviews.reduce((s,r) => s+r.rating,0)/myReviews.length : 0;
-  const isOwnCard     = currentUser?.email?.toLowerCase() === key;
-  const isFreelancer  = currentUser?.role === 'freelancer';
-  const alreadyReviewed = currentUser && myReviews.some(r => r.freelancerEmail === currentUser.email?.toLowerCase());
-  const displayedReviews = showAllReviews ? myReviews : myReviews.slice(0, 2);
-  const grad = AVATAR_GRADIENTS[(key?.charCodeAt(0) ?? 0) % AVATAR_GRADIENTS.length];
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!newRating) { setRatingError(true); return; }
-    if (!newComment.trim()) return;
-    onAddReview(key, { freelancerName: currentUser.name, freelancerEmail: currentUser.email?.toLowerCase(), rating: newRating, comment: newComment.trim() });
-    setShowForm(false); setNewRating(0); setNewComment(''); setRatingError(false);
-  }
-
+/* ── Period Dropdown (custom, fully dark) ── */
+function PeriodSelect({ value, onChange, maxDays }) {
+  const [open, setOpen] = useState(false);
   return (
-    <div className="group p-5 sm:p-6 hover:bg-white/[0.02] transition-colors cursor-default">
-
-      {/* Top row: meta */}
-      <div className="flex items-center gap-2 flex-wrap mb-2">
-        <span className="text-[11px] text-slate-500">Client</span>
-        <span className="text-slate-700">·</span>
-        <span className="text-[11px] font-semibold text-sky-400">✓ Vérifié</span>
-        {client.registeredAt && (<><span className="text-slate-700">·</span><span className="text-[11px] text-slate-500">Membre depuis {new Date(client.registeredAt).toLocaleDateString('fr-TN', { month: 'long', year: 'numeric' })}</span></>)}
-        {client.region && (<><span className="text-slate-700">·</span><span className="text-[11px] text-slate-500">{client.region}</span></>)}
-      </div>
-
-      {/* Name */}
-      <h3 className="text-base font-bold text-brand-cyan-light group-hover:text-brand-violet-light transition-colors mb-1.5">
-        {client.name}
-      </h3>
-
-      {/* Meta row: rating · avis */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-3">
-        <Stars value={Math.round(avgRating)} readonly size="sm" />
-        <span className="font-semibold text-white">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</span>
-        <span className="text-slate-600">·</span>
-        <span>{myReviews.length} avis</span>
-      </div>
-
-      {/* Bio */}
-      {client.bio && (
-        <p dir="auto" className="text-sm text-slate-400 leading-relaxed line-clamp-3 mb-3">{client.bio}</p>
-      )}
-
-      {/* Projects */}
-      {projects && projects.length > 0 && projects.map(p => {
-        const isTaken = p.status && p.status !== 'open';
-        return (
-          <div key={p.id} className="mb-4">
-            {/* Title + taken badge */}
-            <div className="flex flex-wrap items-center gap-2 mb-1">
-              <h4 className={`text-sm font-bold ${isTaken ? 'text-slate-400' : 'text-white'}`}>{p.title}</h4>
-              {isTaken && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400">
-                  🔒 Projet déjà pris
-                </span>
-              )}
-            </div>
-            {/* Taken-by line */}
-            {isTaken && p.freelancer_email && (
-              <p className="text-xs text-slate-500 mb-2">
-                Assigné à : <span className="font-semibold text-slate-300">{resolveEmail(p.freelancer_email)}</span>
-              </p>
-            )}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mb-2">
-              {p.budget && <><span className={`font-bold ${isTaken ? 'text-slate-500' : 'text-emerald-400'}`}>Budget fixe</span><span className="text-slate-600">·</span><span className={`font-semibold ${isTaken ? 'text-slate-400' : 'text-white'}`}>{p.budget} TND</span></>}
-              {p.experience && <><span className="text-slate-600">·</span><span>Expérience : {p.experience}</span></>}
-              {p.period && <><span className="text-slate-600">·</span><span>Durée estimée : {p.period}</span></>}
-            </div>
-            {p.description && (
-              <p dir="auto" className="text-sm text-slate-400 leading-relaxed line-clamp-3 mb-2">{p.description}</p>
-            )}
-            {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-1">
-                {p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
-                  <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-white/5">{kw}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
-
-      {/* Expanded: reviews + form */}
-      {expanded && (
-        <div className="space-y-5 mb-4 pt-4 border-t border-white/8">
-          {myReviews.length > 0 ? (
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Avis des freelancers</p>
-              <div className="space-y-3">
-                {displayedReviews.map((r, i) => (
-                  <div key={i} className="flex gap-3">
-                    <div className="w-6 h-6 rounded-full bg-sky-500/70 flex items-center justify-center text-white text-[9px] font-bold shrink-0 mt-0.5">{r.freelancerName?.slice(0,2).toUpperCase()}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5"><span className="text-xs font-semibold text-slate-300">{r.freelancerName}</span><Stars value={r.rating} readonly size="sm" /></div>
-                      <p dir="auto" className="text-xs text-slate-400 leading-relaxed">{r.comment}</p>
-                    </div>
-                  </div>
-                ))}
-                {myReviews.length > 2 && <button onClick={() => setShowAllReviews(v => !v)} className="text-xs text-sky-400 hover:underline">{showAllReviews ? 'Voir moins' : `Voir ${myReviews.length - 2} avis de plus`}</button>}
-              </div>
-            </div>
-          ) : !showForm && <p className="text-xs text-slate-500">Aucun avis pour le moment.</p>}
-
-          {showForm && (
-            <form onSubmit={handleSubmit} className="space-y-2.5">
-              <p className="text-xs font-bold text-slate-300">Votre avis sur ce client</p>
-              <Stars value={newRating} onChange={v => { setNewRating(v); setRatingError(false); }} />
-              {ratingError && <p className="text-[11px] text-rose-500">Choisissez une note avant d'envoyer.</p>}
-              <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Votre commentaire..." rows={3}
-                className="w-full text-xs rounded-xl border border-white/10 bg-slate-800 text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500" required />
-              <div className="flex gap-2">
-                <button type="submit" disabled={!newComment.trim()} className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-colors disabled:opacity-50">Envoyer</button>
-                <button type="button" onClick={() => { setShowForm(false); setNewRating(0); setNewComment(''); setRatingError(false); }} className="px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-slate-400 hover:bg-white/5 transition-colors">Annuler</button>
-              </div>
-            </form>
-          )}
+    <div style={{ position:'relative' }}>
+      <button type="button" onClick={()=>setOpen(o=>!o)} onBlur={()=>setTimeout(()=>setOpen(false),150)}
+        style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(255,255,255,0.05)', border:`1px solid ${open?C.accentBord:'rgba(255,255,255,0.1)'}`, borderRadius:12, color:value?'#f4f3fb':'#6b7280', padding:'10px 13px', fontSize:13, cursor:'pointer', fontFamily:'inherit', textAlign:'left', transition:'border-color .2s', boxSizing:'border-box' }}>
+        <span>{value || 'Sélectionner une période…'}</span>
+        <div style={{ transform:open?'rotate(180deg)':'none', transition:'transform .2s', color:'#6b7280', flexShrink:0, marginLeft:8 }}><IcChev /></div>
+      </button>
+      {open && (
+        <div style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, zIndex:600, background:'#111827', border:`1px solid ${C.accentBord}`, borderRadius:14, boxShadow:'0 16px 48px -8px rgba(0,0,0,0.85)', overflow:'hidden' }}>
+          {PERIOD_OPTIONS.map(o => {
+            const tooLong = maxDays !== undefined && (PERIOD_DAYS[o] || 0) > maxDays;
+            return (
+              <button key={o} type="button"
+                onMouseDown={()=>{ if (!tooLong) { onChange(o); setOpen(false); } }}
+                style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', textAlign:'left', padding:'11px 14px',
+                  background: value===o ? C.accentDim : 'transparent',
+                  color: tooLong ? '#374151' : value===o ? C.accent : '#c2c5dd',
+                  border:'none', cursor: tooLong ? 'not-allowed' : 'pointer', fontSize:13,
+                  fontFamily:'inherit', fontWeight: value===o ? 700 : 400,
+                  opacity: tooLong ? 0.55 : 1, transition:'background .12s' }}
+                onMouseEnter={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='rgba(255,255,255,0.06)';}}
+                onMouseLeave={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='transparent';}}>
+                <span>{o}</span>
+                {tooLong && <span style={{ fontSize:10, fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:6, padding:'1px 7px', flexShrink:0, marginLeft:8 }}>Trop long</span>}
+              </button>
+            );
+          })}
         </div>
       )}
-
-      {/* Actions */}
-      <div className="flex flex-wrap gap-2 mt-2">
-        {isFreelancer && !isOwnCard && (
-          <button onClick={() => navigate(`/messages?with=${encodeURIComponent(client.email)}`)}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-violet text-white text-xs font-bold hover:shadow-lg hover:shadow-brand-cyan/30 transition-all">
-            💬 Envoyer un message
-          </button>
-        )}
-        <button onClick={() => setExpanded(v => !v)} className="px-4 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 transition-colors flex items-center gap-1">
-          {expanded ? 'Réduire' : 'Voir profil'}
-          <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
-        </button>
-        {isFreelancer && !isOwnCard && !alreadyReviewed && !showForm && (
-          <button onClick={() => { setExpanded(true); setShowForm(true); }} className="px-4 py-2 rounded-xl border border-white/10 text-xs font-bold text-sky-400 hover:bg-white/5 transition-colors">
-            ⭐ Laisser un avis
-          </button>
-        )}
-        {isOwnCard && <span className="text-xs text-slate-500 self-center">Votre profil client</span>}
-        {alreadyReviewed && <span className="text-xs text-slate-500 self-center">Vous avez déjà laissé un avis.</span>}
-      </div>
-
     </div>
   );
 }
 
-const INDUSTRIES = ['All','Technology','Design','Marketing','Finance','E-commerce','Education','Health'];
+/* ── Apply Modal ── */
+function ApplyModal({ project, user, onClose, onDone }) {
+  const [period,    setPeriod]    = useState('');
+  const [portfolio, setPortfolio] = useState('');
+  const [letter,    setLetter]    = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [err,       setErr]       = useState('');
 
-export default function ClientsPage() {
-  const { users, user, resolveEmail } = useAuth();
-  const [searchParams] = useSearchParams();
-  const [search,   setSearch]   = useState(searchParams.get('q') || '');
-  const [industry, setIndustry] = useState('All');
-  const [sortBy,   setSortBy]   = useState('rating');
-  const [reviews,  setReviews]  = useState({});
-  const [openProjects, setOpenProjects] = useState([]);
+  const clientMaxDays = PERIOD_DAYS[project.period]; // undefined if project has no period
 
-  const approvedClients = (users || []).filter(u => u?.role === 'client' && u?.cinStatus === 'approved');
-
-  useEffect(() => {
-    fetch(`${API}/projects/browse/open`).then(r => r.json()).then(d => { if (Array.isArray(d)) setOpenProjects(d); }).catch(() => {});
-  }, []);
-
-  const projectsByClient = openProjects.reduce((acc, p) => {
-    const key = p.client_email?.toLowerCase();
-    if (!key) return acc;
-    (acc[key] = acc[key] || []).push(p);
-    return acc;
-  }, {});
-
-  const fetchAllReviews = useCallback(async () => {
-    try {
-      const emails = approvedClients.map(u => u.email);
-      const results = await Promise.all(emails.map(email => fetch(`${API}/client-reviews/${encodeURIComponent(email)}`).then(r => r.json()).catch(() => [])));
-      const map = {};
-      emails.forEach((email, i) => {
-        map[email.toLowerCase()] = (results[i] || []).map(r => ({ freelancerName: r.freelancer_name, freelancerEmail: r.freelancer_email, rating: r.rating, comment: r.comment }));
-      });
-      setReviews(map);
-    } catch {}
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users]);
-
-  useEffect(() => { fetchAllReviews(); }, [fetchAllReviews]);
-
-  const INDUSTRY_KEYWORDS = {
-    Technology:  ['tech', 'software', 'it ', 'digital', 'developer', 'startup', 'saas', 'app'],
-    Design:      ['design', 'creative', 'visual', 'brand', 'ui', 'ux', 'graphic'],
-    Marketing:   ['marketing', 'ads', 'seo', 'social media', 'content', 'growth', 'campaign'],
-    Finance:     ['finance', 'bank', 'invest', 'accounting', 'fintech', 'insurance', 'audit'],
-    'E-commerce':['ecommerce', 'e-commerce', 'shop', 'retail', 'store', 'boutique', 'vente'],
-    Education:   ['education', 'school', 'training', 'formation', 'learning', 'teach'],
-    Health:      ['health', 'medical', 'clinic', 'pharma', 'santé', 'wellness', 'hospital'],
-  };
-
-  const filtered = approvedClients.filter(c => {
-    const q = search.toLowerCase();
-    const matchSearch = !search || c.name?.toLowerCase().includes(q) || c.region?.toLowerCase().includes(q) || c.bio?.toLowerCase().includes(q) || c.company?.toLowerCase().includes(q);
-    const haystack = `${c.bio || ''} ${c.company || ''}`.toLowerCase();
-    const matchIndustry = industry === 'All' || haystack.includes(industry.toLowerCase()) ||
-      (INDUSTRY_KEYWORDS[industry] || []).some(kw => haystack.includes(kw));
-    return matchSearch && matchIndustry;
-  }).sort((a, b) => {
-    if (sortBy === 'rating') {
-      const ra = reviews[a.email?.toLowerCase()]?.reduce((s,r) => s+r.rating,0) / (reviews[a.email?.toLowerCase()]?.length||1) || 0;
-      const rb = reviews[b.email?.toLowerCase()]?.reduce((s,r) => s+r.rating,0) / (reviews[b.email?.toLowerCase()]?.length||1) || 0;
-      return rb - ra;
+  async function submit(e) {
+    e.preventDefault();
+    if (!period)    { setErr('Veuillez sélectionner une période.'); return; }
+    if (!portfolio) { setErr('Le lien portfolio est requis.'); return; }
+    if (clientMaxDays !== undefined && (PERIOD_DAYS[period] || 0) > clientMaxDays) {
+      setErr(`Période trop longue. Le client accepte au maximum : "${project.period}".`);
+      return;
     }
-    return a.name?.localeCompare(b.name);
-  });
-
-  async function handleAddReview(clientKey, review) {
+    setLoading(true); setErr('');
     try {
-      await fetch(`${API}/client-reviews`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientEmail: clientKey, freelancerEmail: review.freelancerEmail, freelancerName: review.freelancerName, rating: review.rating, comment: review.comment }) });
-      fetchAllReviews();
-    } catch {}
+      const res = await fetch(`${API}/proposals`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id, freelancerEmail: user.email, price: 1, deliveryDays: PERIOD_DAYS[period]||1, coverLetter: portfolio ? `[portfolio:${portfolio}]\n${letter}` : letter }),
+      });
+      const d = await res.json();
+      if (!res.ok || d.error) { setErr(d.error || 'Vous avez déjà postulé à ce projet.'); return; }
+      onDone();
+    } catch { setErr('Serveur inaccessible.'); }
+    finally { setLoading(false); }
   }
 
-  const totalReviews = Object.values(reviews).flat().length;
+  const F = { width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, color:'#f4f3fb', padding:'10px 13px', fontSize:13, outline:'none', fontFamily:'inherit', transition:'border-color .2s' };
+  const onFoc = e => { e.target.style.borderColor = C.accentBord; };
+  const onBlr = e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; };
 
   return (
-    <div className="dark min-h-screen bg-slate-950 overflow-x-hidden">
-
-      {/* ── Hero ── */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-950 pt-24 pb-14 px-4 overflow-hidden min-h-[420px] flex flex-col justify-center">
-        <div className="absolute -top-32 -right-24 w-96 h-96 bg-brand-cyan/25 rounded-full blur-3xl animate-orb-1" />
-        <div className="absolute -bottom-40 -left-20 w-[28rem] h-[28rem] bg-brand-violet/20 rounded-full blur-3xl animate-orb-2" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(6,182,212,0.15),transparent_60%)]" />
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-4 py-1.5 mb-6">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-white/90 text-xs font-semibold">{approvedClients.length} clients vérifiés disponibles</span>
+    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(7px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ width:'100%', maxWidth:480, background:'#111827', border:`1px solid ${C.accentBord}`, borderRadius:24, padding:'28px 28px 24px', boxShadow:`0 28px 80px -12px rgba(0,0,0,0.8), ${C.accentGlow}` }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:22 }}>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:C.accent, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>Postuler au projet</p>
+            <h3 style={{ fontSize:17, fontWeight:900, color:'#f9f8ff', margin:0, lineHeight:1.3 }}>{project.title}</h3>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white mb-4 leading-tight tracking-tight">
-            Trouvez vos <span className="bg-gradient-to-r from-brand-cyan-light to-brand-violet-light bg-clip-text text-transparent">prochains</span><br className="hidden sm:block" /> clients
+          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#6b7280', display:'flex' }}><IcX /></button>
+        </div>
+        <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
+          <div>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+              <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>Période de livraison <span style={{color:'#f87171'}}>*</span></p>
+              {clientMaxDays !== undefined && (
+                <span style={{ fontSize:10, fontWeight:700, color:'#f59e0b', background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.22)', borderRadius:6, padding:'2px 8px' }}>
+                  max : {project.period}
+                </span>
+              )}
+            </div>
+            <PeriodSelect value={period} onChange={setPeriod} maxDays={clientMaxDays}/>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Lien portfolio / profil <span style={{color:'#f87171'}}>*</span></p>
+            <input type="url" value={portfolio} onChange={e=>setPortfolio(e.target.value)} placeholder="https://monportfolio.com" style={F} onFocus={onFoc} onBlur={onBlr}/>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Lettre de motivation</p>
+            <textarea value={letter} onChange={e=>setLetter(e.target.value)} rows={4} placeholder="Expliquez pourquoi vous êtes le meilleur candidat…"
+              style={{...F, resize:'none', lineHeight:1.6}} onFocus={onFoc} onBlur={onBlr}/>
+          </div>
+          {err && <p style={{ fontSize:12, color:'#f87171', margin:0 }}>{err}</p>}
+          <button type="submit" disabled={loading}
+            style={{ padding:'12px', borderRadius:13, background:`linear-gradient(135deg,${C.accent},#0284c7)`, border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:C.accentGlow }}>
+            {loading ? 'Envoi…' : 'Envoyer ma candidature →'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Review Modal ── */
+function ReviewModal({ client, user, onClose, onDone }) {
+  const [stars,   setStars]   = useState(0);
+  const [hovered, setHovered] = useState(0);
+  const [comment, setComment] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err,     setErr]     = useState('');
+
+  async function submit(e) {
+    e.preventDefault();
+    if (!stars)          { setErr('Choisissez une note.'); return; }
+    if (!comment.trim()) { setErr('Le commentaire est requis.'); return; }
+    setLoading(true); setErr('');
+    try {
+      const res = await fetch(`${API}/client-reviews`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientEmail: client.email, freelancerEmail: user.email, freelancerName: user.name, rating: stars, comment: comment.trim() }),
+      });
+      const d = await res.json();
+      if (!res.ok || d.error) { setErr(d.error || 'Erreur'); return; }
+      onDone();
+    } catch { setErr('Serveur inaccessible.'); }
+    finally { setLoading(false); }
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(7px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ width:'100%', maxWidth:440, background:'#111827', border:`1px solid ${C.amberBord}`, borderRadius:24, padding:'28px', boxShadow:'0 28px 80px -12px rgba(0,0,0,0.8)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:C.amber, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>Laisser un avis</p>
+            <h3 style={{ fontSize:16, fontWeight:900, color:'#f9f8ff', margin:0 }}>{client.name || client.email}</h3>
+          </div>
+          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#6b7280', display:'flex' }}><IcX /></button>
+        </div>
+        <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
+          {/* Stars */}
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>Note</p>
+            <div style={{ display:'flex', gap:8 }}>
+              {[1,2,3,4,5].map(i => (
+                <button key={i} type="button" onClick={()=>setStars(i)} onMouseEnter={()=>setHovered(i)} onMouseLeave={()=>setHovered(0)}
+                  style={{ background:'none', border:'none', cursor:'pointer', padding:4, color: i<=(hovered||stars) ? C.amber : 'rgba(255,255,255,0.15)', transition:'color .15s', display:'flex', alignItems:'center' }}>
+                  <svg width={26} height={26} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:6 }}>Commentaire</p>
+            <textarea value={comment} onChange={e=>setComment(e.target.value)} rows={4} placeholder="Décrivez votre expérience avec ce client…"
+              style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, color:'#f4f3fb', padding:'10px 13px', fontSize:13, outline:'none', resize:'none', fontFamily:'inherit', lineHeight:1.6 }}
+              onFocus={e=>{e.target.style.borderColor=C.amberBord;}} onBlur={e=>{e.target.style.borderColor='rgba(255,255,255,0.1)';}} />
+          </div>
+          {err && <p style={{ fontSize:12, color:'#f87171', margin:0 }}>{err}</p>}
+          <button type="submit" disabled={loading}
+            style={{ padding:'12px', borderRadius:13, background:`linear-gradient(135deg,${C.amber},#d97706)`, border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:'0 6px 20px -4px rgba(245,158,11,0.4)' }}>
+            {loading ? 'Envoi…' : 'Envoyer mon avis →'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Project Card ── */
+function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, onApply, onReview, myReviews, hasApplied }) {
+  const navigate  = useNavigate();
+  const [tintFg, tintBg] = getTint(project.client_email);
+  const displayName = clientUser?.company || clientUser?.name || project.client_email?.split('@')[0] || '?';
+  const initials    = getInitials(displayName);
+  const photoUrl    = clientUser?.photo ? cldImg(clientUser.photo) : null;
+  const isVerified  = clientUser?.cinStatus === 'approved' || !clientUser;
+  const region      = clientUser?.region || '';
+  const keywords    = project.keywords ? project.keywords.split(/\s+/).filter(Boolean) : [];
+  const isOwn       = user?.email?.toLowerCase() === project.client_email?.toLowerCase();
+  const isFreelancer= user?.role === 'freelancer';
+  const avgRating   = myReviews.length ? myReviews.reduce((s,r)=>s+r.rating,0)/myReviews.length : 0;
+  const alreadyReviewed = myReviews.some(r=>r.freelancer_email?.toLowerCase()===user?.email?.toLowerCase());
+  const isTaken     = project.status && project.status !== 'open';
+
+  return (
+    <div style={{ background:'rgba(255,255,255,0.024)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:24, padding:'26px 30px', transition:'all .28s cubic-bezier(.4,0,.2,1)' }}
+      onMouseEnter={e=>{e.currentTarget.style.borderColor=C.accentBord;e.currentTarget.style.background='rgba(14,165,233,0.04)';e.currentTarget.style.boxShadow=`0 16px 48px -12px rgba(14,165,233,0.18), 0 0 0 1px ${C.accentBord}`;e.currentTarget.style.transform='translateY(-2px)';}}
+      onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.024)';e.currentTarget.style.boxShadow='none';e.currentTarget.style.transform='translateY(0)';}}>
+
+      {/* Top: avatar + client info + posted time */}
+      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, justifyContent:'space-between' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12, minWidth:0 }}>
+          {photoUrl ? (
+            <img src={photoUrl} alt={displayName} onClick={() => navigate(`/profile/${encodeURIComponent(project.client_email)}`)} style={{ width:44, height:44, borderRadius:14, objectFit:'cover', flexShrink:0, border:`1.5px solid ${tintFg}30`, cursor:'pointer' }} />
+          ) : (
+            <div onClick={() => navigate(`/profile/${encodeURIComponent(project.client_email)}`)} style={{ width:44, height:44, borderRadius:14, background:tintBg, color:tintFg, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:14, flexShrink:0, border:`1.5px solid ${tintFg}30`, letterSpacing:'0.02em', cursor:'pointer' }}>
+              {initials || '?'}
+            </div>
+          )}
+          <div style={{ minWidth:0 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', marginBottom:2 }}>
+              <span onClick={() => navigate(`/profile/${encodeURIComponent(project.client_email)}`)} style={{ fontSize:14, fontWeight:800, color:'#f4f3fb', lineHeight:1.2, cursor:'pointer', transition:'color .15s' }} onMouseEnter={e=>e.currentTarget.style.color='#c4baff'} onMouseLeave={e=>e.currentTarget.style.color='#f4f3fb'}>{displayName}</span>
+              {isVerified && (
+                <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, padding:'2px 7px', borderRadius:20 }}>
+                  <IcVerified /> Verified
+                </span>
+              )}
+              {region && (
+                <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:11, color:'#6b7280', fontWeight:500 }}>
+                  <IcPin /> {region}
+                </span>
+              )}
+            </div>
+            {avgRating > 0 && (
+              <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                <IcStar style={{ color:C.amber }} />
+                <span style={{ fontSize:11, fontWeight:700, color:C.amber }}>{avgRating.toFixed(1)}</span>
+                <span style={{ fontSize:11, color:'#6b7280' }}>({myReviews.length})</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+          <span style={{ fontSize:11, color:'#4b5563', fontWeight:500, whiteSpace:'nowrap' }}>Posted {timeAgo(project.created_at)}</span>
+          {isTaken && (
+            <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, color:C.amber, background:C.amberDim, border:`1px solid ${C.amberBord}`, padding:'2px 8px', borderRadius:20 }}>
+              <svg width={9} height={9} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Pris
+            </span>
+          )}
+          {isOwn && (
+            <span style={{ fontSize:10, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, padding:'2px 8px', borderRadius:20 }}>Votre projet</span>
+          )}
+        </div>
+      </div>
+
+      {/* Title */}
+      <h3 style={{ fontSize:20, fontWeight:900, color:'#f9f8ff', margin:'0 0 8px', letterSpacing:'-0.025em', lineHeight:1.2 }}>{project.title}</h3>
+
+      {/* Description */}
+      {project.description && (
+        <p style={{ fontSize:13, color:'#9ca3af', margin:'0 0 16px', lineHeight:1.7 }}>
+          {project.description.length > 130 ? project.description.slice(0,128)+'…' : project.description}
+        </p>
+      )}
+
+      {/* Meta chips */}
+      <div style={{ display:'flex', flexWrap:'wrap', gap:7, marginBottom:16 }}>
+        {project.budget && (
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:C.emerald, background:C.emeraldDim, border:`1px solid ${C.emeraldBord}`, borderRadius:9, padding:'4px 11px' }}>
+            <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>Budget</span>{Number(project.budget).toLocaleString('fr-TN')} TND
+          </span>
+        )}
+        {project.period && (
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#6b7280', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'4px 11px' }}>
+            <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Durée</span>{project.period}
+          </span>
+        )}
+        {project.experience && (
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#6b7280', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'4px 11px' }}>
+            <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Expérience</span>{project.experience}
+          </span>
+        )}
+        {proposalCount > 0 && (
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#6b7280', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'4px 11px' }}>
+            <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Candidatures</span>{proposalCount}
+          </span>
+        )}
+      </div>
+
+      {/* Keyword tags */}
+      {keywords.length > 0 && (
+        <div style={{ display:'flex', flexWrap:'wrap', gap:7, marginBottom:18 }}>
+          {keywords.map((kw,i) => (
+            <span key={i} style={{ fontSize:11.5, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, borderRadius:20, padding:'3px 11px' }}>
+              {kw}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Divider */}
+      <div style={{ height:1, background:'rgba(255,255,255,0.055)', marginBottom:16 }} />
+
+      {/* Actions */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
+        {/* Left: message + review */}
+        <div style={{ display:'flex', gap:8 }}>
+          {isFreelancer && !isOwn && (
+            <button onClick={()=>navigate(`/messages?with=${encodeURIComponent(project.client_email)}`)}
+              style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=C.accentBord;e.currentTarget.style.color=C.accent;}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='#9ca3af';}}>
+              <IcMsg /> Message
+            </button>
+          )}
+          {isFreelancer && !isOwn && !alreadyReviewed && (
+            <button onClick={()=>onReview(project)}
+              style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:`1px solid ${C.amberBord}`, color:C.amber, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
+              onMouseEnter={e=>{e.currentTarget.style.background=C.amberDim;}}
+              onMouseLeave={e=>{e.currentTarget.style.background='none';}}>
+              <svg width={12} height={12} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              Avis
+            </button>
+          )}
+          {isFreelancer && alreadyReviewed && (
+            <span style={{ fontSize:11, color:'#6b7280', alignSelf:'center' }}>Avis soumis</span>
+          )}
+        </div>
+
+        {/* Right: Save + Apply */}
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={()=>onSave(project.id)}
+            style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 16px', borderRadius:12, background:'none', border:`1px solid ${saved ? C.accentBord : 'rgba(255,255,255,0.12)'}`, color:saved ? C.accent : '#6b7280', fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
+            onMouseEnter={e=>{if(!saved){e.currentTarget.style.borderColor=C.accentBord;e.currentTarget.style.color=C.accent;}}}
+            onMouseLeave={e=>{if(!saved){e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='#6b7280';}}}>
+            {saved
+              ? <><svg width={12} height={12} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> Saved</>
+              : <><svg width={12} height={12} fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> Save</>
+            }
+          </button>
+          {isFreelancer && !isOwn && !isTaken && (
+            hasApplied ? (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:12, background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.25)', color:'#10b981', fontSize:12, fontWeight:700 }}>
+                <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Candidature envoyée
+              </span>
+            ) : (
+              <button onClick={()=>onApply(project)}
+                style={{ padding:'8px 22px', borderRadius:12, background:`linear-gradient(135deg,${C.accent},#0284c7)`, border:'none', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', boxShadow:C.accentGlow, transition:'opacity .15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.opacity='0.85';}}
+                onMouseLeave={e=>{e.currentTarget.style.opacity='1';}}>
+                Apply
+              </button>
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PAGE
+   ══════════════════════════════════════════════════════════════════ */
+export default function ClientsPage() {
+  const { t } = useTranslation();
+  const { user, users } = useAuth();
+  const navigate = useNavigate();
+
+  const [projects,        setProjects]        = useState([]);
+  const [proposals,       setProposals]       = useState({});
+  const [myApplications,  setMyApplications]  = useState(new Set());
+  const [reviews,         setReviews]         = useState({});
+  const [loading,         setLoading]         = useState(true);
+  const [search,          setSearch]          = useState('');
+  const [category,        setCategory]        = useState('All');
+  const [sortBy,          setSortBy]          = useState('newest');
+  const [saved,           setSaved]           = useState(() => { try { return new Set(JSON.parse(localStorage.getItem('fm_saved_clients')||'[]')); } catch { return new Set(); } });
+  const [applyFor,        setApplyFor]        = useState(null);
+  const [reviewFor,       setReviewFor]       = useState(null);
+  const searchRef = useRef();
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res   = await fetch(`${API}/projects/browse/open`);
+      const rows  = await res.json();
+      const open  = Array.isArray(rows) ? rows : [];
+      setProjects(open);
+
+      const propLists = await Promise.all(open.map(p =>
+        fetch(`${API}/proposals/project/${p.id}`).then(r=>r.json()).catch(()=>[])
+      ));
+      const pmap    = {};
+      const applied = new Set();
+      open.forEach((p,i) => {
+        const arr = Array.isArray(propLists[i]) ? propLists[i] : [];
+        pmap[p.id] = arr.length;
+        if (user?.role === 'freelancer' && user?.email) {
+          if (arr.some(prop => prop.freelancer_email?.toLowerCase() === user.email.toLowerCase())) {
+            applied.add(p.id);
+          }
+        }
+      });
+      setProposals(pmap);
+      setMyApplications(applied);
+    } catch { setProjects([]); }
+    finally { setLoading(false); }
+  }, [user?.email, user?.role]);
+
+  const loadReviews = useCallback(async () => {
+    try {
+      const clientEmails = [...new Set((Array.isArray(projects)?projects:[]).map(p=>p.client_email).filter(Boolean))];
+      const results = await Promise.all(clientEmails.map(e =>
+        fetch(`${API}/client-reviews/${encodeURIComponent(e)}`).then(r=>r.json()).catch(()=>[])
+      ));
+      const rmap = {};
+      clientEmails.forEach((e,i) => { rmap[e.toLowerCase()] = Array.isArray(results[i]) ? results[i] : []; });
+      setReviews(rmap);
+    } catch {}
+  }, [projects]);
+
+  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { if (projects.length) loadReviews(); }, [loadReviews, projects.length]);
+
+  function getClient(email) {
+    return (users||[]).find(u => u.email?.toLowerCase() === email?.toLowerCase());
+  }
+
+  function toggleSave(id) {
+    setSaved(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      localStorage.setItem('fm_saved_clients', JSON.stringify([...next]));
+      return next;
+    });
+  }
+
+  const filtered = projects.filter(p => {
+    const q   = search.toLowerCase();
+    const cl  = getClient(p.client_email);
+    const hay = `${p.title||''} ${p.description||''} ${p.keywords||''} ${p.experience||''} ${cl?.name||''} ${cl?.company||''} ${cl?.region||''}`.toLowerCase();
+    const okQ = !search || hay.includes(q);
+    const okC = category === 'All' || (CAT_KEYS[category]||[]).some(k=>hay.includes(k));
+    return okQ && okC;
+  }).sort((a,b) => {
+    if (sortBy === 'newest')    return new Date(b.created_at) - new Date(a.created_at);
+    if (sortBy === 'oldest')    return new Date(a.created_at) - new Date(b.created_at);
+    if (sortBy === 'budget')    return Number(b.budget||0) - Number(a.budget||0);
+    if (sortBy === 'proposals') return (proposals[b.id]||0) - (proposals[a.id]||0);
+    return 0;
+  });
+
+  const totalClients = new Set(projects.map(p=>p.client_email?.toLowerCase()).filter(Boolean)).size;
+  const totalRegions = new Set(projects.map(p => getClient(p.client_email)?.region).filter(Boolean)).size;
+
+  return (
+    <div style={{ minHeight:'100vh', background:'#070b14', fontFamily:"'Plus Jakarta Sans', 'Inter', sans-serif", paddingBottom:80, position:'relative' }}>
+
+      {/* ══ ANIMATED BACKGROUND BLOBS ══ */}
+      <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
+        <div style={{ position:'absolute', width:750, height:750, borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.13) 0%, transparent 68%)', top:'-250px', left:'-160px', animation:'cpBlob1 20s ease-in-out infinite' }} />
+        <div style={{ position:'absolute', width:580, height:580, borderRadius:'50%', background:'radial-gradient(circle, rgba(6,182,212,0.09) 0%, transparent 68%)', top:'35%', right:'-180px', animation:'cpBlob2 24s ease-in-out infinite' }} />
+        <div style={{ position:'absolute', width:480, height:480, borderRadius:'50%', background:'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 68%)', bottom:'-60px', left:'28%', animation:'cpBlob3 28s ease-in-out infinite' }} />
+        <div style={{ position:'absolute', width:320, height:320, borderRadius:'50%', background:'radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 68%)', top:'60%', left:'8%', animation:'cpBlob4 22s ease-in-out infinite reverse' }} />
+      </div>
+
+      <div style={{ position:'relative', zIndex:1 }}>
+
+      {/* ── HERO HEADER ── */}
+      <div style={{ background:'radial-gradient(ellipse 1100px 520px at 50% -10%, rgba(14,165,233,0.15), transparent 65%), radial-gradient(ellipse 700px 380px at 88% -6%, rgba(99,102,241,0.12), transparent 65%)', paddingBottom:56, borderBottom:'1px solid rgba(255,255,255,0.055)', textAlign:'center' }}>
+        <div style={{ maxWidth:1100, margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,4vw,24px) 0' }}>
+
+          {/* Headline */}
+          <h1 style={{ fontSize:'clamp(32px,8vw,54px)', fontWeight:900, color:'#f4f3fb', margin:'0 0 16px', letterSpacing:'-0.04em', lineHeight:1.07 }}>
+            Find your{' '}
+            <span style={{ background:`linear-gradient(120deg,#7dd3fc 0%,${C.accent} 42%,#0369a1 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+              client
+            </span>
           </h1>
-          <p className="text-slate-400 text-sm sm:text-base mb-8 max-w-xl mx-auto leading-relaxed">
-            Des clients tunisiens vérifiés, à la recherche de freelancers talentueux pour leurs projets.
+
+          <p style={{ fontSize:'clamp(14px,2vw,16px)', color:'#6b7280', margin:'0 auto 38px', lineHeight:1.7, letterSpacing:'0.01em', maxWidth:480 }}>
+            Open projects from verified clients looking for talent.
           </p>
 
-          {/* Search */}
-          <div className="relative max-w-lg mx-auto mb-6">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Rechercher par nom, région…"
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm bg-white/5 backdrop-blur border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:bg-white/10 transition-all shadow-xl" />
+          {/* Search bar */}
+          <div className="fm-search-wrap" style={{ position:'relative', maxWidth:560, margin:'0 auto 44px' }}>
+            <div style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', color:'#6b7280', pointerEvents:'none' }}>
+              <IcSearch />
+            </div>
+            <input ref={searchRef} type="text" value={search} onChange={e=>setSearch(e.target.value)}
+              placeholder={t('Search clients...')}
+              className="fm-search-input"
+              style={{ width:'100%', boxSizing:'border-box', padding:'15px 130px 15px 48px', borderRadius:16, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f4f3fb', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s, background .2s' }}
+              onFocus={e=>{e.target.style.borderColor=C.accentBord; e.target.style.background=C.accentDim;}} onBlur={e=>{e.target.style.borderColor='rgba(255,255,255,0.1)'; e.target.style.background='rgba(255,255,255,0.05)';}} />
+            <button
+              style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', padding:'9px 24px', borderRadius:12, background:`linear-gradient(135deg,${C.accent},#0284c7)`, border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:C.accentGlow, transition:'opacity .15s' }}
+              onMouseEnter={e=>{e.currentTarget.style.opacity='0.88';}} onMouseLeave={e=>{e.currentTarget.style.opacity='1';}}>
+              {t('Search')}
+            </button>
+            {search && (
+              <button onClick={()=>{setSearch('');searchRef.current?.focus();}}
+                style={{ position:'absolute', right:110, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'#6b7280', cursor:'pointer', padding:4, display:'flex' }}>
+                <IcX />
+              </button>
+            )}
           </div>
 
-          {/* Stats */}
-          <div className="flex items-center justify-center gap-6 sm:gap-10">
+          {/* Stats row with separators */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
             {[
-              { label: 'Clients', value: approvedClients.length },
-              { label: 'Avis reçus', value: totalReviews },
-              { label: 'Régions', value: new Set(approvedClients.map(c => c.region).filter(Boolean)).size },
-            ].map(s => (
-              <div key={s.label} className="text-center">
-                <p className="text-2xl font-extrabold text-white">{s.value}</p>
-                <p className="text-[11px] text-slate-400 font-medium">{s.label}</p>
+              { n: projects.filter(p=>p.status==='open').length, label:'Open projects' },
+              { n: totalClients, label:'Active clients' },
+              { n: totalRegions, label:'Regions covered' },
+              { n: Object.values(proposals).reduce((s,v)=>s+v,0), label:'Proposals sent' },
+            ].map((s,i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center' }}>
+                {i > 0 && <span style={{ width:1, height:36, background:'rgba(255,255,255,0.08)', margin:'0 clamp(12px,3vw,32px)' }} />}
+                <div style={{ textAlign:'center' }}>
+                  <div style={{ fontSize:28, fontWeight:900, color:C.accent, lineHeight:1.1, letterSpacing:'-0.03em' }}>{s.n}</div>
+                  <div style={{ fontSize:11, color:'#6b7280', fontWeight:600, marginTop:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{s.label}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── Filters ── */}
-      <div className="bg-slate-900/80 backdrop-blur border-b border-white/5 sticky top-16 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-1.5 py-3 w-max">
-              {INDUSTRIES.map(ind => (
-                <button key={ind} onClick={() => setIndustry(ind)}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${industry === ind ? 'bg-gradient-to-r from-brand-cyan to-brand-violet text-white shadow-lg shadow-brand-cyan/30' : 'text-slate-300 hover:bg-white/5'}`}>
-                  {ind}
+      {/* ── FILTERS ── */}
+      <div style={{ position:'sticky', top:64, zIndex:20, background:'rgba(7,11,20,0.94)', backdropFilter:'blur(18px)', borderBottom:'1px solid rgba(255,255,255,0.07)', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+        <div style={{ maxWidth:1100, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:58, gap:0 }}>
+
+          {/* Scrollable category pills */}
+          <div style={{ flex:1, display:'flex', gap:6, overflowX:'auto', scrollbarWidth:'none', minWidth:0, paddingRight:4 }}>
+            {CATEGORIES.map(cat => {
+              const active = category === cat;
+              return (
+                <button key={cat} onClick={()=>setCategory(cat)}
+                  style={{ flexShrink:0, display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', transition:'all .2s',
+                    background: active ? C.accentDim : 'transparent',
+                    border:     active ? `1px solid ${C.accent}` : '1px solid rgba(255,255,255,0.09)',
+                    color:      active ? C.accent : '#6b7280' }}
+                  onMouseEnter={e=>{ if(!active){e.currentTarget.style.borderColor='rgba(255,255,255,0.18)';e.currentTarget.style.color='#9ca3af';}}}
+                  onMouseLeave={e=>{ if(!active){e.currentTarget.style.borderColor='rgba(255,255,255,0.09)';e.currentTarget.style.color='#6b7280';}}}>
+                  <span style={{ display:'flex', alignItems:'center' }}>{CAT_SVG[cat]}</span>
+                  {t(cat)}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
-          <div className="flex items-center justify-between pb-3">
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              {openProjects.filter(p => filtered.some(c => c.email?.toLowerCase() === p.client_email?.toLowerCase())).length || filtered.length} projet{openProjects.length !== 1 ? 's' : ''} ouvert{openProjects.length !== 1 ? 's' : ''}
-              {search ? ` pour "${search}"` : ''}
-            </p>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              className="text-xs font-semibold bg-white/5 text-slate-300 border border-white/10 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-cyan">
-              <option value="rating">Mieux notés</option>
-              <option value="name">Par nom</option>
-            </select>
+
+          {/* Separator + count + sort */}
+          <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:14, borderLeft:'1px solid rgba(255,255,255,0.08)', paddingLeft:16, marginLeft:8 }}>
+            <span style={{ fontSize:12, whiteSpace:'nowrap' }}>
+              <strong style={{ color:C.accent, fontWeight:700 }}>{filtered.length}</strong>
+              <span style={{ color:'#4b5563' }}> project{filtered.length!==1?'s':''}</span>
+            </span>
+            <div style={{ position:'relative' }}>
+              <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
+                style={{ padding:'7px 30px 7px 12px', borderRadius:10, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:12, outline:'none', cursor:'pointer', appearance:'none', fontFamily:'inherit' }}>
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="budget">Highest budget</option>
+                <option value="proposals">Most proposals</option>
+              </select>
+              <div style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:'#6b7280' }}><IcChev /></div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── List ── */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-        {filtered.length > 0 ? (
-          <div className="bg-slate-900 rounded-2xl border border-white/5 overflow-hidden divide-y divide-white/5">
-            {filtered.flatMap(c =>
-              (projectsByClient[c.email?.toLowerCase()] || []).map(p => (
-                <ClientCard key={`${c.email}-${p.id}`} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} projects={[p]} />
-              ))
-            ).concat(
-              filtered
-                .filter(c => !(projectsByClient[c.email?.toLowerCase()]?.length))
-                .map(c => <ClientCard key={c.email} client={c} reviews={reviews} onAddReview={handleAddReview} currentUser={user} projects={[]} />)
-            )}
+      {/* ── PROJECT CARDS ── */}
+      <div style={{ maxWidth:1100, margin:'0 auto', padding:'24px clamp(16px,3vw,24px) 0', display:'flex', flexDirection:'column', gap:14 }}>
+        {loading ? (
+          <div style={{ textAlign:'center', padding:'70px 0', color:'#4b5563', fontSize:14 }}>
+            <div style={{ width:32, height:32, border:`2px solid ${C.accentBord}`, borderTopColor:C.accent, borderRadius:'50%', margin:'0 auto 16px', animation:'spin 0.8s linear infinite' }} />
+            Loading projects…
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-20 h-20 rounded-3xl bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center mb-4">
-              <svg className="w-10 h-10 text-sky-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'70px 20px', background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.065)', borderRadius:22 }}>
+            <div style={{ width:60, height:60, borderRadius:18, background:C.accentDim, border:`1px solid ${C.accentBord}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px' }}>
+              <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke={C.accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
             </div>
-            <p className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun client trouvé</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {search ? 'Essayez un autre terme.' : 'Aucun client vérifié pour le moment.'}
-            </p>
+            <p style={{ fontSize:16, fontWeight:800, color:'#e5e7eb', margin:'0 0 7px' }}>No projects found</p>
+            <p style={{ fontSize:13, color:'#6b7280', margin:'0 0 18px' }}>{search ? 'Try a different search term.' : 'No open projects at the moment.'}</p>
             {search && (
-              <button onClick={() => setSearch('')} className="mt-4 px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-bold transition-colors">
-                Effacer la recherche
+              <button onClick={()=>setSearch('')}
+                style={{ fontSize:13, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, borderRadius:10, padding:'8px 18px', cursor:'pointer' }}>
+                Clear search
               </button>
             )}
           </div>
+        ) : (
+          filtered.map(p => (
+            <ProjectCard
+              key={p.id}
+              project={p}
+              clientUser={getClient(p.client_email)}
+              proposalCount={proposals[p.id] || 0}
+              user={user}
+              saved={saved.has(p.id)}
+              onSave={toggleSave}
+              onApply={setApplyFor}
+              onReview={setReviewFor}
+              myReviews={reviews[p.client_email?.toLowerCase()] || []}
+              hasApplied={myApplications.has(p.id)}
+            />
+          ))
+        )}
+
+        {filtered.length > 0 && (
+          <p style={{ textAlign:'center', fontSize:13, color:'#374151', padding:'12px 0 4px' }}>
+            {filtered.length} project{filtered.length!==1?'s':''} shown
+          </p>
         )}
       </div>
+
+      {/* ── Apply modal ── */}
+      {applyFor && (
+        <ApplyModal project={applyFor} user={user} onClose={()=>setApplyFor(null)}
+          onDone={()=>{ setApplyFor(null); loadData(); }} />
+      )}
+
+      {/* ── Review modal ── */}
+      {reviewFor && (
+        <ReviewModal
+          client={getClient(reviewFor.client_email) || { email:reviewFor.client_email, name:reviewFor.client_email }}
+          user={user}
+          onClose={()=>setReviewFor(null)}
+          onDone={()=>{ setReviewFor(null); loadReviews(); }} />
+      )}
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes cpPulse {
+          0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(14,165,233,0.5); }
+          50%      { opacity:0.6; box-shadow:0 0 0 5px rgba(14,165,233,0); }
+        }
+        @keyframes cpBlob1 {
+          0%,100% { transform:translate(0,0) scale(1); }
+          33%      { transform:translate(55px,-45px) scale(1.07); }
+          66%      { transform:translate(-35px,30px) scale(0.95); }
+        }
+        @keyframes cpBlob2 {
+          0%,100% { transform:translate(0,0) scale(1); }
+          40%     { transform:translate(-55px,40px) scale(1.05); }
+          70%     { transform:translate(20px,-20px) scale(0.97); }
+        }
+        @keyframes cpBlob3 {
+          0%,100% { transform:translate(0,0) scale(1); }
+          50%     { transform:translate(35px,35px) scale(1.1); }
+        }
+        @keyframes cpBlob4 {
+          0%,100% { transform:translate(0,0) scale(1); }
+          45%     { transform:translate(-30px,-28px) scale(1.06); }
+        }
+      `}</style>
+      </div>{/* end zIndex:1 wrapper */}
     </div>
   );
 }

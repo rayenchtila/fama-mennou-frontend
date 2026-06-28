@@ -1,8 +1,8 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 
 const AuthContext = createContext(null);
-const API = "https://famamennou-server.onrender.com/api";
+const API = process.env.REACT_APP_API_URL || "https://famamennou-server.onrender.com/api";
 
 const ADMIN_CREDENTIALS = {
   email: "admin@famamennou.com",
@@ -18,6 +18,9 @@ export function AuthProvider({ children }) {
   localStorage.removeItem("fm_accounts");
   localStorage.removeItem("fm_notifications");
   localStorage.removeItem("fm_reviews");
+
+  // Access token stored in memory (not localStorage) — more secure
+  const accessTokenRef = useRef(null);
 
   const [user, setUser] = useState(() => {
     try {
@@ -38,6 +41,34 @@ export function AuthProvider({ children }) {
     if (user) localStorage.setItem("fm_user", JSON.stringify(user));
     else localStorage.removeItem("fm_user");
   }, [user]);
+
+  // ── Auth fetch helper — adds Authorization header when token is present ──
+  const authFetch = useCallback((url, options = {}) => {
+    const token = accessTokenRef.current;
+    const headers = { ...(options.headers || {}) };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return fetch(url, { ...options, headers, credentials: 'include' });
+  }, []);
+
+  // ── Refresh access token using the httpOnly refresh cookie ──
+  const refreshAccessToken = useCallback(async () => {
+    try {
+      const res  = await fetch(`${API}/auth/refresh`, { method: 'POST', credentials: 'include' });
+      const data = await res.json();
+      if (data.accessToken) {
+        accessTokenRef.current = data.accessToken;
+        return data.accessToken;
+      }
+    } catch {}
+    return null;
+  }, []);
+
+  // Auto-refresh every 13 minutes (access token expires at 15 min)
+  useEffect(() => {
+    if (!user || user.isAdmin) return;
+    const id = setInterval(refreshAccessToken, 13 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [user?.email, refreshAccessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Load users and notifications from backend on mount ──
   const fetchAccounts = useCallback(async () => {
@@ -135,7 +166,10 @@ export function AuthProvider({ children }) {
       gender:             r.gender     ?? null,
       photo:              r.photo      ?? null,
       skills:             typeof r.skills === 'string' && r.skills.startsWith('[') ? JSON.parse(r.skills) : (r.skills ?? null),
-      bio:                r.bio        ?? null,
+      bio:                r.bio           ?? null,
+      portfolio_url:      r.portfolio_url ?? null,
+      hourly_rate:        r.hourly_rate   ?? null,
+      title:              r.title         ?? null,
       portfolio:          typeof r.portfolio === 'string' && r.portfolio.startsWith('[') ? JSON.parse(r.portfolio) : (Array.isArray(r.portfolio) ? r.portfolio : []),
       cin:                r.cin,
       cinFront:           r.cin_front,
@@ -155,7 +189,7 @@ export function AuthProvider({ children }) {
 
   async function register(userData) {
     try {
-      await fetch(`${API}/auth/register`, {
+      const regRes = await fetch(`${API}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -174,6 +208,16 @@ export function AuthProvider({ children }) {
           cinBack:  userData.cinBack,
         }),
       });
+      const regData = await regRes.json();
+
+      // In dev mode the backend auto-approves — auto-login so the user never sees the pending screen
+      if (regData.dev) {
+        const result = await login(userData.email, userData.password);
+        if (result?.success) {
+          fetchAccounts();
+          return { success: true, autoLogged: true };
+        }
+      }
 
       if (userData.role === "freelancer" || userData.role === "client") {
         await addNotification({
@@ -186,13 +230,22 @@ export function AuthProvider({ children }) {
         });
       }
 
-      fetchAccounts(); // non-blocking — user already sees pending screen
+      fetchAccounts();
     } catch (e) {
       console.error("register error", e);
     }
   }
 
-  async function login(email, password) {
+  function getOrCreateDeviceId() {
+    let id = localStorage.getItem('fm_device_id');
+    if (!id) {
+      id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('fm_device_id', id);
+    }
+    return id;
+  }
+
+  async function login(email, password, totpCode) {
     if (
       email.toLowerCase() === ADMIN_CREDENTIALS.email &&
       password === ADMIN_CREDENTIALS.password
@@ -201,15 +254,35 @@ export function AuthProvider({ children }) {
       return { success: true, user: ADMIN_CREDENTIALS };
     }
 
+    const deviceId = getOrCreateDeviceId();
+
     try {
       const res = await fetch(`${API}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.toLowerCase(), password }),
+        credentials: "include",
+        body: JSON.stringify({ email: email.toLowerCase(), password, deviceId, totpCode }),
       });
       const data = await res.json();
       if (data.error) return { error: data.error };
 
+      // 2FA required — return pendingToken for TOTP step
+      if (data.requiresTOTP) {
+        return { requiresTOTP: true, pendingToken: data.pendingToken };
+      }
+
+      // New device — approval required
+      if (data.status === 'pending_approval') {
+        return {
+          pending: true,
+          attemptId: data.attemptId,
+          device: data.device,
+          message: data.message,
+          riskScore: data.riskScore,
+        };
+      }
+
+      if (data.accessToken) accessTokenRef.current = data.accessToken;
       const loggedUser = normalizeUser(data.user);
       setUser(loggedUser);
       return { success: true, user: loggedUser };
@@ -218,7 +291,44 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function logout() { setUser(null); }
+  // Complete 2FA login with pendingToken + TOTP code
+  async function verifyTOTP(pendingToken, totpCode) {
+    try {
+      const res = await fetch(`${API}/auth/verify-totp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ pendingToken, totpCode }),
+      });
+      const data = await res.json();
+      if (data.error) return { error: data.error };
+      if (data.accessToken) accessTokenRef.current = data.accessToken;
+      const loggedUser = normalizeUser(data.user);
+      setUser(loggedUser);
+      return { success: true, user: loggedUser };
+    } catch {
+      return { error: "serverError" };
+    }
+  }
+
+  function loginWithUserData(rawUser, accessToken) {
+    if (accessToken) accessTokenRef.current = accessToken;
+    const loggedUser = normalizeUser(rawUser);
+    setUser(loggedUser);
+    return loggedUser;
+  }
+
+  function logout() {
+    const email = user?.email || null;
+    fetch(`${API}/auth/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email }),
+    }).catch(() => {});
+    accessTokenRef.current = null;
+    setUser(null);
+  }
 
   const users = Object.values(accounts);
 
@@ -244,6 +354,9 @@ export function AuthProvider({ children }) {
     if (patch.photo              !== undefined) dbPatch.photo                = patch.photo;
     if (patch.skills             !== undefined) dbPatch.skills               = patch.skills;
     if (patch.bio                !== undefined) dbPatch.bio                  = patch.bio;
+    if (patch.portfolio_url      !== undefined) dbPatch.portfolio_url        = patch.portfolio_url;
+    if (patch.hourly_rate        !== undefined) dbPatch.hourly_rate          = patch.hourly_rate;
+    if (patch.title              !== undefined) dbPatch.title                = patch.title;
     if (patch.portfolio          !== undefined) dbPatch.portfolio            = patch.portfolio;
     if (patch.name               !== undefined) dbPatch.name                 = patch.name;
     if (patch.region             !== undefined) dbPatch.region               = patch.region;
@@ -357,7 +470,10 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, accounts, users, register, login, logout, updateUser, deleteUser,
+      user, accounts, users, register, login, loginWithUserData, logout, updateUser, deleteUser,
+      verifyTOTP,
+      authFetch,
+      refreshAccessToken,
       notifications,
       getAdminNotifications,
       getUserNotifications,

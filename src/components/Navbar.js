@@ -2,98 +2,50 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import Button from "./Button";
-import Searchbar from "./Searchbar";
-import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 import { cldImg } from "../utils/cloudinary";
+import { useTranslation } from "react-i18next";
 
-
-const MotionLink = motion.create(Link);
-
-const LANGUAGES = [
-  { code: "en", label: "English",  flag: "https://flagcdn.com/w40/us.png" },
-  { code: "fr", label: "Français", flag: "https://flagcdn.com/w40/fr.png" },
-  { code: "ar", label: "العربية",  flag: "https://flagcdn.com/w40/tn.png" },
-];
-
-// ─── Global search data ───────────────────────────────────────────────────────
-const SEARCH_GROUPS = [
-  {
-    key: "freelancers", label: "Freelancers", icon: "👤", path: "/freelancers",
-    data: [
-      { name: "Amira Bensalem", sub: "Brand Designer",  tags: ["Branding","Figma","Illustration"] },
-      { name: "Youssef Khalil", sub: "Full-Stack Dev",   tags: ["React","Node","MongoDB"] },
-      { name: "Sofia Martins",  sub: "SEO Specialist",   tags: ["SEO","Content","Analytics"] },
-      { name: "Karim Dridi",    sub: "Motion Designer",  tags: ["After Effects","Lottie","Cinema4D"] },
-      { name: "Elena Russo",    sub: "Copywriter",       tags: ["B2B Copy","Email","Landing Pages"] },
-      { name: "Mehdi Toumi",    sub: "Mobile Dev",       tags: ["React Native","Flutter","iOS"] },
-    ],
-  },
-  {
-    key: "courses", label: "Courses", icon: "📚", path: "/courses",
-    data: [
-      { name: "Advanced React Patterns",    sub: "Youssef Khalil", tags: ["React","Architecture","Performance"] },
-      { name: "Brand Identity from Zero",   sub: "Amira Bensalem", tags: ["Figma","Design","Branding"] },
-      { name: "SEO Mastery 2024",           sub: "Sofia Martins",  tags: ["SEO","Google","Content"] },
-      { name: "Motion Design Fundamentals", sub: "Karim Dridi",    tags: ["After Effects","Animation","Lottie"] },
-      { name: "High-Converting Copy",       sub: "Elena Russo",    tags: ["Copywriting","Marketing","Email"] },
-      { name: "Mobile App Architecture",    sub: "Mehdi Toumi",    tags: ["Mobile","Flutter","React Native"] },
-    ],
-  },
-  {
-    key: "clients", label: "Clients", icon: "🏢", path: "/clients",
-    data: [
-      { name: "TechFlow Inc.",  sub: "Technology", tags: ["React","TypeScript","SaaS"] },
-      { name: "CreativeStudio", sub: "Design",     tags: ["Branding","UI/UX","Motion"] },
-      { name: "GrowthLab",      sub: "Marketing",  tags: ["SEO","Paid Ads","Analytics"] },
-      { name: "NovaSaaS",       sub: "Technology", tags: ["Next.js","PostgreSQL","AWS"] },
-      { name: "BrandVoice",     sub: "Writing",    tags: ["Copywriting","Strategy","Content"] },
-      { name: "CloudNine",      sub: "Technology", tags: ["Kubernetes","Terraform","CI/CD"] },
-    ],
-  },
-];
-
-function filterGroup(data, q) {
-  const lower = q.toLowerCase();
-  return data.filter(item =>
-    item.name.toLowerCase().includes(lower) ||
-    item.sub.toLowerCase().includes(lower) ||
-    item.tags.some(t => t.toLowerCase().includes(lower))
-  );
-}
+const API_URL = process.env.REACT_APP_API_URL || "https://famamennou-server.onrender.com/api";
 
 function getInitials(name = "") {
   return name.trim().split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
-function getRoleColor(role) {
-  return role === "client"
-    ? { bg: "bg-sky-100 dark:bg-sky-900/30",     text: "text-sky-700 dark:text-sky-400",       label: "Client" }
-    : { bg: "bg-indigo-100 dark:bg-indigo-900/30", text: "text-indigo-700 dark:text-indigo-400", label: "Freelancer" };
+const AVATAR_HEX = [
+  'linear-gradient(135deg,#6366f1,#4f46e5)',
+  'linear-gradient(135deg,#10b981,#059669)',
+  'linear-gradient(135deg,#f43f5e,#e11d48)',
+  'linear-gradient(135deg,#f59e0b,#d97706)',
+  'linear-gradient(135deg,#0ea5e9,#0284c7)',
+  'linear-gradient(135deg,#d946ef,#a21caf)',
+  'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+];
+function avatarGradient(email = '') {
+  return AVATAR_HEX[(email.charCodeAt(0) || 0) % AVATAR_HEX.length];
 }
 
-// ─── User Notifications Panel ─────────────────────────────────────────────────
+const NAV_LINKS = [
+  { label: "Hire Freelancers", to: "/freelancers" },
+  { label: "Find Clients",     to: "/clients" },
+  { label: "Courses",          to: "/courses" },
+];
 
+// ── Notification link resolver ─────────────────────────────────────────────────
 async function getNotifLink(n) {
-  if (!n) return '/courses';
-  const k = n.kind || '';
-  const API_URL = 'https://famamennou-server.onrender.com/api';
-
-  // ── Admin notification kinds ──
-  if (k === 'new_submission')          return '/admin/dashboard?tab=cin';
-  if (k === 'new_user')                return '/admin/dashboard?tab=allusers';
-  if (k === 'new_project')             return '/admin/dashboard?tab=allusers';
-  if (k === 'withdrawal')              return '/admin/dashboard?tab=allusers';
-  if (k.startsWith('lesson_pending_')) return '/admin/dashboard?tab=lessons';
-  // course_created_25 / course_approved_25 / course_rejected_25
+  if (!n) return "/courses";
+  const k = n.kind || "";
+  if (k === "new_submission")          return "/admin/dashboard?tab=cin";
+  if (k === "new_user")                return "/admin/dashboard?tab=allusers";
+  if (k === "new_project")             return "/admin/dashboard?tab=allusers";
+  if (k === "withdrawal")              return "/admin/dashboard?tab=allusers";
+  if (k.startsWith("lesson_pending_")) return "/admin/dashboard?tab=lessons";
   const courseMatch = k.match(/^course_(?:created|approved|rejected)_(\d+)$/);
   if (courseMatch) return `/courses/${courseMatch[1]}`;
-  // lesson_created_10_course_3 (new format)
   const lessonWithCourse = k.match(/^lesson_(?:created|approved|rejected)_\d+_course_(\d+)$/);
   if (lessonWithCourse) return `/courses/${lessonWithCourse[1]}`;
-  // lesson_created_10 (old format) — fetch lesson to get course_id
   const lessonOnly = k.match(/^lesson_(?:created|approved|rejected)_(\d+)$/);
   if (lessonOnly) {
     try {
@@ -102,15 +54,13 @@ async function getNotifLink(n) {
       if (l?.course_id) return `/courses/${l.course_id}`;
     } catch {}
   }
-  if (k === 'course_pending') return '/dashboard?tab=courses';
-  if (k.startsWith('profile_saved')) return '/dashboard?tab=profile';
-  if (k.startsWith('client_profile_saved')) return '/account?tab=profile';
-
-  // ── Proposals workflow ──
-  if (k.startsWith('new_proposal:'))  return '/projects';
-  if (k.startsWith('proposal_accepted:')) {
-    const parts = k.split(':');
-    const projectId = parts[1];
+  if (k === "course_pending")                   return "/dashboard?tab=courses";
+  if (k === "password_changed")                  return "/settings";
+  if (k.startsWith("profile_saved"))            return "/dashboard?tab=profile";
+  if (k.startsWith("client_profile_saved"))     return "/account?tab=profile";
+  if (k.startsWith("new_proposal:"))            return "/projects";
+  if (k.startsWith("proposal_accepted:")) {
+    const projectId = k.split(":")[1];
     if (projectId) {
       try {
         const r = await fetch(`${API_URL}/projects/by-id/${projectId}`);
@@ -118,230 +68,166 @@ async function getNotifLink(n) {
         if (p?.client_email) return `/messages?with=${encodeURIComponent(p.client_email)}`;
       } catch {}
     }
-    return '/messages';
+    return "/messages";
   }
-  if (k.startsWith('proposal_rejected:'))  return '/dashboard?tab=find-projects';
-
-  // ── Course reviews ──
-  // course_review:courseId:reviewId  → instructor gets notified of new review
-  // course_review_reply:courseId:reviewId → reviewer gets notified of reply
+  if (k.startsWith("proposal_rejected:"))       return "/dashboard?tab=find-projects";
   const reviewNotif = k.match(/^course_review(?:_reply)?:(\d+):(\d+)$/);
   if (reviewNotif) return `/courses/${reviewNotif[1]}?tab=reviews#review-${reviewNotif[2]}`;
-
-  return '/courses';
+  return "/courses";
 }
 
-function UserNotificationsPanel({ notifications, onMarkRead, onMarkAll, onClear, onClose }) {
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const unread = notifications.filter(n => !n.read).length;
+// ── Notifications panel ────────────────────────────────────────────────────────
+function NotifPanel({ notifications, onMarkRead, onMarkAll, onClose, dark }) {
+  const navigate  = useNavigate();
+  const unread    = notifications.filter(n => !n.read).length;
+  const panel     = dark ? "#16142e" : "#ffffff";
+  const panelBd   = dark ? "rgba(255,255,255,.1)" : "rgba(0,0,0,.1)";
+  const divider   = dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)";
+  const rowHov    = dark ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.04)";
+  const text1     = dark ? "#f4f3fb" : "#0f172a";
+  const text3     = dark ? "#62668a" : "#94a3b8";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end p-2 pt-14 sm:p-4 sm:pt-16" onClick={onClose}>
-      <div
-        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm overflow-hidden"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800">
+    <div className="fixed inset-0 z-50 flex items-start justify-end p-1 pt-14 sm:p-4 sm:pt-16" onClick={onClose}>
+      <div className="w-full overflow-hidden rounded-2xl shadow-2xl"
+        style={{ maxWidth: 'min(380px, calc(100vw - 8px))', background: panel, border: `1px solid ${panelBd}` }}
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: `1px solid ${divider}` }}>
           <div className="flex items-center gap-2">
-            <p className="font-bold text-slate-900 dark:text-white text-sm">{t("Notifications")}</p>
-            {unread > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold">{unread}</span>
-            )}
+            <p className="text-sm font-bold" style={{ color: text1 }}>Notifications</p>
+            {unread > 0 && <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold text-white" style={{ background: "#7c6cf6" }}>{unread}</span>}
           </div>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors" style={{ color: text3 }}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
-
-        {/* List */}
-        <div className="overflow-y-auto" style={{ maxHeight: 'min(384px, 60vh)' }}>
+        <div className="overflow-y-auto" style={{ maxHeight: "min(380px,60vh)" }}>
           {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-              <svg className="w-8 h-8 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="flex flex-col items-center justify-center py-10 gap-2" style={{ color: text3 }}>
+              <svg className="w-8 h-8 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
               </svg>
-              <p className="text-xs font-semibold">{t("No notifications")}</p>
+              <p className="text-xs font-semibold">Aucune notification</p>
             </div>
-          ) : (
-            notifications.map(n => (
-              <div
-                key={n.id}
-                tabIndex={0}
-                role="button"
-                onClick={async () => { onMarkRead(n.id); const link = await getNotifLink(n); onClose(); navigate(link); }}
-                className={[
-                  "flex items-start gap-3 px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
-                  n.read
-                    ? "bg-white dark:bg-slate-900"
-                    : "bg-indigo-50/50 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20",
-                ].join(" ")}
-              >
-                <div className={[
-                  "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm",
-                  n.kind === "approved" || n.kind?.startsWith("proposal_accepted") ? "bg-emerald-100 dark:bg-emerald-900/30" :
-                  n.kind === "rejected" || n.kind?.startsWith("proposal_rejected") ? "bg-rose-100 dark:bg-rose-900/30" :
-                  n.kind?.startsWith("new_proposal") ? "bg-indigo-100 dark:bg-indigo-900/30" :
-                  "bg-amber-100 dark:bg-amber-900/30",
-                ].join(" ")}>
-                  {n.kind === "approved" || n.kind?.startsWith("proposal_accepted") ? "✅" :
-                   n.kind === "rejected" || n.kind?.startsWith("proposal_rejected") ? "❌" :
-                   n.kind?.startsWith("new_proposal") ? "📩" : "🔔"}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-bold mb-0.5 ${n.read ? "text-slate-700 dark:text-slate-300" : "text-slate-900 dark:text-white"}`}>
-                    {n.title}
-                  </p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">{n.message}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    {new Date(n.createdAt).toLocaleDateString("fr-TN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                </div>
-                {!n.read && (
-                  <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1" />
-                )}
+          ) : notifications.map(n => (
+            <div key={n.id} role="button" tabIndex={0}
+              onClick={async () => { onMarkRead(n.id); const link = await getNotifLink(n); onClose(); navigate(link); }}
+              className="flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors"
+              style={{ borderBottom: `1px solid ${divider}`, background: n.read ? "transparent" : "rgba(124,108,246,0.06)" }}
+              onMouseEnter={e => e.currentTarget.style.background = rowHov}
+              onMouseLeave={e => e.currentTarget.style.background = n.read ? "transparent" : "rgba(124,108,246,0.06)"}
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: n.kind?.startsWith("proposal_accepted") ? "rgba(16,185,129,0.15)" : n.kind?.startsWith("proposal_rejected") ? "rgba(239,68,68,0.15)" : "rgba(124,108,246,0.15)" }}>
+                {n.kind?.startsWith("proposal_accepted")
+                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+                  : n.kind?.startsWith("proposal_rejected")
+                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                  : n.kind?.startsWith("new_proposal")
+                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  : <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                }
               </div>
-            ))
-          )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold mb-0.5 truncate" style={{ color: n.read ? (dark ? "#a7abc8" : "#6b7280") : text1 }}>{n.title}</p>
+                <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: text3 }}>{n.message}</p>
+                <p className="text-[10px] mt-1" style={{ color: text3 }}>
+                  {new Date(n.createdAt).toLocaleDateString("fr-TN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                </p>
+              </div>
+              {!n.read && <div className="w-2 h-2 rounded-full shrink-0 mt-1" style={{ background: "#7c6cf6" }} />}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Messages Dropdown Panel ──────────────────────────────────────────────────
+// ── Messages panel ────────────────────────────────────────────────────────────
+const MSG_COLORS = ["#7c6cf6","#a855f7","#3ec2e8","#6c8cf6","#f59e0b","#10b981"];
+const msgColor = email => MSG_COLORS[(email?.charCodeAt(0) ?? 0) % MSG_COLORS.length];
 
-const MSG_COLORS = ['bg-indigo-500','bg-emerald-500','bg-rose-500','bg-amber-500','bg-sky-500','bg-fuchsia-500','bg-violet-500','bg-teal-500'];
-const msgAvatarColor = email => MSG_COLORS[(email?.charCodeAt(0) ?? 0) % MSG_COLORS.length];
-
-function fmtMsgPanelTime(ts) {
-  if (!ts) return '';
+function fmtTime(ts) {
+  if (!ts) return "";
   const d = new Date(ts), h = (Date.now() - d) / 3600000;
-  if (h < 1)   return `${Math.max(1, Math.floor(h * 60))}m ago`;
-  if (h < 24)  return `${Math.floor(h)}h ago`;
-  if (h < 168) return d.toLocaleDateString([], { weekday: 'short' });
-  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  if (h < 1)   return `${Math.max(1, Math.floor(h * 60))}m`;
+  if (h < 24)  return `${Math.floor(h)}h`;
+  if (h < 168) return d.toLocaleDateString([], { weekday: "short" });
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-function MessagesPanel({ conversations, senderEmail, isAdmin, onClose, onChatOpen }) {
-  const ADMIN_DISPLAY_NAME = 'Fama Mennou TEAM';
-  const ADMIN_EMAIL_CONST  = 'admin@famamennou.com';
+function MessagesPanel({ conversations, senderEmail, onClose, onChatOpen, dark }) {
+  const totalUnread = conversations.reduce((s, c) => s + Number(c.unread_count || 0), 0);
+  const display = conversations.filter(c => Number(c.unread_count) > 0).length > 0
+    ? conversations.filter(c => Number(c.unread_count) > 0)
+    : conversations.slice(0, 8);
 
-  const unreadConvs  = conversations.filter(c => Number(c.unread_count) > 0);
-  const displayList  = unreadConvs.length > 0 ? unreadConvs : conversations.slice(0, 8);
-  const totalUnread  = conversations.reduce((s, c) => s + Number(c.unread_count || 0), 0);
+  const panel   = dark ? "#16142e" : "#ffffff";
+  const panelBd = dark ? "rgba(255,255,255,.1)" : "rgba(0,0,0,.1)";
+  const divider = dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)";
+  const rowHov  = dark ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.04)";
+  const text1   = dark ? "#f4f3fb" : "#0f172a";
+  const text2   = dark ? "#a7abc8" : "#6b7280";
+  const text3   = dark ? "#62668a" : "#94a3b8";
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-end p-2 pt-14 sm:p-4 sm:pt-16"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: -8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: -8 }}
-        transition={{ duration: 0.15 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-sm overflow-hidden"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800">
+    <div className="fixed inset-0 z-50 flex items-start justify-end p-1 pt-14 sm:p-4 sm:pt-16" onClick={onClose}>
+      <motion.div initial={{ opacity:0,scale:.95,y:-8 }} animate={{ opacity:1,scale:1,y:0 }} exit={{ opacity:0,scale:.95,y:-8 }} transition={{ duration:.14 }}
+        className="w-full overflow-hidden rounded-2xl shadow-2xl"
+        style={{ maxWidth: 'min(380px, calc(100vw - 8px))', background: panel, border: `1px solid ${panelBd}` }}
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: `1px solid ${divider}` }}>
           <div className="flex items-center gap-2">
-            <p className="font-bold text-slate-900 dark:text-white text-sm">Messages</p>
-            {totalUnread > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-extrabold leading-none">
-                {totalUnread > 99 ? '99+' : totalUnread}
-              </span>
-            )}
+            <p className="text-sm font-bold" style={{ color: text1 }}>Messages</p>
+            {totalUnread > 0 && <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold text-white" style={{ background:"#ef4444" }}>{totalUnread > 99 ? "99+" : totalUnread}</span>}
           </div>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ color: text3 }}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
-
-        {/* List */}
-        <div className="overflow-y-auto" style={{ maxHeight: 'min(420px, 62vh)' }}>
-          {displayList.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
-              <svg className="w-9 h-9 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-              </svg>
-              <p className="text-xs font-semibold">No messages yet</p>
+        <div className="overflow-y-auto" style={{ maxHeight:"min(420px,62vh)" }}>
+          {display.length === 0 ? (
+            <div className="flex flex-col items-center py-10 gap-2" style={{ color: text3 }}>
+              <svg className="w-9 h-9 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              <p className="text-xs font-semibold">Aucun message</p>
             </div>
-          ) : (
-            displayList.map(conv => {
-              const unread = Number(conv.unread_count || 0);
-              const email  = conv.other_email || '';
-              const isAdminConv = email.toLowerCase() === ADMIN_EMAIL_CONST;
-              const name   = isAdminConv
-                ? ADMIN_DISPLAY_NAME
-                : (conv.user_name || email.split('@')[0] || email);
-              const photo  = isAdminConv ? null : (conv.user_photo || null);
-
-              return (
-                <div
-                  key={email}
-                  onClick={() => onChatOpen(email)}
-                  className={[
-                    "flex items-start gap-3 px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors",
-                    unread > 0
-                      ? "bg-rose-50/40 dark:bg-rose-900/10 hover:bg-rose-50 dark:hover:bg-rose-900/20"
-                      : "bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800",
-                  ].join(' ')}
-                >
-                  {/* Avatar with unread badge */}
-                  <div className="relative shrink-0">
-                    {photo
-                      ? <img src={cldImg(photo)} alt={name} className="w-10 h-10 rounded-full object-cover" />
-                      : <div className={`w-10 h-10 ${msgAvatarColor(email)} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
-                          {(name || '?').slice(0, 2).toUpperCase()}
-                        </div>
-                    }
-                    {unread > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 leading-none shadow">
-                        {unread > 9 ? '9+' : unread}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline justify-between gap-1">
-                      <p className={`text-sm truncate ${unread > 0 ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-700 dark:text-slate-200'}`}>
-                        {name}
-                      </p>
-                      <span className="text-[11px] text-slate-400 shrink-0 tabular-nums">
-                        {fmtMsgPanelTime(conv.created_at)}
-                      </span>
-                    </div>
-                    <p className={`text-xs truncate mt-0.5 ${unread > 0 ? 'text-slate-600 dark:text-slate-300 font-medium' : 'text-slate-400'}`}>
-                      {conv.sender_email === senderEmail ? 'You: ' : ''}
-                      {conv.last_message || '📷 Photo'}
-                    </p>
-                  </div>
+          ) : display.map(conv => {
+            const unread = Number(conv.unread_count || 0);
+            const email  = conv.other_email || "";
+            const isAdminConv = email.toLowerCase() === "admin@famamennou.com";
+            const name   = isAdminConv ? "Fama Mennou TEAM" : (conv.user_name || email.split("@")[0]);
+            const photo  = isAdminConv ? null : conv.user_photo;
+            return (
+              <div key={email} onClick={() => onChatOpen(email)}
+                className="flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors"
+                style={{ borderBottom: `1px solid ${divider}`, background: unread > 0 ? "rgba(239,68,68,0.05)" : "transparent" }}
+                onMouseEnter={e => e.currentTarget.style.background = rowHov}
+                onMouseLeave={e => e.currentTarget.style.background = unread > 0 ? "rgba(239,68,68,0.05)" : "transparent"}>
+                <div className="relative shrink-0">
+                  {photo ? <img src={cldImg(photo)} alt={name} className="w-10 h-10 rounded-full object-cover" />
+                    : <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ background: msgColor(email) }}>{name.slice(0,2).toUpperCase()}</div>
+                  }
+                  {unread > 0 && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center px-1">{unread > 9 ? "9+" : unread}</span>}
                 </div>
-              );
-            })
-          )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline justify-between gap-1">
+                    <p className="text-sm font-semibold truncate" style={{ color: unread > 0 ? text1 : text2 }}>{name}</p>
+                    <span className="text-[10px] shrink-0 tabular-nums" style={{ color: text3 }}>{fmtTime(conv.created_at)}</span>
+                  </div>
+                  <p className="text-xs truncate mt-0.5" style={{ color: unread > 0 ? (dark ? "#7e82a0" : "#6b7280") : text3 }}>
+                    {conv.sender_email === senderEmail ? "Vous: " : ""}{conv.last_message || "Photo"}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        {/* Footer */}
-        <div className="border-t border-slate-100 dark:border-slate-800">
-          <button
-            onClick={() => onChatOpen(null)}
-            className="w-full py-3.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
-          >
-            View all messages →
+        <div style={{ borderTop: `1px solid ${divider}` }}>
+          <button onClick={() => onChatOpen(null)} className="w-full py-3.5 text-sm font-semibold transition-colors" style={{ color:"#9b8cff" }}
+            onMouseEnter={e => e.currentTarget.style.background="rgba(124,108,246,0.06)"}
+            onMouseLeave={e => e.currentTarget.style.background=""}>
+            Voir tous les messages →
           </button>
         </div>
       </motion.div>
@@ -349,51 +235,50 @@ function MessagesPanel({ conversations, senderEmail, isAdmin, onClose, onChatOpe
   );
 }
 
-// ─── Navbar ───────────────────────────────────────────────────────────────────
+function LogoMark({ style }) {
+  return <img src="/logo.png" alt="Fama Mennou" style={{ mixBlendMode: "screen", ...style }} />;
+}
 
-export default function Navbar({ dark, toggleDark, onLogin, language = "en", onLanguageChange }) {
-  const [scrolled,      setScrolled]      = useState(false);
-  const [menuOpen,      setMenuOpen]      = useState(false);
-  const [langOpen,      setLangOpen]      = useState(false);
-  const [profOpen,      setProfOpen]      = useState(false);
-  const [notifOpen,     setNotifOpen]     = useState(false);
-  const [logoutConfirm, setLogoutConfirm] = useState(false);
-  const [search,        setSearch]        = useState("");
-  const [searchOpen,    setSearchOpen]    = useState(false);
-  const [msgUnread,       setMsgUnread]       = useState(0);
-  const [msgConversations,setMsgConversations] = useState([]);
-  const [msgPanelOpen,    setMsgPanelOpen]    = useState(false);
-  const searchRef = useRef(null);
+// ── Navbar ────────────────────────────────────────────────────────────────────
+export default function Navbar({ onLogin }) {
+  const location  = useLocation();
+  const navigate  = useNavigate();
+  const { t, i18n } = useTranslation();
+  const { user, logout, getUserNotifications, getAdminNotifications,
+          markNotificationRead, markAllNotificationsRead, clearNotifications,
+          fetchNotifications } = useAuth();
 
-  const { t }          = useTranslation();
-  const location       = useLocation();
-  const navigate       = useNavigate();
-  const { user, logout, getUserNotifications, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchNotifications } = useAuth();
-  const profileRef     = useRef(null);
+  const [scrolled,    setScrolled]    = useState(false);
+  const [menuOpen,    setMenuOpen]    = useState(false);
+  const [profOpen,    setProfOpen]    = useState(false);
+  const [notifOpen,   setNotifOpen]   = useState(false);
+  const [logoutModal, setLogoutModal] = useState(false);
+  const [msgOpen,     setMsgOpen]     = useState(false);
+  const [msgConvs,    setMsgConvs]    = useState([]);
+  const [msgUnread,   setMsgUnread]   = useState(0);
+  const [langOpen,    setLangOpen]    = useState(false);
+  const { isDark: darkMode, toggle: toggleTheme } = useTheme();
+  const profRef = useRef(null);
+  const langRef = useRef(null);
 
-  // Notifications are kept fresh via Realtime postgres_changes (AuthContext)
-  useEffect(() => {
-    if (!user) return;
-    fetchNotifications();
-  }, [user, fetchNotifications]);
+  const senderEmail = user ? (user.isAdmin ? "admin@famamennou.com" : user.email) : null;
 
-  const senderEmail = user ? (user.isAdmin ? 'admin@famamennou.com' : user.email) : null;
+  useEffect(() => { if (user) fetchNotifications(); }, [user, fetchNotifications]);
 
   const fetchMsgs = useCallback(async () => {
     if (!senderEmail) return;
     try {
-      const url = user.isAdmin
-        ? 'https://famamennou-server.onrender.com/api/messages/admin/conversations'
-        : `https://famamennou-server.onrender.com/api/messages/conversations/${encodeURIComponent(senderEmail)}`;
+      const url = user?.isAdmin
+        ? `${API_URL}/messages/admin/conversations`
+        : `${API_URL}/messages/conversations/${encodeURIComponent(senderEmail)}`;
       const data = await fetch(url).then(r => r.json());
       if (Array.isArray(data)) {
-        setMsgConversations(data);
-        setMsgUnread(data.reduce((s, c) => s + (Number(c.unread_count) || 0), 0));
+        setMsgConvs(data);
+        setMsgUnread(data.reduce((s,c) => s + (Number(c.unread_count)||0), 0));
       }
     } catch {}
   }, [senderEmail, user]);
 
-  // Poll message conversations (unread count + full list for panel) — fallback only
   useEffect(() => {
     if (!senderEmail) return;
     fetchMsgs();
@@ -401,639 +286,657 @@ export default function Navbar({ dark, toggleDark, onLogin, language = "en", onL
     return () => clearInterval(id);
   }, [senderEmail, fetchMsgs]);
 
-  // Realtime: refresh instantly when a new message is broadcast
-  // (notifications are handled by postgres_changes in AuthContext)
-  useRealtimeChannel(senderEmail, {
-    new_message: fetchMsgs,
-  });
-
-  // Get user notifications (only for logged-in non-admin users)
-  const userNotifications = (user && !user.isAdmin) ? getUserNotifications(user.email) : [];
-  const unreadCount = userNotifications.filter(n => !n.read).length;
-
-  // Admin notifications
-  const adminNotifications = user?.isAdmin ? getAdminNotifications() : [];
-  const adminUnreadCount = adminNotifications.filter(n => !n.read).length;
-
-  const NAV_LINKS = [
-    { label: t("Find Freelancers"), to: "/freelancers" },
-    { label: t("Find Clients"),     to: "/clients"     },
-    { label: t("Courses"),          to: "/courses"      },
-  ];
+  useRealtimeChannel(senderEmail, { new_message: fetchMsgs });
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
+    const fn = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
   }, []);
 
   useEffect(() => {
-    setMenuOpen(false);
-    setLangOpen(false);
-    setProfOpen(false);
-    setNotifOpen(false);
-    setSearch("");
-    setSearchOpen(false);
+    setMenuOpen(false); setProfOpen(false);
+    setNotifOpen(false); setMsgOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") { setSearchOpen(false); setSearch(""); } };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const fn = e => { if (profRef.current && !profRef.current.contains(e.target)) setProfOpen(false); };
+    document.addEventListener("mousedown", fn);
+    return () => document.removeEventListener("mousedown", fn);
   }, []);
 
   useEffect(() => {
-    const onClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
-    };
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    const fn = e => { if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false); };
+    document.addEventListener("mousedown", fn);
+    return () => document.removeEventListener("mousedown", fn);
   }, []);
 
-  // Close profile dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (profileRef.current && !profileRef.current.contains(e.target)) {
-        setProfOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
-  const roleStyle = user ? getRoleColor(user.role) : null;
 
-  const searchGroups = search.trim()
-    ? SEARCH_GROUPS.map(g => ({ ...g, results: filterGroup(g.data, search).slice(0, 3) })).filter(g => g.results.length > 0)
-    : [];
-
-  const handleSearchNavigate = (path, q) => {
-    navigate(`${path}?q=${encodeURIComponent(q)}`);
-    setSearch("");
-    setSearchOpen(false);
+  // ── Color scheme (updates on every darkMode + scrolled change) ──
+  const bg = {
+    header:   darkMode
+      ? (scrolled ? "rgba(10,8,26,.97)" : "rgba(10,8,26,.80)")
+      : (scrolled ? "rgba(255,255,255,.97)" : "rgba(255,255,255,.82)"),
+    headerBd: darkMode ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.09)",
+    panel:    darkMode ? "#16142e" : "#ffffff",
+    panelBd:  darkMode ? "rgba(255,255,255,.1)" : "rgba(0,0,0,.1)",
+    divider:  darkMode ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)",
+    rowHov:   darkMode ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.04)",
+    btnHovBg: darkMode ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)",
+    iconClr:  darkMode ? "#7e82a0" : "#64748b",
+    iconHov:  darkMode ? "#f4f3fb" : "#0f172a",
+    text1:    darkMode ? "#f4f3fb" : "#0f172a",
+    text2:    darkMode ? "#a7abc8" : "#6b7280",
+    text3:    darkMode ? "#62668a" : "#94a3b8",
+    navClr:   darkMode ? "#c2c5dd" : "#374151",
+    mobileMenu: darkMode ? "#0c0a1e" : "#f8fafc",
+    mobileBd:   darkMode ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)",
   };
 
-  // ── FIXED: properly passes pathname + search so ?tab= is always picked up ──
+  const LANGS = [
+    { code:'fr', label:'Français',  short:'FR' },
+    { code:'en', label:'English',   short:'EN' },
+    { code:'ar', label:'العربية',   short:'AR' },
+  ];
+  const activeLang = LANGS.find(l => l.code === i18n.language) || LANGS[0];
+
   const handleDropdownNavigate = (to) => {
-    const [pathname, search] = to.split("?");
-    navigate({ pathname, search: search ? `?${search}` : "" });
+    const [pathname, qs] = to.split("?");
+    navigate({ pathname, search: qs ? `?${qs}` : "" });
   };
+
+  const userNotifs  = user && !user.isAdmin ? getUserNotifications(user.email) : [];
+  const adminNotifs = user?.isAdmin ? getAdminNotifications() : [];
+  const notifs      = user?.isAdmin ? adminNotifs : userNotifs;
+  const unreadCount = notifs.filter(n => !n.read).length;
+
+  const MenuIcon = ({ d, d2, color }) => (
+    <span style={{ width: 28, height: 28, borderRadius: 7, background: color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+        <path d={d}/>{d2 && <path d={d2}/>}
+      </svg>
+    </span>
+  );
+
+  const MENU_ITEMS = user?.isAdmin
+    ? [
+        { icon: <MenuIcon color="#7c6cf6" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, label: "Admin Dashboard", to: "/admin/dashboard" },
+        { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>, label: t("Log out"), logout: true },
+      ]
+    : user?.role === "freelancer"
+      ? [
+          { icon: <MenuIcon color="#7c6cf6" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: "Profil",      to: "/dashboard?tab=profile" },
+          { icon: <MenuIcon color="#10b981" d="M23 6l-9.5 9.5-5-5L1 18" d2="M17 6h6v6"/>,                                        label: "Gains",       to: "/dashboard?tab=gains" },
+          { icon: <MenuIcon color="#3ec2e8" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: "Messages",    to: "/messages" },
+          { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: "Paramètres", to: "/dashboard?tab=settings" },
+          { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: "Log out",     logout: true },
+        ]
+      : [
+          { icon: <MenuIcon color="#7c6cf6" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: "Profil",      to: "/dashboard"  },
+          { icon: <MenuIcon color="#f59e0b" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>,         label: "Projets",     to: "/projects"   },
+          { icon: <MenuIcon color="#10b981" d="M1 4h22v16H1z" d2="M1 10h22"/>,                                                     label: "Paiements",   to: "/payments"   },
+          { icon: <MenuIcon color="#3ec2e8" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: "Messages",    to: "/messages"   },
+          { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: "Paramètres", to: "/settings"   },
+          { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: "Log out",     logout: true      },
+        ];
 
   return (
     <>
+      <style>{`
+        @keyframes glowFloat {
+          0%,100% { filter:drop-shadow(0 0 8px rgba(124,108,246,.45)); transform:translateY(0); }
+          50%      { filter:drop-shadow(0 0 14px rgba(108,140,246,.6)); transform:translateY(-2px); }
+        }
+      `}</style>
+
+      {/* ── Fixed header ── */}
       <header
-        className={[
-          "fixed top-0 left-0 right-0 z-40 transition-all duration-300",
-          scrolled
-            ? "bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800/70 shadow-sm"
-            : "bg-white dark:bg-slate-950",
-        ].join(" ")}
+        className="fixed top-0 left-0 right-0 z-40"
+        style={{
+          background: bg.header,
+          backdropFilter: "blur(18px)",
+          WebkitBackdropFilter: "blur(18px)",
+          borderBottom: `1px solid ${bg.headerBd}`,
+          transition: "background 0.25s, border-color 0.25s",
+        }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 gap-4">
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 66, display: "flex", alignItems: "center", gap: 28 }}>
 
-            {/* Logo */}
-            <a href="/" className="font-extrabold text-xl tracking-tighter text-slate-900 dark:text-white">
-              Fama<span className="text-indigo-600">Mennou</span>
-            </a>
-
-            {/* Desktop Nav */}
-            <nav className="hidden lg:flex items-center gap-1 ml-4">
-              {NAV_LINKS.map(link => {
-                const isActive = location.pathname === link.to;
-                return (
-                  <MotionLink
-                    key={link.to}
-                    to={link.to}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`relative px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${
-                      isActive
-                        ? "text-indigo-600 dark:text-white bg-indigo-50/50 dark:bg-indigo-900/20"
-                        : "text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white"
-                    }`}
-                  >
-                    {link.label}
-                    {isActive && (
-                      <motion.div
-                        layoutId="nav-underline"
-                        className="absolute bottom-0 left-2 right-2 h-0.5 bg-indigo-600 rounded-full"
-                      />
-                    )}
-                  </MotionLink>
-                );
-              })}
-            </nav>
-
-            <div className="flex-1 hidden md:block max-w-sm mx-auto relative" ref={searchRef}>
-              <Searchbar
-                value={search}
-                onChange={(v) => { setSearch(v); setSearchOpen(!!v.trim()); }}
-                onSearch={(v) => { if (v.trim()) handleSearchNavigate(searchGroups[0]?.path || "/freelancers", v); }}
-                placeholder={t("Search…")}
-                compact
-              />
-              <AnimatePresence>
-                {searchOpen && search.trim() && (
-                  <motion.div
-                    key="search-dropdown"
-                    initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-[420px] overflow-y-auto"
-                  >
-                    {searchGroups.length === 0 ? (
-                      <div className="px-5 py-6 text-center text-sm text-slate-400">No results for "{search}"</div>
-                    ) : (
-                      searchGroups.map(group => (
-                        <div key={group.key} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
-                          <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{group.icon} {group.label}</span>
-                            <button onClick={() => handleSearchNavigate(group.path, search)} className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">See all →</button>
-                          </div>
-                          {group.results.map((item, i) => (
-                            <button key={i} onClick={() => handleSearchNavigate(group.path, item.name)} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left group/item">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate group-hover/item:text-indigo-600 dark:group-hover/item:text-indigo-400 transition-colors">{item.name}</p>
-                                <p className="text-xs text-slate-400 truncate">{item.sub}</p>
-                              </div>
-                              <svg className="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-                            </button>
-                          ))}
-                        </div>
-                      ))
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="flex items-center gap-2 ml-auto">
-
-              {/* Language Selector */}
-              <div className="relative">
-                <button
-                  onClick={() => setLangOpen(!langOpen)}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <img src={LANGUAGES.find(l => l.code === language)?.flag} className="w-6 shadow-sm rounded-sm" alt="flag" />
-                </button>
-                <AnimatePresence>
-                  {langOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50"
-                    >
-                      {LANGUAGES.map(lang => (
-                        <button
-                          key={lang.code}
-                          onClick={() => { onLanguageChange(lang.code); setLangOpen(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors ${
-                            language === lang.code
-                              ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30"
-                              : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                          }`}
-                        >
-                          <img src={lang.flag} className="w-5 h-3.5 object-cover rounded-[1px]" alt="" />
-                          {lang.label}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Theme Toggle */}
-              <button
-                onClick={toggleDark}
-                className="relative w-9 h-9 flex items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
-                aria-label="Toggle theme"
-              >
-                {/* Sun — visible in light, rotates out in dark */}
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" aria-hidden="true">
-                  <circle cx="12" cy="12" r="4"/>
-                  <path d="M12 2v2"/><path d="M12 20v2"/>
-                  <path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/>
-                  <path d="M2 12h2"/><path d="M20 12h2"/>
-                  <path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-                </svg>
-                {/* Moon — hidden in light, rotates in for dark */}
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" aria-hidden="true">
-                  <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>
-                </svg>
-              </button>
-
-              {/* ── LOGGED IN: Notification Bell + Profile Avatar + Dropdown ── */}
-              {user ? (
-                <>
-                  {/* ── Messages Icon ── */}
-                  <button
-                    onClick={() => {
-                      setNotifOpen(false);
-                      setProfOpen(false);
-                      setMenuOpen(false);
-                      setLangOpen(false);
-                      setMsgPanelOpen(v => !v);
-                    }}
-                    className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 transition-colors"
-                    title="Messages"
-                  >
-                    <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    {msgUnread > 0 && (
-                      <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center leading-none">
-                        {msgUnread > 9 ? '9+' : msgUnread}
-                      </span>
-                    )}
-                  </button>
-
-                  {/* ── Notification Bell ── */}
-                  <button
-                    onClick={() => {
-                      setNotifOpen(v => {
-                        if (!v) {
-                          if (user.isAdmin) markAllNotificationsRead("admin");
-                          else markAllNotificationsRead("user", user?.email);
-                        }
-                        return !v;
-                      });
-                    }}
-                    className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                    {(user.isAdmin ? adminUnreadCount : unreadCount) > 0 && (
-                      <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center leading-none">
-                        {(user.isAdmin ? adminUnreadCount : unreadCount) > 9 ? "9+" : (user.isAdmin ? adminUnreadCount : unreadCount)}
-                      </span>
-                    )}
-                  </button>
-
-                  <div className="relative" ref={profileRef}>
-                    <button
-                      onClick={() => setProfOpen(!profOpen)}
-                      className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 group"
-                    >
-                      {/* Avatar circle */}
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold shadow-sm group-hover:shadow-md transition-shadow">
-                        {getInitials(user.name)}
-                      </div>
-                      <div className="hidden sm:block text-left">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{user.name}</p>
-                        <p className="text-[10px] text-slate-400 leading-tight capitalize">{user.role ?? "member"}</p>
-                      </div>
-                      {/* Chevron */}
-                      <svg
-                        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${profOpen ? "rotate-180" : ""}`}
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
-                      </svg>
-                    </button>
-
-                    {/* Profile Dropdown */}
-                    <AnimatePresence>
-                      {profOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95, y: 8 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95, y: 8 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50"
-                        >
-                          {/* Header */}
-                          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-base font-bold shadow-md flex-shrink-0">
-                                {getInitials(user.name)}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
-                                <p className="text-xs text-slate-400 truncate">{user.email}</p>
-                                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                                  {user.isAdmin ? (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400">
-                                      Admin
-                                    </span>
-                                  ) : user.role && (
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${roleStyle.bg} ${roleStyle.text}`}>
-                                      {roleStyle.label}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Menu items */}
-                          <div className="py-1.5">
-
-                            {(user.isAdmin
-                              ? [
-                                  {
-                                    label: "Admin Dashboard",
-                                    to: "/admin/dashboard",
-                                    icon: (
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                      </svg>
-                                    ),
-                                  },
-                                  {
-                                    label: t("Log out"),
-                                    logout: true,
-                                    emoji: "🚪",
-                                  },
-                                ]
-                              : user.role === "freelancer"
-                                ? [
-                                    { label: t("Profil"),       to: "/dashboard?tab=profile",       emoji: "👤" },
-                                    { label: "Projets",         to: "/dashboard?tab=find-projects", emoji: "📋" },
-                                    { label: "Gains",           to: "/dashboard?tab=gains",         emoji: "💰" },
-                                    { label: t("Chat"),         to: "/messages",                    emoji: "💬" },
-                                    { label: t("Paramètres"),   to: "/dashboard?tab=settings",      emoji: "⚙️" },
-                                  ]
-                                : [
-                                    { label: t("Profil"),       to: "/profile",    emoji: "👤" },
-                                    { label: t("Projets"),      to: "/projects",   emoji: "🗂️" },
-                                    { label: t("Paiements"),    to: "/payments",   emoji: "💳" },
-                                    { label: t("Chat"),         to: "/messages",   emoji: "💬" },
-                                    { label: t("Paramètres"),   to: "/settings",   emoji: "⚙️" },
-                                  ]
-                            ).map(item => (
-                              <button
-                                key={item.label}
-                                onClick={() => {
-                                  setProfOpen(false);
-                                  if (item.logout) setLogoutConfirm(true);
-                                  else if (item.to) handleDropdownNavigate(item.to);
-                                }}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
-                                  item.logout
-                                    ? "font-bold bg-rose-600 hover:bg-rose-700 text-white"
-                                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-                                }`}
-                              >
-                                <span className="text-base w-5 text-center">{item.emoji || item.icon}</span>
-                                {item.label}
-                              </button>
-                            ))}
-
-                            {!user.isAdmin && (
-                              <button
-                                onClick={() => { setProfOpen(false); setLogoutConfirm(true); }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white transition-colors rounded-none"
-                              >
-                                <span className="text-base w-5 text-center">🚪</span>
-                                {t("Log out")}
-                              </button>
-                            )}
-                          </div>
-
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </>
-              ) : (
-                <div className="hidden sm:flex items-center gap-2">
-                  <Button variant="ghost"   onClick={() => onLogin("login")}>{t("Log in")}</Button>
-                  <Button variant="primary" onClick={() => onLogin("signup")}>{t("Sign up")}</Button>
-                </div>
-              )}
-
-              {/* Mobile Burger */}
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800"
-              >
-                <div className="space-y-1">
-                  <span className={`block w-5 h-0.5 bg-slate-600 transition-transform ${menuOpen ? "rotate-45 translate-y-1.5" : ""}`} />
-                  <span className={`block w-5 h-0.5 bg-slate-600 ${menuOpen ? "opacity-0" : ""}`} />
-                  <span className={`block w-5 h-0.5 bg-slate-600 transition-transform ${menuOpen ? "-rotate-45 -translate-y-1.5" : ""}`} />
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[100] bg-white dark:bg-slate-950 lg:hidden flex flex-col overflow-y-auto"
+          {/* Logo */}
+          <Link
+            to="/"
+            style={{ display: "flex", alignItems: "center", gap: 9, background: "none", border: "none", cursor: "pointer", padding: 0, flex: "none", textDecoration: "none" }}
           >
-            {/* Mobile menu header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-              <a href="/" className="font-extrabold text-xl tracking-tighter text-slate-900 dark:text-white">
-                Fama<span className="text-indigo-600">Mennou</span>
-              </a>
-              <button onClick={() => setMenuOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-lg font-bold">✕</button>
-            </div>
+            <LogoMark style={{ height: 38, width: "auto", display: "block", flexShrink: 0, animation: "glowFloat 4s ease-in-out infinite" }} />
+            <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.01em", whiteSpace: "nowrap", color: bg.text1 }}>
+              Fama<span style={{ color: "#9b8cff" }}>&nbsp;Mennou</span>
+            </span>
+          </Link>
 
-            {/* Search */}
-            <div className="px-5 pt-4 pb-2">
-              <Searchbar
-                value={search}
-                onChange={(v) => { setSearch(v); setSearchOpen(!!v.trim()); }}
-                onSearch={(v) => { if (v.trim()) { handleSearchNavigate(searchGroups[0]?.path || "/freelancers", v); setMenuOpen(false); }}}
-                placeholder={t("Search…")}
-                compact
-              />
-              {searchOpen && search.trim() && (
-                <div className="mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-                  {searchGroups.length === 0 ? (
-                    <div className="px-5 py-4 text-center text-sm text-slate-400">No results for "{search}"</div>
-                  ) : (
-                    searchGroups.map(group => (
-                      <div key={group.key} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
-                        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{group.icon} {group.label}</span>
-                          <button onClick={() => { handleSearchNavigate(group.path, search); setMenuOpen(false); }} className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">See all →</button>
-                        </div>
-                        {group.results.map((item, i) => (
-                          <button key={i} onClick={() => { handleSearchNavigate(group.path, item.name); setMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{item.name}</p>
-                              <p className="text-xs text-slate-400 truncate">{item.sub}</p>
-                            </div>
-                            <svg className="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-                          </button>
-                        ))}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Nav links */}
-            <nav className="flex flex-col px-3 py-2 gap-1">
-              {NAV_LINKS.map(link => (
+          {/* Desktop nav */}
+          <nav className="hidden lg:flex" style={{ alignItems: "center", gap: 0 }}>
+            {NAV_LINKS.map(link => {
+              const active = location.pathname === link.to;
+              return (
                 <Link
                   key={link.to}
                   to={link.to}
-                  onClick={() => setMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold transition-colors ${
-                    location.pathname === link.to
-                      ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
-                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60"
-                  }`}
+                  style={{
+                    background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 14.5, fontWeight: 600, whiteSpace: "nowrap",
+                    color: active ? "#9b8cff" : bg.navClr,
+                    padding: "8px 13px", borderRadius: 8, textDecoration: "none",
+                    display: "block", transition: "color 0.15s, background 0.15s",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = bg.iconHov; e.currentTarget.style.background = bg.btnHovBg; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = active ? "#9b8cff" : bg.navClr; e.currentTarget.style.background = "none"; }}
                 >
                   {link.label}
                 </Link>
-              ))}
-            </nav>
+              );
+            })}
+          </nav>
 
-            {/* Bottom section */}
-            <div className="mt-auto px-5 pb-8 pt-4 border-t border-slate-100 dark:border-slate-800">
-              {user ? (
-                <>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                      {getInitials(user.name)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
-                      <p className="text-xs text-slate-400 truncate">{user.email}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => { setMenuOpen(false); setLogoutConfirm(true); }}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          {/* Spacer */}
+          <div style={{ flex: 1, minWidth: 14 }} />
+
+          {/* Right side */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {user ? (
+              <>
+                {/* Dark / Light toggle (1st) */}
+                <button
+                  onClick={toggleTheme}
+                  className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl transition-all"
+                  style={{ color: bg.iconClr, background: 'transparent' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = bg.iconClr; }}
+                  title={darkMode ? 'Switch to Light mode' : 'Switch to Dark mode'}
+                >
+                  {darkMode ? (
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="5"/>
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
                     </svg>
-                    {t("Log out")}
-                  </button>
-                </>
-              ) : (
-                <div className="flex flex-col gap-3">
+                  ) : (
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                  )}
+                </button>
+
+                {/* Language selector (2nd) */}
+                <div className="relative hidden sm:block" ref={langRef}>
                   <button
-                    onClick={() => { onLogin("login"); setMenuOpen(false); }}
-                    className="w-full py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm hover:border-indigo-400 transition-colors"
+                    onClick={() => { setLangOpen(v => !v); setProfOpen(false); setNotifOpen(false); setMsgOpen(false); }}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all"
+                    style={{
+                      color: langOpen ? bg.iconHov : bg.iconClr,
+                      background: langOpen ? bg.btnHovBg : "transparent",
+                      border: `1px solid ${langOpen ? bg.headerBd : "transparent"}`,
+                      fontSize: 11, fontWeight: 700, letterSpacing: '.03em', cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { if (!langOpen) { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}}
+                    onMouseLeave={e => { if (!langOpen) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}}
                   >
-                    {t("Log in")}
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    {activeLang.short}
+                    <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ transform: langOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform .2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
                   </button>
+
+                  <AnimatePresence>
+                    {langOpen && (
+                      <motion.div
+                        initial={{ opacity:0, scale:.95, y:6 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:6 }} transition={{ duration:.13 }}
+                        style={{ position:'absolute', right:0, marginTop:8, width:148, borderRadius:14, background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow:'0 16px 48px rgba(0,0,0,.25)', overflow:'hidden', zIndex:60 }}>
+                        {LANGS.map(l => (
+                          <button key={l.code}
+                            onClick={() => { i18n.changeLanguage(l.code); setLangOpen(false); }}
+                            style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', background: i18n.language === l.code ? 'rgba(124,108,246,0.12)' : 'transparent', border:'none', cursor:'pointer', fontFamily:'inherit', transition:'background .15s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = bg.rowHov}
+                            onMouseLeave={e => e.currentTarget.style.background = i18n.language === l.code ? 'rgba(124,108,246,0.12)' : 'transparent'}>
+                            <span style={{ fontSize:13, fontWeight:600, color: i18n.language === l.code ? '#9b8cff' : bg.text2 }}>{l.label}</span>
+                            {i18n.language === l.code && (
+                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            )}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Messages — chat (3rd) */}
+                <button
+                  onClick={() => { setNotifOpen(false); setProfOpen(false); setMsgOpen(v => !v); }}
+                  className="relative w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
+                  style={{ color: bg.iconClr, background: "transparent" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}
+                  title="Messages"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                  </svg>
+                  {msgUnread > 0 && (
+                    <span className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-extrabold text-white" style={{ background: "#ef4444" }}>
+                      {msgUnread > 9 ? "9+" : msgUnread}
+                    </span>
+                  )}
+                </button>
+
+                {/* Bell — notifications (4th) */}
+                <button
+                  onClick={() => {
+                    setNotifOpen(v => {
+                      if (!v) { user.isAdmin ? markAllNotificationsRead("admin") : markAllNotificationsRead("user", user.email); }
+                      return !v;
+                    });
+                    setMsgOpen(false); setProfOpen(false);
+                  }}
+                  className="relative w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
+                  style={{ color: bg.iconClr, background: "transparent" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}
+                  title="Notifications"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-extrabold text-white" style={{ background: "#7c6cf6" }}>
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Separator */}
+                <div style={{ width: 1, height: 22, background: bg.headerBd, flexShrink: 0 }} className="hidden sm:block" />
+
+                {/* Profile */}
+                <div className="relative" ref={profRef}>
                   <button
-                    onClick={() => { onLogin("signup"); setMenuOpen(false); }}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/30"
+                    onClick={() => { setProfOpen(v => !v); setNotifOpen(false); setMsgOpen(false); }}
+                    className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-2xl transition-all"
+                    style={{ background: profOpen ? bg.btnHovBg : "transparent", border: `1px solid ${profOpen ? bg.headerBd : "transparent"}` }}
                   >
-                    {t("Sign up")}
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0"
+                      style={{ background: user.photo ? 'transparent' : avatarGradient(user.email) }}>
+                      {user.photo ? <img src={cldImg(user.photo)} alt={user.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : getInitials(user.name)}
+                    </div>
+                    <div className="hidden sm:block text-left">
+                      <p className="text-xs font-bold leading-tight" style={{ color: bg.text1 }}>{user.name}</p>
+                      <p className="text-[10px] leading-tight capitalize" style={{ color: bg.text3 }}>{user.role ?? "membre"}</p>
+                    </div>
+                    <svg className={`w-3 h-3 transition-transform ${profOpen ? "rotate-180" : ""}`} style={{ color: bg.text3 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
                   </button>
+
+                  <AnimatePresence>
+                    {profOpen && (
+                      <motion.div
+                        initial={{ opacity:0, scale:.95, y:8 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:8 }} transition={{ duration:.14 }}
+                        className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl z-50"
+                        style={{ background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow:"0 24px 64px rgba(0,0,0,.2)" }}
+                      >
+                        <div className="px-4 py-3.5" style={{ borderBottom: `1px solid ${bg.divider}` }}>
+                          <div className="flex items-center gap-2.5 mb-2">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden"
+                              style={{ background: user.photo ? 'transparent' : avatarGradient(user.email) }}>
+                              {user.photo ? <img src={cldImg(user.photo)} alt={user.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : getInitials(user.name)}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold truncate" style={{ color: bg.text1 }}>{user.name}</p>
+                              <p className="text-[11px] truncate" style={{ color: bg.text3 }}>{user.email}</p>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize"
+                            style={user.isAdmin
+                              ? { background:"rgba(239,68,68,0.15)", border:"1px solid rgba(239,68,68,0.3)", color:"#f87171" }
+                              : { background:"rgba(124,108,246,0.12)", border:"1px solid rgba(124,108,246,0.25)", color:"#9b8cff" }}>
+                            {user.isAdmin ? "Admin" : user.role}
+                          </span>
+                        </div>
+                        <div className="py-1.5">
+                          {MENU_ITEMS.map((item) => (
+                            <button key={item.label}
+                              onClick={() => { setProfOpen(false); item.logout ? setLogoutModal(true) : handleDropdownNavigate(item.to); }}
+                              className="w-full text-left transition-all"
+                              style={{
+                                display: "flex", alignItems: "center", gap: 10,
+                                padding: "9px 16px",
+                                fontSize: 13.5, fontWeight: 500, letterSpacing: "0.01em",
+                                color: item.logout ? "#f87171" : bg.text2,
+                                background: "transparent",
+                                border: "none", cursor: "pointer", fontFamily: "inherit",
+                                borderTop: item.logout ? `1px solid ${bg.divider}` : "none",
+                                marginTop: item.logout ? 4 : 0,
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.background = item.logout ? "rgba(239,68,68,0.08)" : bg.rowHov; e.currentTarget.style.color = item.logout ? "#f87171" : bg.text1; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = item.logout ? "#f87171" : bg.text2; }}>
+                              <span style={{ display:"flex", alignItems:"center", flexShrink:0 }}>{item.icon}</span>
+                              <span style={{ fontWeight: 500 }}>{item.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
+            ) : (
+              <div className="hidden sm:flex items-center" style={{ gap: 10 }}>
+                <button
+                  onClick={() => onLogin?.("login")}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14.5, fontWeight: 600, whiteSpace: "nowrap", color: bg.navClr, padding: "8px 8px" }}
+                  onMouseEnter={e => e.currentTarget.style.color = bg.iconHov}
+                  onMouseLeave={e => e.currentTarget.style.color = bg.navClr}
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={() => onLogin?.("signup")}
+                  style={{ background: "#7c6cf6", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", color: "#fff", padding: "9px 18px", borderRadius: 10, boxShadow: "0 6px 16px -5px rgba(124,108,246,.7)" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#6a5cf0"}
+                  onMouseLeave={e => e.currentTarget.style.background = "#7c6cf6"}
+                >
+                  Sign up
+                </button>
+              </div>
+            )}
+
+            {/* Hamburger — mobile only */}
+            <button
+              onClick={() => setMenuOpen(v => !v)}
+              className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
+              style={{ background: bg.btnHovBg, border: `1px solid ${bg.headerBd}`, color: bg.iconClr }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {[0,1,2].map(i => (
+                  <span key={i} style={{
+                    display: "block", width: 18, height: 2, borderRadius: 2,
+                    background: bg.iconClr,
+                    transform: menuOpen && i===0 ? "rotate(45deg) translateY(7px)" : menuOpen && i===2 ? "rotate(-45deg) translateY(-7px)" : "",
+                    opacity: menuOpen && i===1 ? 0 : 1,
+                    transition: "transform .2s, opacity .2s",
+                  }} />
+                ))}
+              </div>
+            </button>
+          </div>
+
+        </div>
+      </header>
+
+      {/* ── Mobile sidebar ── */}
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            {/* Backdrop — click to close */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              className="fixed inset-0 z-[99] lg:hidden"
+              style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)" }}
+              onClick={() => setMenuOpen(false)}
+            />
+
+            {/* Sidebar panel */}
+            <motion.div
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 240 }}
+              className="fixed top-0 right-0 bottom-0 z-[100] flex flex-col lg:hidden"
+              style={{
+                width: "min(300px, calc(100vw - 48px))",
+                background: bg.mobileMenu,
+                borderLeft: `1px solid ${bg.mobileBd}`,
+                boxShadow: "-20px 0 60px rgba(0,0,0,0.4)",
+                overflowY: "auto",
+              }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3.5 shrink-0" style={{ borderBottom: `1px solid ${bg.mobileBd}` }}>
+                <Link to="/" onClick={() => setMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 7, textDecoration: "none" }}>
+                  <LogoMark style={{ height: 30, width: "auto", display: "block", flexShrink: 0 }} />
+                  <span style={{ fontWeight: 700, fontSize: 15, color: bg.text1 }}>
+                    Fama<span style={{ color: "#9b8cff" }}>&nbsp;Mennou</span>
+                  </span>
+                </Link>
+                <button onClick={() => setMenuOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-xl"
+                  style={{ background: bg.btnHovBg, color: bg.iconClr }}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+
+              {/* User info strip */}
+              {user && (
+                <div className="flex items-center gap-3 px-4 py-3 shrink-0" style={{ borderBottom: `1px solid ${bg.mobileBd}` }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden"
+                    style={{ background: user.photo ? "transparent" : avatarGradient(user.email) }}>
+                    {user.photo ? <img src={cldImg(user.photo)} alt={user.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : getInitials(user.name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold truncate leading-tight" style={{ color: bg.text1 }}>{user.name}</p>
+                    <p className="text-[10px] truncate" style={{ color: bg.text3 }}>{user.email}</p>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize shrink-0"
+                    style={user.isAdmin
+                      ? { background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }
+                      : { background: "rgba(124,108,246,0.12)", border: "1px solid rgba(124,108,246,0.25)", color: "#9b8cff" }}>
+                    {user.isAdmin ? "Admin" : user.role}
+                  </span>
                 </div>
               )}
-            </div>
-          </motion.div>
+
+              {/* Nav links */}
+              <nav className="flex flex-col px-3 py-3 gap-0.5 flex-1">
+
+                {/* ── Discover ── */}
+                <p className="px-3 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>Discover</p>
+                {[
+                  { label: "Hire Freelancers", to: "/freelancers", icon: <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>, icon2: <circle cx="9" cy="7" r="4"/>, color: "#9b8cff" },
+                  { label: "Find Clients",     to: "/clients",    icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#0ea5e9" },
+                  { label: "Courses",          to: "/courses",    icon: <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>, icon2: <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>, color: "#10b981" },
+                ].map(item => {
+                  const active = location.pathname === item.to;
+                  return (
+                    <Link key={item.to} to={item.to} onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold no-underline transition-colors"
+                      style={{ color: active ? "#9b8cff" : bg.navClr, background: active ? "rgba(124,108,246,0.1)" : "transparent" }}
+                      onMouseEnter={e => { if (!active) { e.currentTarget.style.background = bg.btnHovBg; } }}
+                      onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; } }}>
+                      <span style={{ width: 28, height: 28, borderRadius: 8, background: active ? `${item.color}22` : bg.btnHovBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={active ? item.color : bg.iconClr} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+                          {item.icon}{item.icon2}
+                        </svg>
+                      </span>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+
+                {/* ── Account (logged-in non-admin) ── */}
+                {user && !user.isAdmin && (
+                  <>
+                    <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>Account</p>
+                    {[
+                      { label: "Dashboard",  to: "/dashboard",  icon: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>, color: "#7c6cf6" },
+                      { label: "Projects",   to: "/projects",   icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#f59e0b" },
+                      { label: "Messages",   to: "/messages",   icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
+                      { label: "Payments",   to: "/payments",   icon: <><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></>, color: "#10b981" },
+                      { label: "Settings",   to: "/settings",   icon: <><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></>, color: "#94a3b8" },
+                    ].map(item => {
+                      const active = location.pathname === item.to;
+                      return (
+                        <Link key={item.to} to={item.to} onClick={() => setMenuOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold no-underline transition-colors"
+                          style={{ color: active ? "#9b8cff" : bg.navClr, background: active ? "rgba(124,108,246,0.1)" : "transparent" }}
+                          onMouseEnter={e => { if (!active) { e.currentTarget.style.background = bg.btnHovBg; } }}
+                          onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; } }}>
+                          <span style={{ width: 28, height: 28, borderRadius: 8, background: active ? `${item.color}22` : bg.btnHovBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={active ? item.color : bg.iconClr} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+                              {item.icon}
+                            </svg>
+                          </span>
+                          <span className="flex-1">{item.label}</span>
+                          {item.badge > 0 && (
+                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold text-white" style={{ background: "#ef4444" }}>
+                              {item.badge > 9 ? "9+" : item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </>
+                )}
+
+                {/* ── Admin section ── */}
+                {user?.isAdmin && (
+                  <>
+                    <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>Admin</p>
+                    {[
+                      { label: "Dashboard", to: "/admin/dashboard", icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, color: "#7c6cf6" },
+                      { label: "Messages",  to: "/messages",        icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
+                    ].map(item => {
+                      const active = location.pathname === item.to;
+                      return (
+                        <Link key={item.to} to={item.to} onClick={() => setMenuOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold no-underline transition-colors"
+                          style={{ color: active ? "#9b8cff" : bg.navClr, background: active ? "rgba(124,108,246,0.1)" : "transparent" }}
+                          onMouseEnter={e => { if (!active) { e.currentTarget.style.background = bg.btnHovBg; } }}
+                          onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; } }}>
+                          <span style={{ width: 28, height: 28, borderRadius: 8, background: active ? `${item.color}22` : bg.btnHovBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={active ? item.color : bg.iconClr} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+                              {item.icon}
+                            </svg>
+                          </span>
+                          <span className="flex-1">{item.label}</span>
+                          {item.badge > 0 && (
+                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold text-white" style={{ background: "#ef4444" }}>
+                              {item.badge > 9 ? "9+" : item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </>
+                )}
+              </nav>
+
+              {/* Bottom actions */}
+              <div className="px-4 pb-8 pt-3 shrink-0" style={{ borderTop: `1px solid ${bg.mobileBd}` }}>
+                {user ? (
+                  <button onClick={() => { setMenuOpen(false); setLogoutModal(true); }}
+                    className="w-full py-3 rounded-xl font-bold text-sm transition-all"
+                    style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.18)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,0.1)"}>
+                    Log out
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <button onClick={() => { onLogin?.("login"); setMenuOpen(false); }}
+                      className="w-full py-3 rounded-xl font-bold text-sm transition-all"
+                      style={{ border: `1px solid ${bg.headerBd}`, color: bg.text2 }}
+                      onMouseEnter={e => e.currentTarget.style.background = bg.btnHovBg}
+                      onMouseLeave={e => e.currentTarget.style.background = ""}>
+                      Log in
+                    </button>
+                    <button onClick={() => { onLogin?.("signup"); setMenuOpen(false); }}
+                      className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90"
+                      style={{ background: "#7c6cf6", boxShadow: "0 4px 14px -3px rgba(124,108,246,.5)" }}>
+                      Sign up
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
-      {/* ── Notifications Panel ── */}
-      {notifOpen && user && !user.isAdmin && (
-        <UserNotificationsPanel
-          notifications={userNotifications}
-          onMarkRead={id => markNotificationRead(id)}
-          onMarkAll={() => markAllNotificationsRead("user", user.email)}
-          onClear={() => clearNotifications("user", user.email)}
-          onClose={() => setNotifOpen(false)}
-        />
-      )}
-      {notifOpen && user?.isAdmin && (
-        <UserNotificationsPanel
-          notifications={adminNotifications}
-          onMarkRead={id => markNotificationRead(id)}
-          onMarkAll={() => markAllNotificationsRead("admin")}
-          onClear={() => clearNotifications("admin")}
-          onClose={() => setNotifOpen(false)}
-        />
-      )}
-
-      {/* ── Messages Panel ── */}
+      {/* ── Notifications ── */}
       <AnimatePresence>
-        {msgPanelOpen && user && (
+        {notifOpen && user && (
+          <NotifPanel
+            notifications={notifs}
+            dark={darkMode}
+            onMarkRead={id => markNotificationRead(id)}
+            onMarkAll={() => user.isAdmin ? markAllNotificationsRead("admin") : markAllNotificationsRead("user", user.email)}
+            onClear={() => user.isAdmin ? clearNotifications("admin") : clearNotifications("user", user.email)}
+            onClose={() => setNotifOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Messages ── */}
+      <AnimatePresence>
+        {msgOpen && user && (
           <MessagesPanel
-            conversations={msgConversations}
-            senderEmail={user.isAdmin ? 'admin@famamennou.com' : user.email}
-            isAdmin={!!user.isAdmin}
-            onClose={() => setMsgPanelOpen(false)}
-            onChatOpen={(email) => {
-              setMsgPanelOpen(false);
-              if (!user) return;
+            conversations={msgConvs}
+            dark={darkMode}
+            senderEmail={user.isAdmin ? "admin@famamennou.com" : user.email}
+            onClose={() => setMsgOpen(false)}
+            onChatOpen={email => {
+              setMsgOpen(false);
               const isAdmin = !!user.isAdmin;
-              const dest = email
-                ? (isAdmin
-                    ? `/admin/dashboard?tab=chat&with=${encodeURIComponent(email)}`
-                    : `/messages?with=${encodeURIComponent(email)}`)
-                : (isAdmin ? '/admin/dashboard?tab=chat' : '/messages');
-              navigate(dest);
+              navigate(email
+                ? (isAdmin ? `/admin/dashboard?tab=chat&with=${encodeURIComponent(email)}` : `/messages?with=${encodeURIComponent(email)}`)
+                : (isAdmin ? "/admin/dashboard?tab=chat" : "/messages")
+              );
             }}
           />
         )}
       </AnimatePresence>
 
-      {/* ── Logout Confirmation Modal ── */}
+      {/* ── Logout modal ── */}
       <AnimatePresence>
-        {logoutConfirm && (
+        {logoutModal && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-            style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.4)' }}
+            style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)" }}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 12 }}
-              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden"
+              initial={{ opacity:0, scale:.92, y:12 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.92, y:12 }} transition={{ duration:.18 }}
+              className="w-full max-w-sm overflow-hidden rounded-2xl"
+              style={{ background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow: "0 24px 64px rgba(0,0,0,.35)" }}
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between px-6 pt-6 pb-0">
-                <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-2xl">
-                  🚪
-                </div>
-                <button
-                  onClick={() => setLogoutConfirm(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)" }}>
+                  <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
                   </svg>
+                </div>
+                <button onClick={() => setLogoutModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: bg.btnHovBg, color: bg.text3 }}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
               <div className="px-6 py-4">
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">
-                  {t("Se déconnecter ?")}
-                </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {t("Vous serez redirigé vers la page d'accueil.")}
-                </p>
+                <h3 className="text-base font-extrabold mb-1" style={{ color: bg.text1 }}>Log out?</h3>
+                <p className="text-sm" style={{ color: bg.text2 }}>You will be redirected to the home page.</p>
               </div>
               <div className="flex gap-3 px-6 pb-6">
-                <button
-                  onClick={() => setLogoutConfirm(false)}
-                  className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  {t("Annuler")}
+                <button onClick={() => setLogoutModal(false)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
+                  style={{ border: `1px solid ${bg.headerBd}`, color: bg.text2 }}
+                  onMouseEnter={e => e.currentTarget.style.background = bg.rowHov}
+                  onMouseLeave={e => e.currentTarget.style.background = ""}>
+                  Cancel
                 </button>
-                <button
-                  onClick={() => { logout(); setLogoutConfirm(false); }}
-                  className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-sm font-bold text-white transition-colors shadow-sm shadow-rose-500/30"
-                >
-                  {t("Oui, déconnecter")}
+                <button onClick={() => { logout(); setLogoutModal(false); }}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 4px 12px -3px rgba(239,68,68,.4)" }}>
+                  Yes, log out
                 </button>
               </div>
             </motion.div>

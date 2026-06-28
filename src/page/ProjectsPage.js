@@ -1,370 +1,968 @@
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { cldImg } from '../utils/cloudinary';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
+const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
-const EXPERIENCE_OPTIONS = [
-  'Débutant (0-1 an)',
-  '1-2 ans',
-  '3-5 ans',
-  '5-10 ans',
-  '10+ ans',
-];
-
-const PERIOD_OPTIONS = [
-  'De 1 à 3 jours',
-  'De 4 à 7 jours',
-  'De 1 à 2 semaines',
-  'De 2 à 4 semaines',
-  'De 1 à 3 mois',
-  'Plus de 3 mois',
-];
-
-const STATUS_LABELS = {
-  open:        { label: '🟢 Ouvert',     cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
-  in_progress: { label: '🔵 En cours',   cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
-  completed:   { label: '✅ Terminé',    cls: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' },
+const CATEGORIES    = ['All','Technology','Design','Marketing','E-commerce','Education','Finance'];
+const CAT_KEYS = {
+  Technology:  ['react','node','javascript','python','java','code','dev','flutter','mobile','backend','frontend','api','tech','web','app','software'],
+  Design:      ['design','figma','ui','ux','graphic','logo','brand','visual','creative','illustration'],
+  Marketing:   ['marketing','seo','ads','social','content','growth','campaign','email','analytics','digital'],
+  'E-commerce':['ecommerce','e-commerce','shop','store','woocommerce','shopify','payment','stripe','cart'],
+  Education:   ['education','cours','course','formation','training','e-learning','mooc','pedagogie'],
+  Finance:     ['finance','compta','accounting','audit','tax','budget','excel','invoice','facture'],
 };
+const TINTS = [
+  ['#7c6cf6','rgba(124,108,246,0.18)'],['#a855f7','rgba(168,85,247,0.18)'],
+  ['#3b82f6','rgba(59,130,246,0.18)'], ['#0ea5e9','rgba(14,165,233,0.18)'],
+  ['#10b981','rgba(16,185,129,0.18)'], ['#f59e0b','rgba(245,158,11,0.18)'],
+  ['#f43f5e','rgba(244,63,94,0.18)'],  ['#06b6d4','rgba(6,182,212,0.18)'],
+];
+const STATUS_MAP = {
+  open:        { label:'Ouvert',   color:'#10b981', bg:'rgba(16,185,129,0.1)',  border:'rgba(16,185,129,0.28)'  },
+  in_progress: { label:'En cours', color:'#0ea5e9', bg:'rgba(14,165,233,0.1)',  border:'rgba(14,165,233,0.28)'  },
+  completed:   { label:'Terminé',  color:'#7c6cf6', bg:'rgba(124,108,246,0.1)', border:'rgba(124,108,246,0.28)' },
+};
+const EXPERIENCE_OPTIONS = ['Débutant (0-1 an)','1-2 ans','3-5 ans','5-10 ans','10+ ans'];
+const PERIOD_OPTIONS     = ['De 1 à 3 jours','De 4 à 7 jours','De 1 à 2 semaines','De 2 à 4 semaines','De 1 à 3 mois','Plus de 3 mois'];
+const PERIOD_DAYS        = {'De 1 à 3 jours':2,'De 4 à 7 jours':5,'De 1 à 2 semaines':10,'De 2 à 4 semaines':21,'De 1 à 3 mois':60,'Plus de 3 mois':90};
 
-export default function ProjectsPage() {
-  const { t } = useTranslation();
-  const { user, resolveEmail } = useAuth();
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [proposals, setProposals] = useState({}); // projectId -> array
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', budget: '10', experience: '', period: '', keywords: ['', '', '', '', ''] });
-  const [posting, setPosting] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
-  const [postError, setPostError] = useState('');
+const getTint     = s => TINTS[((s||'').charCodeAt(0)||0) % TINTS.length];
+const getInitials = n => (n||'').trim().split(/\s+/).map(w=>w[0]?.toUpperCase()||'').slice(0,2).join('');
 
-  function loadProjects() {
-    if (!user?.email) return;
-    fetch(`${API_URL}/projects/${encodeURIComponent(user.email)}`)
-      .then(r => r.json())
-      .then(rows => setProjects(Array.isArray(rows) ? rows : []))
-      .catch(() => setProjects([]))
-      .finally(() => setLoading(false));
-  }
+function timeAgo(date) {
+  if (!date) return '';
+  const diff = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diff/60000);
+  if (mins < 60)  return `${mins}m`;
+  const h = Math.floor(mins/60);
+  if (h < 24)     return `${h}h`;
+  const d = Math.floor(h/24);
+  if (d < 7)      return `${d}j`;
+  if (d < 30)     return `${Math.floor(d/7)}sem`;
+  return `${Math.floor(d/30)}mois`;
+}
 
-  useEffect(() => { loadProjects(); }, [user?.email]);
+/* ── SVG Icons (all inline SVG, no emoji) ── */
+const IcSearch    = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>;
+const IcChev      = ({s=13}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>;
+const IcChevRight = ({s=13}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
+const IcVerified  = ({s=10}) => <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"/></svg>;
+const IcPin       = ({s=11}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
+const IcClock     = ({s=12}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>;
+const IcLevel     = ({s=12}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 12-4-4v3H3v2h15v3z"/></svg>;
+const IcUsers     = ({s=12}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const IcDollar    = ({s=12}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
+const IcX         = ({s=14}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>;
+const IcPlus      = ({s=14}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>;
+const IcCheck     = ({s=13}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+const IcTrash     = ({s=13}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>;
+const IcEdit      = ({s=13}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
+const IcLock      = ({s=13}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+const IcFolder    = ({s=16}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>;
+const IcGlobe     = ({s=16}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;
+const IcLink      = ({s=11}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
+const IcStar      = ({s=12,filled=false}) => filled
+  ? <svg width={s} height={s} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+  : <svg width={s} height={s} fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>;
 
-  useEffect(() => {
-    projects.filter(p => p.status === 'open').forEach(p => {
-      fetch(`${API_URL}/proposals/project/${p.id}`)
-        .then(r => r.json())
-        .then(rows => setProposals(prev => ({ ...prev, [p.id]: Array.isArray(rows) ? rows : [] })))
-        .catch(() => {});
-    });
-  }, [projects]);
+/* ── Shared input styles ── */
+const MI = { background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, color:'#f4f3fb', padding:'10px 12px', fontSize:13, outline:'none', fontFamily:'inherit', width:'100%', boxSizing:'border-box' };
+const onFoc = e => { e.target.style.borderColor='rgba(124,108,246,0.5)'; };
+const onBlr = e => { e.target.style.borderColor='rgba(255,255,255,0.1)'; };
 
-  async function handlePost(e) {
+/* ── Period Dropdown (custom, fully dark) ── */
+function PeriodSelect({ value, onChange, maxDays }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position:'relative' }}>
+      <button type="button" onClick={()=>setOpen(o=>!o)} onBlur={()=>setTimeout(()=>setOpen(false),150)}
+        style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(255,255,255,0.05)', border:`1px solid ${open?'rgba(124,108,246,0.5)':'rgba(255,255,255,0.1)'}`, borderRadius:12, color:value?'#f4f3fb':'#62668a', padding:'10px 13px', fontSize:13, cursor:'pointer', fontFamily:'inherit', textAlign:'left', transition:'border-color .2s', boxSizing:'border-box' }}>
+        <span>{value || 'Sélectionner une période…'}</span>
+        <div style={{ transform:open?'rotate(180deg)':'none', transition:'transform .2s', color:'#62668a', flexShrink:0, marginLeft:8 }}><IcChev s={13}/></div>
+      </button>
+      {open && (
+        <div style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, zIndex:600, background:'#13112a', border:'1px solid rgba(124,108,246,0.3)', borderRadius:14, boxShadow:'0 16px 48px -8px rgba(0,0,0,0.85)', overflow:'hidden' }}>
+          {PERIOD_OPTIONS.map(o => {
+            const tooLong = maxDays !== undefined && (PERIOD_DAYS[o] || 0) > maxDays;
+            return (
+              <button key={o} type="button"
+                onMouseDown={()=>{ if (!tooLong) { onChange(o); setOpen(false); } }}
+                style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', textAlign:'left', padding:'11px 14px',
+                  background: value===o ? 'rgba(124,108,246,0.12)' : 'transparent',
+                  color: tooLong ? '#3a3d5c' : value===o ? '#9b8cff' : '#c2c5dd',
+                  border:'none', cursor: tooLong ? 'not-allowed' : 'pointer', fontSize:13,
+                  fontFamily:'inherit', fontWeight: value===o ? 700 : 400,
+                  opacity: tooLong ? 0.55 : 1, transition:'background .12s' }}
+                onMouseEnter={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='rgba(255,255,255,0.05)';}}
+                onMouseLeave={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='transparent';}}>
+                <span>{o}</span>
+                {tooLong && <span style={{ fontSize:10, fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:6, padding:'1px 7px', flexShrink:0, marginLeft:8 }}>Trop long</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   APPLY MODAL — freelancer applies to a project
+   ══════════════════════════════════════════════════════════════ */
+function ApplyModal({ project, user, onClose, onDone }) {
+  const [period,    setPeriod]    = useState('');
+  const [portfolio, setPortfolio] = useState('');
+  const [letter,    setLetter]    = useState('');
+  const [sending,   setSending]   = useState(false);
+  const [err,       setErr]       = useState('');
+
+  const clientMaxDays = PERIOD_DAYS[project.period]; // undefined if project has no period set
+
+  async function submit(e) {
     e.preventDefault();
-    const errors = {};
-    if (!form.title.trim()) errors.title = true;
-    if (!form.description.trim()) errors.description = true;
-    if (!form.experience) errors.experience = true;
-    if (!form.period) errors.period = true;
-    if (Object.keys(errors).length) { setFormErrors(errors); return; }
-    setFormErrors({});
-    setPostError('');
-    setPosting(true);
+    if (!period)    { setErr('Veuillez sélectionner une période.'); return; }
+    if (!portfolio) { setErr('Le lien portfolio est requis.'); return; }
+    if (clientMaxDays !== undefined && (PERIOD_DAYS[period] || 0) > clientMaxDays) {
+      setErr(`Période trop longue. Le client accepte au maximum : "${project.period}".`);
+      return;
+    }
+    setSending(true); setErr('');
     try {
-      const res = await fetch(`${API_URL}/projects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientEmail: user.email, ...form, keywords: form.keywords.filter(k => k.trim()).map(k => `#${k.trim()}`).join(' ') }),
+      const res = await fetch(`${API}/proposals`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ projectId:project.id, freelancerEmail:user.email, price:1, deliveryDays:PERIOD_DAYS[period]||1, coverLetter:portfolio ? `[portfolio:${portfolio}]\n${letter}` : letter }),
       });
       const data = await res.json();
-      if (!res.ok || data.error) {
-        setPostError(data.error || 'Erreur serveur');
-        return;
-      }
-      setForm({ title: '', description: '', budget: '10', experience: '', period: '', keywords: ['', '', '', '', ''] });
-      setFormErrors({});
-      setPostError('');
-      setShowForm(false);
-      loadProjects();
-    } catch (err) {
-      setPostError('Impossible de joindre le serveur. Réessayez.');
-    } finally { setPosting(false); }
+      if (!res.ok || data.error) { setErr(data.error||'Vous avez déjà postulé à ce projet.'); return; }
+      onDone();
+    } catch { setErr('Impossible de joindre le serveur.'); }
+    finally { setSending(false); }
   }
-
-  async function handleAccept(proposalId, projectId) {
-    try {
-      await fetch(`${API_URL}/proposals/${proposalId}/accept`, { method: 'PATCH' });
-      loadProjects();
-      setProposals(prev => ({ ...prev, [projectId]: undefined }));
-    } catch {}
-  }
-
-  async function handleReject(proposalId, projectId) {
-    try {
-      await fetch(`${API_URL}/proposals/${proposalId}/reject`, { method: 'PATCH' });
-      setProposals(prev => ({ ...prev, [projectId]: (prev[projectId] || []).filter(pr => pr.id !== proposalId) }));
-    } catch {}
-  }
-
-  async function handlePayment(projectId, action) {
-    try {
-      await fetch(`${API_URL}/projects/${projectId}/notify`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ target: 'client', action }),
-      });
-      loadProjects();
-    } catch {}
-  }
-
-  async function handleDelete(projectId) {
-    if (!window.confirm('Supprimer ce projet ?')) return;
-    try {
-      await fetch(`${API_URL}/projects/${projectId}`, { method: 'DELETE' });
-      setProjects(prev => prev.filter(p => p.id !== projectId));
-    } catch {}
-  }
-
-  if (!user) return null;
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="max-w-2xl mx-auto space-y-10">
+    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}
+      onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
+      <div style={{ width:'100%', maxWidth:480, background:'#13112a', border:'1px solid rgba(124,108,246,0.3)', borderRadius:22, padding:'28px 28px 24px', boxShadow:'0 24px 80px -12px rgba(0,0,0,0.7)' }}>
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:20 }}>
+          <div>
+            <p style={{ fontSize:11, fontWeight:700, color:'#7c6cf6', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 4px' }}>Postuler</p>
+            <h3 style={{ fontSize:17, fontWeight:900, color:'#f9f8ff', margin:0, lineHeight:1.3 }}>{project.title}</h3>
+          </div>
+          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#7e82a0', display:'flex', alignItems:'center', justifyContent:'center' }}><IcX s={14}/></button>
+        </div>
+        <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
+          <div>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>Période de livraison <span style={{color:'#f87171'}}>*</span></p>
+              {clientMaxDays !== undefined && (
+                <span style={{ fontSize:10, fontWeight:700, color:'#f59e0b', background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.22)', borderRadius:6, padding:'2px 8px' }}>
+                  max : {project.period}
+                </span>
+              )}
+            </div>
+            <PeriodSelect value={period} onChange={setPeriod} maxDays={clientMaxDays}/>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Lien portfolio / profil <span style={{color:'#f87171'}}>*</span></p>
+            <input type="url" value={portfolio} onChange={e=>setPortfolio(e.target.value)} placeholder="https://monportfolio.com" style={MI} onFocus={onFoc} onBlur={onBlr}/>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Lettre de motivation</p>
+            <textarea value={letter} onChange={e=>setLetter(e.target.value)} rows={4} placeholder="Pourquoi êtes-vous le bon candidat ?" style={{...MI,resize:'none',lineHeight:1.6}} onFocus={onFoc} onBlur={onBlr}/>
+          </div>
+          {err && <p style={{ fontSize:12, color:'#f87171', margin:0 }}>{err}</p>}
+          <button type="submit" disabled={sending}
+            style={{ padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:sending?'not-allowed':'pointer', opacity:sending?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
+            {sending ? 'Envoi…' : 'Envoyer ma candidature'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
 
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">🗂️ {t('Projets')}</h1>
-          <button
-            onClick={() => { setShowForm(s => !s); setFormErrors({}); }}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors"
-          >
-            {showForm ? 'Annuler' : '+ Nouveau projet'}
+/* ══════════════════════════════════════════════════════════════
+   POST MODAL — client posts a new project
+   ══════════════════════════════════════════════════════════════ */
+function PostModal({ user, onClose, onDone }) {
+  const [form, setForm]   = useState({ title:'', description:'', budget:'500', experience:'', period:'', keywords:['','','','',''] });
+  const [errs, setErrs]   = useState({});
+  const [posting,setPosting]=useState(false);
+  const [err,  setErr]    = useState('');
+
+  async function submit(e) {
+    e.preventDefault();
+    const errors = {};
+    if (!form.title.trim())       errors.title       = 'Requis';
+    if (!form.description.trim()) errors.description = 'Requis';
+    if (!form.experience)         errors.experience  = 'Requis';
+    if (!form.period)             errors.period      = 'Requis';
+    if (Object.keys(errors).length) { setErrs(errors); return; }
+    setPosting(true); setErr('');
+    try {
+      const res = await fetch(`${API}/projects`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ clientEmail:user.email, ...form, keywords:form.keywords.filter(k=>k.trim()).map(k=>`#${k.trim()}`).join(' ') }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { setErr(data.error||'Erreur serveur'); return; }
+      onDone();
+    } catch { setErr('Impossible de joindre le serveur.'); }
+    finally { setPosting(false); }
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, overflowY:'auto' }}
+      onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
+      <div style={{ width:'100%', maxWidth:560, background:'#13112a', border:'1px solid rgba(124,108,246,0.3)', borderRadius:22, padding:28, boxShadow:'0 24px 80px -12px rgba(0,0,0,0.7)', marginBlock:'auto' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:22 }}>
+          <h3 style={{ fontSize:18, fontWeight:900, color:'#f9f8ff', margin:0 }}>Publier un projet</h3>
+          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#7e82a0', display:'flex', alignItems:'center', justifyContent:'center' }}><IcX s={14}/></button>
+        </div>
+        <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Titre du projet <span style={{color:'#f87171'}}>*</span></p>
+            <input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} placeholder="Ex: Développement d'une app mobile" style={MI} onFocus={onFoc} onBlur={onBlr}/>
+            {errs.title && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.title}</p>}
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Description <span style={{color:'#f87171'}}>*</span></p>
+            <textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} rows={3} placeholder="Décrivez votre projet en détail…" style={{...MI,resize:'none'}} onFocus={onFoc} onBlur={onBlr}/>
+            {errs.description && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.description}</p>}
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Expérience <span style={{color:'#f87171'}}>*</span></p>
+              <select value={form.experience} onChange={e=>setForm(f=>({...f,experience:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
+                <option value="">Sélectionner…</option>
+                {EXPERIENCE_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
+              </select>
+              {errs.experience && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.experience}</p>}
+            </div>
+            <div>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Période <span style={{color:'#f87171'}}>*</span></p>
+              <select value={form.period} onChange={e=>setForm(f=>({...f,period:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
+                <option value="">Sélectionner…</option>
+                {PERIOD_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
+              </select>
+              {errs.period && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.period}</p>}
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Budget (TND)</p>
+            <div style={{ display:'flex', alignItems:'stretch', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, overflow:'hidden' }}>
+              <button type="button" onClick={()=>setForm(f=>({...f,budget:String(Math.max(0,(Number(f.budget)||0)-100))}))}
+                style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'#7e82a0', background:'none', border:'none', cursor:'pointer' }}>−</button>
+              <input type="number" step="1" min="0" value={form.budget} onChange={e=>setForm(f=>({...f,budget:e.target.value}))}
+                style={{ flex:1, background:'transparent', color:'#f4f3fb', fontSize:14, fontWeight:700, textAlign:'center', border:'none', outline:'none' }}/>
+              <button type="button" onClick={()=>setForm(f=>({...f,budget:String((Number(f.budget)||0)+100)}))}
+                style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'#7e82a0', background:'none', border:'none', cursor:'pointer' }}>+</button>
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Mots clés</p>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+              {form.keywords.map((kw,i)=>(
+                <div key={i} style={{ display:'flex', alignItems:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, overflow:'hidden' }}>
+                  <span style={{ paddingLeft:10, fontSize:13, fontWeight:700, color:'#7e82a0' }}>#</span>
+                  <input maxLength={25} value={kw} onChange={e=>{const v=e.target.value.replace(/[#\s]/g,'');setForm(f=>({...f,keywords:f.keywords.map((k,idx)=>idx===i?v:k)}));}}
+                    placeholder={`mot ${i+1}`} style={{ background:'transparent', color:'#f4f3fb', fontSize:12, fontWeight:600, padding:'8px 8px 8px 4px', outline:'none', width:'9ch' }}/>
+                </div>
+              ))}
+            </div>
+          </div>
+          {err && <p style={{fontSize:12,color:'#f87171'}}>{err}</p>}
+          <button type="submit" disabled={posting}
+            style={{ padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:posting?'not-allowed':'pointer', opacity:posting?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
+            {posting ? 'Publication…' : 'Publier le projet'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PROPOSAL CARD — single freelancer proposal (in My Projects)
+   ══════════════════════════════════════════════════════════════ */
+function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, users }) {
+  const [showFull, setShowFull] = useState(false);
+  const [confirm,  setConfirm]  = useState(null); // null | 'accept' | 'reject'
+  const navigate = useNavigate();
+  const u = (users||[]).find(u=>u.email?.toLowerCase()===proposal.freelancer_email?.toLowerCase());
+  const [tintFg, tintBg] = getTint(proposal.freelancer_email);
+  const name    = u?.name || proposal.freelancer_email?.split('@')[0] || '?';
+  const initials= getInitials(name);
+  const photo   = u?.photo;
+  const isAccepted = proposal.status === 'accepted';
+  const isRejected = proposal.status === 'rejected';
+  const isPending  = !isAccepted && !isRejected;
+  const DAYS_PERIOD  = {2:'De 1 à 3 jours',5:'De 4 à 7 jours',10:'De 1 à 2 semaines',21:'De 2 à 4 semaines',60:'De 1 à 3 mois',90:'Plus de 3 mois'};
+  const rawDays    = proposal.delivery_days || proposal.deliveryDays || '';
+  const period     = DAYS_PERIOD[rawDays] || rawDays;
+  const rawLetter  = proposal.cover_letter || proposal.coverLetter || '';
+  const portMatch  = rawLetter.match(/^\[portfolio:(.*?)\]\n?([\s\S]*)/);
+  const rawPortfolio = portMatch ? portMatch[1]
+    : (proposal.portfolio_link || proposal.portfolioLink || u?.portfolio_url || u?.portfolioUrl || '');
+  const portfolio  = rawPortfolio && !/^https?:\/\//.test(rawPortfolio) ? `https://${rawPortfolio}` : rawPortfolio;
+  const coverLetter= portMatch ? portMatch[2] : rawLetter;
+
+  const isAccept = confirm === 'accept';
+
+  function doConfirm() {
+    setConfirm(null);
+    if (isAccept) onAccept(proposal.id);
+    else          onReject(proposal.id);
+  }
+
+  return (
+    <>
+      {/* ── Confirmation overlay ── */}
+      {confirm && (
+        <div
+          style={{ position:'fixed', inset:0, zIndex:3000, display:'flex', alignItems:'center', justifyContent:'center', padding:24,
+            background:'rgba(4,6,16,0.82)', backdropFilter:'blur(10px)', WebkitBackdropFilter:'blur(10px)' }}
+          onClick={e=>{ if(e.target===e.currentTarget) setConfirm(null); }}>
+          <div style={{ width:'100%', maxWidth:400, background:'#0e0c22', borderRadius:28,
+            border:`1px solid ${isAccept?'rgba(124,108,246,0.35)':'rgba(248,113,113,0.3)'}`,
+            boxShadow:`0 40px 100px -20px ${isAccept?'rgba(124,108,246,0.25)':'rgba(248,113,113,0.2)'}, 0 0 0 1px rgba(255,255,255,0.04)`,
+            padding:'36px 32px 32px', textAlign:'center' }}>
+
+            {/* Icon circle */}
+            <div style={{ width:72, height:72, borderRadius:22, margin:'0 auto 22px',
+              background: isAccept ? 'linear-gradient(135deg,rgba(124,108,246,0.18),rgba(98,84,212,0.08))' : 'linear-gradient(135deg,rgba(248,113,113,0.15),rgba(220,38,38,0.06))',
+              border:`1.5px solid ${isAccept?'rgba(124,108,246,0.4)':'rgba(248,113,113,0.4)'}`,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              color: isAccept ? '#9b8cff' : '#f87171',
+              boxShadow:`0 8px 32px -8px ${isAccept?'rgba(124,108,246,0.4)':'rgba(248,113,113,0.35)'}` }}>
+              {isAccept ? <IcCheck s={30}/> : <IcX s={28}/>}
+            </div>
+
+            {/* Title */}
+            <h3 style={{ fontSize:20, fontWeight:900, color:'#f9f8ff', margin:'0 0 10px', letterSpacing:'-0.02em' }}>
+              {isAccept ? 'Accepter la candidature ?' : 'Refuser la candidature ?'}
+            </h3>
+
+            {/* Freelancer chip */}
+            <div style={{ display:'inline-flex', alignItems:'center', gap:9, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:50, padding:'7px 14px 7px 7px', marginBottom:18 }}>
+              <div style={{ width:28, height:28, borderRadius:10, background:tintBg, color:tintFg, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:11, overflow:'hidden', flexShrink:0 }}>
+                {photo
+                  ? <img src={photo.startsWith('data:')?photo:cldImg(photo)} alt={name} style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.style.display='none';}}/>
+                  : initials||'?'}
+              </div>
+              <span style={{ fontSize:13, fontWeight:700, color:'#c2c5dd' }}>{name}</span>
+            </div>
+
+            {/* Body text */}
+            <p style={{ fontSize:13, color:'#62668a', margin:'0 0 28px', lineHeight:1.65 }}>
+              {isAccept
+                ? 'Ce freelancer sera assigné à votre projet. Les autres candidatures seront automatiquement clôturées.'
+                : 'Cette candidature sera refusée. Le freelancer ne pourra plus postuler à ce projet.'}
+            </p>
+
+            {/* Action buttons */}
+            <div style={{ display:'flex', gap:10 }}>
+              <button onClick={()=>setConfirm(null)}
+                style={{ flex:1, padding:'13px', borderRadius:14, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#8a8eb0', fontSize:14, fontWeight:700, cursor:'pointer', transition:'all .15s', fontFamily:'inherit' }}
+                onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.09)';e.currentTarget.style.color='#c2c5dd';e.currentTarget.style.borderColor='rgba(255,255,255,0.18)';}}
+                onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.color='#8a8eb0';e.currentTarget.style.borderColor='rgba(255,255,255,0.1)';}}>
+                Annuler
+              </button>
+              <button onClick={doConfirm} disabled={accepting||rejecting}
+                style={{ flex:1.4, padding:'13px', borderRadius:14, border:'none', color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer', fontFamily:'inherit', transition:'all .15s',
+                  background: isAccept ? 'linear-gradient(135deg,#7c6cf6 0%,#6254d4 100%)' : 'linear-gradient(135deg,#ef4444 0%,#dc2626 100%)',
+                  boxShadow: isAccept ? '0 6px 24px -6px rgba(124,108,246,0.6)' : '0 6px 24px -6px rgba(239,68,68,0.5)' }}
+                onMouseEnter={e=>{e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}
+                onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}>
+                {isAccept ? 'Oui, accepter' : 'Oui, refuser'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Card ── */}
+      <div style={{ display:'flex', gap:14, padding:'16px 18px', borderRadius:16,
+        background: isAccepted ? 'rgba(16,185,129,0.05)' : isRejected ? 'rgba(248,113,113,0.04)' : 'rgba(255,255,255,0.03)',
+        border:`1px solid ${isAccepted?'rgba(16,185,129,0.22)':isRejected?'rgba(248,113,113,0.18)':'rgba(255,255,255,0.07)'}`, transition:'all .2s' }}>
+        {/* Avatar — clickable → profile */}
+        <div
+          onClick={() => navigate(`/profile/${encodeURIComponent(proposal.freelancer_email)}`)}
+          title="View profile"
+          style={{ width:40, height:40, borderRadius:12, background:tintBg, color:tintFg, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:13, flexShrink:0, border:`1.5px solid ${tintFg}35`, overflow:'hidden', cursor:'pointer', transition:'transform .15s, box-shadow .15s' }}
+          onMouseEnter={e => { e.currentTarget.style.transform='scale(1.1)'; e.currentTarget.style.boxShadow=`0 0 0 3px ${tintFg}35`; }}
+          onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow='none'; }}>
+          {photo
+            ? <img src={photo.startsWith('data:')?photo:cldImg(photo)} alt={name} style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.style.display='none';}}/>
+            : initials||'?'}
+        </div>
+        {/* Body */}
+        <div style={{ flex:1, minWidth:0 }}>
+          {/* Name + actions row */}
+          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, marginBottom:8 }}>
+            <div
+              onClick={() => navigate(`/profile/${encodeURIComponent(proposal.freelancer_email)}`)}
+              style={{ cursor:'pointer' }}>
+              <p style={{ fontSize:14, fontWeight:800, color:'#f4f3fb', margin:'0 0 2px', transition:'color .15s' }}
+                onMouseEnter={e => e.currentTarget.style.color='#c4baff'}
+                onMouseLeave={e => e.currentTarget.style.color='#f4f3fb'}>{name}</p>
+              <p style={{ fontSize:11.5, color:'#62668a', margin:0 }}>{proposal.freelancer_email}</p>
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:7, flexShrink:0 }}>
+              {isAccepted && (
+                <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontWeight:800, color:'#10b981', background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.28)', padding:'4px 12px', borderRadius:20 }}>
+                  <IcCheck s={11}/> Accepté
+                </span>
+              )}
+              {isRejected && (
+                <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontWeight:800, color:'#f87171', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.25)', padding:'4px 12px', borderRadius:20 }}>
+                  <IcX s={11}/> Refusé
+                </span>
+              )}
+              {isPending && (
+                <>
+                  <button onClick={()=>setConfirm('reject')} disabled={rejecting}
+                    style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 14px', borderRadius:12, background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.22)', color:'#f87171', fontSize:12.5, fontWeight:700, cursor:'pointer', transition:'all .15s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(248,113,113,0.15)';e.currentTarget.style.transform='translateY(-1px)';}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='rgba(248,113,113,0.08)';e.currentTarget.style.transform='translateY(0)';}}>
+                    <IcX s={12}/>{rejecting?'…':'Annuler'}
+                  </button>
+                  <button onClick={()=>setConfirm('accept')} disabled={accepting}
+                    style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:12.5, fontWeight:800, cursor:'pointer', opacity:accepting?0.7:1, boxShadow:'0 4px 14px -4px rgba(124,108,246,0.5)', transition:'all .15s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.opacity='0.9';}}
+                    onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.opacity='1';}}>
+                    <IcCheck s={12}/>{accepting?'…':'Accepter'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          {/* Chips: period + portfolio */}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:10 }}>
+            {period && (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#9b8cff', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}>
+                <span style={{fontSize:10,fontWeight:700,opacity:0.8,letterSpacing:'0.03em'}}>Durée</span>{period}
+              </span>
+            )}
+            {portfolio && (
+              <a href={portfolio} target="_blank" rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:700, color:'#3ec2e8', background:'rgba(62,194,232,0.08)', border:'1px solid rgba(62,194,232,0.22)', borderRadius:8, padding:'5px 11px', textDecoration:'none', transition:'all .15s' }}
+                onMouseEnter={e=>{ e.currentTarget.style.background='rgba(62,194,232,0.18)'; e.currentTarget.style.borderColor='rgba(62,194,232,0.4)'; e.currentTarget.style.transform='translateY(-1px)'; }}
+                onMouseLeave={e=>{ e.currentTarget.style.background='rgba(62,194,232,0.08)'; e.currentTarget.style.borderColor='rgba(62,194,232,0.22)'; e.currentTarget.style.transform='translateY(0)'; }}>
+                <IcLink s={11}/>
+                Portfolio
+                <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{opacity:0.7}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            )}
+          </div>
+          {/* Cover letter */}
+          {coverLetter && (
+            <div>
+              <p style={{ fontSize:12.5, color:'#8a8eb0', margin:0, lineHeight:1.6 }}>
+                {showFull ? coverLetter : (coverLetter.length>150 ? coverLetter.slice(0,148)+'…' : coverLetter)}
+              </p>
+              {coverLetter.length>150 && (
+                <button onClick={()=>setShowFull(v=>!v)} style={{ background:'none', border:'none', color:'#7c6cf6', fontSize:11.5, fontWeight:700, cursor:'pointer', padding:'3px 0', marginTop:2 }}>
+                  {showFull?'Voir moins':'Voir plus'}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EDIT MODAL — client edits a project (only once allowed)
+   ══════════════════════════════════════════════════════════════ */
+function EditModal({ project, onClose, onDone }) {
+  const parseKws = () => {
+    const kws = (project.keywords||'').split(/\s+/).filter(Boolean).map(k=>k.replace(/^#/,''));
+    while (kws.length < 5) kws.push('');
+    return kws.slice(0,5);
+  };
+  const [form, setForm]     = useState({ title:project.title||'', description:project.description||'', budget:project.budget?String(project.budget):'0', experience:project.experience||'', period:project.period||'', keywords:parseKws() });
+  const [errs, setErrs]     = useState({});
+  const [posting,setPosting]= useState(false);
+  const [err,  setErr]      = useState('');
+
+  async function submit(e) {
+    e.preventDefault();
+    const errors = {};
+    if (!form.title.trim())       errors.title       = 'Requis';
+    if (!form.description.trim()) errors.description = 'Requis';
+    if (!form.experience)         errors.experience  = 'Requis';
+    if (!form.period)             errors.period      = 'Requis';
+    if (Object.keys(errors).length) { setErrs(errors); return; }
+    setPosting(true); setErr('');
+    try {
+      const res = await fetch(`${API}/projects/${project.id}`, {
+        method:'PATCH', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ...form, keywords:form.keywords.filter(k=>k.trim()).map(k=>`#${k.trim()}`).join(' ') }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { setErr(data.error||'Erreur serveur'); return; }
+      onDone();
+    } catch { setErr('Impossible de joindre le serveur.'); }
+    finally { setPosting(false); }
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, overflowY:'auto' }}
+      onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
+      <div style={{ width:'100%', maxWidth:560, background:'#13112a', border:'1px solid rgba(124,108,246,0.3)', borderRadius:22, padding:28, boxShadow:'0 24px 80px -12px rgba(0,0,0,0.7)', marginBlock:'auto' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+          <h3 style={{ fontSize:18, fontWeight:900, color:'#f9f8ff', margin:0 }}>Modifier le projet</h3>
+          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#7e82a0', display:'flex', alignItems:'center', justifyContent:'center' }}><IcX s={14}/></button>
+        </div>
+        <div style={{ display:'flex', alignItems:'flex-start', gap:10, padding:'10px 14px', borderRadius:12, background:'rgba(245,158,11,0.07)', border:'1px solid rgba(245,158,11,0.22)', marginBottom:18 }}>
+          <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,marginTop:1}}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <p style={{ fontSize:12, color:'#f59e0b', margin:0, fontWeight:600, lineHeight:1.55 }}>Attention : vous ne pouvez modifier ce projet <strong>qu'une seule fois</strong>. Cette action est définitive.</p>
+        </div>
+        <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Titre du projet <span style={{color:'#f87171'}}>*</span></p>
+            <input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} style={MI} onFocus={onFoc} onBlur={onBlr}/>
+            {errs.title && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.title}</p>}
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Description <span style={{color:'#f87171'}}>*</span></p>
+            <textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} rows={3} style={{...MI,resize:'none'}} onFocus={onFoc} onBlur={onBlr}/>
+            {errs.description && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.description}</p>}
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Expérience <span style={{color:'#f87171'}}>*</span></p>
+              <select value={form.experience} onChange={e=>setForm(f=>({...f,experience:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
+                <option value="">Sélectionner…</option>
+                {EXPERIENCE_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
+              </select>
+              {errs.experience && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.experience}</p>}
+            </div>
+            <div>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Période <span style={{color:'#f87171'}}>*</span></p>
+              <select value={form.period} onChange={e=>setForm(f=>({...f,period:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
+                <option value="">Sélectionner…</option>
+                {PERIOD_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
+              </select>
+              {errs.period && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.period}</p>}
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Budget (TND)</p>
+            <div style={{ display:'flex', alignItems:'stretch', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, overflow:'hidden' }}>
+              <button type="button" onClick={()=>setForm(f=>({...f,budget:String(Math.max(0,(Number(f.budget)||0)-100))}))}
+                style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'#7e82a0', background:'none', border:'none', cursor:'pointer' }}>−</button>
+              <input type="number" step="1" min="0" value={form.budget} onChange={e=>setForm(f=>({...f,budget:e.target.value}))}
+                style={{ flex:1, background:'transparent', color:'#f4f3fb', fontSize:14, fontWeight:700, textAlign:'center', border:'none', outline:'none' }}/>
+              <button type="button" onClick={()=>setForm(f=>({...f,budget:String((Number(f.budget)||0)+100)}))}
+                style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'#7e82a0', background:'none', border:'none', cursor:'pointer' }}>+</button>
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Mots clés</p>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+              {form.keywords.map((kw,i)=>(
+                <div key={i} style={{ display:'flex', alignItems:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, overflow:'hidden' }}>
+                  <span style={{ paddingLeft:10, fontSize:13, fontWeight:700, color:'#7e82a0' }}>#</span>
+                  <input maxLength={25} value={kw} onChange={e=>{const v=e.target.value.replace(/[#\s]/g,'');setForm(f=>({...f,keywords:f.keywords.map((k,idx)=>idx===i?v:k)}));}}
+                    placeholder={`mot ${i+1}`} style={{ background:'transparent', color:'#f4f3fb', fontSize:12, fontWeight:600, padding:'8px 8px 8px 4px', outline:'none', width:'9ch' }}/>
+                </div>
+              ))}
+            </div>
+          </div>
+          {err && <p style={{fontSize:12,color:'#f87171'}}>{err}</p>}
+          <button type="submit" disabled={posting}
+            style={{ padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:posting?'not-allowed':'pointer', opacity:posting?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
+            {posting ? 'Modification…' : 'Enregistrer les modifications'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MY PROJECT CARD — client's own project with proposals
+   ══════════════════════════════════════════════════════════════ */
+function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAccept, acceptingId, onReject, rejectingId, onEdit, wasEdited, users }) {
+  const st       = STATUS_MAP[project.status] || STATUS_MAP.open;
+  const keywords = project.keywords ? project.keywords.split(/\s+/).filter(Boolean) : [];
+  const pendingN  = (proposals||[]).filter(p=>!p.status||p.status==='pending').length;
+  const rejectedN = (proposals||[]).filter(p=>p.status==='rejected').length;
+  const accepted  = (proposals||[]).find(p=>p.status==='accepted');
+  const isLocked  = !!accepted;
+
+  return (
+    <div style={{ borderRadius:20, background:'rgba(255,255,255,0.028)', border:`1px solid ${expanded?'rgba(124,108,246,0.3)':'rgba(255,255,255,0.07)'}`, overflow:'hidden', boxShadow:expanded?'0 8px 32px -8px rgba(124,108,246,0.18)':'none', transition:'all .22s' }}>
+      <div style={{ padding:'20px 24px' }}>
+        {/* Top row */}
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:12 }}>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, flexWrap:'wrap' }}>
+              <span style={{ fontSize:11, fontWeight:800, color:st.color, background:st.bg, border:`1px solid ${st.border}`, padding:'3px 11px', borderRadius:20 }}>{st.label}</span>
+              <span style={{ fontSize:11, color:'#4a4e6e' }}>Publié il y a {timeAgo(project.created_at)}</span>
+            </div>
+            <h3 style={{ fontSize:18, fontWeight:900, color:'#f9f8ff', margin:'0 0 6px', letterSpacing:'-0.02em', lineHeight:1.3 }}>{project.title}</h3>
+            {project.description && (
+              <p style={{ fontSize:13, color:'#8a8eb0', margin:0, lineHeight:1.6 }}>
+                {project.description.length>120 ? project.description.slice(0,118)+'…' : project.description}
+              </p>
+            )}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+            {/* Edit button — one-time, hidden when locked */}
+            {!isLocked && !wasEdited && (
+              <button onClick={()=>onEdit(project)} title="Modifier le projet (une seule fois)"
+                style={{ width:32, height:32, borderRadius:10, background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.2)', color:'#9b8cff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, transition:'background .15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,0.16)';}}
+                onMouseLeave={e=>{e.currentTarget.style.background='rgba(124,108,246,0.08)';}}>
+                <IcEdit s={13}/>
+              </button>
+            )}
+            {!isLocked && wasEdited && (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, color:'#7c6cf6', background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.18)', padding:'4px 10px', borderRadius:8, whiteSpace:'nowrap' }}
+                title="Ce projet a déjà été modifié — aucune autre modification possible">
+                <IcEdit s={10}/> Modifié
+              </span>
+            )}
+            {/* Delete button — replaced by lock badge when project is accepted */}
+            {isLocked ? (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontWeight:700, color:'#10b981', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.22)', padding:'5px 12px', borderRadius:20, whiteSpace:'nowrap' }}
+                title="Projet verrouillé — un freelancer a été accepté">
+                <IcLock s={12}/> Verrouillé
+              </span>
+            ) : (
+              <button onClick={()=>onDelete(project.id)}
+                style={{ width:32, height:32, borderRadius:10, background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.18)', color:'#f87171', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, transition:'background .15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.background='rgba(248,113,113,0.16)';}}
+                onMouseLeave={e=>{e.currentTarget.style.background='rgba(248,113,113,0.08)';}}>
+                <IcTrash s={13}/>
+              </button>
+            )}
+          </div>
+        </div>
+        {/* Meta chips */}
+        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
+          {project.budget && (
+            <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:'#9b8cff', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}>
+              <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>Budget</span>{Number(project.budget).toLocaleString('fr-TN')} TND
+            </span>
+          )}
+          {project.period && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Durée</span>{project.period}</span>}
+          {project.experience && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Expérience</span>{project.experience}</span>}
+        </div>
+        {keywords.length>0 && (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:12 }}>
+            {keywords.map((kw,i)=><span key={i} style={{ fontSize:11, fontWeight:700, color:'#7c6cf6', background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.16)', borderRadius:20, padding:'2px 9px' }}>{kw}</span>)}
+          </div>
+        )}
+        {/* Footer */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12.5, fontWeight:700, color:(proposals||[]).length>0?'#9b8cff':'#62668a' }}>
+              <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>Candidatures</span>{(proposals||[]).length}
+            </span>
+            {pendingN>0 && (
+              <span style={{ fontSize:11, fontWeight:800, color:'#f59e0b', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.25)', padding:'3px 10px', borderRadius:20 }}>
+                {pendingN} en attente
+              </span>
+            )}
+            {accepted && (
+              <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, fontWeight:800, color:'#10b981', background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.25)', padding:'3px 10px', borderRadius:20 }}>
+                <IcCheck s={10}/> Accepté
+              </span>
+            )}
+            {rejectedN>0 && (
+              <span style={{ fontSize:11, fontWeight:800, color:'#f87171', background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', padding:'3px 10px', borderRadius:20 }}>
+                {`${rejectedN} refusé${rejectedN>1?'s':''}`}
+              </span>
+            )}
+          </div>
+          {(proposals||[]).length>0 && (
+            <button onClick={()=>onExpand(expanded?null:project.id)}
+              style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:11, background:expanded?'rgba(124,108,246,0.15)':'rgba(255,255,255,0.05)', border:`1px solid ${expanded?'rgba(124,108,246,0.35)':'rgba(255,255,255,0.1)'}`, color:expanded?'#9b8cff':'#7e82a0', fontSize:12.5, fontWeight:700, cursor:'pointer', transition:'all .15s' }}>
+              {expanded?'Masquer':'Voir candidatures'}
+              <div style={{ transition:'transform .2s', transform:expanded?'rotate(90deg)':'none' }}><IcChevRight s={12}/></div>
+            </button>
+          )}
+        </div>
+      </div>
+      {/* Proposals panel */}
+      {expanded && (proposals||[]).length>0 && (
+        <div style={{ borderTop:'1px solid rgba(255,255,255,0.07)', padding:'16px 24px', background:'rgba(0,0,0,0.18)', display:'flex', flexDirection:'column', gap:10 }}>
+          <p style={{ fontSize:10, fontWeight:800, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 4px' }}>Candidatures reçues</p>
+          {proposals.map(p=>(
+            <ProposalCard key={p.id} proposal={p} onAccept={onAccept} accepting={acceptingId===p.id} onReject={onReject} rejecting={rejectingId===p.id} users={users}/>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PROJECT CARD — marketplace browse view
+   ══════════════════════════════════════════════════════════════ */
+function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved, onSave, onDelete }) {
+  const [tintFg, tintBg] = getTint(project.client_email);
+  const displayName = clientUser?.name || project.client_email?.split('@')[0] || '?';
+  const initials    = getInitials(displayName);
+  const isVerified  = clientUser?.cinStatus==='approved' || !clientUser;
+  const region      = clientUser?.region || '';
+  const keywords    = project.keywords ? project.keywords.split(/\s+/).filter(Boolean) : [];
+  const isOwn       = user?.email?.toLowerCase()===project.client_email?.toLowerCase();
+  const isFreelancer= user?.role==='freelancer';
+
+  return (
+    <div style={{ background:'rgba(255,255,255,0.028)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'22px 24px', transition:'border-color .2s, background .2s, box-shadow .2s' }}
+      onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(124,108,246,0.28)';e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.boxShadow='0 8px 32px -8px rgba(124,108,246,0.12)';}}
+      onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.028)';e.currentTarget.style.boxShadow='none';}}>
+      {/* Top row */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ width:42, height:42, borderRadius:12, background:tintBg, color:tintFg, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:14, flexShrink:0, border:`1.5px solid ${tintFg}30` }}>{initials||'?'}</div>
+          <div>
+            <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
+              <span style={{ fontSize:14, fontWeight:800, color:'#f4f3fb' }}>{displayName}</span>
+              {isVerified && <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, fontWeight:700, color:'#3ec2e8', background:'rgba(62,194,232,0.08)', border:'1px solid rgba(62,194,232,0.2)', padding:'2px 7px', borderRadius:20 }}><IcVerified s={10}/> Verified</span>}
+              {region && <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:11.5, color:'#62668a' }}><IcPin s={11}/>{region}</span>}
+            </div>
+          </div>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <span style={{ fontSize:11.5, color:'#4a4e6e' }}>il y a {timeAgo(project.created_at)}</span>
+          {isOwn && (
+            <button onClick={()=>onDelete(project.id)}
+              style={{ width:28, height:28, borderRadius:8, background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.18)', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'background .15s' }}
+              onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.15)';}}
+              onMouseLeave={e=>{e.currentTarget.style.background='rgba(239,68,68,0.08)';}}>
+              <IcX s={13}/>
+            </button>
+          )}
+        </div>
+      </div>
+      <h3 style={{ fontSize:19, fontWeight:900, color:'#f9f8ff', margin:'0 0 8px', letterSpacing:'-0.02em', lineHeight:1.25 }}>{project.title}</h3>
+      {project.description && <p style={{ fontSize:13, color:'#8a8eb0', margin:'0 0 14px', lineHeight:1.65 }}>{project.description.length>120?project.description.slice(0,118)+'…':project.description}</p>}
+      <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, marginBottom:14 }}>
+        {project.budget && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:'#9b8cff', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>Budget</span>{Number(project.budget).toLocaleString('fr-TN')} TND</span>}
+        {project.period && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Durée</span>{project.period}</span>}
+        {project.experience && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Expérience</span>{project.experience}</span>}
+        {proposalCount>0 && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Candidatures</span>{proposalCount}</span>}
+      </div>
+      {keywords.length>0 && (
+        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:18 }}>
+          {keywords.map((kw,i)=><span key={i} style={{ fontSize:11.5, fontWeight:700, color:'#7c6cf6', background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.16)', borderRadius:20, padding:'3px 11px' }}>{kw}</span>)}
+        </div>
+      )}
+      <div style={{ height:1, background:'rgba(255,255,255,0.06)', marginBottom:16 }}/>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:10 }}>
+        <button onClick={()=>onSave(project.id)}
+          style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'9px 18px', borderRadius:12, background:'none', border:`1px solid ${saved?'rgba(124,108,246,0.5)':'rgba(255,255,255,0.12)'}`, color:saved?'#9b8cff':'#7e82a0', fontSize:13, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(124,108,246,0.4)';e.currentTarget.style.color='#9b8cff';}}
+          onMouseLeave={e=>{if(!saved){e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='#7e82a0';}}}>
+          <IcStar s={12} filled={saved}/> {saved?'Enregistré':'Enregistrer'}
+        </button>
+        {!isOwn && isFreelancer && (
+          <button onClick={()=>onApply(project)}
+            style={{ padding:'9px 22px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}
+            onMouseEnter={e=>{e.currentTarget.style.opacity='0.85';}}
+            onMouseLeave={e=>{e.currentTarget.style.opacity='1';}}>
+            Postuler
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PAGE
+   ══════════════════════════════════════════════════════════════ */
+export default function ProjectsPage() {
+  const { user, users } = useAuth();
+  const isClient     = user?.role === 'client';
+  const isFreelancer = user?.role === 'freelancer';
+
+  const [showPost,      setShowPost]      = useState(false);
+  const [editingProject,setEditingProject]= useState(null);
+  const [editedProjects,setEditedProjects]= useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('fm_edited_projects')||'[]')); } catch { return new Set(); }
+  });
+  /* My Projects state */
+  const [myProjects, setMyProjects] = useState([]);
+  const [myPropsMap, setMyPropsMap] = useState({});
+  const [myLoading,  setMyLoading]  = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
+  const [acceptingId,setAcceptingId]= useState(null);
+  const [rejectingId,setRejectingId]= useState(null);
+
+  /* Load client's own projects + proposals per project */
+  const loadMyProjects = useCallback(async () => {
+    if (!isClient || !user?.email) return;
+    setMyLoading(true);
+    try {
+      const rows = await fetch(`${API}/projects/${encodeURIComponent(user.email)}`).then(r=>r.json()).catch(()=>[]);
+      const arr  = Array.isArray(rows) ? rows.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)) : [];
+      setMyProjects(arr);
+      const map = {};
+      await Promise.all(arr.map(async p => {
+        const props = await fetch(`${API}/proposals/project/${p.id}`).then(r=>r.json()).catch(()=>[]);
+        map[p.id] = Array.isArray(props) ? props : [];
+      }));
+      setMyPropsMap(map);
+    } catch {}
+    finally { setMyLoading(false); }
+  }, [isClient, user?.email]);
+
+  useEffect(() => { loadMyProjects(); }, [loadMyProjects]);
+
+  async function handleDelete(projectId) {
+    const props = myPropsMap[projectId] || [];
+    if (props.some(p => p.status === 'accepted')) return; // locked — button should already be hidden
+    if (!window.confirm('Supprimer ce projet ?')) return;
+    try {
+      await fetch(`${API}/projects/${projectId}`, { method:'DELETE' });
+      setMyProjects(prev=>prev.filter(p=>p.id!==projectId));
+    } catch {}
+  }
+
+  function handleEditDone(projectId) {
+    const next = new Set(editedProjects);
+    next.add(projectId);
+    setEditedProjects(next);
+    localStorage.setItem('fm_edited_projects', JSON.stringify([...next]));
+    setEditingProject(null);
+    loadMyProjects();
+  }
+
+  async function handleAccept(proposalId) {
+    setAcceptingId(proposalId);
+    try {
+      await fetch(`${API}/proposals/${proposalId}/accept`, { method:'PATCH', headers:{'Content-Type':'application/json'} });
+      await loadMyProjects();
+    } catch {}
+    finally { setAcceptingId(null); }
+  }
+
+  async function handleReject(proposalId) {
+    setRejectingId(proposalId);
+    try {
+      await fetch(`${API}/proposals/${proposalId}/reject`, { method:'PATCH', headers:{'Content-Type':'application/json'} });
+      await loadMyProjects();
+    } catch {}
+    finally { setRejectingId(null); }
+  }
+
+  return (
+    <div style={{ minHeight:'100vh', background:'#070b14', paddingBottom:80, fontFamily:"'Plus Jakarta Sans','Inter',sans-serif" }}>
+
+      {/* Blobs */}
+      <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
+        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'radial-gradient(circle,rgba(124,108,246,0.1),transparent 68%)', top:'-200px', left:'-150px', animation:'prBlob1 22s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.07),transparent 68%)', bottom:'15%', right:'-120px', animation:'prBlob2 28s ease-in-out infinite' }}/>
+      </div>
+
+      <div style={{ position:'relative', zIndex:1, maxWidth:940, margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,3vw,24px) 0' }}>
+
+        {/* ─── Header ─── */}
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:28, flexWrap:'wrap' }}>
+          <div>
+            <p style={{ fontSize:11, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>MON COMPTE</p>
+            <h1 style={{ fontSize:'clamp(26px,6vw,36px)', fontWeight:900, color:'#f4f3fb', margin:'0 0 8px', letterSpacing:'-0.02em' }}>
+              Mes <span style={{ background:'linear-gradient(120deg,#c4baff 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>projets</span>
+            </h1>
+            <p style={{ fontSize:14, color:'#7e82a0', margin:0 }}>Gérez vos projets publiés et recevez des candidatures de freelancers.</p>
+          </div>
+          <button onClick={()=>setShowPost(true)}
+            style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:7, padding:'11px 20px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 18px -4px rgba(124,108,246,0.5)', whiteSpace:'nowrap', transition:'opacity .15s, transform .15s' }}
+            onMouseEnter={e=>{e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}
+            onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}>
+            <IcPlus s={14}/> Publier un projet
           </button>
         </div>
 
-        {showForm && (
-          <form onSubmit={handlePost} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-3 shadow-sm">
-            <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Titre du projet <span className="text-rose-500">*</span></label>
-              <input
-                required
-                value={form.title}
-                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Description <span className="text-rose-500">*</span></label>
-              <textarea
-                required
-                rows={3}
-                value={form.description}
-                onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                className="mt-1 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Mots clés</label>
-              <div className="mt-1 flex flex-wrap gap-2">
-                {form.keywords.map((kw, i) => (
-                  <div
-                    key={i}
-                    style={{ width: `${Math.max(5.5, kw.length + 2)}ch` }}
-                    className="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 transition-[width] duration-150"
-                  >
-                    <span className="pl-2.5 text-sm font-semibold text-slate-400">#</span>
-                    <input
-                      maxLength={25}
-                      value={kw}
-                      onChange={e => {
-                        const val = e.target.value.replace(/[#\s]/g, '').slice(0, 25);
-                        setForm(f => ({ ...f, keywords: f.keywords.map((k, idx) => idx === i ? val : k) }));
-                      }}
-                      placeholder={`mot ${i + 1}`}
-                      className="w-full min-w-0 px-1 py-2 text-sm font-semibold bg-transparent text-slate-900 dark:text-white focus:outline-none"
-                    />
-                  </div>
-                ))}
+        {/* ═══════════════════════════════════════
+            MES PROJETS
+            ═══════════════════════════════════════ */}
+        {(
+          <>
+            {myLoading ? (
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                {[...Array(3)].map((_,i)=><div key={i} style={{ height:130, borderRadius:20, background:'rgba(255,255,255,0.028)', animation:'prPulse 1.5s ease infinite' }}/>)}
               </div>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Expérience <span className="text-rose-500">*</span></label>
-              <select
-                value={form.experience}
-                onChange={e => { setForm(f => ({ ...f, experience: e.target.value })); setFormErrors(fe => ({ ...fe, experience: false })); }}
-                className={`mt-1 w-full px-3 py-2 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${formErrors.experience ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200 dark:border-slate-700'}`}
-              >
-                <option value="">Sélectionner...</option>
-                {EXPERIENCE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-              {formErrors.experience && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner l'expérience requise.</p>}
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Période estimée <span className="text-rose-500">*</span></label>
-              <select
-                value={form.period}
-                onChange={e => { setForm(f => ({ ...f, period: e.target.value })); setFormErrors(fe => ({ ...fe, period: false })); }}
-                className={`mt-1 w-full px-3 py-2 text-sm rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${formErrors.period ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200 dark:border-slate-700'}`}
-              >
-                <option value="">Sélectionner...</option>
-                {PERIOD_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-              {formErrors.period && <p className="mt-1 text-xs text-rose-500">Veuillez sélectionner la période estimée.</p>}
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Budget (TND) <span className="text-rose-500">*</span></label>
-              <div className="mt-1 flex items-stretch rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
-                <button
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, budget: String(Math.max(10, (Number(f.budget) || 10) - 10)) }))}
-                  className="px-4 text-lg font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                  aria-label="Diminuer le budget"
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  step="10"
-                  min="10"
-                  inputMode="numeric"
-                  value={form.budget}
-                  onChange={e => {
-                    const digits = e.target.value.replace(/[^0-9]/g, '');
-                    setForm(f => ({ ...f, budget: digits }));
-                  }}
-                  onBlur={e => {
-                    const n = Math.max(10, Number(e.target.value) || 10);
-                    setForm(f => ({ ...f, budget: String(n) }));
-                  }}
-                  className="flex-1 min-w-0 px-3 py-2 text-sm text-center bg-transparent text-slate-900 dark:text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, budget: String((Number(f.budget) || 10) + 10) }))}
-                  className="px-4 text-lg font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                  aria-label="Augmenter le budget"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            {postError && (
-              <p className="text-red-500 text-sm text-center font-medium">{postError}</p>
-            )}
-            <button
-              type="submit"
-              disabled={posting || !form.title.trim() || !form.description.trim() || !form.experience || !form.period}
-              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {posting ? 'Publication…' : 'Publier le projet'}
-            </button>
-          </form>
-        )}
-
-        {loading ? (
-          <div className="text-center py-8 text-sm text-slate-400">Chargement…</div>
-        ) : projects.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center">
-            <span className="text-5xl mb-4 block">🗂️</span>
-            <p className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('No projects yet')}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{t('Your projects will appear here.')}</p>
-          </div>
-        ) : (
-          <div className="space-y-6 pt-2">
-            {projects.map(p => {
-              const st = STATUS_LABELS[p.status] || STATUS_LABELS.open;
-              const projProposals = proposals[p.id] || [];
-              return (
-                <div key={p.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
-                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">💰 {p.budget ? `${p.budget} TND` : '—'}</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        Expérience : {p.experience || '—'} · Période estimée : {p.period || '—'}
-                        {p.created_at && (() => { const _d = new Date(p.created_at); return <> · Date : {_d.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' })} , {_d.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}</>; })()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${st.cls}`}>{st.label}</span>
-                      <button
-                        onClick={() => handleDelete(p.id)}
-                        className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors"
-                        aria-label="Supprimer le projet"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{p.description || '—'}</p>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {p.keywords && p.keywords.split(/\s+/).filter(Boolean).length > 0
-                      ? p.keywords.split(/\s+/).filter(Boolean).map((kw, i) => (
-                          <span key={i} className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">
-                            {kw}
-                          </span>
-                        ))
-                      : <span className="text-[11px] text-slate-400">Mots clés : —</span>
-                    }
-                  </div>
-
-                  {p.status === 'open' && (
-                    <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        Propositions reçues {projProposals.length > 0 && `(${projProposals.length})`}
-                      </p>
-                      {projProposals.length === 0 ? (
-                        <p className="text-xs text-slate-400">Aucune proposition pour l'instant.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {projProposals.map(pr => (
-                            <div key={pr.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                              <div className="min-w-0">
-                                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                  {pr.freelancer_name || pr.freelancer_email}
-                                </p>
-                                <p className="text-[11px] text-slate-400 mt-0.5">
-                                  💰 {Number(pr.price).toFixed(2)} TND · ⏱️ {pr.delivery_days}j
-                                  {Number(pr.freelancer_rating) > 0 && ` · ⭐ ${Number(pr.freelancer_rating).toFixed(1)}`}
-                                </p>
-                                {pr.cover_letter && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{pr.cover_letter}</p>}
-                              </div>
-                              <div className="shrink-0 flex gap-2">
-                                <button
-                                  onClick={() => handleAccept(pr.id, p.id)}
-                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors"
-                                >
-                                  Accepter
-                                </button>
-                                <button
-                                  onClick={() => handleReject(pr.id, p.id)}
-                                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition-colors"
-                                >
-                                  Annuler
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {p.status === 'in_progress' && p.freelancer_email && (
-                    <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                        👤 Freelance assigné : <span className="font-bold text-slate-700 dark:text-slate-300">{resolveEmail(p.freelancer_email)}</span>
-                      </p>
-                    </div>
-                  )}
+            ) : myProjects.length===0 ? (
+              <div style={{ textAlign:'center', padding:'64px 24px', background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:22 }}>
+                <div style={{ width:60, height:60, borderRadius:18, background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', color:'#9b8cff' }}>
+                  <IcFolder s={26}/>
                 </div>
-              );
-            })}
-          </div>
+                <p style={{ fontSize:16, fontWeight:700, color:'#c2c5dd', margin:'0 0 6px' }}>Aucun projet publié</p>
+                <p style={{ fontSize:13, color:'#62668a', margin:'0 0 22px' }}>Publiez votre premier projet pour recevoir des candidatures de freelancers.</p>
+                <button onClick={()=>setShowPost(true)}
+                  style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'11px 24px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)' }}>
+                  <IcPlus s={13}/> Publier un projet
+                </button>
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize:13, color:'#62668a', margin:'0 0 16px' }}>
+                  <strong style={{color:'#c2c5dd'}}>{myProjects.length}</strong> projet{myProjects.length!==1?'s':''} publié{myProjects.length!==1?'s':''}
+                </p>
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                  {myProjects.map(p=>(
+                    <MyProjectCard
+                      key={p.id}
+                      project={p}
+                      proposals={myPropsMap[p.id]||[]}
+                      expanded={expandedId===p.id}
+                      onExpand={id=>setExpandedId(id)}
+                      onDelete={handleDelete}
+                      onAccept={handleAccept}
+                      acceptingId={acceptingId}
+                      onReject={handleReject}
+                      rejectingId={rejectingId}
+                      onEdit={setEditingProject}
+                      wasEdited={editedProjects.has(p.id)}
+                      users={users}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
         )}
 
       </div>
+
+      {/* Post modal */}
+      {showPost && (
+        <PostModal user={user} onClose={()=>setShowPost(false)}
+          onDone={()=>{ setShowPost(false); loadMyProjects(); }}/>
+      )}
+
+      {/* Edit modal */}
+      {editingProject && (
+        <EditModal
+          project={editingProject}
+          onClose={()=>setEditingProject(null)}
+          onDone={()=>handleEditDone(editingProject.id)}
+        />
+      )}
+
+      <style>{`
+        @keyframes prBlob1 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(50px,-40px)scale(1.08)} }
+        @keyframes prBlob2 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(-40px,30px)scale(1.06)} }
+        @keyframes prPulse  { 0%,100%{opacity:.5} 50%{opacity:1} }
+        input::placeholder  { color:#3a3d5c; }
+        textarea::placeholder { color:#3a3d5c; }
+        select option { background:#0d1220; color:#a7abc8; }
+      `}</style>
     </div>
   );
 }

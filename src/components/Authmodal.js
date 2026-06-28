@@ -9,6 +9,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 
 
 const RECAPTCHA_SITE_KEY = "6Lf-_bMsAAAAAC3k8lKXSuBA1yFrbA4RMV2F4VJi";
+const IS_DEV = process.env.REACT_APP_DEV_MODE === 'true';
 
 const TUNISIAN_REGIONS = [
   "Ariana","Béja","Ben Arous","Bizerte","Gabès","Gafsa","Jendouba",
@@ -38,20 +39,21 @@ function fileToBase64(file) {
   });
 }
 
-function ImageUploadBox({ label, hint, preview, onFile, side }) {
+function ImageUploadBox({ label, hint, preview, onFile }) {
   const { t } = useTranslation();
   const inputRef = useRef();
   return (
     <div className="flex-1">
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">{label}</p>
+      <p className="text-xs font-semibold mb-1.5" style={{ color: '#a7abc8' }}>{label}</p>
       <div
         onClick={() => inputRef.current.click()}
-        className={[
-          "relative w-full h-28 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 overflow-hidden flex flex-col items-center justify-center gap-1",
-          preview
-            ? "border-emerald-400 dark:border-emerald-600"
-            : "border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-600",
-        ].join(" ")}
+        className="relative w-full h-28 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 overflow-hidden flex flex-col items-center justify-center gap-1"
+        style={preview
+          ? { borderColor: 'rgba(52,211,153,.6)' }
+          : { borderColor: 'rgba(255,255,255,.1)' }
+        }
+        onMouseEnter={e => { if (!preview) e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+        onMouseLeave={e => { if (!preview) e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; }}
       >
         {preview ? (
           <>
@@ -62,11 +64,11 @@ function ImageUploadBox({ label, hint, preview, onFile, side }) {
           </>
         ) : (
           <>
-            <svg className="w-6 h-6 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'rgba(255,255,255,.2)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            <span className="text-[11px] text-slate-400 text-center px-2">{hint}</span>
+            <span className="text-[11px] text-center px-2" style={{ color: '#62668a' }}>{hint}</span>
           </>
         )}
       </div>
@@ -83,7 +85,7 @@ function ImageUploadBox({ label, hint, preview, onFile, side }) {
 }
 
 // ── Email Verification Screen ─────────────────────────────────────────────────
-const API = "https://famamennou-server.onrender.com/api";
+const API = process.env.REACT_APP_API_URL || "https://famamennou-server.onrender.com/api";
 
 function VerifyEmailScreen({ email, onVerify, onBack, loading }) {
   const { t } = useTranslation();
@@ -92,19 +94,24 @@ function VerifyEmailScreen({ email, onVerify, onBack, loading }) {
 
   return (
     <div className="flex flex-col py-4 px-2">
-      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 mb-6 w-fit transition-colors">
+      <button onClick={onBack}
+        className="flex items-center gap-1.5 text-xs mb-6 w-fit transition-colors"
+        style={{ color: '#a7abc8' }}
+        onMouseEnter={e => (e.currentTarget.style.color = '#fbfbff')}
+        onMouseLeave={e => (e.currentTarget.style.color = '#a7abc8')}
+      >
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
         {t("Back")}
       </button>
-      <div className="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-4 mx-auto">
-        <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(124,108,246,.12)' }}>
+        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: '#7c6cf6' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white text-center mb-1">{t("Check your email")}</h2>
-      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">
+      <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: '#fbfbff' }}>{t("Check your email")}</h2>
+      <p className="text-xs text-center mb-6" style={{ color: '#a7abc8' }}>
         {t("We sent a 6-digit code to")}{" "}
-        <span className="font-semibold text-slate-700 dark:text-slate-200">{email}</span>
+        <span className="font-semibold" style={{ color: '#fbfbff' }}>{email}</span>
       </p>
       <Input
         label={t("Verification code")}
@@ -115,9 +122,9 @@ function VerifyEmailScreen({ email, onVerify, onBack, loading }) {
         required
       />
       {error && (
-        <div className="mt-3 flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-          <svg className="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
-          <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold">{error}</p>
+        <div className="mt-3 flex items-center gap-2 p-3 rounded-xl" style={{ background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)' }}>
+          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#fbbf24' }}><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
+          <p className="text-xs font-semibold" style={{ color: '#fbbf24' }}>{error}</p>
         </div>
       )}
       <Button variant="primary" size="lg" fullWidth className="mt-4" loading={loading} onClick={() => onVerify(code, setError)}>
@@ -160,7 +167,6 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     }
   }
 
-  // Step 1 — send reset code to email
   async function handleSendCode() {
     if (!email.trim())                { setError(t("Email is required"));   return; }
     if (!/\S+@\S+\.\S+/.test(email)) { setError(t("Enter a valid email")); return; }
@@ -168,11 +174,10 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     try {
       let data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
       if (data.error === "serverError") {
-        // Silent retry once
         await new Promise(r => setTimeout(r, 3000));
         data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
       }
-      if (data.error === "noAccount")  { setError(t("No account found with this email")); return; }
+      if (data.error === "noAccount")   { setError(t("No account found with this email")); return; }
       if (data.error === "emailFailed") { setError(t("Failed to send email. Try again.")); return; }
       if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
       setStep(2); setError("");
@@ -180,7 +185,6 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     finally  { setLoading(false); }
   }
 
-  // Step 2 — reset password with persistent retry for Render wake-up
   async function handleReset() {
     if (!code || code.length !== 6)      { setError(t("Enter the 6-digit code"));  return; }
     if (!newPassword)                    { setError(t("Password is required"));    return; }
@@ -188,7 +192,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     if (newPassword !== confirmPassword) { setError(t("Passwords do not match")); return; }
     setLoading(true);
     setError("");
-    const delays = [0, 2000, 4000]; // 3 attempts — immediate, +2s, +4s
+    const delays = [0, 2000, 4000];
     for (const delay of delays) {
       try {
         if (delay > 0) await new Promise(r => setTimeout(r, delay));
@@ -197,7 +201,6 @@ function ForgotPasswordScreen({ onBack, onSent }) {
         if (data && data.error === "noAccount")  { goBackToStep1(); setError(t("No account found with this email")); setLoading(false); return; }
         if (data && data.error === "wrongCode")  { setError(t("Invalid code. Please check and try again.")); setLoading(false); return; }
         if (data && data.error === "expired")    { setError(t("Code expired. Please request a new one.")); setLoading(false); return; }
-        // serverError — keep retrying
       } catch { /* keep retrying */ }
     }
     setLoading(false);
@@ -225,40 +228,38 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
   const handleSend = step === 1 ? handleSendCode : handleReset;
 
-  // ── Resend success screen ──
   if (resendDone) return (
     <div className="flex flex-col items-center py-10 px-2 text-center">
-      <div className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
-        <svg className="w-8 h-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(124,108,246,.12)' }}>
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#7c6cf6' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">Code renvoyé ✅</h2>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-        Un nouveau code a été envoyé à
-      </p>
-      <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6">{email}</p>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">Vérifiez votre boîte mail et entrez le code reçu.</p>
+      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>Code renvoyé ✅</h2>
+      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>Un nouveau code a été envoyé à</p>
+      <p className="text-sm font-bold mb-6" style={{ color: '#fbfbff' }}>{email}</p>
+      <p className="text-xs mb-6" style={{ color: '#62668a' }}>Vérifiez votre boîte mail et entrez le code reçu.</p>
       <button onClick={() => setResendDone(false)}
-        className="w-full py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors">
+        className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        style={{ background: '#7c6cf6' }}>
         Entrer le code →
       </button>
     </div>
   );
 
-  // ── Success screen after reset ──
   if (resetDone) return (
     <div className="flex flex-col items-center py-10 px-2 text-center">
-      <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
-        <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(52,211,153,.12)' }}>
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#34d399' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">Mot de passe réinitialisé ✅</h2>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Votre mot de passe a été changé avec succès.</p>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
+      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>Mot de passe réinitialisé ✅</h2>
+      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>Votre mot de passe a été changé avec succès.</p>
+      <p className="text-xs mb-6" style={{ color: '#62668a' }}>Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
       <button onClick={() => onSent(email)}
-        className="w-full py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors">
+        className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        style={{ background: '#7c6cf6' }}>
         Se connecter →
       </button>
     </div>
@@ -267,7 +268,11 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   return (
     <div className="flex flex-col py-4 px-2">
       <button onClick={step === 2 ? goBackToStep1 : onBack}
-        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 mb-6 w-fit transition-colors">
+        className="flex items-center gap-1.5 text-xs mb-6 w-fit transition-colors"
+        style={{ color: '#a7abc8' }}
+        onMouseEnter={e => (e.currentTarget.style.color = '#fbfbff')}
+        onMouseLeave={e => (e.currentTarget.style.color = '#a7abc8')}
+      >
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
         {step === 2 ? t("Back") : t("Back to login")}
       </button>
@@ -276,26 +281,31 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       <div className="flex items-center gap-2 mb-5 mx-auto">
         {[1, 2].map(s => (
           <div key={s} className="flex items-center gap-2">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${step >= s ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>{s}</div>
-            {s < 2 && <div className={`w-10 h-0.5 rounded transition-all duration-500 ${step >= 2 ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'}`} />}
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300"
+              style={step >= s
+                ? { background: '#7c6cf6', color: '#fff' }
+                : { background: 'rgba(255,255,255,.08)', color: '#62668a' }
+              }>{s}</div>
+            {s < 2 && <div className="w-10 h-0.5 rounded transition-all duration-500"
+              style={{ background: step >= 2 ? '#7c6cf6' : 'rgba(255,255,255,.08)' }} />}
           </div>
         ))}
       </div>
 
-      <div className="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-4 mx-auto">
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(124,108,246,.12)' }}>
         {step === 1
-          ? <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-          : <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          ? <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: '#7c6cf6' }}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          : <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: '#7c6cf6' }}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
         }
       </div>
 
-      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white text-center mb-1">
+      <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: '#fbfbff' }}>
         {step === 1 ? t("Forgot your password?") : t("Verify your identity 🔐")}
       </h2>
-      <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">
+      <p className="text-xs text-center mb-6" style={{ color: '#a7abc8' }}>
         {step === 1
           ? t("reset.subtitle")
-          : <>{t("We sent a 6-digit code to")} <span className="font-semibold text-slate-700 dark:text-slate-200">{email}</span></>
+          : <>{t("We sent a 6-digit code to")} <span className="font-semibold" style={{ color: '#fbfbff' }}>{email}</span></>
         }
       </p>
 
@@ -334,9 +344,9 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       </div>
 
       {error && (
-        <div className="mt-3 flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-          <svg className="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
-          <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold">{error}</p>
+        <div className="mt-3 flex items-center gap-2 p-3 rounded-xl" style={{ background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)' }}>
+          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#fbbf24' }}><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
+          <p className="text-xs font-semibold" style={{ color: '#fbbf24' }}>{error}</p>
         </div>
       )}
 
@@ -350,7 +360,11 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       {step === 2 && (
         <div className="mt-3 text-center">
           <button onClick={handleResend} disabled={loading}
-            className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors disabled:opacity-40">
+            className="text-xs transition-colors disabled:opacity-40"
+            style={{ color: '#9b8cff' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#b9aeff')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#9b8cff')}
+          >
             {t("Renvoyer le code")}
           </button>
         </div>
@@ -364,15 +378,18 @@ function PasswordFoundScreen({ email, onBack }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center py-6 px-2 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
-        <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(52,211,153,.12)' }}>
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: '#34d399' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">{t("reset.success_title")}</h2>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t("Account:")} <span className="font-bold text-slate-700 dark:text-slate-200">{email}</span></p>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 mb-6 max-w-xs leading-relaxed">{t("reset.success_msg")}</p>
-      <button onClick={onBack} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-opacity">
+      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("reset.success_title")}</h2>
+      <p className="text-xs mb-1" style={{ color: '#a7abc8' }}>
+        {t("Account:")} <span className="font-bold" style={{ color: '#fbfbff' }}>{email}</span>
+      </p>
+      <p className="text-sm mt-3 mb-6 max-w-xs leading-relaxed" style={{ color: '#a7abc8' }}>{t("reset.success_msg")}</p>
+      <button onClick={onBack} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        style={{ background: '#7c6cf6' }}>
         {t("Back to login")}
       </button>
     </div>
@@ -385,21 +402,21 @@ function PendingVerificationScreen({ userName, onClose }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 px-2 text-center">
       <div className="relative mb-6">
-        <div className="w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-          <svg className="w-10 h-10 text-amber-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(245,158,11,.12)' }}>
+          <svg className="w-10 h-10 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: '#f59e0b' }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
+        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#f59e0b' }}>
           <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
           </svg>
         </span>
       </div>
-      <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">{t("Account created successfully!")}</h2>
-      <p className="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-4">{t("Under review…")}</p>
-      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mb-6 leading-relaxed">
-        {t("Hello")} <span className="font-bold text-slate-700 dark:text-slate-200">{userName}</span>{t(", your file has been submitted. Our team will review your information and CIN shortly.")}
+      <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("Account created successfully!")}</h2>
+      <p className="text-sm font-semibold mb-4" style={{ color: '#f59e0b' }}>{t("Under review…")}</p>
+      <p className="text-sm max-w-xs mb-6 leading-relaxed" style={{ color: '#a7abc8' }}>
+        {t("Hello")} <span className="font-bold" style={{ color: '#fbfbff' }}>{userName}</span>{t(", your file has been submitted. Our team will review your information and CIN shortly.")}
       </p>
       <div className="w-full max-w-xs space-y-2 mb-7">
         {[
@@ -407,12 +424,14 @@ function PendingVerificationScreen({ userName, onClose }) {
           { icon: "🔍", label: t("Verification in progress"), done: false, active: true },
           { icon: "📬", label: t("Admin decision"),           done: false },
         ].map((step, i) => (
-          <div key={i} className={[
-            "flex items-center gap-3 p-3 rounded-xl border text-sm",
-            step.done   ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400" :
-            step.active ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400" :
-                          "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400",
-          ].join(" ")}>
+          <div key={i} className="flex items-center gap-3 p-3 rounded-xl text-sm"
+            style={step.done
+              ? { background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)', color: '#34d399' }
+              : step.active
+              ? { background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)', color: '#fbbf24' }
+              : { background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', color: '#62668a' }
+            }
+          >
             <span className="text-base">{step.icon}</span>
             <span className="font-semibold">{step.label}</span>
             {step.active && (
@@ -424,10 +443,11 @@ function PendingVerificationScreen({ userName, onClose }) {
           </div>
         ))}
       </div>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-5">
+      <p className="text-xs mb-5" style={{ color: '#62668a' }}>
         {t("You will be notified once your account is approved or rejected.")}
       </p>
-      <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-opacity">
+      <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        style={{ background: '#7c6cf6' }}>
         {t("Close")}
       </button>
     </div>
@@ -443,29 +463,30 @@ function CINStatusScreen({ user, onClose, onLogout }) {
     return (
       <div className="flex flex-col items-center justify-center py-8 px-2 text-center">
         <div className="relative mb-6">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-            <svg className="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(52,211,153,.12)' }}>
+            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: '#34d399' }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </div>
-          <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+          <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#34d399' }}>
             <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
             </svg>
           </span>
         </div>
-        <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">{t("Account approved! 🎉")}</h2>
-        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-4">{t("Your verification has been accepted")}</p>
+        <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("Account approved! 🎉")}</h2>
+        <p className="text-sm font-semibold mb-4" style={{ color: '#34d399' }}>{t("Your verification has been accepted")}</p>
         {user.cinApprovalReason && (
-          <div className="w-full max-w-xs p-3.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl mb-5 text-left">
-            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider mb-1">{t("Admin message")}</p>
-            <p className="text-sm text-emerald-800 dark:text-emerald-300 font-medium">{user.cinApprovalReason}</p>
+          <div className="w-full max-w-xs p-3.5 rounded-xl mb-5 text-left" style={{ background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)' }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#34d399' }}>{t("Admin message")}</p>
+            <p className="text-sm font-medium" style={{ color: '#6ee7b7' }}>{user.cinApprovalReason}</p>
           </div>
         )}
-        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mb-7 leading-relaxed">
-          {t("Welcome to the platform,")} <span className="font-bold text-slate-700 dark:text-slate-200">{user.name}</span>{t("! Your account is now fully active.")}
+        <p className="text-sm max-w-xs mb-7 leading-relaxed" style={{ color: '#a7abc8' }}>
+          {t("Welcome to the platform,")} <span className="font-bold" style={{ color: '#fbfbff' }}>{user.name}</span>{t("! Your account is now fully active.")}
         </p>
-        <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">
+        <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          style={{ background: '#34d399' }}>
           {t("Access my account →")}
         </button>
       </div>
@@ -475,52 +496,248 @@ function CINStatusScreen({ user, onClose, onLogout }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 px-2 text-center">
       <div className="relative mb-6">
-        <div className="w-20 h-20 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-          <svg className="w-10 h-10 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(248,113,113,.12)' }}>
+          <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: '#f87171' }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center">
+        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#f87171' }}>
           <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
           </svg>
         </span>
       </div>
-      <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">{t("Account rejected")}</h2>
-      <p className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-4">{t("Your verification was not accepted")}</p>
+      <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("Account rejected")}</h2>
+      <p className="text-sm font-semibold mb-4" style={{ color: '#f87171' }}>{t("Your verification was not accepted")}</p>
       {user.cinRejectionReason && (
-        <div className="w-full max-w-xs p-3.5 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl mb-5 text-left">
-          <p className="text-[10px] font-bold text-rose-600 dark:text-rose-500 uppercase tracking-wider mb-1">{t("Rejection reason")}</p>
-          <p className="text-sm text-rose-800 dark:text-rose-300 font-medium">{user.cinRejectionReason}</p>
+        <div className="w-full max-w-xs p-3.5 rounded-xl mb-5 text-left" style={{ background: 'rgba(248,113,113,.1)', border: '1px solid rgba(248,113,113,.2)' }}>
+          <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#f87171' }}>{t("Rejection reason")}</p>
+          <p className="text-sm font-medium" style={{ color: '#fca5a5' }}>{user.cinRejectionReason}</p>
         </div>
       )}
-      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mb-7 leading-relaxed">
+      <p className="text-sm max-w-xs mb-7 leading-relaxed" style={{ color: '#a7abc8' }}>
         {t("If you believe this is an error, please contact us or create a new account with correct information.")}
       </p>
-      <button onClick={onLogout} className="w-full py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors">
+      <button onClick={onLogout} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        style={{ background: '#f87171' }}>
         {t("Close")}
       </button>
     </div>
   );
 }
 
+// ── Device Approval Waiting Screen ────────────────────────────────────────────
+function DeviceApprovalScreen({ attemptId, device, onApproved, onBack }) {
+  const [status, setStatus] = useState('waiting'); // 'waiting' | 'approved' | 'rejected' | 'expired' | 'error'
+  const [dots,   setDots]   = useState('');
+
+  // Animate dots
+  useEffect(() => {
+    const id = setInterval(() => setDots(d => d.length >= 3 ? '' : d + '.'), 600);
+    return () => clearInterval(id);
+  }, []);
+
+  // Poll every 3 seconds
+  useEffect(() => {
+    if (status !== 'waiting') return;
+    const poll = async () => {
+      try {
+        const res  = await fetch(`${API}/auth/check-approval/${attemptId}`);
+        const data = await res.json();
+        if (data.status === 'approved')  { onApproved(data.user, data.accessToken); setStatus('approved'); }
+        else if (data.status === 'rejected') setStatus('rejected');
+        else if (data.status === 'expired')  setStatus('expired');
+      } catch {}
+    };
+    poll();
+    const id = setInterval(poll, 3000);
+    return () => clearInterval(id);
+  }, [attemptId, status, onApproved]);
+
+  const iconBg   = status === 'rejected' || status === 'expired' ? 'rgba(248,113,113,.12)' : 'rgba(124,108,246,.12)';
+  const iconColor = status === 'rejected' || status === 'expired' ? '#f87171' : '#7c6cf6';
+
+  return (
+    <div className="flex flex-col py-4 px-2">
+      {status === 'waiting' && (
+        <button onClick={onBack}
+          className="flex items-center gap-1.5 text-xs mb-6 w-fit transition-colors"
+          style={{ color: '#a7abc8' }}
+          onMouseEnter={e => (e.currentTarget.style.color = '#fbfbff')}
+          onMouseLeave={e => (e.currentTarget.style.color = '#a7abc8')}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          Retour
+        </button>
+      )}
+
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 mx-auto" style={{ background: iconBg }}>
+        {status === 'waiting' && (
+          <svg className="w-8 h-8 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: iconColor }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        )}
+        {(status === 'rejected' || status === 'expired' || status === 'error') && (
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: iconColor }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+        )}
+      </div>
+
+      {status === 'waiting' && (<>
+        <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: '#fbfbff' }}>Vérifiez votre e-mail</h2>
+        <p className="text-xs text-center mb-5" style={{ color: '#a7abc8' }}>
+          Un e-mail de sécurité a été envoyé. Cliquez sur <strong style={{ color: '#fbfbff' }}>APPROUVER</strong> dans le message pour finaliser la connexion.
+        </p>
+
+        {/* Device info card */}
+        {device && (
+          <div className="rounded-xl p-4 mb-5 space-y-2" style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
+            {[
+              ['🌐 Navigateur', `${device.browser} · ${device.deviceType}`],
+              ['💻 OS', device.os],
+              ['📡 IP', device.ip || 'Inconnue'],
+            ].map(([label, val]) => (
+              <div key={label} className="flex justify-between items-center">
+                <span className="text-xs" style={{ color: '#62668a' }}>{label}</span>
+                <span className="text-xs font-semibold" style={{ color: '#f4f3fb' }}>{val}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Spinner */}
+        <div className="flex items-center justify-center gap-2 mb-5">
+          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color: '#7c6cf6' }}>
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          <span className="text-xs font-semibold" style={{ color: '#a7abc8' }}>
+            En attente d'approbation{dots}
+          </span>
+        </div>
+
+        <p className="text-xs text-center" style={{ color: '#4a4e6e' }}>
+          Ce lien expire dans <strong>15 minutes</strong>. Vérifiez aussi vos spams.
+        </p>
+      </>)}
+
+      {status === 'rejected' && (<>
+        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: '#fbfbff' }}>Connexion refusée</h2>
+        <p className="text-sm text-center mb-6" style={{ color: '#f87171' }}>
+          Cette tentative de connexion a été rejetée depuis votre e-mail.
+        </p>
+        <p className="text-xs text-center mb-6" style={{ color: '#62668a' }}>
+          Si c'était vous, réessayez et approuvez la prochaine fois.
+        </p>
+        <button onClick={onBack}
+          className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          style={{ background: '#7c6cf6' }}>
+          Retour à la connexion
+        </button>
+      </>)}
+
+      {(status === 'expired' || status === 'error') && (<>
+        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: '#fbfbff' }}>Lien expiré</h2>
+        <p className="text-sm text-center mb-6" style={{ color: '#a7abc8' }}>
+          Le lien de vérification a expiré (15 min). Reconnectez-vous pour recevoir un nouveau lien.
+        </p>
+        <button onClick={onBack}
+          className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          style={{ background: '#7c6cf6' }}>
+          Réessayer
+        </button>
+      </>)}
+    </div>
+  );
+}
+
+// ── TOTP 2FA entry screen ─────────────────────────────────────────────────────
+function TOTPScreen({ pendingToken, onSuccess, onBack, verifyTOTP, loginWithUserData }) {
+  const [code, setCode]   = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy]   = useState(false);
+  const { t } = useTranslation();
+
+  async function handleVerify() {
+    if (code.length !== 6) { setError(t("Enter the 6-digit code")); return; }
+    setBusy(true); setError("");
+    const result = await verifyTOTP(pendingToken, code);
+    setBusy(false);
+    if (result.error === "invalidTOTP") { setError(t("Invalid code. Try again.")); return; }
+    if (result.error) { setError(t("Verification failed. Please try again.")); return; }
+    const loggedUser = loginWithUserData(result.user);
+    onSuccess?.(loggedUser);
+  }
+
+  return (
+    <div style={{ textAlign: "center", padding: "8px 0" }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
+      <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 6 }}>
+        {t("Two-Factor Authentication")}
+      </h3>
+      <p style={{ fontSize: 14, color: "#94a3b8", marginBottom: 20 }}>
+        {t("Enter the 6-digit code from your authenticator app.")}
+      </p>
+      <input
+        style={{
+          width: "100%", padding: "14px", borderRadius: 12, fontSize: 24,
+          letterSpacing: 10, textAlign: "center", border: "1px solid rgba(255,255,255,0.12)",
+          background: "rgba(255,255,255,0.06)", color: "inherit", outline: "none",
+          boxSizing: "border-box",
+        }}
+        type="text"
+        inputMode="numeric"
+        maxLength={6}
+        placeholder="------"
+        value={code}
+        onChange={e => { setCode(e.target.value.replace(/\D/g, "")); setError(""); }}
+        onKeyDown={e => e.key === "Enter" && handleVerify()}
+        autoFocus
+      />
+      {error && <p style={{ color: "#f87171", fontSize: 13, marginTop: 8 }}>{error}</p>}
+      <button
+        onClick={handleVerify}
+        disabled={busy || code.length !== 6}
+        style={{
+          width: "100%", marginTop: 16, padding: "14px", borderRadius: 12,
+          background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "#fff",
+          fontWeight: 700, fontSize: 15, border: "none",
+          cursor: busy || code.length !== 6 ? "not-allowed" : "pointer",
+          opacity: busy || code.length !== 6 ? 0.7 : 1,
+        }}
+      >
+        {busy ? `${t("Verifying")}…` : t("Verify")}
+      </button>
+      <button
+        onClick={onBack}
+        style={{ background: "none", border: "none", color: "#94a3b8", marginTop: 12, cursor: "pointer", fontSize: 13 }}
+      >
+        ← {t("Back")}
+      </button>
+    </div>
+  );
+}
+
 export default function AuthModal({ open, onClose, onAuth, defaultMode = "login", closable = true }) {
-  const [mode,    setMode]    = useState(defaultMode);
-  const [role,    setRole]    = useState("freelancer");
-  const [loading, setLoading] = useState(false);
+  const [mode,           setMode]           = useState(defaultMode);
+  const [role,           setRole]           = useState("freelancer");
+  const [freelancerType, setFreelancerType] = useState("freelancer");
+  const [loading,        setLoading]        = useState(false);
   const [errors,  setErrors]  = useState({});
   const [form,    setForm]    = useState({
     lastName: "", firstName: "", email: "", password: "", confirmPassword: "",
     skills: "", bio: "", dob: "", region: "", gender: "",
   });
 
-  // screen: "form" | "verify" | "pending" | "status" | "forgot" | "passwordFound"
-  const [screen,          setScreen]          = useState("form");
-  const [pendingName,     setPendingName]     = useState("");
-  const [pendingFormData, setPendingFormData] = useState(null);
-  const [statusUser,      setStatusUser]      = useState(null);
-  const [foundEmail,      setFoundEmail]      = useState("");
-  const [foundPassword,   setFoundPassword]   = useState("");
+  // screen: "form" | "verify" | "pending" | "status" | "forgot" | "passwordFound" | "deviceApproval" | "totp"
+  const [screen,            setScreen]            = useState("form");
+  const [pendingName,       setPendingName]       = useState("");
+  const [pendingFormData,   setPendingFormData]   = useState(null);
+  const [statusUser,        setStatusUser]        = useState(null);
+  const [foundEmail,        setFoundEmail]        = useState("");
+  const [pendingApproval,   setPendingApproval]   = useState(null); // { attemptId, device }
+  const [pendingTOTPToken,  setPendingTOTPToken]  = useState(null); // { pendingToken }
 
   // CAPTCHA
   const [captchaToken, setCaptchaToken] = useState(null);
@@ -533,11 +750,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const [cinBackPreview,  setCinBackPreview]  = useState(null);
 
   const { t }                        = useTranslation();
-  const { register, login, logout, accounts, updateUser } = useAuth();
+  const { register, login, verifyTOTP, loginWithUserData, logout, updateUser } = useAuth();
 
   const ROLES = [
     {
-      id: "client", label: t("Client"), activeColor: "text-sky-700 dark:text-sky-400",
+      id: "client", label: t("Client"),
       icon: (
         <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="7" width="20" height="14" rx="2"/>
@@ -548,7 +765,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       ),
     },
     {
-      id: "freelancer", label: t("Freelancer"), activeColor: "text-indigo-600 dark:text-indigo-400",
+      id: "freelancer", label: t("Freelancer"),
       icon: (
         <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2L2 7l10 5 10-5-10-5z"/>
@@ -564,11 +781,13 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     setForm({ lastName: "", firstName: "", email: "", password: "", confirmPassword: "", skills: "", bio: "", dob: "", region: "", gender: "" });
     setErrors({});
     setRole("freelancer");
+    setFreelancerType("freelancer");
     resetCIN();
     setScreen("form");
     setPendingName("");
     setPendingFormData(null);
     setStatusUser(null);
+    setPendingApproval(null);
     setCaptchaToken(null);
   }, [defaultMode, open]);
 
@@ -609,21 +828,17 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       errs.password = t("At least 6 characters");
     if (mode === "signup" && form.password !== form.confirmPassword)
       errs.confirmPassword = t("Passwords do not match");
-    if (mode === "signup" && role === "freelancer") {
-      if (!form.gender)        errs.gender = t("Veuillez sélectionner votre genre");
-      if (!form.skills.trim()) errs.skills = t("Please enter at least one skill");
-      if (!form.dob)           errs.dob    = t("Date of birth is required");
-      if (!form.region)        errs.region = t("Please select your region");
-      if (!cinFrontFile || !cinBackFile)
-        errs.cin = t("Please upload both sides of your CIN");
-    }
-    if (mode === "signup" && role === "client") {
+    if (mode === "signup") {
       if (!form.dob)    errs.dob    = t("Date of birth is required");
-      if (!form.gender) errs.gender = t("Veuillez sélectionner votre genre");
-      if (!cinFrontFile || !cinBackFile)
+      if (!form.gender) errs.gender = t("Please select your gender");
+      if (!IS_DEV && (!cinFrontFile || !cinBackFile))
         errs.cin = t("Please upload both sides of your CIN");
     }
-    if (mode === "login" && !captchaToken)
+    if (mode === "signup" && role === "freelancer") {
+      if (!form.skills.trim()) errs.skills = t("Please enter at least one skill");
+      if (!form.region)        errs.region = t("Please select your region");
+    }
+    if (mode === "login" && !IS_DEV && !captchaToken)
       errs.captcha = t("Please complete the CAPTCHA");
     return errs;
   }
@@ -634,6 +849,32 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     setLoading(true);
     try {
       if (mode === "signup") {
+        if (IS_DEV) {
+          // In dev mode: skip email verification, register and auto-login
+          await register({
+            name:        form.firstName + " " + (form.lastName || ''),
+            email:       form.email,
+            password:    form.password,
+            role,
+            dob:         form.dob,
+            region:      form.region,
+            gender:      form.gender,
+            skills:      form.skills,
+            bio:         form.bio,
+            cin:         "",
+            cinFront:    null,
+            cinBack:     null,
+            cinVerified: false,
+          });
+          const loginResult = await login(form.email, form.password);
+          if (loginResult.success) {
+            onAuth?.(loginResult.user);
+            onClose?.();
+          } else {
+            onClose?.();
+          }
+          return;
+        }
         const res = await fetch(`${API}/auth/send-code`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -644,7 +885,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           setErrors({ email: t("Failed to send verification email. Try again.") });
           return;
         }
-        setPendingFormData({ ...form, role });
+        setPendingFormData({ ...form, role, freelancerType });
         setScreen("verify");
         return;
       }
@@ -664,7 +905,20 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         return;
       }
 
-      // ── handle login by cinStatus for both freelancers and clients ──
+      // 2FA required — show TOTP entry screen
+      if (result.requiresTOTP) {
+        setPendingTOTPToken(result.pendingToken);
+        setScreen("totp");
+        return;
+      }
+
+      // New device — show approval waiting screen
+      if (result.pending) {
+        setPendingApproval({ attemptId: result.attemptId, device: result.device });
+        setScreen("deviceApproval");
+        return;
+      }
+
       if (!result.user) { setErrors({ email: t("Login failed. Please try again.") }); return; }
       if (result.user.role === "freelancer" || result.user.role === "client") {
         if ((result.user.cinStatus === "approved" || result.user.cinStatus === "rejected") && !result.user.statusSeen) {
@@ -726,6 +980,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         cinVerified: false,
       });
 
+      if (process.env.REACT_APP_DEV_MODE === 'true') {
+        setScreen("form");
+        if (onClose) onClose();
+        return;
+      }
       setPendingName(pendingFormData.firstName + " " + pendingFormData.lastName);
       setScreen("pending");
     } finally {
@@ -736,22 +995,49 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const isClient     = role === "client";
   const isFreelancer = role === "freelancer" && mode === "signup";
 
+  const loginTitle = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+      {t("Welcome back")}
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#7c6cf6', flexShrink: 0 }}>
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+    </span>
+  );
+
   const modalTitle =
-    screen === "verify"        ? t("Verify your email 📧") :
-    screen === "pending"       ? t("Inscription soumise 📋") :
-    screen === "status"        ? (statusUser?.cinStatus === "approved" ? t("Compte approuvé ✅") : t("Compte refusé ❌")) :
-    screen === "forgot"        ? t("Reset Password 🔑") :
-    screen === "passwordFound" ? t("Password Found ✅") :
-    mode === "login"           ? t("Welcome back 👋") :
-    isClient                   ? t("Join As A Client 💼") : t("Join As A Freelancer 🚀");
+    screen === "verify"          ? t("Verify your email 📧") :
+    screen === "pending"         ? t("Inscription soumise 📋") :
+    screen === "status"          ? (statusUser?.cinStatus === "approved" ? t("Compte approuvé ✅") : t("Compte refusé ❌")) :
+    screen === "forgot"          ? t("Reset Password 🔑") :
+    screen === "passwordFound"   ? t("Password Found ✅") :
+    screen === "deviceApproval"  ? "Vérification de l'appareil 🔐" :
+    mode === "login"           ? loginTitle :
+    isClient ? (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+        {t("Join as a client")}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#7c6cf6', flexShrink: 0 }}>
+          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        </svg>
+      </span>
+    ) : (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+        {t("Join as a freelancer")}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#7c6cf6', flexShrink: 0 }}>
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+        </svg>
+      </span>
+    );
 
   const modalSubtitle =
-    screen === "verify"        ? "" :
-    screen === "pending"       ? t("Votre dossier est en cours d'examen") :
-    screen === "status"        ? "" :
-    screen === "forgot"        ? "" :
-    screen === "passwordFound" ? "" :
-    mode === "login"           ? t("Log in to access your dashboard") :
+    screen === "verify"         ? "" :
+    screen === "pending"        ? t("Votre dossier est en cours d'examen") :
+    screen === "status"         ? "" :
+    screen === "forgot"         ? "" :
+    screen === "passwordFound"  ? "" :
+    screen === "deviceApproval" ? "" :
+    mode === "login"           ? t("Log in to access your dashboard.") :
     t("Join thousands of professionals today");
 
   return (
@@ -816,21 +1102,48 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         />
       )}
 
+      {/* ── 2FA TOTP SCREEN ── */}
+      {screen === "totp" && (
+        <TOTPScreen
+          pendingToken={pendingTOTPToken}
+          onSuccess={(rawUser) => {
+            onAuth?.(rawUser);
+            onClose?.();
+          }}
+          onBack={() => { setPendingTOTPToken(null); setScreen("form"); }}
+          verifyTOTP={verifyTOTP}
+          loginWithUserData={loginWithUserData}
+        />
+      )}
+
+      {/* ── DEVICE APPROVAL SCREEN ── */}
+      {screen === "deviceApproval" && pendingApproval && (
+        <DeviceApprovalScreen
+          attemptId={pendingApproval.attemptId}
+          device={pendingApproval.device}
+          onApproved={(rawUser, accessToken) => {
+            const loggedUser = loginWithUserData(rawUser, accessToken);
+            onAuth?.(loggedUser);
+            onClose?.();
+          }}
+          onBack={() => { setPendingApproval(null); setScreen("form"); }}
+        />
+      )}
+
       {/* ── NORMAL FORM ── */}
       {screen === "form" && (
         <>
           {/* Tab switcher */}
-          <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-5">
+          <div className="flex gap-1 p-1 rounded-2xl mb-5" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)' }}>
             {[{ id: "login", label: t("Log in") }, { id: "signup", label: t("Sign up") }].map(m => (
               <button
                 key={m.id}
                 onClick={() => { setMode(m.id); setErrors({}); setCaptchaToken(null); recaptchaRef.current?.reset(); }}
-                className={[
-                  "flex-1 py-2 text-sm font-semibold rounded-xl transition-all duration-200",
-                  mode === m.id
-                    ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300",
-                ].join(" ")}
+                className="flex-1 py-2 text-sm font-semibold rounded-xl transition-all duration-200"
+                style={mode === m.id
+                  ? { background: '#7c6cf6', color: '#fff' }
+                  : { background: 'transparent', color: '#a7abc8' }
+                }
               >
                 {m.label}
               </button>
@@ -839,34 +1152,30 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
           {/* Role toggle */}
           {mode === "signup" && (
-            <div className="mb-6">
-              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center mb-3">
-                {t("I am joining as")}
+            <div className="mb-5">
+              <p className="text-xs font-semibold uppercase tracking-widest text-center mb-3" style={{ color: '#62668a' }}>
+                I AM JOINING AS
               </p>
               <div
-                className="flex items-center mx-auto bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 gap-1"
-                style={{ width: "280px" }}
+                className="flex items-center w-full rounded-xl p-1 gap-1"
+                style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)' }}
               >
                 {ROLES.map(r => (
                   <button
                     key={r.id}
-                    onClick={() => setRole(r.id)}
-                    className={[
-                      "flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200",
-                      role === r.id
-                        ? `bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 shadow-sm ${r.activeColor}`
-                        : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300",
-                    ].join(" ")}
+                    onClick={() => { setRole(r.id); setErrors({}); }}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200"
+                    style={role === r.id
+                      ? { background: '#7c6cf6', color: '#fff' }
+                      : { background: 'transparent', color: '#a7abc8' }
+                    }
                   >
                     {r.icon}
                     {r.label}
                   </button>
                 ))}
               </div>
-              <p className={[
-                "text-center mt-2.5 text-xs font-medium transition-colors duration-200",
-                isClient ? "text-sky-600 dark:text-sky-400" : "text-indigo-600 dark:text-indigo-400",
-              ].join(" ")}>
+              <p className="text-center mt-2 text-xs font-medium" style={{ color: '#9b8cff' }}>
                 {isClient ? t("Looking to hire talent") : t("Looking for work & clients")}
               </p>
             </div>
@@ -874,25 +1183,24 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
           {/* Form fields */}
           <div className="space-y-3" onKeyDown={handleKey}>
+
+            {/* Last name + First name */}
             {mode === "signup" && (
               <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label={t("Last Name")} placeholder={t("Your last name")}
+                  label={t("Last name")} placeholder={t("Your last name")}
                   value={form.lastName} onChange={set("lastName")} error={errors.lastName} required
-                  leftIcon={
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                  }
                 />
                 <Input
-                  label={t("First Name")} placeholder={t("Your first name")}
+                  label={t("First name")} placeholder={t("Your first name")}
                   value={form.firstName} onChange={set("firstName")} error={errors.firstName} required
                 />
               </div>
             )}
+
+            {/* Email */}
             <Input
-              label={t("Email address")} type="email" placeholder={t("you@example.com")}
+              label={t("Email address")} type="email" placeholder="you@example.com"
               value={form.email} onChange={set("email")} error={errors.email} required
               leftIcon={
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -900,250 +1208,213 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                 </svg>
               }
             />
-            <Input
-              label={t("Password")} type="password" placeholder={t("Min 6 characters")}
-              value={form.password} onChange={set("password")} error={errors.password} required
-            />
-            {mode === "signup" && (
+
+            {/* Password — login: single with lock icon; signup: 2-col grid */}
+            {mode === "login" ? (
               <Input
-                label={t("Confirm password")} type="password" placeholder={t("Repeat your password")}
-                value={form.confirmPassword} onChange={set("confirmPassword")} error={errors.confirmPassword} required
+                label={t("Password")} type="password" placeholder={t("Enter your password")}
+                value={form.password} onChange={set("password")} error={errors.password} required
+                leftIcon={
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                }
               />
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label={t("Password")} type="password" placeholder={t("Password")}
+                  value={form.password} onChange={set("password")} error={errors.password} required
+                />
+                <Input
+                  label={t("Confirm password")} type="password" placeholder={t("Repeat your password")}
+                  value={form.confirmPassword} onChange={set("confirmPassword")} error={errors.confirmPassword} required
+                />
+              </div>
             )}
 
-            {/* ── FREELANCER EXTRA FIELDS ── */}
-            {isFreelancer && (
-              <>
+            {/* Date of birth + Gender — signup only, 2-col grid */}
+            {mode === "signup" && (
+              <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label={t("Date de naissance")}
-                  type="date"
-                  value={form.dob}
-                  onChange={set("dob")}
-                  error={errors.dob}
-                  required
+                  label={t("Date of birth")} type="date"
+                  value={form.dob} onChange={set("dob")} error={errors.dob} required
                 />
-
-                {/* ── GENDER SELECTOR ── */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                    {t("Genre")} <span className="text-rose-500">*</span>
+                  <label className="block text-sm mb-1.5" style={{ color: '#dcdef0', fontWeight: 700 }}>
+                    {t("Gender")} <span style={{ color: '#f87171' }}>*</span>
                   </label>
                   <div className="flex gap-2">
-                    {[
-                      {
-                        id: "male",
-                        label: t("Homme"),
-                        emoji: "👨",
-                        activeClass: "border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400",
-                      },
-                      {
-                        id: "female",
-                        label: t("Femme"),
-                        emoji: "👩",
-                        activeClass: "border-pink-500 bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400",
-                      },
-                    ].map(g => (
-                      <button
-                        key={g.id}
-                        type="button"
-                        onClick={() => { setForm(f => ({ ...f, gender: g.id })); setErrors(err => ({ ...err, gender: "" })); }}
-                        className={[
-                          "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200",
-                          form.gender === g.id
-                            ? g.activeClass
-                            : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600",
-                        ].join(" ")}
-                      >
-                        <span className="text-base">{g.emoji}</span>
-                        {g.label}
-                      </button>
-                    ))}
-                  </div>
-                  {errors.gender && <p className="mt-1 text-xs text-rose-500">{errors.gender}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                    {t("Région")} <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={form.region}
-                      onChange={e => { setForm(f => ({ ...f, region: e.target.value })); setErrors(err => ({ ...err, region: "" })); }}
-                      className={[
-                        "w-full appearance-none rounded-xl border px-3 py-2.5 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white transition-colors duration-200 pr-9",
-                        errors.region
-                          ? "border-rose-400 dark:border-rose-500 focus:ring-rose-400"
-                          : "border-slate-200 dark:border-slate-700 focus:border-indigo-400 dark:focus:border-indigo-500",
-                        "focus:outline-none focus:ring-2 focus:ring-indigo-400/20",
-                      ].join(" ")}
+                    {/* Male — blue when selected */}
+                    <button
+                      type="button"
+                      onClick={() => { setForm(f => ({ ...f, gender: 'male' })); setErrors(err => ({ ...err, gender: "" })); }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
+                      style={form.gender === 'male'
+                        ? { background: 'rgba(14,165,233,0.18)', color: '#38bdf8', border: '2px solid rgba(14,165,233,0.55)', boxShadow: '0 0 12px rgba(14,165,233,0.2)' }
+                        : { background: 'transparent', border: '2px solid rgba(255,255,255,.1)', color: '#a7abc8' }
+                      }
                     >
-                      <option value="">{t("Sélectionnez votre gouvernorat")}</option>
-                      {TUNISIAN_REGIONS.map(r => (
-                        <option key={r} value={r}>{r}</option>
-                      ))}
-                    </select>
-                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                  </div>
-                  {errors.region && <p className="mt-1 text-xs text-rose-500">{errors.region}</p>}
-                </div>
-
-                {/* CIN Section */}
-                <div className="mt-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
-                      {t("Carte d'Identité Nationale")}
-                    </span>
-                    <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-                  </div>
-
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 text-center">
-                    {t("Prenez une photo claire de chaque face de votre CIN. La photo doit être nette et bien éclairée.")}
-                  </p>
-
-                  <div className="flex gap-3 mb-3">
-                    <ImageUploadBox
-                      label={t("Face avant")}
-                      hint={t("Photo de la face avant")}
-                      preview={cinFrontPreview}
-                      onFile={f => handleCINFile("front", f)}
-                      side="front"
-                    />
-                    <ImageUploadBox
-                      label={t("Face arrière")}
-                      hint={t("Retournez la carte et photographiez")}
-                      preview={cinBackPreview}
-                      onFile={f => handleCINFile("back", f)}
-                      side="back"
-                    />
-                  </div>
-
-                  {cinFrontFile && cinBackFile && (
-                    <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
-                      <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="10" cy="14" r="5"/><line x1="19" y1="5" x2="14.65" y2="9.35"/><polyline points="15 5 19 5 19 9"/>
                       </svg>
-                      <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
-                        {t("Les deux photos sont prêtes. L'admin vérifiera votre CIN après soumission.")}
-                      </p>
-                    </div>
-                  )}
-
-                  {errors.cin && (
-                    <p className="mt-1.5 text-xs text-rose-500">{errors.cin}</p>
-                  )}
+                      {t("Male")}
+                    </button>
+                    {/* Female — pink/rose when selected */}
+                    <button
+                      type="button"
+                      onClick={() => { setForm(f => ({ ...f, gender: 'female' })); setErrors(err => ({ ...err, gender: "" })); }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
+                      style={form.gender === 'female'
+                        ? { background: 'rgba(244,114,182,0.18)', color: '#f472b6', border: '2px solid rgba(244,114,182,0.55)', boxShadow: '0 0 12px rgba(244,114,182,0.2)' }
+                        : { background: 'transparent', border: '2px solid rgba(255,255,255,.1)', color: '#a7abc8' }
+                      }
+                    >
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="8" r="5"/><line x1="12" y1="13" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/>
+                      </svg>
+                      {t("Female")}
+                    </button>
+                  </div>
+                  {errors.gender && <p className="mt-1 text-xs" style={{ color: '#f87171' }}>{errors.gender}</p>}
                 </div>
-
-                <Input
-                  label={t("Your Skills")} placeholder={t("e.g. React, Figma, SEO")}
-                  value={form.skills} onChange={set("skills")} error={errors.skills} required
-                  leftIcon={
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                    </svg>
-                  }
-                />
-                <Input
-                  label={t("Short Bio")} placeholder={t("Tell clients about yourself...")}
-                  value={form.bio} onChange={set("bio")} error={errors.bio}
-                />
-              </>
+              </div>
             )}
 
-            {/* Date of Birth for Client signup */}
-            {mode === "signup" && isClient && (
-              <Input
-                label={t("Date de naissance")}
-                type="date"
-                value={form.dob}
-                onChange={set("dob")}
-                error={errors.dob}
-                required
-              />
-            )}
-
-            {/* Gender for Client signup */}
-            {mode === "signup" && isClient && (
+            {/* Type toggle — freelancer signup only */}
+            {isFreelancer && (
               <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                  {t("Genre")} <span className="text-rose-500">*</span>
+                <label className="block text-sm mb-1.5" style={{ color: '#dcdef0', fontWeight: 700 }}>
+                  {t("Type")} <span style={{ color: '#f87171' }}>*</span>
                 </label>
                 <div className="flex gap-2">
                   {[
-                    { id: "male",   label: t("Homme"), emoji: "👨", activeClass: "border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400" },
-                    { id: "female", label: t("Femme"), emoji: "👩", activeClass: "border-pink-500 bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400" },
-                  ].map(g => (
+                    { id: "freelancer", label: t("Freelancer") },
+                    { id: "instructor", label: t("Instructor") },
+                  ].map(ft => (
                     <button
-                      key={g.id}
+                      key={ft.id}
                       type="button"
-                      onClick={() => { setForm(f => ({ ...f, gender: g.id })); setErrors(err => ({ ...err, gender: "" })); }}
-                      className={[
-                        "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200",
-                        form.gender === g.id
-                          ? g.activeClass
-                          : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600",
-                      ].join(" ")}
+                      onClick={() => setFreelancerType(ft.id)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
+                      style={freelancerType === ft.id
+                        ? { background: '#7c6cf6', color: '#fff', border: '2px solid #7c6cf6' }
+                        : { background: 'transparent', border: '2px solid rgba(255,255,255,.1)', color: '#a7abc8' }
+                      }
                     >
-                      <span className="text-base">{g.emoji}</span>
-                      {g.label}
+                      {freelancerType === ft.id && (
+                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      )}
+                      {ft.label}
                     </button>
                   ))}
                 </div>
-                {errors.gender && <p className="mt-1 text-xs text-rose-500">{errors.gender}</p>}
               </div>
             )}
 
-            {/* CIN for Client signup */}
-            {mode === "signup" && isClient && (
+            {/* Region — freelancer signup only */}
+            {isFreelancer && (
+              <div>
+                <label className="block text-sm mb-1.5" style={{ color: '#dcdef0', fontWeight: 700 }}>
+                  {t("Region")} <span style={{ color: '#f87171' }}>*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={form.region}
+                    onChange={e => { setForm(f => ({ ...f, region: e.target.value })); setErrors(err => ({ ...err, region: "" })); }}
+                    className="w-full appearance-none rounded-xl px-3 py-2.5 text-sm pr-9 focus:outline-none focus:ring-2 focus:ring-[rgba(124,108,246,0.25)] transition-colors duration-200"
+                    style={{
+                      background: '#15122c',
+                      border: errors.region ? '1px solid rgba(248,113,113,.6)' : '1px solid rgba(255,255,255,.12)',
+                      color: form.region ? '#f4f3fb' : '#62668a',
+                    }}
+                  >
+                    <option value="" style={{ background: '#15122c' }}>{t("Select your governorate")}</option>
+                    {TUNISIAN_REGIONS.map(r => (
+                      <option key={r} value={r} style={{ background: '#15122c' }}>{r}</option>
+                    ))}
+                  </select>
+                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#62668a' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </div>
+                {errors.region && <p className="mt-1 text-xs" style={{ color: '#f87171' }}>{errors.region}</p>}
+              </div>
+            )}
+
+            {/* CIN section — all signup roles */}
+            {mode === "signup" && (
               <div className="mt-1">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
-                    {t("Carte d'Identité Nationale")}
+                  <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,.08)' }} />
+                  <span className="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style={{ color: '#62668a' }}>
+                    NATIONAL IDENTITY CARD
                   </span>
-                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                  <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,.08)' }} />
                 </div>
-
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 text-center">
-                  {t("Prenez une photo claire de chaque face de votre CIN. La photo doit être nette et bien éclairée.")}
+                <p className="text-xs mb-3 text-center" style={{ color: '#a7abc8' }}>
+                  {t("Take a clear photo of each side of your CIN. Must be sharp and well lit.")}
                 </p>
-
                 <div className="flex gap-3 mb-3">
                   <ImageUploadBox
-                    label={t("Face avant")}
-                    hint={t("Photo de la face avant")}
+                    label={t("Front side")}
+                    hint={t("Photo of the front")}
                     preview={cinFrontPreview}
                     onFile={f => handleCINFile("front", f)}
-                    side="front"
                   />
                   <ImageUploadBox
-                    label={t("Face arrière")}
-                    hint={t("Retournez la carte et photographiez")}
+                    label={t("Back side")}
+                    hint={t("Flip and photograph")}
                     preview={cinBackPreview}
                     onFile={f => handleCINFile("back", f)}
-                    side="back"
                   />
                 </div>
-
                 {cinFrontFile && cinBackFile && (
-                  <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
-                    <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)' }}>
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#34d399' }}>
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                     </svg>
-                    <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
-                      {t("Les deux photos sont prêtes. L'admin vérifiera votre CIN après soumission.")}
+                    <p className="text-xs font-semibold" style={{ color: '#34d399' }}>
+                      {t("Both photos are ready. Admin will verify your CIN after submission.")}
                     </p>
                   </div>
                 )}
-
                 {errors.cin && (
-                  <p className="mt-1.5 text-xs text-rose-500">{errors.cin}</p>
+                  <p className="mt-1.5 text-xs" style={{ color: '#f87171' }}>{errors.cin}</p>
                 )}
               </div>
             )}
+
+            {/* Skills + Bio — freelancer signup only */}
+            {isFreelancer && (
+              <>
+                <Input
+                  label={t("Your skills")} placeholder="e.g. React, Figma, SEO"
+                  value={form.skills} onChange={set("skills")} error={errors.skills} required
+                />
+                <div>
+                  <label className="block text-sm mb-1.5" style={{ color: '#dcdef0', fontWeight: 700 }}>
+                    {t("Short bio")}
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder={t("Tell clients about yourself...")}
+                    value={form.bio}
+                    onChange={set("bio")}
+                    className="w-full rounded-xl border px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[rgba(124,108,246,0.25)] focus:border-[#7c6cf6] transition-all duration-200 placeholder-[#4a4e6a]"
+                    style={{
+                      background: '#15122c',
+                      border: '1px solid rgba(255,255,255,.12)',
+                      color: '#f4f3fb',
+                    }}
+                  />
+                </div>
+              </>
+            )}
+
           </div>
 
           {/* Forgot password */}
@@ -1151,7 +1422,10 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             <div className="text-right mt-2">
               <button
                 onClick={() => setScreen("forgot")}
-                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                className="text-xs transition-colors"
+                style={{ color: '#9b8cff' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#b9aeff')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#9b8cff')}
               >
                 {t("Forgot password?")}
               </button>
@@ -1170,7 +1444,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   theme="dark"
                 />
               </div>
-              {errors.captcha && <p className="mt-1.5 text-xs text-rose-500">{errors.captcha}</p>}
+              {errors.captcha && <p className="mt-1.5 text-xs" style={{ color: '#f87171' }}>{errors.captcha}</p>}
             </div>
           )}
 
@@ -1178,11 +1452,19 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             {loading ? t("Processing…") : mode === "login" ? t("Log in") : t("Create account")}
           </Button>
 
-          <p className="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-3 text-center text-xs" style={{ color: '#62668a' }}>
             {t("By continuing you agree to our")}{" "}
-            <span className="text-indigo-600 dark:text-indigo-400 cursor-pointer hover:underline">{t("Terms")}</span>
+            <span className="cursor-pointer" style={{ color: '#9b8cff' }}
+              onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
+              {t("Terms")}
+            </span>
             {" "}{t("and")}{" "}
-            <span className="text-indigo-600 dark:text-indigo-400 cursor-pointer hover:underline">{t("Privacy Policy")}</span>
+            <span className="cursor-pointer" style={{ color: '#9b8cff' }}
+              onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
+              {t("Privacy Policy")}
+            </span>
           </p>
         </>
       )}
