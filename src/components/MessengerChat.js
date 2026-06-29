@@ -146,6 +146,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const [convSearch,    setConvSearch]    = useState('');
   const [forwardMsg,    setForwardMsg]    = useState(null);
   const [fwdSearch,     setFwdSearch]     = useState('');
+  const [showAttachMenu,setShowAttachMenu]= useState(false);
 
   // Admin-only: payment status panels for the selected conversation
   const [userCourseReq, setUserCourseReq] = useState(null);
@@ -336,6 +337,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
       if (!e.target.closest('[data-menu]'))       setOpenMenuId(null);
       if (!e.target.closest('[data-emoji-pick]')) setShowEmojiFor(null);
       if (!e.target.closest('[data-msg-wrap]'))   setHoveredMsg(null);
+      if (!e.target.closest('[data-attach]'))     setShowAttachMenu(false);
     };
     document.addEventListener('click', h);
     return () => document.removeEventListener('click', h);
@@ -1396,29 +1398,43 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
             {/* Input row */}
             <div className="flex items-end gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5">
-              {/* Gallery button */}
-              <button onClick={() => fileRef.current?.click()}
-                className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center transition-all mb-0.5"
-                style={{ color: '#62668a', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
-                title="Choose from gallery"
-                onMouseEnter={e => { e.currentTarget.style.color='#9b8cff'; e.currentTarget.style.borderColor='rgba(124,108,246,0.3)'; e.currentTarget.style.background='rgba(124,108,246,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color='#62668a'; e.currentTarget.style.borderColor='rgba(255,255,255,0.07)'; e.currentTarget.style.background='rgba(255,255,255,0.04)'; }}>
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                </svg>
-              </button>
-              {/* Camera button */}
-              <button onClick={() => { const c = document.createElement('input'); c.type='file'; c.accept='image/*'; c.capture='environment'; c.onchange=handleFileSelect; c.click(); }}
-                className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center transition-all mb-0.5"
-                style={{ color: '#62668a', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
-                title="Take a photo"
-                onMouseEnter={e => { e.currentTarget.style.color='#3ec2e8'; e.currentTarget.style.borderColor='rgba(62,194,232,0.3)'; e.currentTarget.style.background='rgba(62,194,232,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color='#62668a'; e.currentTarget.style.borderColor='rgba(255,255,255,0.07)'; e.currentTarget.style.background='rgba(255,255,255,0.04)'; }}>
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>
-                </svg>
-              </button>
-              <input type="file" accept="image/*" ref={fileRef} className="hidden" onChange={handleFileSelect} />
+              {/* Single attach button */}
+              <div data-attach style={{ position:'relative' }}>
+                <button onClick={() => setShowAttachMenu(v => !v)}
+                  className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center transition-all mb-0.5"
+                  style={{ color: showAttachMenu ? '#9b8cff' : '#62668a', background: showAttachMenu ? 'rgba(124,108,246,0.10)' : 'rgba(255,255,255,0.04)', border: showAttachMenu ? '1px solid rgba(124,108,246,0.35)' : '1px solid rgba(255,255,255,0.07)' }}
+                  onMouseEnter={e => { if (!showAttachMenu) { e.currentTarget.style.color='#9b8cff'; e.currentTarget.style.borderColor='rgba(124,108,246,0.3)'; e.currentTarget.style.background='rgba(124,108,246,0.08)'; }}}
+                  onMouseLeave={e => { if (!showAttachMenu) { e.currentTarget.style.color='#62668a'; e.currentTarget.style.borderColor='rgba(255,255,255,0.07)'; e.currentTarget.style.background='rgba(255,255,255,0.04)'; }}}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                  </svg>
+                </button>
+                {showAttachMenu && (
+                  <div style={{ position:'absolute', bottom:'calc(100% + 8px)', left:0, background:'#1a1b2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:14, padding:'6px', display:'flex', flexDirection:'column', gap:4, minWidth:190, boxShadow:'0 8px 32px rgba(0,0,0,0.5)', zIndex:50 }}>
+                    <button
+                      onClick={() => { setShowAttachMenu(false); fileRef.current?.click(); }}
+                      style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:10, background:'none', border:'none', color:'#c2c5dd', fontSize:13, fontWeight:600, cursor:'pointer', transition:'background .15s', textAlign:'left', width:'100%' }}
+                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
+                      onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" style={{ color:'#9b8cff', flexShrink:0 }}>
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                      </svg>
+                      Choisir depuis la galerie
+                    </button>
+                    <button
+                      onClick={() => { setShowAttachMenu(false); const c = document.createElement('input'); c.type='file'; c.accept='image/*'; c.capture='environment'; c.onchange=handleFileSelect; c.click(); }}
+                      style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:10, background:'none', border:'none', color:'#c2c5dd', fontSize:13, fontWeight:600, cursor:'pointer', transition:'background .15s', textAlign:'left', width:'100%' }}
+                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
+                      onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" style={{ color:'#3ec2e8', flexShrink:0 }}>
+                        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>
+                      </svg>
+                      Prendre une photo
+                    </button>
+                  </div>
+                )}
+              </div>
+              <input type="file" accept="image/*" ref={fileRef} className="hidden" onChange={e => { setShowAttachMenu(false); handleFileSelect(e); }} />
 
               {/* Textarea */}
               <textarea ref={inputRef} value={newMsg} onChange={handleInputChange} rows={1}
