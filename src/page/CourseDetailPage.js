@@ -1,24 +1,56 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { uploadVideo, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
 
-const API = 'https://famamennou-server.onrender.com/api';
+const API    = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
+const IS_DEV = process.env.REACT_APP_DEV_MODE === 'true';
 
-function StarRating({ rating = 0, interactive = false, onRate }) {
-  const [hover, setHover] = useState(0);
-  const display = interactive ? (hover || rating) : rating;
-  return (
-    <div className="flex items-center gap-1">
-      {[1,2,3,4,5].map(s => (
+const C = {
+  bg:     '#0a0817',
+  accent: '#7c6cf6',
+  purple: '#a855f7',
+  emerald:'#10b981',
+  amber:  '#f59e0b',
+  rose:   '#f43f5e',
+  sky:    '#0ea5e9',
+  text:   '#f1f5f9',
+  muted:  '#94a3b8',
+  dim:    '#475569',
+  card:   'rgba(255,255,255,0.04)',
+  border: 'rgba(255,255,255,0.08)',
+};
+
+const GS = `
+@keyframes cdB1{0%,100%{transform:translate(0,0)scale(1)}33%{transform:translate(55px,-45px)scale(1.14)}66%{transform:translate(-38px,52px)scale(0.91)}}
+@keyframes cdB2{0%,100%{transform:translate(0,0)scale(1)}33%{transform:translate(-65px,32px)scale(1.09)}66%{transform:translate(48px,-58px)scale(0.94)}}
+@keyframes cdB3{0%,100%{transform:translate(0,0)scale(1)}50%{transform:translate(42px,38px)scale(1.11)}}
+@keyframes cdB4{0%,100%{transform:translate(0,0)scale(1)}50%{transform:translate(-48px,-28px)scale(1.07)}}
+@keyframes cdSpin{to{transform:rotate(360deg)}}
+@keyframes cdUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cdPls{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes cdShim{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes soonDot{0%,80%,100%{opacity:0}40%{opacity:1}}
+`;
+
+/* ── helpers ── */
+function fmtNum(n){return n>=1000?(n/1000).toFixed(1).replace(/\.0$/,'')+'k':String(n||0);}
+function relTime(iso){if(!iso)return'';const d=(Date.now()-new Date(iso))/1000;if(d<60)return'à l\'instant';if(d<3600)return`il y a ${Math.floor(d/60)}m`;if(d<86400)return`il y a ${Math.floor(d/3600)}h`;return`il y a ${Math.floor(d/86400)}j`;}
+
+/* ── StarRating ── */
+function StarRating({rating=0,interactive=false,onRate,size=17}){
+  const [hov,setHov]=useState(0);
+  const disp=interactive?(hov||rating):rating;
+  return(
+    <div style={{display:'flex',alignItems:'center',gap:3}}>
+      {[1,2,3,4,5].map(s=>(
         <button key={s} type="button"
-          onClick={() => interactive && onRate?.(s)}
-          onMouseEnter={() => interactive && setHover(s)}
-          onMouseLeave={() => interactive && setHover(0)}
-          className={`${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform`}>
-          <svg className={`w-5 h-5 ${s <= Math.round(display) ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'}`}
-            fill="currentColor" viewBox="0 0 20 20">
+          onClick={()=>interactive&&onRate?.(s)}
+          onMouseEnter={()=>interactive&&setHov(s)}
+          onMouseLeave={()=>interactive&&setHov(0)}
+          style={{background:'none',border:'none',padding:0,cursor:interactive?'pointer':'default'}}>
+          <svg width={size} height={size} fill={s<=Math.round(disp)?C.amber:C.dim} viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z"/>
           </svg>
         </button>
@@ -27,999 +59,782 @@ function StarRating({ rating = 0, interactive = false, onRate }) {
   );
 }
 
-function LockIcon() {
-  return (
-    <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+/* ── Avatar ── */
+function Avatar({name,photo,size=40}){
+  return(
+    <div style={{width:size,height:size,borderRadius:size*0.26,background:`linear-gradient(135deg,${C.accent},${C.purple})`,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:800,fontSize:size*0.38,flexShrink:0,overflow:'hidden'}}>
+      {photo?<img src={cldImg(photo)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:(name||'?')[0].toUpperCase()}
+    </div>
+  );
+}
+
+/* ── Chip ── */
+function Chip({label,col}){
+  return <span style={{display:'inline-block',padding:'2px 9px',borderRadius:20,background:`${col}1a`,border:`1px solid ${col}44`,color:col,fontSize:11,fontWeight:700,flexShrink:0}}>{label}</span>;
+}
+
+/* ── LockIcon ── */
+function LockSvg(){
+  return(
+    <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke={C.dim} strokeWidth={2} style={{flexShrink:0}}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
     </svg>
   );
 }
 
+/* ── PlaySvg ── */
+function PlaySvg({size=18,col=C.accent}){
+  return(
+    <svg width={size} height={size} fill={col} viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/>
+    </svg>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════ */
 export default function CourseDetailPage() {
-  const { id }    = useParams();
-  const navigate  = useNavigate();
-  const { user }  = useAuth();
-  const location  = useLocation();
-  const [searchParams] = useSearchParams();
+  const { id }     = useParams();
+  const navigate   = useNavigate();
+  const { user }   = useAuth();
+  const [sp]       = useSearchParams();
 
   const [course,       setCourse]       = useState(null);
   const [lessons,      setLessons]      = useState([]);
   const [reviews,      setReviews]      = useState([]);
   const [liveSessions, setLiveSessions] = useState([]);
-  const [purchases,    setPurchases]    = useState([]);  // user's purchases for this course
+  const [purchases,    setPurchases]    = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [activeTab,    setActiveTab]    = useState('curriculum');
-  const [buying,         setBuying]         = useState(false);
-  const [buyingLesson,   setBuyingLesson]   = useState(null);
-  const [buyMsg,         setBuyMsg]         = useState('');
-  const [requestStatus,  setRequestStatus]  = useState(null); // null | 'pending' | 'approved' | 'rejected'
-  const [paymentStatus,  setPaymentStatus]  = useState(null); // null | 'en_attente' | 'en_cours' | 'termine'
-  const [requesting,     setRequesting]     = useState(false);
-  const [lockedMsg,    setLockedMsg]    = useState(false);
 
-  // Review form
-  const [myRating,     setMyRating]     = useState(0);
-  const [myReview,     setMyReview]     = useState('');
-  const [submitting,   setSubmitting]   = useState(false);
-  const [replyDraft,   setReplyDraft]   = useState({});
-  const [replyingId,   setReplyingId]   = useState(null);
-  const [replySending, setReplySending] = useState(false);
+  const [buying,        setBuying]        = useState(false);
+  const [buyMsg,        setBuyMsg]        = useState('');
+  const [buyMsgOk,      setBuyMsgOk]      = useState(null);
+  const [requestStatus, setRequestStatus] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [requesting,    setRequesting]    = useState(false);
+  const [lockedMsg,     setLockedMsg]     = useState(false);
 
-  // Discount (instructor only)
-  const [showDiscount,   setShowDiscount]   = useState(false);
-  const [discountInput,  setDiscountInput]  = useState('');
-  const [discountSaving, setDiscountSaving] = useState(false);
+  const [myRating,    setMyRating]    = useState(0);
+  const [myReview,    setMyReview]    = useState('');
+  const [submitting,  setSubmitting]  = useState(false);
+  const [replyDraft,  setReplyDraft]  = useState({});
+  const [replyingId,  setReplyingId]  = useState(null);
+  const [replySend,   setReplySend]   = useState(false);
 
-  // Add lesson inline (instructor only)
-  const [showAddLesson,    setShowAddLesson]    = useState(false);
-  const [lessonSubmitted,  setLessonSubmitted]  = useState(false);
-  const [newLesson,        setNewLesson]        = useState({ title:'', video_url:'', is_free_preview: true, price: 0 });
-  const [addingLesson,     setAddingLesson]     = useState(false);
-  const [uploadState,      setUploadState]      = useState('idle'); // idle | uploading | processing | done | error
-  const [uploadProgress,   setUploadProgress]   = useState(0);
-  const [uploadFileName,   setUploadFileName]   = useState('');
-  const muxFileRef = { current: null };
+  const [showDisc,    setShowDisc]    = useState(false);
+  const [discInput,   setDiscInput]   = useState('');
+  const [discSaving,  setDiscSaving]  = useState(false);
 
-  const isInstructor = course && user?.email?.toLowerCase() === course.creator_email?.toLowerCase();
+  const [showAdd,      setShowAdd]      = useState(false);
+  const [lessSub,      setLessSub]      = useState(false);
+  const [newLesson,    setNewLesson]    = useState({title:'',video_url:'',is_free_preview:true,price:0});
+  const [addingL,      setAddingL]      = useState(false);
+  const [upState,      setUpState]      = useState('idle');
+  const [upPct,        setUpPct]        = useState(0);
+  const [upFile,       setUpFile]       = useState('');
+  const muxRef = {current:null};
 
-  // What has the user purchased?
-  const hasFull     = purchases.some(p => !p.lesson_id);
-  const ownedLesson = id => purchases.some(p => Number(p.lesson_id) === Number(id));
+  const isInstructor  = course && user?.email?.toLowerCase() === course.creator_email?.toLowerCase();
+  const hasFull       = purchases.some(p => !p.lesson_id);
+  const visLessons    = lessons.filter(l => l.status !== 'rejected' || user?.isAdmin || isInstructor);
 
-  // Lessons visible to this user (hide rejected lessons unless admin/instructor)
-  const visibleLessons = lessons.filter(l => l.status !== 'rejected' || user?.isAdmin || isInstructor);
-
-
-  async function buyFull() {
-    if (!user) return;
-    const isFreeC = Number(course?.full_price) === 0;
-
-    const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Tunis' });
-    const accountType = user.role === 'client' ? 'Client' : user.role === 'freelancer' ? 'Freelancer' : user.role || 'Utilisateur';
-
-    async function sendAdminMsg(courseTitle, courseId, type, montant) {
-      const msg = type === 'free'
-        ? `Bonjour Fama Mennou TEAM 👋\n\nJe viens de m'inscrire au cours gratuit suivant.\n\n👤 Nom complet : ${user.name || 'N/A'}\n📧 Email : ${user.email}\n🏷️ Type de compte : ${accountType}\n\n📚 Cours : ${courseTitle} (ID: #${courseId})\n\n📅 Date : ${now}`
-        : `Je veux acheter ce cours "${courseTitle}" du ${now} avec montant ${montant} TND.`;
-      try {
-        await fetch(`${API}/messages`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ senderEmail: user.email, receiverEmail: 'admin@famamennou.com', content: msg }),
-        });
-      } catch {}
-
-      // Admin auto-reply for paid course purchase requests
-      if (type === 'paid') {
-        const reply = `Avec plaisir Mr/Mme ${user.name || ''}, merci d'envoyer votre preuve de paiement afin que nous puissions activer l'accès au cours. Merci pour votre confiance.`;
-        try {
-          await fetch(`${API}/messages`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ senderEmail: 'admin@famamennou.com', receiverEmail: user.email, content: reply }),
-          });
-        } catch {}
-      }
-    }
-
-    // FREE course — keep existing enrollment logic
-    if (isFreeC) {
-      setBuying(true); setBuyMsg('');
-      try {
-        const r = await fetch(`${API}/course-purchases`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ buyer_email: user.email, course_id: id }),
-        });
-        const d = await r.json();
-        if (d.success) {
-          setPurchases(prev => [...prev, { course_id: id, lesson_id: null }]);
-          setBuyMsg('🎉 Inscription réussie !');
-          sendAdminMsg(course?.title || `Cours #${id}`, id, 'free');
-        } else { setBuyMsg('Inscription échouée. Réessaie.'); }
-      } catch { setBuyMsg('Inscription échouée. Réessaie.'); }
-      finally { setBuying(false); }
-      return;
-    }
-
-    // PAID course — submit an access request
-    setRequesting(true); setBuyMsg('');
-    try {
-      const r = await fetch(`${API}/course-requests`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_email: user.email, user_name: user.name || '', course_id: id }),
-      });
-      const d = await r.json();
-      if (d.success) {
-        if (d.already_has_access) {
-          setPurchases(prev => [...prev, { course_id: id, lesson_id: null }]);
-        } else {
-          setRequestStatus(d.status || 'pending');
-          setBuyMsg('✅ Demande envoyée ! Redirection vers le chat…');
-          const _disc = Number(course?.discount_pct) || 0;
-          const _fp   = Number(course?.full_price) || 0;
-          const _final = _disc > 0 ? _fp * (1 - _disc / 100) : _fp;
-          await sendAdminMsg(course?.title || `Cours #${id}`, id, 'paid', _final.toFixed(2));
-          navigate('/messages?with=admin@famamennou.com');
-        }
-      } else { setBuyMsg('Demande échouée. Réessaie.'); }
-    } catch { setBuyMsg('Demande échouée. Réessaie.'); }
-    finally { setRequesting(false); }
-  }
-
-  async function saveDiscount() {
-    const pct = Math.max(0, Math.min(100, Math.round(Number(discountInput))));
-    setDiscountSaving(true);
-    try {
-      const r = await fetch(`${API}/courses/${id}/discount`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discount_pct: pct, instructor_email: user.email }),
-      });
-      const d = await r.json();
-      if (d.id) {
-        // update local course data
-        setCourse(prev => ({ ...prev, discount_pct: pct }));
-        setShowDiscount(false);
-        setDiscountInput('');
-      }
-    } catch {}
-    setDiscountSaving(false);
-  }
-
-  function canWatch(lesson) {
-    if (lesson.is_free_preview) return true;   // free for everyone
+  function canWatch(l) {
+    if (l.is_free_preview) return true;
     if (!user) return false;
-    if (user.isAdmin) return true;             // admin sees all
-    if (isInstructor) return true;             // instructor sees own lessons
-    if (hasFull) return true;                  // full course purchased
+    if (user.isAdmin || isInstructor || hasFull) return true;
     return false;
   }
 
+  /* ── data ── */
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    // Phase 1 — course + purchases only (fast, enough to decide paywall)
     Promise.all([
-      fetch(`${API}/courses/${id}`).then(r => r.json()),
-      user?.email
-        ? fetch(`${API}/course-purchases/user/${user.email}`).then(r => r.json())
-        : Promise.resolve([]),
-      user?.email
-        ? fetch(`${API}/course-requests/status?email=${encodeURIComponent(user.email)}&courseId=${id}`).then(r => r.json()).catch(() => ({ status: null }))
-        : Promise.resolve({ status: null }),
-    ]).then(([c, myPurch, reqStatus]) => {
+      fetch(`${API}/courses/${id}`).then(r=>r.json()),
+      user?.email ? fetch(`${API}/course-purchases/user/${user.email}`).then(r=>r.json()) : Promise.resolve([]),
+      user?.email ? fetch(`${API}/course-requests/status?email=${encodeURIComponent(user.email)}&courseId=${id}`).then(r=>r.json()).catch(()=>({status:null})) : Promise.resolve({status:null}),
+    ]).then(([c,mp,rs]) => {
       setCourse(c);
-      const filteredPurch = Array.isArray(myPurch)
-        ? myPurch.filter(p => Number(p.course_id) === Number(id))
-        : [];
-      setPurchases(filteredPurch);
-      setRequestStatus(reqStatus?.status || null);
-      setPaymentStatus(reqStatus?.payment_status || null);
-      setLoading(false); // ← paywall or hero renders immediately here
-
-      // Phase 2 — rest only if user can access the course
-      // Always load lessons — everyone sees the list (locked/unlocked per lesson)
+      setPurchases(Array.isArray(mp)?mp.filter(p=>Number(p.course_id)===Number(id)):[]);
+      setRequestStatus(rs?.status||null);
+      setPaymentStatus(rs?.payment_status||null);
+      setLoading(false);
       Promise.all([
-        fetch(`${API}/lessons/course/${id}`).then(r => r.json()),
-        fetch(`${API}/course-reviews/course/${id}`).then(r => r.json()),
-        fetch(`${API}/live-sessions/course/${id}`).then(r => r.json()),
-      ]).then(([ls, rv, live]) => {
-        setLessons(Array.isArray(ls)   ? ls   : []);
-        setReviews(Array.isArray(rv)   ? rv   : []);
-        setLiveSessions(Array.isArray(live) ? live : []);
-
-        // Auto-navigate to review from notification link (?tab=reviews#review-N)
-        const tabParam = searchParams.get('tab');
-        if (tabParam === 'reviews') {
+        fetch(`${API}/lessons/course/${id}`).then(r=>r.json()),
+        fetch(`${API}/course-reviews/course/${id}`).then(r=>r.json()),
+        fetch(`${API}/live-sessions/course/${id}`).then(r=>r.json()),
+      ]).then(([ls,rv,live]) => {
+        setLessons(Array.isArray(ls)?ls:[]);
+        setReviews(Array.isArray(rv)?rv:[]);
+        setLiveSessions(Array.isArray(live)?live:[]);
+        const tab=sp.get('tab');
+        if(tab==='reviews'){
           setActiveTab('reviews');
-          const hash = window.location.hash;
-          if (hash.startsWith('#review-')) {
-            const reviewId = hash.replace('#review-', '');
-            setTimeout(() => {
-              const el = document.getElementById(`review-${reviewId}`);
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 200);
+          const hash=window.location.hash;
+          if(hash.startsWith('#review-')){
+            setTimeout(()=>{const el=document.getElementById(hash.slice(1));if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},200);
           }
         }
-      }).catch(() => {});
-    }).catch(() => setLoading(false));
-  }, [id, user?.email]);
+      }).catch(()=>{});
+    }).catch(()=>setLoading(false));
+  },[id,user?.email]);
 
-  async function buyLesson(lesson) {
+  /* ── buyFull ── */
+  async function buyFull() {
     if (!user) return;
-    setBuyingLesson(lesson.id); setBuyMsg('');
-    try {
-      const r = await fetch(`${API}/course-purchases`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ buyer_email: user.email, course_id: id, lesson_id: lesson.id }),
-      });
-      const d = await r.json();
-      if (d.success) {
-        setBuyMsg(`✅ Lesson "${lesson.title}" unlocked!`);
-        setPurchases(prev => [...prev, { course_id: id, lesson_id: lesson.id }]);
+    const isFreeC = Number(course?.full_price) === 0;
+    const now = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Africa/Tunis'});
+    const aType = user.role==='client'?'Client':user.role==='freelancer'?'Freelancer':user.role||'Utilisateur';
+    async function sendAdmin(title,cid,type,amt){
+      const msg=type==='free'
+        ?`Bonjour Fama Mennou TEAM 👋\n\nJe viens de m'inscrire au cours gratuit suivant.\n\n👤 Nom complet : ${user.name||'N/A'}\n📧 Email : ${user.email}\n🏷️ Type de compte : ${aType}\n\n📚 Cours : ${title} (ID: #${cid})\n\n📅 Date : ${now}`
+        :`Je veux acheter ce cours "${title}" du ${now} avec montant ${amt} TND.`;
+      try{await fetch(`${API}/messages`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senderEmail:user.email,receiverEmail:'admin@famamennou.com',content:msg})});}catch{}
+      if(type==='paid'){
+        try{await fetch(`${API}/messages`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senderEmail:'admin@famamennou.com',receiverEmail:user.email,content:`Avec plaisir Mr/Mme ${user.name||''}, merci d'envoyer votre preuve de paiement afin que nous puissions activer l'accès au cours. Merci pour votre confiance.`})});}catch{}
       }
-    } catch { setBuyMsg('Purchase failed.'); }
-    finally { setBuyingLesson(null); }
-  }
-
-  async function submitReview() {
-    if (!myRating || !user) return;
-    setSubmitting(true);
-    try {
-      const r = await fetch(`${API}/course-reviews`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ course_id: id, reviewer_email: user.email, rating: myRating, review_text: myReview }),
-      });
-      const d = await r.json();
-      if (d.id) {
-        setReviews(prev => [{ ...d, reviewer_name: user.name }, ...prev.filter(r => r.reviewer_email !== user.email)]);
-        setMyRating(0); setMyReview('');
-        // refresh avg_rating
-        setCourse(prev => ({ ...prev, avg_rating: d.rating }));
-      } else {
-        alert(d.error || 'Failed to submit review');
-      }
-    } catch {} finally { setSubmitting(false); }
-  }
-
-  async function submitReply(reviewId, text) {
-    const trimmed = (text || '').trim();
-    if (!trimmed || !user) return;
-    setReplySending(true);
-    try {
-      const res = await fetch(`${API}/course-reviews/${reviewId}/reply`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instructor_email: user.email, reply: trimmed }),
-      });
-      const d = await res.json();
-      if (d.id) {
-        setReviews(prev => prev.map(rv => rv.id === reviewId ? { ...rv, instructor_reply: d.instructor_reply, replied_at: d.replied_at } : rv));
-        setReplyingId(null);
-        setReplyDraft(prev => { const n = { ...prev }; delete n[reviewId]; return n; });
-      } else {
-        alert(d.error || 'Erreur lors de l\'envoi');
-      }
-    } catch (err) {
-      alert('Erreur réseau : ' + err.message);
-    } finally {
-      setReplySending(false);
     }
-  }
-
-  async function handleMuxUpload(file) {
-    if (!file) return;
-    setUploadFileName(file.name);
-    setUploadState('uploading');
-    setUploadProgress(0);
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        const res = await uploadVideo(file, 'famamennou/videos', pct => setUploadProgress(pct));
-        setNewLesson(p => ({ ...p, video_url: res.secure_url }));
-        setUploadState('done');
-        return;
-      } catch (err) {
-        if (attempt < 2) {
-          setUploadProgress(0); // reset progress for retry
-          await new Promise(r => setTimeout(r, 1500));
-        } else {
-          setUploadState('error');
+    if(isFreeC){
+      setBuying(true);setBuyMsg('');
+      try{
+        const r=await fetch(`${API}/course-purchases`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({buyer_email:user.email,course_id:id})});
+        const d=await r.json();
+        if(d.success){setPurchases(p=>[...p,{course_id:id,lesson_id:null}]);setBuyMsg('Inscription réussie !');setBuyMsgOk(true);sendAdmin(course?.title||`Cours #${id}`,id,'free');}
+        else{setBuyMsg('Inscription échouée. Réessaie.');setBuyMsgOk(false);}
+      }catch{setBuyMsg('Inscription échouée. Réessaie.');setBuyMsgOk(false);}
+      finally{setBuying(false);}
+      return;
+    }
+    setRequesting(true);setBuyMsg('');setBuyMsgOk(null);
+    try{
+      const r=await fetch(`${API}/course-requests`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_email:user.email,user_name:user.name||'',course_id:id})});
+      const d=await r.json();
+      if(d.success){
+        if(d.already_has_access){setPurchases(p=>[...p,{course_id:id,lesson_id:null}]);}
+        else{
+          setRequestStatus(d.status||'pending');setBuyMsg('Demande envoyée ! Redirection vers le chat…');setBuyMsgOk(true);
+          const _d=Number(course?.discount_pct)||0,_fp=Number(course?.full_price)||0;
+          await sendAdmin(course?.title||`Cours #${id}`,id,'paid',(_d>0?_fp*(1-_d/100):_fp).toFixed(2));
+          navigate('/messages?with=admin@famamennou.com');
         }
+      }else{setBuyMsg('Demande échouée. Réessaie.');setBuyMsgOk(false);}
+    }catch{setBuyMsg('Demande échouée. Réessaie.');setBuyMsgOk(false);}
+    finally{setRequesting(false);}
+  }
+
+  /* ── discount ── */
+  async function saveDisc(){
+    const pct=Math.max(0,Math.min(100,Math.round(Number(discInput))));
+    setDiscSaving(true);
+    try{
+      const r=await fetch(`${API}/courses/${id}/discount`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({discount_pct:pct,instructor_email:user.email})});
+      const d=await r.json();
+      if(d.id){setCourse(p=>({...p,discount_pct:pct}));setShowDisc(false);setDiscInput('');}
+    }catch{}
+    setDiscSaving(false);
+  }
+
+  /* ── upload ── */
+  async function handleUpload(file){
+    if(!file)return;
+    setUpFile(file.name);setUpState('uploading');setUpPct(0);
+    for(let a=1;a<=2;a++){
+      try{
+        const res=await uploadVideo(file,'famamennou/videos',p=>setUpPct(p));
+        setNewLesson(p=>({...p,video_url:res.secure_url}));setUpState('done');return;
+      }catch{
+        if(a<2){setUpPct(0);await new Promise(r=>setTimeout(r,1500));}
+        else setUpState('error');
       }
     }
   }
 
-  async function addLesson(e) {
+  async function addLesson(e){
     e.preventDefault();
-    if (!newLesson.title.trim() || !newLesson.video_url) return;
-    setAddingLesson(true);
-    try {
-      const r = await fetch(`${API}/lessons`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          course_id: id,
-          title: newLesson.title.trim(),
-          video_url: newLesson.video_url || '',
-          is_free_preview: newLesson.is_free_preview,
-          price: newLesson.is_free_preview ? 0 : Number(newLesson.price) || 0,
-        }),
-      });
-      const d = await r.json();
-      if (d.id) {
-        setLessons(prev => [...prev, d]);
-        setNewLesson({ title:'', video_url:'', is_free_preview: true, price: 0 });
-        setUploadFileName('');
-        setShowAddLesson(false);
-        setLessonSubmitted(true);
-        setTimeout(() => setLessonSubmitted(false), 6000);
-      }
-    } catch {}
-    setAddingLesson(false);
+    if(!newLesson.title.trim()||!newLesson.video_url)return;
+    setAddingL(true);
+    try{
+      const r=await fetch(`${API}/lessons`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({course_id:id,title:newLesson.title.trim(),video_url:newLesson.video_url||'',is_free_preview:newLesson.is_free_preview,price:newLesson.is_free_preview?0:Number(newLesson.price)||0})});
+      const d=await r.json();
+      if(d.id){setLessons(p=>[...p,d]);setNewLesson({title:'',video_url:'',is_free_preview:true,price:0});setUpFile('');setShowAdd(false);setLessSub(true);setTimeout(()=>setLessSub(false),6000);}
+    }catch{}
+    setAddingL(false);
   }
 
-  async function messageInstructor() {
-    if (!course || !user) return;
-    navigate(`/messages?with=${encodeURIComponent(course.creator_email)}`);
+  /* ── reviews ── */
+  async function submitReview(){
+    if(!myRating||!user)return;
+    setSubmitting(true);
+    try{
+      const r=await fetch(`${API}/course-reviews`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({course_id:id,reviewer_email:user.email,rating:myRating,review_text:myReview})});
+      const d=await r.json();
+      if(d.id){setReviews(p=>[{...d,reviewer_name:user.name},...p.filter(x=>x.reviewer_email!==user.email)]);setMyRating(0);setMyReview('');setCourse(p=>({...p,avg_rating:d.rating}));}
+      else alert(d.error||'Failed');
+    }catch{}finally{setSubmitting(false);}
   }
 
-  if (loading) return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-24 flex items-center justify-center">
-      <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
-        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-        </svg>
-        Loading course…
+  async function submitReply(rid,text){
+    const t=(text||'').trim();if(!t||!user)return;
+    setReplySend(true);
+    try{
+      const r=await fetch(`${API}/course-reviews/${rid}/reply`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({instructor_email:user.email,reply:t})});
+      const d=await r.json();
+      if(d.id){setReviews(p=>p.map(rv=>rv.id===rid?{...rv,instructor_reply:d.instructor_reply,replied_at:d.replied_at}:rv));setReplyingId(null);setReplyDraft(p=>{const n={...p};delete n[rid];return n;});}
+      else alert(d.error||'Erreur');
+    }catch(e){alert('Erreur réseau: '+e.message);}
+    finally{setReplySend(false);}
+  }
+
+  /* ── loading / error ── */
+  if(loading) return(
+    <div style={{minHeight:'100vh',background:C.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
+      <style>{GS}</style>
+      <div style={{width:42,height:42,borderRadius:'50%',border:`3px solid ${C.border}`,borderTopColor:C.accent,animation:'cdSpin .85s linear infinite'}}/>
+      <p style={{color:C.muted,fontSize:14,fontWeight:600}}>Chargement du cours…</p>
+    </div>
+  );
+
+  if(!course||course.error) return(
+    <div style={{minHeight:'100vh',background:C.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:14}}>
+      <style>{GS}</style>
+      <div style={{width:72,height:72,borderRadius:20,background:'rgba(124,108,246,.1)',border:'1px solid rgba(124,108,246,.25)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <svg width={34} height={34} fill="none" viewBox="0 0 24 24" stroke="rgba(124,108,246,0.7)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
+      <p style={{color:C.text,fontWeight:700,fontSize:18}}>Cours introuvable</p>
+      <button onClick={()=>navigate('/courses')} style={{color:C.accent,background:'none',border:'none',cursor:'pointer',fontSize:14,fontWeight:600}}>← Parcourir les cours</button>
     </div>
   );
 
-  if (!course || course.error) return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-24 flex flex-col items-center justify-center gap-4">
-      <span className="text-4xl">😕</span>
-      <p className="font-bold text-slate-900 dark:text-white">Course not found</p>
-      <button onClick={() => navigate('/courses')} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">← Browse courses</button>
-    </div>
-  );
+  const isFree     = Number(course.full_price)===0;
+  const discPct    = Number(course.discount_pct)||0;
+  const finalPrice = discPct>0?Number(course.full_price)*(1-discPct/100):Number(course.full_price);
+  const hasDisc    = !isFree&&discPct>0;
+  const totalMin   = visLessons.reduce((s,l)=>s+(Number(l.duration_min)||0),0);
 
-  const isFree       = Number(course.full_price) === 0;
-  const discountPct  = Number(course.discount_pct) || 0;
-  const finalPrice   = discountPct > 0 ? Number(course.full_price) * (1 - discountPct / 100) : Number(course.full_price);
-  const hasDiscount  = !isFree && discountPct > 0;
-  const totalMinutes = visibleLessons.reduce((s, l) => s + (Number(l.duration_min) || 0), 0);
+  const TABS=[
+    {id:'curriculum',label:isInstructor?`Mes Leçons (${visLessons.length})`:`Leçons (${visLessons.length})`},
+    {id:'reviews',   label:isInstructor?`Mes Reviews (${reviews.length})`:`Reviews (${reviews.length})`},
+    {id:'live',      label:'Live Sessions'},
+  ];
 
+  /* ── render ── */
+  return(
+    <div style={{minHeight:'100vh',background:C.bg,color:C.text,position:'relative',overflowX:'hidden'}}>
+      <style>{GS}</style>
 
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-16">
+      {/* blobs */}
+      <div style={{position:'fixed',inset:0,zIndex:0,pointerEvents:'none',overflow:'hidden'}}>
+        <div style={{position:'absolute',width:680,height:680,borderRadius:'50%',background:'radial-gradient(circle,rgba(124,108,246,.13) 0%,transparent 70%)',top:-180,left:-180,animation:'cdB1 22s ease-in-out infinite'}}/>
+        <div style={{position:'absolute',width:580,height:580,borderRadius:'50%',background:'radial-gradient(circle,rgba(168,85,247,.10) 0%,transparent 70%)',bottom:-140,right:-90,animation:'cdB2 28s ease-in-out infinite'}}/>
+        <div style={{position:'absolute',width:480,height:480,borderRadius:'50%',background:'radial-gradient(circle,rgba(99,102,241,.09) 0%,transparent 70%)',top:'40%',right:'20%',animation:'cdB3 20s ease-in-out infinite'}}/>
+        <div style={{position:'absolute',width:380,height:380,borderRadius:'50%',background:'radial-gradient(circle,rgba(124,108,246,.08) 0%,transparent 70%)',bottom:'30%',left:'15%',animation:'cdB4 25s ease-in-out infinite'}}/>
+      </div>
 
-      {/* ── Hero Banner ──────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-slate-900 to-indigo-950 py-12 px-4">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-start">
+      <div style={{position:'relative',zIndex:1,paddingTop:64}}>
 
-          {/* Left: info */}
-          <div className="flex-1 min-w-0">
-            <button onClick={() => navigate('/courses')}
-              className="flex items-center gap-1.5 text-indigo-300 text-xs font-semibold mb-5 hover:text-white transition-colors">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
-              </svg>
-              All Courses
-            </button>
+        {/* ═══ HERO ═══ */}
+        <div style={{background:'linear-gradient(180deg,rgba(124,108,246,.13) 0%,transparent 100%)',borderBottom:`1px solid ${C.border}`,padding:'44px 24px 52px'}}>
+          <div style={{maxWidth:1200,margin:'0 auto',display:'flex',gap:40,alignItems:'flex-start',flexWrap:'wrap'}}>
 
-            <span className="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-bold mb-4">
-              {course.category}
-            </span>
+            {/* Left */}
+            <div style={{flex:'1 1 480px',minWidth:0,animation:'cdUp .5s ease both'}}>
+              <button onClick={()=>navigate('/courses')} style={{display:'flex',alignItems:'center',gap:6,background:'none',border:'none',color:C.accent,fontWeight:700,fontSize:13,cursor:'pointer',marginBottom:22,padding:0}}>
+                <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                Tous les cours
+              </button>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-3 leading-tight">
-              {course.title}
-            </h1>
-            <p className="text-slate-300 text-sm leading-relaxed mb-5 max-w-2xl">
-              {course.description}
-            </p>
-
-            <div className="flex items-center gap-4 flex-wrap text-sm text-slate-300 mb-5">
-              <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z"/>
-                </svg>
-                {Number(course.avg_rating).toFixed(1)} ({reviews.length} reviews)
+              <span style={{display:'inline-flex',alignItems:'center',padding:'4px 12px',borderRadius:20,background:'rgba(124,108,246,.16)',border:'1px solid rgba(124,108,246,.32)',color:C.accent,fontSize:11,fontWeight:800,letterSpacing:.5,textTransform:'uppercase',marginBottom:16}}>
+                {course.category}
               </span>
-              <span>👥 {course.total_students} students</span>
-              <span>📖 {visibleLessons.length} lessons</span>
-              {totalMinutes > 0 && <span>⏱ {Math.floor(totalMinutes/60)}h {totalMinutes%60}m total</span>}
+
+              <h1 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:900,color:'#fff',lineHeight:1.2,margin:'0 0 14px',letterSpacing:'-.4px'}}>
+                {course.title}
+              </h1>
+              <p style={{color:C.muted,fontSize:15,lineHeight:1.7,marginBottom:22,maxWidth:640}}>
+                {course.description}
+              </p>
+
+              {/* stats */}
+              <div style={{display:'flex',alignItems:'center',gap:18,flexWrap:'wrap',marginBottom:26}}>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>
+                  <svg width={15} height={15} fill={C.amber} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z"/></svg>
+                  <span style={{color:'#fff',fontWeight:800,fontSize:14}}>{Number(course.avg_rating).toFixed(1)}</span>
+                  <span style={{color:C.muted,fontSize:13}}>({reviews.length} avis)</span>
+                </div>
+                {[
+                    ['users',fmtNum(course.total_students),'étudiants'],
+                    ['book',visLessons.length,'leçons'],
+                    totalMin>0?['clock',`${Math.floor(totalMin/60)}h${totalMin%60>0?' '+totalMin%60+'m':''}`,'durée']:null,
+                  ].filter(Boolean).map(([ic,v,lb],i)=>(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:5}}>
+                    {ic==='users' && <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+                    {ic==='book'  && <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>}
+                    {ic==='clock' && <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>}
+                    <span style={{color:'#fff',fontWeight:700,fontSize:14}}>{v}</span>
+                    <span style={{color:C.dim,fontSize:13}}>{lb}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* instructor */}
+              <div onClick={() => navigate(`/profile/${encodeURIComponent(course.creator_email)}`)} style={{display:'inline-flex',alignItems:'center',gap:13,padding:'11px 18px',borderRadius:14,background:C.card,border:`1px solid ${C.border}`,cursor:'pointer'}}>
+                <Avatar name={course.instructor_name||course.creator_email} photo={course.instructor_photo} size={42}/>
+                <div>
+                  <p style={{color:C.muted,fontSize:11,fontWeight:600,letterSpacing:.3,textTransform:'uppercase',marginBottom:2}}>Instructeur</p>
+                  <p style={{color:'#fff',fontSize:14,fontWeight:700}}>{course.instructor_name||course.creator_email}</p>
+                </div>
+              </div>
             </div>
 
-            {/* Instructor */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
-                {course.instructor_photo
-                  ? <img src={cldImg(course.instructor_photo)} alt="" className="w-full h-full object-cover" />
-                  : (course.instructor_name || '?')[0].toUpperCase()}
-              </div>
-              <div>
-                <p className="text-xs text-slate-400">Instructor</p>
-                <p className="text-sm font-semibold text-white">{course.instructor_name || course.creator_email}</p>
+            {/* Right — buy card */}
+            <div style={{width:340,flexShrink:0,animation:'cdUp .5s .1s ease both'}}>
+              <div style={{borderRadius:20,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',overflow:'hidden',boxShadow:'0 24px 60px rgba(0,0,0,0.5)'}}>
+                {course.thumbnail_url?(
+                  <div style={{aspectRatio:'16/9',overflow:'hidden'}}>
+                    <img src={cldImg(course.thumbnail_url)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                  </div>
+                ):(
+                  <div style={{aspectRatio:'16/9',background:'linear-gradient(135deg,rgba(124,108,246,.3),rgba(168,85,247,.2))',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <svg width={52} height={52} fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.5)" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                  </div>
+                )}
+
+                <div style={{padding:'22px 22px 24px'}}>
+                  {/* price */}
+                  <div style={{marginBottom:18}}>
+                    {isFree?(
+                      <p style={{fontSize:30,fontWeight:900,color:C.emerald,margin:0}}>Gratuit</p>
+                    ):hasDisc?(
+                      <div style={{display:'flex',alignItems:'baseline',gap:10,flexWrap:'wrap'}}>
+                        <p style={{fontSize:30,fontWeight:900,color:C.rose,margin:0}}>{finalPrice.toFixed(2)} TND</p>
+                        <p style={{fontSize:14,color:C.dim,textDecoration:'line-through',margin:0}}>{Number(course.full_price).toFixed(2)} TND</p>
+                        <span style={{padding:'2px 9px',borderRadius:20,background:'rgba(244,63,94,.15)',border:'1px solid rgba(244,63,94,.35)',color:C.rose,fontSize:11,fontWeight:800}}>-{discPct}%</span>
+                      </div>
+                    ):(
+                      <p style={{fontSize:30,fontWeight:900,color:C.text,margin:0}}>{Number(course.full_price).toFixed(2)} TND</p>
+                    )}
+                  </div>
+
+                  {/* buy msg */}
+                  {buyMsg&&(
+                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 13px',borderRadius:10,marginBottom:14,background:buyMsgOk?'rgba(16,185,129,.1)':'rgba(244,63,94,.1)',border:`1px solid ${buyMsgOk?'rgba(16,185,129,.3)':'rgba(244,63,94,.3)'}`,color:buyMsgOk?C.emerald:C.rose,fontSize:12,fontWeight:600}}>
+                      {buyMsgOk
+                        ? <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{flexShrink:0}}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        : <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{flexShrink:0}}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                      }
+                      {buyMsg}
+                    </div>
+                  )}
+
+                  {/* CTAs */}
+                  {isInstructor?(
+                    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                      <div style={{padding:'10px 13px',borderRadius:10,background:'rgba(124,108,246,.1)',border:'1px solid rgba(124,108,246,.25)',color:C.accent,fontSize:12,fontWeight:600,textAlign:'center'}}>
+                        Vous êtes l'instructeur de ce cours
+                      </div>
+                      {!isFree&&(
+                        <>
+                          {discPct>0&&(
+                            <div style={{display:'flex',justifyContent:'space-between',fontSize:12,padding:'0 2px'}}>
+                              <span style={{display:'flex',alignItems:'center',gap:5,color:C.rose,fontWeight:700}}><svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Remise active : -{discPct}%</span>
+                              <span style={{color:C.dim}}>{finalPrice.toFixed(2)} TND</span>
+                            </div>
+                          )}
+                          <button onClick={()=>{setShowDisc(v=>!v);setDiscInput(discPct>0?String(discPct):'');}}
+                            style={{padding:'11px 13px',borderRadius:10,background:discPct>0?'rgba(244,63,94,.1)':'rgba(255,255,255,.06)',border:`1px solid ${discPct>0?'rgba(244,63,94,.3)':'rgba(255,255,255,.1)'}`,color:discPct>0?C.rose:C.muted,fontWeight:700,fontSize:12,cursor:'pointer'}}>
+                            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                            {discPct>0?`Modifier la remise (${discPct}% actif)`:'Appliquer une remise'}
+                          </button>
+                          {showDisc&&(
+                            <div style={{padding:'14px',borderRadius:12,background:'rgba(255,255,255,.04)',border:`1px solid ${C.border}`}}>
+                              <p style={{color:C.dim,fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Réduction (%)</p>
+                              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                                <input type="number" min="0" max="100" step="1" value={discInput} onChange={e=>setDiscInput(e.target.value)} placeholder="ex: 20"
+                                  style={{width:64,textAlign:'center',padding:'8px',borderRadius:8,border:`1px solid ${C.border}`,background:'rgba(255,255,255,.05)',color:C.text,fontWeight:800,fontSize:14,outline:'none'}}/>
+                                <span style={{color:C.dim,fontSize:13}}>%</span>
+                                {discInput!==''&&Number(discInput)>0&&<span style={{color:C.emerald,fontWeight:700,fontSize:12}}>→ {(Number(course.full_price)*(1-Number(discInput)/100)).toFixed(2)} TND</span>}
+                              </div>
+                              <p style={{color:C.dim,fontSize:11,marginBottom:10}}>Mettez 0 pour supprimer la remise.</p>
+                              <div style={{display:'flex',gap:8}}>
+                                <button onClick={saveDisc} disabled={discSaving||discInput===''} style={{flex:1,padding:'9px',borderRadius:9,background:'linear-gradient(135deg,#f43f5e,#e11d48)',color:'#fff',fontWeight:700,fontSize:12,border:'none',cursor:'pointer',opacity:(discSaving||discInput==='')?0.5:1}}>
+                                  {discSaving?'Enregistrement…':'Appliquer'}
+                                </button>
+                                <button onClick={()=>{setShowDisc(false);setDiscInput('');}} style={{padding:'9px 13px',borderRadius:9,background:'rgba(255,255,255,.05)',border:`1px solid ${C.border}`,color:C.muted,fontWeight:600,fontSize:12,cursor:'pointer'}}>
+                                  Annuler
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ):hasFull||requestStatus==='approved'?(
+                    <button onClick={()=>document.getElementById('curr-sec')?.scrollIntoView({behavior:'smooth'})}
+                      style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#10b981,#059669)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,boxShadow:'0 8px 24px rgba(16,185,129,.3)'}}>
+                      ▶ Voir le cours
+                    </button>
+                  ):requestStatus==='pending'?(
+                    paymentStatus==='en_cours'?(
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px',borderRadius:12,background:'rgba(14,165,233,.1)',border:'1px solid rgba(14,165,233,.3)',color:C.sky,fontWeight:700,fontSize:13,marginBottom:12}}><svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z"/><path d="M12 6v6l4 2"/></svg>Paiement en cours de traitement</div>
+                    ):(
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px',borderRadius:12,background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.3)',color:C.amber,fontWeight:700,fontSize:13,marginBottom:12}}><svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Demande en attente de validation</div>
+                    )
+                  ):requestStatus==='rejected'?(
+                    <>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,background:'rgba(244,63,94,.1)',border:'1px solid rgba(244,63,94,.3)',color:C.rose,fontSize:12,marginBottom:10}}><svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>Demande refusée</div>
+                      <button onClick={buyFull} disabled={requesting} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,opacity:requesting?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.3)'}}>
+                        {requesting?'Envoi…':'Renvoyer la demande'}
+                      </button>
+                    </>
+                  ):(
+                    <button onClick={buyFull} disabled={buying||requesting} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,opacity:(buying||requesting)?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
+                      {requesting?'Envoi en cours…':buying?'Traitement…':isFree?'S\'inscrire gratuitement':'Acheter le cours'}
+                    </button>
+                  )}
+
+                  {/* perks */}
+                  <div style={{display:'flex',flexDirection:'column',gap:7,marginTop:14}}>
+                    {[
+                      ['check','Accès à vie'],
+                      course.first_lesson_free?['unlock','Première leçon en aperçu gratuit']:null,
+                    ].filter(Boolean).map(([ic,tx],i)=>(
+                      <div key={i} style={{display:'flex',alignItems:'center',gap:8}}>
+                        {ic==='check'
+                          ? <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke={C.emerald} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+                          : <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                        }
+                        <span style={{color:C.dim,fontSize:12}}>{tx}</span>
+                      </div>
+                    ))}
+                    {!isInstructor&&(
+                      <button onClick={()=>navigate(`/messages?with=${encodeURIComponent(course.creator_email)}`)}
+                        style={{width:'100%',marginTop:6,padding:'11px',borderRadius:12,background:'rgba(255,255,255,.04)',border:`1px solid ${C.border}`,color:C.muted,fontWeight:700,fontSize:13,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8,transition:'all .2s'}}
+                        onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,.1)';e.currentTarget.style.borderColor='rgba(124,108,246,.4)';e.currentTarget.style.color=C.accent;}}
+                        onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,.04)';e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.muted;}}>
+                        <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        Contacter l'instructeur
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Right: Buy card */}
-          <div className="w-full lg:w-80 shrink-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
-            {course.thumbnail_url && (
-              <div className="aspect-video overflow-hidden">
-                <img src={cldImg(course.thumbnail_url)} alt="" className="w-full h-full object-cover" />
-              </div>
-            )}
-            <div className="p-5">
-              {/* Price */}
-              <div className="mb-4">
-                {isFree ? (
-                  <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">Gratuit</p>
-                ) : hasDiscount ? (
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <p className="text-3xl font-extrabold text-rose-500">{finalPrice.toFixed(2)} TND</p>
-                    <p className="text-base text-slate-400 line-through">{Number(course.full_price).toFixed(2)} TND</p>
-                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-rose-500 text-white">-{discountPct}%</span>
+        {/* ═══ TABS ═══ */}
+        <div style={{position:'sticky',top:64,zIndex:20,backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',background:'rgba(10,8,23,.88)',borderBottom:`1px solid ${C.border}`}}>
+          <div style={{maxWidth:1200,margin:'0 auto',padding:'0 24px',display:'flex',gap:2}}>
+            {TABS.map(t=>(
+              <button key={t.id} onClick={()=>setActiveTab(t.id)}
+                style={{padding:'15px 20px',background:'none',border:'none',borderBottom:`2px solid ${activeTab===t.id?C.accent:'transparent'}`,color:activeTab===t.id?C.accent:C.muted,fontSize:13,fontWeight:700,cursor:'pointer',transition:'all .2s',whiteSpace:'nowrap'}}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ═══ TAB BODY ═══ */}
+        <div style={{maxWidth:1200,margin:'0 auto',padding:'32px 24px 80px'}}>
+
+          {/* ── Curriculum ── */}
+          {activeTab==='curriculum'&&(
+            <div id="curr-sec" style={{maxWidth:780}}>
+              {lessSub&&(
+                <div style={{display:'flex',gap:13,alignItems:'flex-start',padding:16,borderRadius:14,background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.25)',marginBottom:16}}>
+                  <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke={C.amber} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,marginTop:1}}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  <div>
+                    <p style={{color:'#fbbf24',fontWeight:800,fontSize:14,margin:0}}>Leçon envoyée à l'admin</p>
+                    <p style={{color:'#d97706',fontSize:12,marginTop:4,margin:0}}>En attente de vérification · Résultat sous 24h · Vous serez notifié</p>
                   </div>
-                ) : (
-                  <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{Number(course.full_price).toFixed(2)} TND</p>
-                )}
-              </div>
-
-              {buyMsg && (
-                <div className={`text-xs rounded-xl px-3 py-2 mb-3 ${buyMsg.startsWith('🎉') || buyMsg.startsWith('✅') ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600'}`}>
-                  {buyMsg}
                 </div>
               )}
 
-              {isInstructor ? (
-                <div className="space-y-3">
-                  <div className="text-xs text-center text-slate-500 dark:text-slate-400 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                    Vous êtes l'instructeur de ce cours
-                  </div>
+              {/* add lesson — instructor */}
+              {isInstructor&&(
+                <div style={{marginBottom:20}}>
+                  {!showAdd?(
+                    <button onClick={()=>setShowAdd(true)}
+                      style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:9,padding:'16px',borderRadius:16,border:'2px dashed rgba(124,108,246,.35)',background:'rgba(124,108,246,.05)',color:C.accent,fontSize:13,fontWeight:700,cursor:'pointer',transition:'all .25s',boxSizing:'border-box'}}
+                      onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,.11)';e.currentTarget.style.borderColor='rgba(124,108,246,.65)';e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.boxShadow='0 8px 24px -6px rgba(124,108,246,0.2)';}}
+                      onMouseLeave={e=>{e.currentTarget.style.background='rgba(124,108,246,.05)';e.currentTarget.style.borderColor='rgba(124,108,246,.35)';e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='none';}}>
+                      <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
+                      Ajouter une leçon
+                    </button>
+                  ):(
+                    <form onSubmit={addLesson} style={{padding:24,borderRadius:20,background:'rgba(124,108,246,0.04)',border:'1px solid rgba(124,108,246,.28)',boxShadow:'0 8px 32px -8px rgba(124,108,246,0.12)'}}>
+                      <p style={{fontWeight:900,fontSize:16,color:C.text,margin:'0 0 20px',letterSpacing:'-0.01em'}}>Nouvelle leçon</p>
+                      <input type="file" accept="video/mp4,video/*" style={{display:'none'}} ref={r=>{muxRef.current=r;}} onChange={e=>{const f=e.target.files?.[0];if(f)handleUpload(f);}}/>
 
-                  {/* Discount control */}
-                  {!isFree && (
-                    <div>
-                      {/* Current discount badge */}
-                      {discountPct > 0 && (
-                        <div className="flex items-center justify-between mb-2 px-1">
-                          <span className="text-[11px] font-bold text-rose-400 flex items-center gap-1">
-                            🏷️ Remise active : -{discountPct}%
-                          </span>
-                          <span className="text-[11px] text-slate-500">
-                            Prix final : {finalPrice.toFixed(2)} TND
-                          </span>
+                      <p style={{color:C.muted,fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>TYPE *</p>
+                      <div style={{display:'flex',gap:8,marginBottom:18,padding:4,borderRadius:14,background:'rgba(255,255,255,0.04)'}}>
+                        {[{v:true,lb:'Gratuit',col:C.emerald},{v:false,lb:'Payant',col:C.accent}].map(({v,lb,col})=>(
+                          <button key={String(v)} type="button" onClick={()=>setNewLesson(p=>({...p,is_free_preview:v,...(v&&{price:0})}))}
+                            style={{flex:1,padding:'11px 10px',borderRadius:11,border:`2px solid ${newLesson.is_free_preview===v?col:'transparent'}`,background:newLesson.is_free_preview===v?`${col}18`:C.bg,color:newLesson.is_free_preview===v?col:C.muted,fontWeight:800,fontSize:13,cursor:'pointer',transition:'all .22s',boxShadow:newLesson.is_free_preview===v?`0 4px 14px -4px ${col}55`:'none'}}>
+                            {lb}
+                          </button>
+                        ))}
+                      </div>
+
+                      <p style={{color:C.muted,fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>TITRE *</p>
+                      <input required placeholder="Titre de la leçon…" value={newLesson.title} onChange={e=>setNewLesson(p=>({...p,title:e.target.value}))}
+                        style={{width:'100%',padding:'12px 15px',borderRadius:12,border:`1.5px solid ${C.border}`,background:'rgba(255,255,255,.05)',color:C.text,fontSize:14,outline:'none',boxSizing:'border-box',marginBottom:16,fontFamily:'inherit',transition:'border-color .2s, background .2s'}}
+                        onFocus={e=>{e.target.style.borderColor='rgba(124,108,246,0.55)';e.target.style.background='rgba(124,108,246,0.04)';}} onBlur={e=>{e.target.style.borderColor=C.border;e.target.style.background='rgba(255,255,255,.05)';}}/>
+
+                      {upState==='idle'&&(
+                        <button type="button" onClick={()=>{warmVideoUpload();muxRef.current?.click();}}
+                          style={{width:'100%',padding:'16px',borderRadius:12,border:'2px dashed rgba(124,108,246,.35)',background:'rgba(124,108,246,.04)',color:C.accent,fontWeight:700,fontSize:13,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:9,marginBottom:16,transition:'all .22s',boxSizing:'border-box'}}
+                          onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,.1)';e.currentTarget.style.borderColor='rgba(124,108,246,.65)';e.currentTarget.style.transform='translateY(-1px)';}}
+                          onMouseLeave={e=>{e.currentTarget.style.background='rgba(124,108,246,.04)';e.currentTarget.style.borderColor='rgba(124,108,246,.35)';e.currentTarget.style.transform='translateY(0)';}}>
+                          <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                          Importer une vidéo MP4 *
+                        </button>
+                      )}
+                      {upState==='uploading'&&(
+                        <div style={{borderRadius:10,border:`1px solid ${C.border}`,padding:'12px 14px',marginBottom:12}}>
+                          <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+                            <span style={{color:C.muted,fontSize:12,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1,marginRight:8}}>{upFile}</span>
+                            <span style={{color:C.accent,fontWeight:700,fontSize:12}}>{upPct}%</span>
+                          </div>
+                          <div style={{height:5,borderRadius:4,background:'rgba(255,255,255,.08)',overflow:'hidden'}}>
+                            <div style={{height:'100%',width:`${upPct}%`,background:`linear-gradient(90deg,${C.accent},${C.purple})`,borderRadius:4,transition:'width .3s ease'}}/>
+                          </div>
+                        </div>
+                      )}
+                      {upState==='processing'&&(
+                        <div style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',borderRadius:10,background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.25)',marginBottom:12}}>
+                          <svg width={16} height={16} fill="none" viewBox="0 0 24 24" style={{animation:'cdSpin .9s linear infinite',flexShrink:0}}><circle cx="12" cy="12" r="10" stroke={C.amber} strokeWidth="4" strokeOpacity=".25"/><path fill={C.amber} d="M4 12a8 8 0 018-8v8z"/></svg>
+                          <div><p style={{color:C.amber,fontWeight:700,fontSize:13,margin:0}}>Traitement…</p><p style={{color:'#d97706',fontSize:11,margin:0}}>1–2 minutes</p></div>
+                        </div>
+                      )}
+                      {upState==='done'&&(
+                        <div style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',borderRadius:10,background:'rgba(16,185,129,.1)',border:'1px solid rgba(16,185,129,.25)',marginBottom:12}}>
+                          <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke={C.emerald} strokeWidth={2.5} style={{flexShrink:0}}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                          <div style={{flex:1,minWidth:0}}>
+                            <p style={{color:C.emerald,fontWeight:700,fontSize:13,margin:0}}>Vidéo prête</p>
+                            <p style={{color:'#059669',fontSize:11,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',margin:0}}>{upFile}</p>
+                          </div>
+                          <button type="button" onClick={()=>{setUpState('idle');setUpPct(0);setUpFile('');setNewLesson(p=>({...p,video_url:''}));if(muxRef.current)muxRef.current.value='';}} style={{background:'none',border:'none',cursor:'pointer',color:C.dim,padding:0}}>
+                            <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                          </button>
+                        </div>
+                      )}
+                      {upState==='error'&&(
+                        <div style={{marginBottom:12}}>
+                          <div style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',borderRadius:10,background:'rgba(244,63,94,.1)',border:'1px solid rgba(244,63,94,.25)',marginBottom:8}}>
+                            <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke={C.rose} strokeWidth={2} style={{flexShrink:0}}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div><p style={{color:C.rose,fontWeight:700,fontSize:13,margin:0}}>L'upload a échoué</p><p style={{color:'#e11d48',fontSize:11,margin:0}}>Vérifiez votre connexion et réessayez.</p></div>
+                          </div>
+                          <button type="button" onClick={()=>{setUpState('idle');setUpPct(0);setUpFile('');setNewLesson(p=>({...p,video_url:''}));if(muxRef.current)muxRef.current.value='';}}
+                            style={{width:'100%',padding:'10px',borderRadius:10,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:700,fontSize:13,border:'none',cursor:'pointer'}}>
+                            Réimporter la vidéo
+                          </button>
                         </div>
                       )}
 
-                      {/* Toggle button */}
-                      <button
-                        onClick={() => {
-                          setShowDiscount(v => !v);
-                          setDiscountInput(discountPct > 0 ? String(discountPct) : '');
-                        }}
-                        className={`w-full py-2.5 rounded-xl text-xs font-bold transition-colors ${
-                          discountPct > 0
-                            ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                        }`}>
-                        🏷️ {discountPct > 0 ? `Modifier la remise (${discountPct}% actif)` : 'Appliquer une remise'}
-                      </button>
+                      <div style={{display:'flex',gap:10,marginTop:8}}>
+                        <button type="button" onClick={()=>{setShowAdd(false);setUpFile('');setUpState('idle');setUpPct(0);setNewLesson({title:'',video_url:'',is_free_preview:true,price:0});if(muxRef.current)muxRef.current.value='';}}
+                          style={{flex:1,padding:'12px',borderRadius:12,border:`1.5px solid ${C.border}`,background:'transparent',color:C.muted,fontWeight:700,fontSize:13,cursor:'pointer',transition:'all .18s'}}
+                          onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.2)';e.currentTarget.style.color=C.text;}}
+                          onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.muted;}}>
+                          Annuler
+                        </button>
+                        <button type="submit" disabled={addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)||upState==='uploading'||upState==='processing'}
+                          style={{flex:1,padding:'12px',borderRadius:12,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:800,fontSize:13,border:'none',cursor:'pointer',transition:'opacity .18s, transform .18s',opacity:(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)||upState==='uploading'||upState==='processing')?.45:1,boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)'}}
+                          onMouseEnter={e=>{if(!(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)))e.currentTarget.style.opacity='0.88';}}
+                          onMouseLeave={e=>{e.currentTarget.style.opacity=(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url))?.45:'1';}}>
+                          {addingL?'Ajout…':upState==='uploading'?'Upload…':upState==='processing'?'Traitement…':'Ajouter'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
 
-                      {/* Inline discount form */}
-                      {showDiscount && (
-                        <div className="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-3">
-                          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Réduction (%)</p>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="number" min="0" max="100" step="1"
-                              value={discountInput}
-                              onChange={e => setDiscountInput(e.target.value)}
-                              placeholder="ex: 20"
-                              className="w-20 text-sm font-bold text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-900 dark:text-white"
-                            />
-                            <span className="text-sm text-slate-400 font-semibold">%</span>
-                            {discountInput !== '' && Number(discountInput) > 0 && (
-                              <span className="text-xs text-emerald-500 font-bold">
-                                → {(Number(course.full_price) * (1 - Number(discountInput) / 100)).toFixed(2)} TND
-                              </span>
-                            )}
+              {/* locked msg */}
+              {lockedMsg&&(
+                <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderRadius:12,background:'rgba(124,108,246,.12)',border:'1px solid rgba(124,108,246,.3)',marginBottom:12,animation:'cdPls 1.5s ease infinite'}}>
+                  <LockSvg/>
+                  <p style={{color:C.accent,fontSize:13,fontWeight:600,margin:0}}>Vous devez acheter le cours complet pour accéder aux leçons payantes.</p>
+                </div>
+              )}
+
+              {/* lessons */}
+              {visLessons.length===0?(
+                <div style={{textAlign:'center',paddingTop:80,paddingBottom:80}}>
+                  <div style={{display:'flex',justifyContent:'center',marginBottom:14}}>
+                    <svg width={44} height={44} fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.2)" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  </div>
+                  <p style={{color:C.dim,fontSize:14}}>{lessons.length===0?'Aucune leçon ajoutée pour l\'instant':'Aucune leçon disponible'}</p>
+                </div>
+              ):(
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {visLessons.map((lesson,idx)=>{
+                    const w=canWatch(lesson);
+                    return(
+                      <div key={lesson.id}
+                        onClick={()=>{if(w)navigate(`/courses/${id}/lesson/${lesson.id}`);else if(!lesson.is_free_preview){setBuyMsg('Achetez le cours complet.');setLockedMsg(true);setTimeout(()=>setLockedMsg(false),4000);}}}
+                        style={{display:'flex',alignItems:'center',gap:15,padding:'13px 17px',borderRadius:14,background:w?C.card:'rgba(255,255,255,.02)',border:`1px solid ${w?C.border:'rgba(255,255,255,.04)'}`,cursor:'pointer',transition:'all .2s',userSelect:'none'}}
+                        onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,.08)';e.currentTarget.style.borderColor='rgba(124,108,246,.3)';}}
+                        onMouseLeave={e=>{e.currentTarget.style.background=w?C.card:'rgba(255,255,255,.02)';e.currentTarget.style.borderColor=w?C.border:'rgba(255,255,255,.04)';}}>
+
+                        <div style={{width:34,height:34,borderRadius:9,background:w?'rgba(124,108,246,.18)':'rgba(255,255,255,.05)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                          {w?<PlaySvg size={17} col={C.accent}/>:<span style={{color:C.dim,fontSize:12,fontWeight:700}}>{idx+1}</span>}
+                        </div>
+
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                            <p style={{color:w?C.text:C.muted,fontSize:14,fontWeight:600,margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lesson.title}</p>
+                            {lesson.status==='pending'&&<Chip label="En attente" col={C.amber}/>}
+                            {lesson.status==='rejected'&&<Chip label="Refusée" col={C.rose}/>}
                           </div>
-                          <p className="text-[11px] text-slate-500">Mettez 0 pour supprimer la remise.</p>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={saveDiscount}
-                              disabled={discountSaving || discountInput === ''}
-                              className="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors disabled:opacity-50">
-                              {discountSaving ? 'Enregistrement…' : 'Appliquer'}
+                          {lesson.description&&<p style={{color:C.dim,fontSize:12,margin:'3px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lesson.description}</p>}
+                        </div>
+
+                        <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+                          {lesson.is_free_preview&&<Chip label="Gratuit" col={C.emerald}/>}
+                          {!lesson.is_free_preview&&!w&&<Chip label="Payant" col={C.muted}/>}
+                          {lesson.duration_min>0&&<span style={{color:C.dim,fontSize:12}}>{lesson.duration_min}m</span>}
+                          {!w&&<LockSvg/>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Reviews ── */}
+          {activeTab==='reviews'&&(
+            <div style={{maxWidth:780,display:'flex',flexDirection:'column',gap:20}}>
+              {/* rating summary */}
+              <div style={{display:'flex',alignItems:'center',gap:30,padding:'22px 26px',borderRadius:18,background:C.card,border:`1px solid ${C.border}`,flexWrap:'wrap'}}>
+                <div style={{textAlign:'center',minWidth:80}}>
+                  <p style={{fontSize:50,fontWeight:900,color:'#fff',lineHeight:1,margin:0}}>{Number(course.avg_rating).toFixed(1)}</p>
+                  <div style={{marginTop:8}}><StarRating rating={course.avg_rating} size={15}/></div>
+                  <p style={{color:C.muted,fontSize:12,marginTop:6}}>{reviews.length} avis</p>
+                </div>
+                <div style={{flex:1,minWidth:160,display:'flex',flexDirection:'column',gap:7}}>
+                  {[5,4,3,2,1].map(s=>{
+                    const cnt=reviews.filter(r=>r.rating===s).length;
+                    const pct=reviews.length?Math.round(cnt/reviews.length*100):0;
+                    return(
+                      <div key={s} style={{display:'flex',alignItems:'center',gap:9}}>
+                        <span style={{color:C.muted,fontSize:12,width:10}}>{s}</span>
+                        <svg width={12} height={12} fill={C.amber} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z"/></svg>
+                        <div style={{flex:1,height:5,borderRadius:3,background:'rgba(255,255,255,.08)',overflow:'hidden'}}>
+                          <div style={{height:'100%',width:`${pct}%`,background:`linear-gradient(90deg,${C.amber},#fbbf24)`,borderRadius:3,transition:'width .6s ease'}}/>
+                        </div>
+                        <span style={{color:C.dim,fontSize:11,width:28,textAlign:'right'}}>{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* review form */}
+              {hasFull&&!isInstructor&&!reviews.some(r=>r.reviewer_email===user?.email)&&(
+                <div style={{padding:'22px',borderRadius:18,background:C.card,border:`1px solid ${C.border}`}}>
+                  <p style={{fontWeight:800,fontSize:15,marginBottom:14}}>Laisser un avis</p>
+                  <StarRating rating={myRating} interactive onRate={setMyRating} size={24}/>
+                  <textarea value={myReview} onChange={e=>setMyReview(e.target.value)} rows={3} placeholder="Partagez votre expérience…"
+                    style={{marginTop:13,width:'100%',padding:'11px 15px',borderRadius:11,border:`1px solid ${C.border}`,background:'rgba(255,255,255,.04)',color:C.text,fontSize:14,resize:'none',outline:'none',boxSizing:'border-box'}}
+                    onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=C.border}/>
+                  <div style={{display:'flex',gap:10,marginTop:12}}>
+                    <button onClick={submitReview} disabled={!myRating||submitting}
+                      style={{padding:'10px 22px',borderRadius:10,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:700,fontSize:13,border:'none',cursor:'pointer',opacity:(!myRating||submitting)?.5:1}}>
+                      {submitting?'Envoi…':'Envoyer l\'avis'}
+                    </button>
+                    <button onClick={()=>{setMyRating(0);setMyReview('');}}
+                      style={{padding:'10px 22px',borderRadius:10,background:'rgba(255,255,255,.06)',border:`1px solid ${C.border}`,color:C.muted,fontWeight:600,fontSize:13,cursor:'pointer'}}>
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* reviews list */}
+              {reviews.length===0?(
+                <div style={{textAlign:'center',paddingTop:60,paddingBottom:60}}>
+                  <div style={{display:'flex',justifyContent:'center',marginBottom:14}}>
+                    <svg width={42} height={42} fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.2)" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  </div>
+                  <p style={{color:C.dim,fontSize:14}}>Aucun avis pour l'instant — soyez le premier !</p>
+                </div>
+              ):reviews.map(r=>(
+                <div key={r.id} id={`review-${r.id}`} style={{display:'flex',gap:15,padding:'18px 22px',borderRadius:18,background:C.card,border:`1px solid ${C.border}`,scrollMarginTop:80}}>
+                  <div onClick={() => navigate(`/profile/${encodeURIComponent(r.reviewer_email)}`)} style={{cursor:'pointer',flexShrink:0}}>
+                    <Avatar name={r.reviewer_name||r.reviewer_email} photo={r.reviewer_photo} size={40}/>
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6,flexWrap:'wrap'}}>
+                      <span onClick={() => navigate(`/profile/${encodeURIComponent(r.reviewer_email)}`)} style={{color:'#fff',fontWeight:700,fontSize:14,cursor:'pointer'}}>{r.reviewer_name||r.reviewer_email}</span>
+                      <StarRating rating={r.rating} size={13}/>
+                      <span style={{color:C.dim,fontSize:11,marginLeft:'auto'}}>{relTime(r.created_at)}</span>
+                    </div>
+                    {r.review_text&&<p style={{color:C.muted,fontSize:14,lineHeight:1.65,margin:0}}>{r.review_text}</p>}
+
+                    {r.instructor_reply&&(
+                      <div style={{marginTop:13,paddingLeft:13,borderLeft:'2px solid rgba(124,108,246,.4)',display:'flex',gap:11}}>
+                        <div onClick={() => navigate(`/profile/${encodeURIComponent(course?.creator_email)}`)} style={{cursor:'pointer',flexShrink:0}}>
+                          <Avatar name={course?.instructor_name||course?.creator_email} photo={course?.instructor_photo} size={30}/>
+                        </div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <p onClick={() => navigate(`/profile/${encodeURIComponent(course?.creator_email)}`)} style={{color:C.accent,fontSize:12,fontWeight:700,marginBottom:4,cursor:'pointer'}}>{course?.instructor_name||course?.creator_email}</p>
+                          <p style={{color:C.muted,fontSize:13,lineHeight:1.6,margin:0}}>{r.instructor_reply}</p>
+                          <p style={{color:C.dim,fontSize:11,marginTop:4}}>{relTime(r.replied_at)}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {isInstructor&&!r.instructor_reply&&(
+                      replyingId===r.id?(
+                        <div style={{marginTop:11}}>
+                          <textarea value={replyDraft[r.id]||''} rows={2} onChange={e=>setReplyDraft(p=>({...p,[r.id]:e.target.value}))} placeholder="Votre réponse…"
+                            style={{width:'100%',padding:'9px 13px',borderRadius:10,border:`1px solid ${C.border}`,background:'rgba(255,255,255,.04)',color:C.text,fontSize:13,resize:'none',outline:'none',boxSizing:'border-box'}}
+                            onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=C.border}/>
+                          <div style={{display:'flex',gap:8,marginTop:8}}>
+                            <button onClick={()=>submitReply(r.id,replyDraft[r.id])} disabled={!replyDraft[r.id]?.trim()||replySend}
+                              style={{padding:'7px 15px',borderRadius:8,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:700,fontSize:12,border:'none',cursor:'pointer',opacity:(!replyDraft[r.id]?.trim()||replySend)?.5:1}}>
+                              {replySend?'Envoi…':'Répondre'}
                             </button>
-                            <button
-                              onClick={() => { setShowDiscount(false); setDiscountInput(''); }}
-                              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                            <button onClick={()=>{setReplyingId(null);setReplyDraft(p=>{const n={...p};delete n[r.id];return n;});}}
+                              style={{padding:'7px 15px',borderRadius:8,background:'rgba(255,255,255,.06)',border:`1px solid ${C.border}`,color:C.muted,fontWeight:600,fontSize:12,cursor:'pointer'}}>
                               Annuler
                             </button>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  )}
+                      ):(
+                        <button onClick={()=>setReplyingId(r.id)}
+                          style={{background:'none',border:'none',color:C.accent,fontSize:12,fontWeight:600,cursor:'pointer',marginTop:8,padding:0}}>
+                          ↩ Répondre
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
-              ) : hasFull || requestStatus === 'approved' ? (
-                <button
-                  onClick={() => document.getElementById('curriculum-section')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors shadow-sm shadow-emerald-500/30 mb-3">
-                  ▶ Voir le cours
-                </button>
-              ) : requestStatus === 'pending' ? (
-                paymentStatus === 'en_cours' ? (
-                  <div className="w-full py-3 rounded-xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-400 text-sm font-bold text-center mb-3">
-                    🔵 Paiement en cours de traitement
-                  </div>
-                ) : (
-                  <div className="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm font-bold text-center mb-3">
-                    🟡 Demande en attente de validation
-                  </div>
-                )
-              ) : requestStatus === 'rejected' ? (
-                <>
-                  <div className="text-xs text-center text-rose-600 dark:text-rose-400 py-2 bg-rose-50 dark:bg-rose-900/20 rounded-xl mb-2">
-                    ❌ Demande refusée
-                  </div>
-                  <button onClick={buyFull} disabled={requesting}
-                    className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-bold transition-colors shadow-sm shadow-indigo-500/30 mb-3">
-                    {requesting ? 'Envoi…' : 'Renvoyer la demande'}
-                  </button>
-                </>
-              ) : (
-                <button onClick={buyFull} disabled={buying || requesting}
-                  className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-bold transition-colors shadow-sm shadow-indigo-500/30 mb-3">
-                  {requesting ? 'Envoi en cours…' : buying ? 'Processing…' : isFree ? 'Enroll for Free' : `🛒 Acheter le cours`}
-                </button>
-              )}
-
-              <div className="mt-4 space-y-2 text-xs text-slate-500 dark:text-slate-400">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                  Full lifetime access
-                </div>
-                {course.first_lesson_free && (
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    First lesson free preview
-                  </div>
-                )}
-              </div>
-
-              {!isInstructor && (
-                <button onClick={messageInstructor}
-                  className="w-full mt-4 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:border-indigo-400 dark:hover:border-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                  </svg>
-                  Message Instructor
-                </button>
-              )}
+              ))}
             </div>
-          </div>
-        </div>
-      </div>
+          )}
 
-      {/* ── Tabs ─────────────────────────────────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8">
-        <div className="flex gap-1 border-b border-slate-200 dark:border-slate-800 mb-6">
-          {[
-            { id: 'curriculum', label: isInstructor ? `Mes Leçons (${visibleLessons.length})` : `Leçons (${visibleLessons.length})` },
-            { id: 'reviews',    label: isInstructor ? `Mes Reviews (${reviews.length})` : `Reviews (${reviews.length})` },
-            { id: 'live',       label: 'Live Sessions' },
-          ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all ${
-                activeTab === tab.id
-                  ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ── Curriculum ────────────────────────────────────────────────────── */}
-        {activeTab === 'curriculum' && (
-          <div id="curriculum-section" className="space-y-2 mb-10">
-            {/* Lesson submitted banner */}
-            {lessonSubmitted && (
-              <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mb-2">
-                <span className="text-xl">⏳</span>
-                <div>
-                  <p className="text-sm font-extrabold text-amber-800 dark:text-amber-300">Leçon envoyée à l'admin</p>
-                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">En attente de vérification · Résultat sous 24h max · Vous serez notifié</p>
-                </div>
+          {/* ── Live Sessions ── */}
+          {activeTab==='live'&&(
+            <div style={{maxWidth:780,textAlign:'center',paddingTop:80}}>
+              <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:76,height:76,borderRadius:'50%',background:'rgba(124,108,246,.12)',border:'1px solid rgba(124,108,246,.25)',marginBottom:22}}>
+                <svg width={32} height={32} fill="none" viewBox="0 0 24 24" stroke="rgba(124,108,246,0.8)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M1 6c0 0 4-4 11-4s11 4 11 4"/><path d="M5 10c0 0 2.5-2.5 7-2.5S19 10 19 10"/><path d="M9 14c0 0 1-1 3-1s3 1 3 1"/><line x1="12" y1="18" x2="12" y2="18" strokeWidth={2.5}/></svg>
               </div>
-            )}
-
-            {/* Add lesson button — instructor only */}
-            {isInstructor && (
-              <div className="mb-4">
-                {!showAddLesson ? (
-                  <button onClick={() => setShowAddLesson(true)}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 active:scale-[.99] transition-all">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Ajouter une leçon
-                  </button>
-                ) : (
-                  <form onSubmit={addLesson} className="bg-white dark:bg-slate-900 rounded-2xl border border-indigo-200 dark:border-indigo-800 p-4 space-y-3">
-                    <p className="text-sm font-extrabold text-slate-900 dark:text-white">Nouvelle leçon</p>
-                    {/* FREE / PAID toggle */}
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Type de leçon *</p>
-                      <div className="flex gap-2">
-                        <button type="button" onClick={() => setNewLesson(p => ({ ...p, is_free_preview: true, price: 0 }))}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-sm font-bold transition-all ${newLesson.is_free_preview ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:border-emerald-300'}`}>
-                          🆓 Gratuite
-                        </button>
-                        <button type="button" onClick={() => setNewLesson(p => ({ ...p, is_free_preview: false }))}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-sm font-bold transition-all ${!newLesson.is_free_preview ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400' : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:border-indigo-300'}`}>
-                          💰 Payante
-                        </button>
-                      </div>
-                    </div>
-                    {/* Title */}
-                    <input required placeholder="Titre de la leçon *" value={newLesson.title}
-                      onChange={e => setNewLesson(p => ({ ...p, title: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
-                    {/* Mux video upload */}
-                    <input type="file" accept="video/mp4,video/*" className="hidden"
-                      ref={r => { muxFileRef.current = r; }}
-                      onChange={e => { const f = e.target.files?.[0]; if (f) handleMuxUpload(f); }} />
-
-                    {uploadState === 'idle' && (
-                      <button type="button" onClick={() => { warmVideoUpload(); muxFileRef.current?.click(); }}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                        </svg>
-                        Importer une vidéo MP4 *
-                      </button>
-                    )}
-
-                    {uploadState === 'uploading' && (
-                      <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 p-3 space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-600 dark:text-slate-300 font-semibold truncate flex-1 mr-2">{uploadFileName}</span>
-                          <span className="text-indigo-600 dark:text-indigo-400 font-bold shrink-0">{uploadProgress}%</span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                          <div className="h-full bg-indigo-500 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
-                        </div>
-                        <p className="text-[10px] text-slate-400">
-                          Envoi en cours… · Plus le fichier est petit, plus c'est rapide
-                        </p>
-                      </div>
-                    )}
-
-                    {uploadState === 'processing' && (
-                      <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                        <svg className="w-5 h-5 text-amber-500 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                        </svg>
-                        <div>
-                          <p className="text-xs font-bold text-amber-700 dark:text-amber-400">Traitement Mux en cours…</p>
-                          <p className="text-[10px] text-amber-600 dark:text-amber-500">Peut prendre 1–2 minutes</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {uploadState === 'done' && (
-                      <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                        <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">Vidéo prête ✅</p>
-                          <p className="text-[10px] text-emerald-600 dark:text-emerald-500 truncate">{uploadFileName}</p>
-                        </div>
-                        <button type="button" onClick={() => { setUploadState('idle'); setUploadProgress(0); setUploadFileName(''); setNewLesson(p => ({ ...p, video_url: '' })); if(muxFileRef.current) muxFileRef.current.value=''; }}
-                          className="text-slate-400 hover:text-rose-500 transition-colors shrink-0">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                      </div>
-                    )}
-
-                    {uploadState === 'error' && (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800">
-                          <svg className="w-5 h-5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                          </svg>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-rose-700 dark:text-rose-400">L'upload a échoué</p>
-                            <p className="text-[11px] text-rose-600 dark:text-rose-500">Vérifiez votre connexion et réessayez.</p>
-                          </div>
-                        </div>
-                        <button type="button"
-                          onClick={() => { setUploadState('idle'); setUploadProgress(0); setNewLesson(p => ({ ...p, video_url: '' })); if(muxFileRef.current) muxFileRef.current.value=''; }}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors active:scale-[.98]">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                          </svg>
-                          Réimporter la vidéo
-                        </button>
-                      </div>
-                    )}
-                    <div className="flex gap-2 pt-1">
-                      <button type="button" onClick={() => { setShowAddLesson(false); setUploadFileName(''); setUploadState('idle'); setUploadProgress(0); setNewLesson({ title:'', video_url:'', is_free_preview: true, price: 0 }); if(muxFileRef.current) muxFileRef.current.value=''; }}
-                        className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                        Annuler
-                      </button>
-                      <button type="submit"
-                        disabled={addingLesson || !newLesson.title.trim() || !newLesson.video_url || uploadState === 'uploading' || uploadState === 'processing'}
-                        className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold disabled:opacity-50 transition-colors">
-                        {addingLesson ? 'Ajout…' : uploadState === 'uploading' ? 'Upload…' : uploadState === 'processing' ? 'Traitement…' : 'Ajouter'}
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            )}
-            {/* Inline locked message — appears right above lessons when user clicks a locked one */}
-            {lockedMsg && (
-              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900 dark:bg-slate-800 border border-slate-700 shadow-lg mb-2 animate-pulse">
-                <svg className="w-5 h-5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-                <p className="text-sm font-semibold text-white">Vous devez acheter le cours complet pour accéder aux leçons payantes.</p>
-              </div>
-            )}
-
-            {visibleLessons.length === 0 ? (
-              <div className="text-center py-16 text-slate-400">
-                <p className="text-3xl mb-2">📂</p>
-                <p className="text-sm">{lessons.length === 0 ? 'No lessons added yet' : 'Aucune leçon disponible pour l\'instant'}</p>
-              </div>
-            ) : visibleLessons.map((lesson, idx) => {
-              const watchable = canWatch(lesson);
-              return (
-                <div key={lesson.id}
-                  className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
-                    watchable
-                      ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer'
-                      : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800/50 cursor-pointer hover:border-slate-300 dark:hover:border-slate-700'
-                  }`}
-                  onClick={() => {
-                    if (watchable) navigate(`/courses/${id}/lesson/${lesson.id}`);
-                    else if (!lesson.is_free_preview) {
-                      setBuyMsg('Vous devez acheter le cours complet pour accéder aux leçons payantes.');
-                      setLockedMsg(true);
-                      setTimeout(() => setLockedMsg(false), 4000);
-                    }
-                  }}>
-                  {/* Index */}
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${
-                    watchable ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-                  }`}>
-                    {watchable ? (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/>
-                      </svg>
-                    ) : idx + 1}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className={`text-sm font-semibold truncate ${watchable ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                        {lesson.title}
-                      </p>
-                      {lesson.status === 'pending' && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 shrink-0">⏳ En attente</span>
-                      )}
-                      {lesson.status === 'rejected' && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 shrink-0">❌ Refusée</span>
-                      )}
-                    </div>
-                    {lesson.description && (
-                      <p className="text-xs text-slate-400 truncate mt-0.5">{lesson.description}</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {lesson.is_free_preview && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                        Gratuit
-                      </span>
-                    )}
-                    {!lesson.is_free_preview && !watchable && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                        Payant
-                      </span>
-                    )}
-                    {lesson.duration_min > 0 && (
-                      <span className="text-xs text-slate-400">{lesson.duration_min}m</span>
-                    )}
-                    {!watchable && <LockIcon />}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* ── Reviews ───────────────────────────────────────────────────────── */}
-        {activeTab === 'reviews' && (
-          <div className="space-y-5 mb-10">
-            {/* Rating summary */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 flex items-center gap-6">
-              <div className="text-center">
-                <p className="text-5xl font-extrabold text-slate-900 dark:text-white">{Number(course.avg_rating).toFixed(1)}</p>
-                <div className="mt-1"><StarRating rating={course.avg_rating} /></div>
-                <p className="text-xs text-slate-400 mt-1">{reviews.length} reviews</p>
-              </div>
-              <div className="flex-1 space-y-1.5">
-                {[5,4,3,2,1].map(s => {
-                  const count = reviews.filter(r => r.rating === s).length;
-                  const pct   = reviews.length ? Math.round(count / reviews.length * 100) : 0;
-                  return (
-                    <div key={s} className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 w-3">{s}</span>
-                      <svg className="w-3.5 h-3.5 text-amber-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z"/>
-                      </svg>
-                      <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="text-xs text-slate-400 w-8 text-right">{pct}%</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Leave a review */}
-            {hasFull && !isInstructor && !reviews.some(r => r.reviewer_email === user?.email) && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
-                <p className="text-sm font-bold text-slate-900 dark:text-white mb-3">Leave a Review</p>
-                <StarRating rating={myRating} interactive onRate={setMyRating} />
-                <textarea value={myReview} onChange={e => setMyReview(e.target.value)} rows={3}
-                  placeholder="Share your experience…"
-                  className="mt-3 w-full text-sm px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                <div className="flex gap-2 mt-3">
-                  <button type="button" onClick={submitReview} disabled={!myRating || submitting}
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-bold transition-colors">
-                    {submitting ? 'Submitting…' : 'Submit Review'}
-                  </button>
-                  <button type="button" onClick={() => { setMyRating(0); setMyReview(''); }}
-                    className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm font-bold hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
-                    Annuler
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Reviews list */}
-            {reviews.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <p className="text-3xl mb-2">💬</p>
-                <p className="text-sm">No reviews yet — be the first!</p>
-              </div>
-            ) : reviews.map(r => (
-              <div key={r.id} id={`review-${r.id}`} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 flex gap-4 scroll-mt-24">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
-                  {r.reviewer_photo
-                    ? <img src={cldImg(r.reviewer_photo)} alt="" className="w-full h-full object-cover" />
-                    : (r.reviewer_name || r.reviewer_email || '?')[0].toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{r.reviewer_name || r.reviewer_email}</p>
-                    <StarRating rating={r.rating} />
-                  </div>
-                  {r.review_text && <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{r.review_text}</p>}
-                  <p className="text-[10px] text-slate-400 mt-1">{`${new Date(r.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: '2-digit', year: 'numeric' })} ,${new Date(r.created_at).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}`}</p>
-
-                  {/* Instructor reply — show existing */}
-                  {r.instructor_reply && (
-                    <div className="mt-3 ml-2 pl-3 border-l-2 border-indigo-300 dark:border-indigo-700 flex gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden">
-                        {course?.instructor_photo
-                          ? <img src={cldImg(course.instructor_photo)} alt="" className="w-full h-full object-cover" />
-                          : (course?.instructor_name || course?.creator_email || '?')[0].toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 mb-0.5">{course?.instructor_name || course?.creator_email}</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{r.instructor_reply}</p>
-                        <p className="text-[10px] text-slate-400 mt-1">{`${new Date(r.replied_at).toLocaleDateString('fr-TN', { day: '2-digit', month: '2-digit', year: 'numeric' })} ,${new Date(r.replied_at).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}`}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Instructor reply form — only if instructor and no reply yet */}
-                  {isInstructor && !r.instructor_reply && (
-                    replyingId === r.id ? (
-                      <div className="mt-3 ml-2">
-                        <textarea
-                          value={replyDraft[r.id] || ''}
-                          onChange={e => setReplyDraft(prev => ({ ...prev, [r.id]: e.target.value }))}
-                          rows={2}
-                          placeholder="Votre réponse…"
-                          className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <div className="flex gap-2 mt-2">
-                          <button type="button" onClick={() => submitReply(r.id, replyDraft[r.id])} disabled={!replyDraft[r.id]?.trim() || replySending}
-                            className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition-colors">
-                            {replySending ? 'Envoi…' : 'Répondre'}
-                          </button>
-                          <button type="button" onClick={e => { e.stopPropagation(); setReplyingId(null); setReplyDraft(prev => { const n = { ...prev }; delete n[r.id]; return n; }); }}
-                            className="px-4 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 text-xs font-bold hover:text-slate-800 transition-colors">
-                            Annuler
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button type="button" onClick={() => setReplyingId(r.id)}
-                        className="mt-2 text-xs text-indigo-500 hover:text-indigo-700 font-semibold">
-                        ↩ Répondre
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── Live Sessions ─────────────────────────────────────────────────── */}
-        {activeTab === 'live' && (
-          <div className="space-y-4 mb-10">
-            <div className="text-center py-16 text-slate-400">
-              <style>{`@keyframes soonDot{0%,80%,100%{opacity:0}40%{opacity:1}}`}</style>
-              <p className="text-lg font-bold text-slate-500 dark:text-slate-400">
-                SOON
-                <span style={{animation:'soonDot 1.4s infinite',animationDelay:'0s'}}>.</span>
-                <span style={{animation:'soonDot 1.4s infinite',animationDelay:'0.2s'}}>.</span>
-                <span style={{animation:'soonDot 1.4s infinite',animationDelay:'0.4s'}}>.</span>
+              <p style={{fontSize:22,fontWeight:900,color:'#fff',letterSpacing:.4}}>
+                BIENTÔT
+                <span style={{animation:'soonDot 1.4s infinite',marginLeft:2,animationDelay:'0s'}}>.</span>
+                <span style={{animation:'soonDot 1.4s infinite',animationDelay:'.2s'}}>.</span>
+                <span style={{animation:'soonDot 1.4s infinite',animationDelay:'.4s'}}>.</span>
               </p>
+              <p style={{color:C.muted,fontSize:14,marginTop:8}}>Les sessions live arrivent prochainement.</p>
             </div>
-            {false && liveSessions.map(s => {
-              const isPast = s.scheduled_at && new Date(s.scheduled_at) < new Date();
-              return (
-                <div key={s.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-2xl shrink-0">
-                    {s.is_recorded ? '🎬' : '📡'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">{s.title}</p>
-                    {s.scheduled_at && (
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        {new Date(s.scheduled_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
-                        {isPast && ' (ended)'}
-                      </p>
-                    )}
-                    {s.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{s.description}</p>}
-                  </div>
-                  <div className="shrink-0 flex flex-col items-end gap-2">
-                    <span className={`text-sm font-extrabold ${Number(s.price) === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-                      {Number(s.price) === 0 ? 'Gratuit' : `${Number(s.price).toFixed(2)} TND`}
-                    </span>
-                    {s.is_recorded && s.recording_url && (
-                      <a href={s.recording_url} target="_blank" rel="noopener noreferrer"
-                        className="text-xs font-bold px-3 py-1.5 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-200 transition-colors">
-                        Watch Recording
-                      </a>
-                    )}
-                    {!s.is_recorded && s.join_url && !isPast && (
-                      <a href={s.join_url} target="_blank" rel="noopener noreferrer"
-                        className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">
-                        Join Live →
-                      </a>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+          )}
+
+        </div>
       </div>
     </div>
   );

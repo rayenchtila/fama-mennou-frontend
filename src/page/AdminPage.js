@@ -49,7 +49,7 @@ function CINImageModal({ user, onClose }) {
   const [side, setSide] = useState("front");
   const [cinData, setCinData] = useState({ cin_front: null, cin_back: null });
   const [cinLoading, setCinLoading] = useState(true);
-  const API_URL = 'https://famamennou-server.onrender.com/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
   React.useEffect(() => {
     setCinLoading(true);
@@ -682,7 +682,7 @@ function AdminChatPanel({ allUsers }) {
   const fileInputRef    = React.useRef();
   const editFileInputRef = React.useRef();
 
-  const API_CHAT = 'https://famamennou-server.onrender.com/api';
+  const API_CHAT = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
   const fetchConvs = React.useCallback(async () => {
     try {
@@ -1621,7 +1621,7 @@ export default function AdminPage() {
   const [lessonsByCourse, setLessonsByCourse] = useState({});
   const [lessonsLoading,  setLessonsLoading]  = useState(false);
 
-  const API = 'https://famamennou-server.onrender.com/api';
+  const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
   // Sync tab from URL when URL changes
   useEffect(() => {

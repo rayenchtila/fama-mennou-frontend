@@ -2,7 +2,7 @@
 import { forwardRef } from "react";
 const variants = {
   primary:
-    "bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 focus:ring-indigo-500",
+    "bg-[#7c6cf6] hover:bg-[#6b5ce7] active:bg-[#5a4dd8] text-white shadow-lg shadow-[rgba(124,108,246,0.4)] hover:shadow-[rgba(124,108,246,0.6)] focus:ring-[#7c6cf6]",
   secondary:
     "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-slate-400",
   ghost:
@@ -14,7 +14,7 @@ const variants = {
   success:
     "bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-500/30 focus:ring-emerald-500",
 };
- 
+
 const sizes = {
   xs: "px-2.5 py-1 text-xs gap-1 rounded-lg",
   sm: "px-3.5 py-1.5 text-sm gap-1.5 rounded-xl",
@@ -22,7 +22,7 @@ const sizes = {
   lg: "px-7 py-3.5 text-base gap-2 rounded-2xl",
   xl: "px-9 py-4 text-lg gap-3 rounded-2xl",
 };
- 
+
 const Button = forwardRef(
   (
     {
@@ -39,7 +39,7 @@ const Button = forwardRef(
       type = "button",
       ...props
     },
-    ref
+    ref,
   ) => {
     return (
       <button
@@ -55,7 +55,9 @@ const Button = forwardRef(
           variants[variant] ?? variants.primary,
           sizes[size] ?? sizes.md,
           fullWidth ? "w-full" : "",
-          disabled || loading ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer",
+          disabled || loading
+            ? "opacity-50 cursor-not-allowed pointer-events-none"
+            : "cursor-pointer",
           className,
         ]
           .filter(Boolean)
@@ -90,8 +92,8 @@ const Button = forwardRef(
         {!loading && rightIcon && <span className="shrink-0">{rightIcon}</span>}
       </button>
     );
-  }
+  },
 );
- 
+
 Button.displayName = "Button";
 export default Button;

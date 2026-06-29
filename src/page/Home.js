@@ -1,485 +1,627 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
-function GoldBadge({ text }) {
-  const words = text.split(' ');
-  const [activeIdx, setActiveIdx] = useState(-1);
-
-  useEffect(() => {
-    let i = 0;
-    const run = () => {
-      setActiveIdx(i);
-      i++;
-      if (i < words.length) {
-        setTimeout(run, 260);
-      } else {
-        setTimeout(() => {
-          setActiveIdx(-1);
-          setTimeout(() => { i = 0; run(); }, 1400);
-        }, 400);
-      }
-    };
-    const init = setTimeout(run, 800);
-    return () => clearTimeout(init);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className={[
-        'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest mb-6 sm:mb-10 font-inter relative overflow-hidden',
-        /* light */ 'border border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50',
-        /* dark  */ 'dark:border-amber-500/50 dark:bg-gradient-to-r dark:from-amber-950/40 dark:via-yellow-900/30 dark:to-amber-950/40',
-      ].join(' ')}
-      style={{
-        boxShadow: '0 0 0 1px rgba(251,191,36,0.25), 0 2px 12px rgba(251,191,36,0.12)',
-      }}
-    >
-      {/* dot */}
-      <span
-        className="relative w-1.5 h-1.5 rounded-full shrink-0"
-        style={{
-          background: 'radial-gradient(circle, #fbbf24 40%, #f59e0b 100%)',
-          boxShadow: '0 0 6px 2px rgba(251,191,36,0.6)',
-          animation: 'dotPulse 1.6s ease-in-out infinite',
-        }}
-      />
-
-      {/* words */}
-      <span className="relative flex gap-[0.35em] flex-wrap justify-center">
-        {words.map((w, i) => (
-          <span
-            key={i}
-            style={{
-              transition: 'color 0.18s ease, text-shadow 0.18s ease',
-              color: activeIdx === i
-                ? 'var(--gold-flash)'
-                : 'var(--gold-base)',
-              textShadow: activeIdx === i
-                ? '0 0 10px rgba(251,191,36,0.9), 0 0 20px rgba(251,191,36,0.5)'
-                : 'none',
-            }}
-          >
-            {w}
-          </span>
-        ))}
-      </span>
-
-      <style>{`
-        :root {
-          --gold-base: #92690a;
-          --gold-flash: #f59e0b;
-        }
-        html.dark {
-          --gold-base: #d4a017;
-          --gold-flash: #fde68a;
-        }
-        @keyframes dotPulse {
-          0%, 100% { box-shadow: 0 0 4px 1px rgba(251,191,36,0.5); }
-          50%       { box-shadow: 0 0 10px 4px rgba(251,191,36,0.9); }
-        }
-      `}</style>
-    </motion.div>
-  );
-}
-
-const wordVariant = {
-  hidden:  { opacity: 0, y: 22, filter: 'blur(6px)' },
-  visible: (i) => ({
-    opacity: 1, y: 0, filter: 'blur(0px)',
-    transition: { duration: 0.45, delay: 0.35 + i * 0.13, ease: [0.22, 1, 0.36, 1] },
-  }),
-};
-
-const NAV_BUTTONS = [
+const FEATURED_FREELANCERS = [
   {
-    to: '/freelancers',
-    labelKey: 'Find Freelancers',
-    icon: (
-      <svg className="w-[15px] h-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-      </svg>
-    ),
-    gradient: 'from-indigo-600 to-violet-600',
-    glow: 'shadow-indigo-500/40',
-    border: 'border-indigo-400/30',
-    ring: 'hover:ring-indigo-400/50',
+    id: 1, name: 'Yassine Khelifi', initials: 'YK',
+    avBg: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', avFg: '#fff',
+    role: 'Full-Stack Developer', rating: '4.9', responds: '1h', rate: '45',
+    skills: ['React', 'Node.js', 'TypeScript'],
   },
   {
-    to: '/clients',
-    labelKey: 'Find Clients',
-    icon: (
-      <svg className="w-[15px] h-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-      </svg>
-    ),
-    gradient: 'from-violet-600 to-purple-600',
-    glow: 'shadow-violet-500/40',
-    border: 'border-violet-400/30',
-    ring: 'hover:ring-violet-400/50',
+    id: 2, name: 'Imen Bouazizi', initials: 'IB',
+    avBg: 'linear-gradient(135deg,#a855f7,#6c8cf6)', avFg: '#fff',
+    role: 'Product & UI/UX Designer', rating: '5.0', responds: '2h', rate: '40',
+    skills: ['Figma', 'Design System', 'Prototyping'],
   },
   {
-    to: '/courses',
-    labelKey: 'Courses',
-    icon: (
-      <svg className="w-[15px] h-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-      </svg>
-    ),
-    gradient: 'from-purple-600 to-fuchsia-600',
-    glow: 'shadow-purple-500/40',
-    border: 'border-purple-400/30',
-    ring: 'hover:ring-purple-400/50',
+    id: 3, name: 'Mehdi Trabelsi', initials: 'MT',
+    avBg: 'linear-gradient(135deg,#3ec2e8,#5b5ce0)', avFg: '#fff',
+    role: 'SEO & Growth Marketer', rating: '4.7', responds: '3h', rate: '35',
+    skills: ['SEO', 'Google Ads', 'Analytics'],
   },
 ];
 
-const Home = () => {
-  const { t, i18n } = useTranslation();
-  const { user } = useAuth();
-  const isAr = i18n.language === 'ar';
-  const [howOpen, setHowOpen] = useState(true);
+const TRENDING_PROJECTS = [
+  {
+    id: 1, client: 'NovaTech Solutions', initials: 'NT',
+    avBg: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', avFg: '#fff',
+    title: 'Full e-commerce platform rebuild',
+    budget: '4 500 TND', duration: '6–8 weeks', proposals: 12,
+    tags: ['React', 'Stripe', 'UX'],
+  },
+  {
+    id: 2, client: 'Atelier Médina', initials: 'AM',
+    avBg: 'linear-gradient(135deg,#a855f7,#6c8cf6)', avFg: '#fff',
+    title: 'Brand identity & visual guidelines',
+    budget: '1 800 TND', duration: '2–3 weeks', proposals: 8,
+    tags: ['Branding', 'Logo', 'Print'],
+  },
+  {
+    id: 3, client: 'Baraka Foods', initials: 'BF',
+    avBg: 'linear-gradient(135deg,#3ec2e8,#5b5ce0)', avFg: '#fff',
+    title: 'Social media management & campaigns',
+    budget: '900 TND/mo', duration: '3 months', proposals: 5,
+    tags: ['Social Media', 'Ads', 'Content'],
+  },
+];
 
-  if (user?.isAdmin) {
-    return <div className="relative overflow-x-hidden min-h-screen bg-white dark:bg-slate-900" />;
-  }
+const COURSES = [
+  { id: 1, title: 'React from Zero to Expert', instructor: 'Yassine Khelifi', rating: '4.9', students: '1,240', price: '89 TND', cover: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', cat: 'Development' },
+  { id: 2, title: 'UI/UX Design Masterclass', instructor: 'Imen Bouazizi', rating: '5.0', students: '860', price: '75 TND', cover: 'linear-gradient(135deg,#a855f7,#6c8cf6)', cat: 'Design' },
+  { id: 3, title: 'SEO & Growth Marketing', instructor: 'Mehdi Trabelsi', rating: '4.7', students: '540', price: '60 TND', cover: 'linear-gradient(135deg,#5b5ce0,#3ec2e8)', cat: 'Marketing' },
+  { id: 4, title: 'Motion Design with After Effects', instructor: 'Salma Gharbi', rating: '4.8', students: '410', price: '70 TND', cover: 'linear-gradient(135deg,#7c6cf6,#a855f7)', cat: 'Video' },
+];
 
-  // Split highlighted words so each animates independently
-  const words1 = t('hero.title.highlight1').split(/,\s*/); // ["Freelancers", "Clients"]
-  const words2 = t('hero.title.highlight2').split(/\s*&\s*/); // ["Jobs", "Courses"]
+const TESTIMONIALS = [
+  { quote: 'Found a developer in two days. The quality was outstanding and the whole process felt effortless. Highly recommended.', name: 'Sarra Ben Amor', title: 'Founder, NovaTech', initials: 'SB', avBg: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', avFg: '#fff' },
+  { quote: 'As a freelancer, Fama Mennou keeps my pipeline full. I get 3–4 quality leads every month without any cold outreach.', name: 'Mehdi Trabelsi', title: 'Full-Stack Developer', initials: 'MT', avBg: 'linear-gradient(135deg,#a855f7,#6c8cf6)', avFg: '#fff' },
+  { quote: 'The courses paid for themselves in a month. I went from junior to senior-level projects thanks to the instructors here.', name: 'Anis Mansour', title: 'Designer', initials: 'AM', avBg: 'linear-gradient(135deg,#3ec2e8,#5b5ce0)', avFg: '#fff' },
+];
+
+const SEARCH_TYPES = ['freelancers', 'clients', 'courses'];
+const SEARCH_LABELS = ['Freelancers', 'Clients', 'Courses'];
+const SEARCH_PLACEHOLDERS = ['Name, skill, region…', 'Project type, sector…', 'React, SEO, Motion Design…'];
+
+const ACTION_CARDS = [
+  {
+    to: '/freelancers',
+    icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    title: 'Hire Freelancers',
+    desc: 'Browse verified talent by skill and region.',
+    cta: 'Browse talent',
+  },
+  {
+    to: '/clients',
+    icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>,
+    title: 'Get Clients',
+    desc: 'Find open projects and win contracts.',
+    cta: 'View projects',
+  },
+  {
+    to: '/courses',
+    icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+    title: 'Learn Skills',
+    desc: 'Take courses from expert freelancers.',
+    cta: 'Explore courses',
+  },
+];
+
+const HOW_IT_WORKS = [
+  { num: '1', title: 'Create your account', desc: 'Sign up in minutes with quick ID verification.' },
+  { num: '2', title: 'Choose your role', desc: 'Join as a freelancer, a client, or a learner.' },
+  { num: '3', title: 'Start', desc: 'Hire talent, win projects, or learn new skills.' },
+];
+
+const FAQ_ITEMS = [
+  { question: 'What is Fama Mennou?', answer: "Fama Mennou is Tunisia's all-in-one freelance ecosystem. Hire verified talent, win contracts as a freelancer, or grow your skills through expert-led courses — all in one place." },
+  { question: 'How are freelancers verified?', answer: 'Every freelancer goes through an identity check using their national ID card. Our team reviews each profile to ensure quality, authenticity, and trustworthiness before they appear on the platform.' },
+  { question: 'Is it free to create an account?', answer: 'Yes, signing up is completely free for freelancers, clients, and learners. A small commission applies only when a project is successfully completed.' },
+  { question: 'How do I hire a freelancer?', answer: 'Browse the marketplace, filter by skill or region, and click "Hire" or send a message directly to any verified freelancer. You can also post a project and let freelancers apply to you.' },
+  { question: 'What if I\'m not satisfied with the work?', answer: 'We have a structured dispute resolution process. Our support team mediates between both parties to reach a fair outcome. Client satisfaction is our top priority.' },
+];
+
+// ── Star icon ────────────────────────────────────────────────────────────────
+function StarIcon({ size = 14, color = '#9b8cff' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
+      <path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"/>
+    </svg>
+  );
+}
+
+// ── Shield icon ──────────────────────────────────────────────────────────────
+function ShieldIcon({ size = 15, color = '#9b8cff' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
+      <path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"/>
+    </svg>
+  );
+}
+
+// ── Chevron right ─────────────────────────────────────────────────────────────
+function ChevronRight({ size = 15 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m9 18 6-6-6-6"/>
+    </svg>
+  );
+}
+
+// ── Clock icon ───────────────────────────────────────────────────────────────
+function ClockIcon({ size = 13, color = '#7e82a0' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+    </svg>
+  );
+}
+
+const CARD_STYLE = { background: '#16142e', border: '1px solid rgba(255,255,255,.08)', borderRadius: '16px' };
+
+// ── Section: Hero ─────────────────────────────────────────────────────────────
+function HeroSection() {
+  const [typeIdx, setTypeIdx] = useState(0);
+  const [query, setQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = query.trim();
+    const paths = ['/freelancers', '/clients', '/courses'];
+    navigate(q ? `${paths[typeIdx]}?q=${encodeURIComponent(q)}` : paths[typeIdx]);
+  };
 
   return (
-    <div className="relative overflow-x-hidden">
+    <section style={{ position: 'relative', overflow: 'hidden' }}>
+      <div className="fm-hero-content" style={{ position: 'relative', maxWidth: '880px', margin: '0 auto', textAlign: 'center' }}>
 
-      {/* Hero background — always light */}
-      <div className="absolute inset-0 bg-white dark:bg-slate-900 z-0" />
+        {/* Badge */}
+        <motion.span
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 13px', borderRadius: '999px', background: 'rgba(124,108,246,.12)', border: '1px solid rgba(124,108,246,.3)', fontSize: '12.5px', fontWeight: 600, color: '#b9aeff', marginBottom: '24px' }}>
+          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#9b8cff', boxShadow: '0 0 8px #9b8cff' }} />
+          All-in-one freelance ecosystem in Tunisia
+        </motion.span>
 
-      {/* Background blobs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
-        <div className="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full bg-indigo-100 dark:bg-indigo-900/20 blur-3xl opacity-60" />
-        <div className="absolute -bottom-24 -right-24 w-[360px] h-[360px] rounded-full bg-violet-100 dark:bg-violet-900/20 blur-3xl opacity-50" />
-      </div>
+        {/* H1 */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
+          style={{ fontWeight: 800, fontSize: 'clamp(34px,5.4vw,56px)', lineHeight: 1.06, letterSpacing: '-.03em', margin: '0 0 18px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          Hire Talent. Find Clients.<br />
+          <span style={{ background: 'linear-gradient(110deg,#9b8cff,#6c8cf6 60%,#3ec2e8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+            Learn Skills.
+          </span>
+        </motion.h1>
 
-      <section className="relative z-10 w-full px-4 sm:px-6 pt-28 pb-16 sm:py-32 md:py-36 lg:py-44">
-        <div className="max-w-5xl mx-auto text-center">
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+          style={{ fontSize: 'clamp(16px,2vw,19px)', color: '#a7abc8', maxWidth: '520px', margin: '0 auto 34px', lineHeight: 1.55 }}>
+          One platform to hire verified freelancers, win projects, and grow your skills.
+        </motion.p>
 
-          {/* Badge */}
-          <GoldBadge text={t('hero.badge')} />
-
-          {/* Headline — word by word */}
-          <h1 className="font-poppins font-extrabold text-slate-900 dark:text-white leading-[1.15] tracking-tight mb-7
-                         text-[2rem] sm:text-[2.75rem] md:text-[3.5rem] lg:text-[4rem]">
-
-            {/* "Find" */}
-            <motion.span
-              className="inline-block mr-[0.22em]"
-              custom={0} variants={wordVariant} initial="hidden" animate="visible"
-            >
-              {t('hero.title.find')}
-            </motion.span>
-
-            {/* "Freelancers," */}
-            <motion.span
-              className="inline-block mr-[0.22em] relative text-indigo-600 dark:text-indigo-400"
-              custom={1} variants={wordVariant} initial="hidden" animate="visible"
-            >
-              {words1[0]}{!isAr && ','}
-              <motion.span
-                initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
-                transition={{ duration: 0.5, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                style={{ originX: 0 }}
-                className="absolute -bottom-1 left-0 right-0 h-[3px] rounded-full bg-indigo-400/50"
-              />
-            </motion.span>
-
-            {/* "Clients" */}
-            <motion.span
-              className="inline-block mr-[0.22em] relative text-indigo-600 dark:text-indigo-400"
-              custom={2} variants={wordVariant} initial="hidden" animate="visible"
-            >
-              {words1[1]}{!isAr && ','}
-              <motion.span
-                initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
-                transition={{ duration: 0.5, delay: 1.05, ease: [0.22, 1, 0.36, 1] }}
-                style={{ originX: 0 }}
-                className="absolute -bottom-1 left-0 right-0 h-[3px] rounded-full bg-indigo-400/50"
-              />
-            </motion.span>
-
-            {/* "&" — hidden in Arabic */}
-            {!isAr && (
-            <motion.span
-              className="inline-block mx-[0.18em] text-slate-400 dark:text-slate-500"
-              custom={3} variants={wordVariant} initial="hidden" animate="visible"
-            >
-              &amp;
-            </motion.span>
-            )}
-
-            {/* "Courses" */}
-            <motion.span
-              className="inline-block relative text-indigo-600 dark:text-indigo-400"
-              custom={4} variants={wordVariant} initial="hidden" animate="visible"
-            >
-              {words2[1] || words2[0]}
-              <motion.span
-                initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
-                transition={{ duration: 0.5, delay: 1.35, ease: [0.22, 1, 0.36, 1] }}
-                style={{ originX: 0 }}
-                className="absolute -bottom-1 left-0 right-0 h-[3px] rounded-full bg-indigo-400/50"
-              />
-            </motion.span>
-          </h1>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="font-inter text-slate-500 dark:text-slate-400 font-normal leading-relaxed max-w-lg mx-auto mb-12
-                       text-base sm:text-lg md:text-xl"
-          >
-            {t('hero.subtitle')}
-          </motion.p>
-
-          {/* Navigation buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.05, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-4 px-2"
-          >
-            {NAV_BUTTONS.map((btn, i) => (
-              <motion.div
-                key={btn.to}
-                initial={{ opacity: 0, scale: 0.88, y: 12 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.42, delay: 1.1 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <Link
-                  to={btn.to}
-                  className={`
-                    inline-flex items-center gap-2 px-5 py-[10px] rounded-full
-                    bg-gradient-to-r ${btn.gradient}
-                    text-white font-inter font-medium text-[13px] tracking-wide
-                    shadow-xl ${btn.glow}
-                    border ${btn.border}
-                    ring-2 ring-transparent ${btn.ring}
-                    transition-all duration-200
-                  `}
-                >
-                  {btn.icon}
-                  {t(btn.labelKey)}
-                </Link>
-              </motion.div>
+        {/* Search */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
+          style={{ maxWidth: '640px', margin: '0 auto', width: '100%' }}>
+          {/* Type tabs */}
+          <div style={{ display: 'flex', gap: '5px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '13px', padding: '5px', marginBottom: '12px', maxWidth: '340px', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
+            {SEARCH_LABELS.map((label, i) => (
+              <button key={label} onClick={() => setTypeIdx(i)}
+                style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, borderRadius: '9px', transition: 'all .15s', background: typeIdx === i ? '#7c6cf6' : 'transparent', color: typeIdx === i ? '#fff' : '#a7abc8', boxShadow: typeIdx === i ? '0 4px 12px -4px rgba(124,108,246,.7)' : 'none' }}>
+                {label}
+              </button>
             ))}
+          </div>
+          {/* Input */}
+          <form onSubmit={handleSearch}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#15122c', border: '1px solid rgba(255,255,255,.1)', borderRadius: '14px', padding: '7px 7px 7px 16px', boxShadow: '0 18px 44px -18px rgba(0,0,0,.7)' }}>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flex: 'none' }}>
+              <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input
+              value={query} onChange={e => setQuery(e.target.value)}
+              placeholder={SEARCH_PLACEHOLDERS[typeIdx]}
+              style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#f4f3fb', fontFamily: 'inherit', fontSize: '15px' }}
+            />
+            <button type="submit"
+              style={{ padding: '11px 22px', borderRadius: '10px', background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', flex: 'none', boxShadow: '0 6px 16px -5px rgba(124,108,246,.7)' }}>
+              Search
+            </button>
+          </form>
+        </motion.div>
+
+        {/* CTA buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}
+          style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '26px' }}>
+          <Link to="/freelancers"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: '#7c6cf6', color: '#fff', border: 'none', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', boxShadow: '0 8px 22px -8px rgba(124,108,246,.7)', textDecoration: 'none' }}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Hire Freelancers
+          </Link>
+          <Link to="/clients"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'rgba(255,255,255,.06)', color: '#e7e8f4', border: '1px solid rgba(255,255,255,.16)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
+            Find Clients
+          </Link>
+          <Link to="/courses"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'rgba(255,255,255,.06)', color: '#e7e8f4', border: '1px solid rgba(255,255,255,.16)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Learn Skills
+          </Link>
+        </motion.div>
+
+      </div>
+    </section>
+  );
+}
+
+// ── Section: Action Cards ─────────────────────────────────────────────────────
+function ActionCardsSection() {
+  return (
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '20px' }}>
+        {ACTION_CARDS.map((card, i) => (
+          <motion.div key={card.to}
+            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: i * 0.1 }}>
+            <Link to={card.to}
+              style={{ ...CARD_STYLE, padding: '26px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: '14px', textDecoration: 'none', transition: 'box-shadow .18s,transform .18s,border-color .18s' }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+              <span style={{ width: '48px', height: '48px', borderRadius: '13px', background: 'rgba(124,108,246,.16)', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b9aeff' }}>
+                {card.icon}
+              </span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '18px', color: '#fbfbff', marginBottom: '5px' }}>{card.title}</div>
+                <div style={{ fontSize: '14px', color: '#a7abc8', lineHeight: 1.5 }}>{card.desc}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13.5px', fontWeight: 600, color: '#b9aeff', marginTop: 'auto' }}>
+                {card.cta} <ChevronRight />
+              </div>
+            </Link>
           </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
-        </div>
-      </section>
-
-      {/* ── How it works — always dark section ── */}
-      <motion.section
-        className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24 md:pb-32 bg-slate-100 dark:bg-slate-950"
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div className="max-w-3xl mx-auto">
-
-          {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-700 to-transparent mb-10" />
-
-          {/* Toggle header */}
-          <motion.button
-            onClick={() => setHowOpen(o => !o)}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full flex items-center justify-between gap-4 group text-slate-900 dark:text-white"
-            aria-expanded={howOpen}
-          >
-            <div className="text-left">
-              <h2 className="font-poppins font-bold text-slate-900 dark:text-white text-xl sm:text-2xl">
-                {t('How to create your account?')}
-              </h2>
-            </div>
-            <motion.span
-              animate={{ rotate: howOpen ? 180 : 0 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900/50 transition-colors duration-200"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </motion.span>
-          </motion.button>
-
-          {/* Collapsible cards */}
-          <AnimatePresence initial={false}>
-            {howOpen && (
-              <motion.div
-                key="steps"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 mt-6 sm:mt-8">
-
-                  {/* ── Freelancer card ── */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-40px' }}
-                    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                    whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                    className="group relative rounded-2xl overflow-hidden border border-indigo-200 dark:border-indigo-500/20 bg-gradient-to-br from-white via-white to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/60 shadow-xl shadow-indigo-100/50 dark:shadow-indigo-900/20 hover:shadow-2xl hover:shadow-indigo-200/60 dark:hover:shadow-indigo-500/25 transition-shadow duration-500"
-                  >
-                    {/* top glow bar */}
-                    <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
-                    {/* ambient glow */}
-                    <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none group-hover:bg-indigo-500/20 transition-colors duration-700" />
-
-                    <div className="relative p-6">
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-600/40">
-                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                          </div>
-                          <div>
-                            <p className="font-poppins font-bold text-slate-900 dark:text-white text-[15px] leading-none">{t('Freelancer')}</p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-500/15 border border-indigo-300 dark:border-indigo-500/30 px-2.5 py-1 rounded-full tracking-wide uppercase">
-                          {t('6 steps')}
-                        </span>
-                      </div>
-
-                      {/* Steps */}
-                      <ol className="relative space-y-0">
-                        {[
-                          { title: t("Choose 'Freelancer' at signup"), sub: t('steps.client.sub1') },
-                          { title: t('Fill in your info'),             sub: t('steps.freelancer.sub1') },
-                          { title: t('Upload your CIN'),               sub: t('steps.freelancer.sub3') },
-                          { title: t('Add your skills & bio'),         sub: t('steps.freelancer.sub2') },
-                          { title: t('Get Approved or Rejected !'),    sub: t('steps.freelancer.sub4') },
-                          { title: t("You're in — start working!"),    sub: t('steps.freelancer.sub5') },
-                        ].map((s, i, arr) => (
-                          <li key={i} className="relative flex items-start gap-3.5 pb-4 last:pb-0">
-                            {i < arr.length - 1 && (
-                              <span className="absolute left-[13px] top-7 bottom-0 w-px bg-gradient-to-b from-indigo-300 dark:from-indigo-500/40 to-transparent" />
-                            )}
-                            <span className="mt-0.5 w-[26px] h-[26px] rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-[11px] font-extrabold flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/40 ring-2 ring-indigo-500/20">
-                              {i + 1}
-                            </span>
-                            <div className="pt-[3px]">
-                              <p className="font-inter font-semibold text-[13px] text-slate-800 dark:text-slate-100 leading-snug">{s.title}</p>
-                              <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-[3px] leading-relaxed">{s.sub}</p>
-                            </div>
-                          </li>
-                        ))}
-                      </ol>
-
-                      {/* Footer */}
-                      <div className="mt-5 pt-4 border-t border-indigo-200 dark:border-indigo-500/15 flex items-center gap-2 text-[11px] text-indigo-600/80 dark:text-indigo-400/80 font-inter">
-                        <svg className="w-3.5 h-3.5 shrink-0 text-indigo-600 dark:text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        {t('steps.cin_note')}
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* ── Client card ── */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-40px' }}
-                    transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                    whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                    className="group relative rounded-2xl overflow-hidden border border-violet-200 dark:border-violet-500/20 bg-gradient-to-br from-white via-white to-violet-50 dark:from-slate-900 dark:via-slate-900 dark:to-violet-950/60 shadow-xl shadow-violet-100/50 dark:shadow-violet-900/20 hover:shadow-2xl hover:shadow-violet-200/60 dark:hover:shadow-violet-500/25 transition-shadow duration-500"
-                  >
-                    {/* top glow bar */}
-                    <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
-                    {/* ambient glow */}
-                    <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-violet-600/10 blur-3xl pointer-events-none group-hover:bg-violet-500/20 transition-colors duration-700" />
-
-                    <div className="relative p-6">
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-600/40">
-                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                            </svg>
-                          </div>
-                          <div>
-                            <p className="font-poppins font-bold text-slate-900 dark:text-white text-[15px] leading-none">{t('Client')}</p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-bold text-violet-700 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/15 border border-violet-300 dark:border-violet-500/30 px-2.5 py-1 rounded-full tracking-wide uppercase">
-                          {t('5 steps')}
-                        </span>
-                      </div>
-
-                      {/* Steps */}
-                      <ol className="relative space-y-0">
-                        {[
-                          { title: t("Choose 'Client' at signup"),  sub: t('steps.client.sub1') },
-                          { title: t('Fill in your info'),          sub: t('steps.client.sub2') },
-                          { title: t('Upload your CIN'),            sub: t('steps.freelancer.sub3') },
-                          { title: t('Get Approved or Rejected !'), sub: t('steps.client.sub4') },
-                          { title: t("You're in — start hiring!"),  sub: t('steps.client.sub3') },
-                        ].map((s, i, arr) => (
-                          <li key={i} className="relative flex items-start gap-3.5 pb-4 last:pb-0">
-                            {i < arr.length - 1 && (
-                              <span className="absolute left-[13px] top-7 bottom-0 w-px bg-gradient-to-b from-violet-300 dark:from-violet-500/40 to-transparent" />
-                            )}
-                            <span className="mt-0.5 w-[26px] h-[26px] rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-[11px] font-extrabold flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/40 ring-2 ring-violet-500/20">
-                              {i + 1}
-                            </span>
-                            <div className="pt-[3px]">
-                              <p className="font-inter font-semibold text-[13px] text-slate-800 dark:text-slate-100 leading-snug">{s.title}</p>
-                              <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-[3px] leading-relaxed">{s.sub}</p>
-                            </div>
-                          </li>
-                        ))}
-                      </ol>
-
-                      {/* Footer */}
-                      <div className="mt-5 pt-4 border-t border-violet-200 dark:border-violet-500/15 flex items-center gap-2 text-[11px] text-violet-600/80 dark:text-violet-400/80 font-inter">
-                        <svg className="w-3.5 h-3.5 shrink-0 text-violet-600 dark:text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        {t('steps.cin_note')}
-                      </div>
-                    </div>
-                  </motion.div>
-
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-        </div>
-      </motion.section>
-
+// ── Step arrow SVG ────────────────────────────────────────────────────────────
+function StepArrow() {
+  return (
+    <div style={{ flex: 'none', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '46px' }} aria-hidden="true">
+      <svg width="72" height="30" viewBox="0 0 72 30" preserveAspectRatio="xMidYMid meet" fill="none" style={{ filter: 'drop-shadow(0 0 8px rgba(124,108,246,.7))', overflow: 'visible' }}>
+        <path d="M4 15h50" stroke="rgba(124,108,246,.6)" strokeWidth="3" strokeLinecap="round" strokeDasharray="1 8"/>
+        <path d="M52 5l13 10-13 10" stroke="rgba(124,108,246,.6)" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      </svg>
     </div>
   );
-};
+}
 
-export default Home;
+// ── Section: How It Works ─────────────────────────────────────────────────────
+function HowItWorksSection() {
+  return (
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+        <h2 style={{ fontWeight: 800, fontSize: 'clamp(24px,3.4vw,32px)', letterSpacing: '-.025em', margin: '0 0 8px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          How it works ?
+        </h2>
+        <p style={{ fontSize: '16px', color: '#a7abc8', margin: 0 }}>Three steps to get started.</p>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        {HOW_IT_WORKS.map((step, i) => (
+          <React.Fragment key={step.num}>
+            <motion.div
+              initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.12 }}
+              style={{ flex: 1, minWidth: '200px', maxWidth: '260px', textAlign: 'center', padding: '8px' }}>
+              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: '#7c6cf6', color: '#fff', fontWeight: 700, fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 18px -6px rgba(124,108,246,.7)' }}>
+                {step.num}
+              </div>
+              <div style={{ fontWeight: 700, fontSize: '17px', color: '#fbfbff', marginBottom: '6px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{step.title}</div>
+              <div style={{ fontSize: '14px', color: '#a7abc8', lineHeight: 1.55, maxWidth: '280px', margin: '0 auto' }}>{step.desc}</div>
+            </motion.div>
+            {i < HOW_IT_WORKS.length - 1 && <StepArrow />}
+          </React.Fragment>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Section: Featured Freelancers ─────────────────────────────────────────────
+function FeaturedFreelancersSection() {
+  return (
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
+        <div>
+          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+            Featured freelancers
+          </h2>
+          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>Top-rated talent, ready to start.</p>
+        </div>
+        <Link to="/freelancers"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.14)', color: '#c2c5dd', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
+          View all <ChevronRight />
+        </Link>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: '18px' }}>
+        {FEATURED_FREELANCERS.map((f, i) => (
+          <motion.div key={f.id}
+            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.45, delay: i * 0.1 }}
+            style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s' }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '13px', marginBottom: '16px' }}>
+              <span style={{ width: '50px', height: '50px', borderRadius: '50%', background: f.avBg, color: f.avFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', flex: 'none' }}>
+                {f.initials}
+              </span>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '15.5px', color: '#fbfbff' }}>{f.name}</span>
+                  <ShieldIcon size={15} color="#9b8cff" />
+                </div>
+                <div style={{ fontSize: '13px', color: '#a7abc8', marginTop: '2px' }}>{f.role}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13.5px', flex: 'none' }}>
+                <StarIcon size={14} color="#9b8cff" />
+                <span style={{ fontWeight: 700, color: '#fbfbff' }}>{f.rating}</span>
+              </div>
+            </div>
+            {/* Skills */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+              {f.skills.map(s => (
+                <span key={s} style={{ fontSize: '12px', color: '#c2c5dd', background: 'rgba(255,255,255,.06)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{s}</span>
+              ))}
+            </div>
+            {/* Footer */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
+              <div style={{ fontSize: '13px', color: '#7e82a0', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <ClockIcon /> Responds in {f.responds}
+              </div>
+              <div style={{ fontSize: '14px', color: '#fbfbff' }}>
+                <strong style={{ fontWeight: 700 }}>{f.rate} TND</strong><span style={{ color: '#7e82a0', fontWeight: 500 }}>/h</span>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Section: Trending Projects ────────────────────────────────────────────────
+function TrendingProjectsSection() {
+  return (
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
+        <div>
+          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+            Trending projects
+          </h2>
+          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>Fresh opportunities from verified clients.</p>
+        </div>
+        <Link to="/clients"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.14)', color: '#c2c5dd', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
+          View all <ChevronRight />
+        </Link>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(330px,1fr))', gap: '18px' }}>
+        {TRENDING_PROJECTS.map((p, i) => (
+          <motion.div key={p.id}
+            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.45, delay: i * 0.1 }}
+            style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s', display: 'flex', flexDirection: 'column', gap: '13px' }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+            {/* Client */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ width: '34px', height: '34px', borderRadius: '9px', background: p.avBg, color: p.avFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', flex: 'none' }}>{p.initials}</span>
+              <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#c2c5dd' }}>{p.client}</span>
+              <ShieldIcon size={14} color="#9b8cff" />
+            </div>
+            {/* Title */}
+            <div style={{ fontWeight: 700, fontSize: '17px', color: '#fbfbff', letterSpacing: '-.01em', lineHeight: 1.3 }}>{p.title}</div>
+            {/* Budget + duration */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '14px', color: '#fbfbff', fontWeight: 700 }}>{p.budget}</span>
+              <span style={{ fontSize: '13px', color: '#7e82a0', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <ClockIcon />{p.duration}
+              </span>
+            </div>
+            {/* Tags */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {p.tags.map(t => (
+                <span key={t} style={{ fontSize: '12px', color: '#c2c5dd', background: 'rgba(255,255,255,.06)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{t}</span>
+              ))}
+            </div>
+            {/* Footer */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
+              <span style={{ fontSize: '12.5px', color: '#7e82a0' }}>{p.proposals} proposals</span>
+              <Link to="/clients"
+                style={{ padding: '8px 18px', borderRadius: '9px', background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '13.5px', textDecoration: 'none' }}>
+                Apply
+              </Link>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Section: Courses Preview ──────────────────────────────────────────────────
+function CoursesPreviewSection() {
+  return (
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
+        <div>
+          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+            Learn from experts
+          </h2>
+          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>Courses taught by top freelancers.</p>
+        </div>
+        <Link to="/courses"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.14)', color: '#c2c5dd', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
+          View all <ChevronRight />
+        </Link>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: '18px' }}>
+        {COURSES.map((c, i) => (
+          <motion.div key={c.id}
+            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.45, delay: i * 0.08 }}
+            style={{ ...CARD_STYLE, overflow: 'hidden', transition: 'box-shadow .18s,border-color .18s', cursor: 'pointer' }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+            {/* Cover */}
+            <div style={{ height: '120px', background: c.cover, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+              <span style={{ position: 'absolute', top: '11px', left: '11px', fontSize: '11px', fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.28)', padding: '3px 9px', borderRadius: '6px' }}>{c.cat}</span>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: .92 }}>
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+            </div>
+            {/* Body */}
+            <div style={{ padding: '16px 17px 18px' }}>
+              <div style={{ fontWeight: 700, fontSize: '15px', color: '#fbfbff', lineHeight: 1.35, marginBottom: '7px', minHeight: '40px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{c.title}</div>
+              <div style={{ fontSize: '13px', color: '#a7abc8', marginBottom: '12px' }}>{c.instructor}</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: '#a7abc8' }}>
+                  <StarIcon size={14} /><strong style={{ color: '#fbfbff' }}>{c.rating}</strong> · {c.students}
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#fbfbff', whiteSpace: 'nowrap' }}>{c.price}</div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Section: Testimonials ─────────────────────────────────────────────────────
+function TestimonialsSection() {
+  return (
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '34px' }}>
+        <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 8px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          Loved by the community
+        </h2>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '18px' }}>
+        {TESTIMONIALS.map((t, i) => (
+          <motion.div key={t.name}
+            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.45, delay: i * 0.1 }}
+            style={{ ...CARD_STYLE, padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* 5 stars */}
+            <div style={{ display: 'flex', gap: '2px' }}>
+              {[0,1,2,3,4].map(j => <StarIcon key={j} size={15} color="#9b8cff" />)}
+            </div>
+            <p style={{ margin: 0, fontSize: '15px', color: '#dcdef0', lineHeight: 1.6 }}>{t.quote}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '11px', marginTop: 'auto' }}>
+              <span style={{ width: '38px', height: '38px', borderRadius: '50%', background: t.avBg, color: t.avFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', flex: 'none' }}>{t.initials}</span>
+              <div>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#fbfbff' }}>{t.name}</div>
+                <div style={{ fontSize: '12.5px', color: '#7e82a0' }}>{t.title}</div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Chevron down ──────────────────────────────────────────────────────────────
+function ChevronDown({ size = 14, rotated = false }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+      style={{ transition: 'transform .2s', transform: rotated ? 'rotate(180deg)' : 'none' }}>
+      <path d="m6 9 6 6 6-6"/>
+    </svg>
+  );
+}
+
+// ── Section: FAQ ──────────────────────────────────────────────────────────────
+function FAQSection() {
+  const [openIdx, setOpenIdx] = useState(null);
+  const toggle = useCallback((i) => setOpenIdx(prev => prev === i ? null : i), []);
+
+  return (
+    <section className="fm-section" style={{ maxWidth: '760px', margin: '0 auto', paddingTop: '72px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '34px' }}>
+        <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 8px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          Frequently asked questions
+        </h2>
+        <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>Everything you need to know to get started.</p>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {FAQ_ITEMS.map((q, i) => {
+          const isOpen = openIdx === i;
+          return (
+            <motion.div key={q.question}
+              initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.07 }}
+              style={{ background: '#16142e', border: `1px solid ${isOpen ? 'rgba(124,108,246,.4)' : 'rgba(255,255,255,.08)'}`, borderRadius: '14px', overflow: 'hidden', transition: 'border-color .18s' }}>
+              <button onClick={() => toggle(i)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: '18px 20px' }}>
+                <span style={{ fontWeight: 700, fontSize: '15.5px', color: '#fbfbff' }}>{q.question}</span>
+                <span style={{ width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(124,108,246,.16)', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b9aeff', flex: 'none' }}>
+                  <ChevronDown size={14} rotated={isOpen} />
+                </span>
+              </button>
+              {isOpen && (
+                <div style={{ padding: '0 20px 19px', fontSize: '14.5px', color: '#a7abc8', lineHeight: 1.6 }}>
+                  {q.answer}
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// ── Section: Final CTA ────────────────────────────────────────────────────────
+function CTASection() {
+  return (
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px', paddingBottom: '80px' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        style={{ position: 'relative', overflow: 'hidden', borderRadius: '24px', background: 'linear-gradient(135deg,#6c5cf6 0%,#7d5cf0 45%,#3a8ce0 100%)', padding: 'clamp(28px,5vw,60px) clamp(20px,5vw,60px)', textAlign: 'center', boxShadow: '0 28px 64px -26px rgba(108,92,246,.8)' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(440px 240px at 12% 0%,rgba(255,255,255,.2),transparent 70%),radial-gradient(420px 240px at 90% 100%,rgba(255,255,255,.12),transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative' }}>
+          <h2 style={{ fontWeight: 800, fontSize: 'clamp(26px,4vw,38px)', letterSpacing: '-.025em', margin: '0 0 12px', color: '#fff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+            Ready to get started?
+          </h2>
+          <p style={{ fontSize: '17px', color: 'rgba(255,255,255,.88)', maxWidth: '460px', margin: '0 auto 30px' }}>
+            Join thousands of freelancers and clients across Tunisia.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/freelancers"
+              style={{ padding: '13px 26px', borderRadius: '12px', background: '#fff', color: '#6a5cf0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '15px', boxShadow: '0 8px 20px -8px rgba(0,0,0,.4)', textDecoration: 'none' }}>
+              Join as Freelancer
+            </Link>
+            <Link to="/clients"
+              style={{ padding: '13px 26px', borderRadius: '12px', background: 'rgba(255,255,255,.16)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '15px', textDecoration: 'none' }}>
+              Hire Talent
+            </Link>
+          </div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+// ── Main Home page ────────────────────────────────────────────────────────────
+export default function Home() {
+  const { user } = useAuth();
+
+  if (user?.isAdmin) {
+    return <div style={{ minHeight: '100vh', background: '#0a0817' }} />;
+  }
+
+  return (
+    <div style={{ background: 'radial-gradient(960px 540px at 14% -6%,rgba(124,108,246,.22),transparent 60%),radial-gradient(860px 540px at 96% -2%,rgba(58,140,224,.16),transparent 60%),linear-gradient(180deg,#100d28 0%,#0a0817 58%)', minHeight: '100vh', fontFamily: "'Plus Jakarta Sans',-apple-system,sans-serif", color: '#f4f3fb', WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
+      <HeroSection />
+      <ActionCardsSection />
+      <HowItWorksSection />
+      <FeaturedFreelancersSection />
+      <TrendingProjectsSection />
+      <CoursesPreviewSection />
+      <TestimonialsSection />
+      <FAQSection />
+      <CTASection />
+    </div>
+  );
+}

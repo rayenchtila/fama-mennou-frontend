@@ -46,56 +46,74 @@ export default function Modal({
 
   if (isFullscreen) {
     return createPortal(
-      <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 flex flex-col overflow-y-auto overflow-x-hidden animate-[modalUp_0.25s_cubic-bezier(0.34,1.56,0.64,1)]">
-
-        {/* Close button — top right, always visible */}
-        {closable && (
-          <button
-            onClick={onClose}
-            className="fixed top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all shadow-sm"
-            aria-label="Close"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
+      <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto overflow-x-hidden animate-[modalUp_0.25s_cubic-bezier(0.34,1.56,0.64,1)]"
+        style={{
+          background: '#0a0817',
+          backgroundImage: 'radial-gradient(ellipse 75% 65% at 100% 0%, rgba(104,76,226,0.5) 0%, rgba(60,130,240,0.18) 42%, transparent 68%)'
+        }}>
 
         {/* Centered content wrapper */}
-        <div className="flex-1 flex flex-col justify-center items-center px-4 py-10 sm:py-16">
-          <div className="w-full max-w-md">
+        <div className="flex-1 flex flex-col justify-center items-center px-4 py-8">
+          <div className="auth-card w-full max-w-md rounded-2xl"
+            style={{
+              background: '#120f2b',
+              border: '1px solid rgba(255,255,255,0.09)',
+              boxShadow: '0 25px 70px rgba(0,0,0,0.55), 0 0 60px rgba(104,76,226,0.07)'
+            }}>
+            <div className="p-7 sm:p-8">
 
-            {/* Header — key forces remount → CSS animation fires on every switch */}
-            {(title || subtitle) && (
-              <div className="mb-6">
-                {title && (
-                  <h2
-                    key={title}
-                    className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-tight animate-[authTitleIn_0.35s_cubic-bezier(0.22,1,0.36,1)_both]"
-                  >
-                    {title}
-                  </h2>
-                )}
-                {subtitle && (
-                  <p
-                    key={subtitle}
-                    className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 animate-[authSubIn_0.35s_cubic-bezier(0.22,1,0.36,1)_0.05s_both]"
-                  >
-                    {subtitle}
-                  </p>
-                )}
-              </div>
-            )}
+              {/* Header row — key forces remount → CSS animation fires on every switch */}
+              {(title || subtitle || closable) && (
+                <div className="mb-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      {title && (
+                        <h2
+                          key={String(title)}
+                          className="text-2xl sm:text-3xl font-bold leading-tight animate-[authTitleIn_0.35s_cubic-bezier(0.22,1,0.36,1)_both]"
+                          style={{ color: '#fbfbff' }}
+                        >
+                          {title}
+                        </h2>
+                      )}
+                      {subtitle && (
+                        <p
+                          key={subtitle}
+                          className="mt-1.5 text-sm animate-[authSubIn_0.35s_cubic-bezier(0.22,1,0.36,1)_0.05s_both]"
+                          style={{ color: '#a7abc8' }}
+                        >
+                          {subtitle}
+                        </p>
+                      )}
+                    </div>
+                    {closable && (
+                      <button
+                        onClick={onClose}
+                        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all"
+                        style={{ background: 'rgba(255,255,255,.08)', color: '#a7abc8' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.14)'; e.currentTarget.style.color = '#fbfbff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.08)'; e.currentTarget.style.color = '#a7abc8'; }}
+                        aria-label="Close"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
-            {/* Body */}
-            <div>{children}</div>
+              {/* Body */}
+              <div>{children}</div>
 
-            {/* Footer */}
-            {footer && (
-              <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
-                {footer}
-              </div>
-            )}
+              {/* Footer */}
+              {footer && (
+                <div className="pt-4 mt-2 border-t" style={{ borderColor: 'rgba(255,255,255,.07)' }}>
+                  {footer}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -116,25 +134,19 @@ export default function Modal({
           }
 
           /* All inputs, selects, textareas — silky smooth on appearance */
-          .fixed.inset-0 input,
-          .fixed.inset-0 select,
-          .fixed.inset-0 textarea {
+          .auth-card input,
+          .auth-card select,
+          .auth-card textarea {
             transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.25s ease;
           }
 
           /* Buttons inside auth feel snappy */
-          .fixed.inset-0 button {
+          .auth-card button {
             transition: background-color 0.18s ease, color 0.18s ease,
                         box-shadow 0.18s ease, transform 0.12s ease;
           }
-          .fixed.inset-0 button:active {
+          .auth-card button:active {
             transform: scale(0.97);
-          }
-
-          /* Smooth height change when form content grows/shrinks */
-          .fixed.inset-0 form,
-          .fixed.inset-0 [class*="flex flex-col"] {
-            transition: height 0.3s ease;
           }
 
           @media (max-width: 380px) {

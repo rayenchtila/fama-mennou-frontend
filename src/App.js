@@ -24,9 +24,11 @@ import SettingsPage from "./page/SettingsPage";
 import PaymentsPage from "./page/PaymentsPage";
 import ClientDashboard from "./page/ClientDashboard";
 import FreelancerDashboard from "./page/FreelancerDashboard";
+import PublicProfilePage from "./page/PublicProfilePage";
 import { useTranslation } from "react-i18next";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -47,22 +49,25 @@ function PrivateRoute({ children, onLogin }) {
   // Allow /messages for everyone — pending users must still be able to chat with admin
   if (!user.isAdmin && user.cinStatus === "pending" && location.pathname !== '/messages') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-8 max-w-md w-full text-center">
-          <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24">
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0817' }}>
+        <div className="rounded-2xl p-8 max-w-md w-full text-center" style={{ background: '#16142e', border: '1px solid rgba(255,255,255,.08)' }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(245,158,11,.12)' }}>
+            <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color: '#f59e0b' }}>
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Compte en attente</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+          <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>Compte en attente</h2>
+          <p className="text-sm mb-6" style={{ color: '#a7abc8' }}>
             Votre compte est en cours de vérification par l'administrateur.<br />
             Vous serez notifié dès que votre compte sera approuvé.
           </p>
           <button
             onClick={logout}
-            className="text-xs text-slate-400 hover:text-rose-500 transition-colors"
+            className="text-xs transition-colors"
+            style={{ color: '#62668a' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
+            onMouseLeave={e => e.currentTarget.style.color = '#62668a'}
           >
             Se déconnecter
           </button>
@@ -73,25 +78,28 @@ function PrivateRoute({ children, onLogin }) {
 
   if (!user.isAdmin && user.cinStatus === "rejected") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-800/50 shadow-xl p-8 max-w-md w-full text-center">
-          <div className="w-16 h-16 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0817' }}>
+        <div className="rounded-2xl p-8 max-w-md w-full text-center" style={{ background: '#16142e', border: '1px solid rgba(248,113,113,.25)' }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(248,113,113,.12)' }}>
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#f87171' }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Compte refusé</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+          <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>Compte refusé</h2>
+          <p className="text-sm mb-3" style={{ color: '#a7abc8' }}>
             Votre demande de vérification a été refusée par l'administrateur.
           </p>
           {user.cinRejectionReason && (
-            <p className="text-xs bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-xl px-4 py-3 mb-6">
+            <p className="text-xs rounded-xl px-4 py-3 mb-6" style={{ background: 'rgba(248,113,113,.1)', border: '1px solid rgba(248,113,113,.2)', color: '#fca5a5' }}>
               Raison : {user.cinRejectionReason}
             </p>
           )}
           <button
             onClick={logout}
-            className="text-xs text-slate-400 hover:text-rose-500 transition-colors"
+            className="text-xs transition-colors"
+            style={{ color: '#62668a' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
+            onMouseLeave={e => e.currentTarget.style.color = '#62668a'}
           >
             Se déconnecter
           </button>
@@ -110,6 +118,7 @@ function AppInner() {
 
   const isAdminDashboard = location.pathname === "/admin/dashboard";
   const isUserDashboard  = location.pathname === "/dashboard" || location.pathname === "/messages";
+  const isHome           = location.pathname === "/";
 
   const [dark, setDark] = useState(() => {
     if (typeof window !== "undefined") {
@@ -284,6 +293,10 @@ function AppInner() {
               element={<PrivateRoute onLogin={handleLogin}><ProfilePage /></PrivateRoute>}
             />
             <Route
+              path="/profile/:email"
+              element={<PrivateRoute onLogin={handleLogin}><PublicProfilePage /></PrivateRoute>}
+            />
+            <Route
               path="/dashboard"
               element={
                 user?.isAdmin
@@ -315,8 +328,7 @@ function AppInner() {
             />
           </Routes>
 
-          {!isAdminDashboard && !isUserDashboard && <FAQ />}
-          {!isAdminDashboard && !isUserDashboard && <Footer />}
+          {isHome && <Footer />}
         </motion.div>
       </AnimatePresence>
     </ToastProvider>
@@ -325,13 +337,15 @@ function AppInner() {
 
 function App() {
   return (
-    <GoogleOAuthProvider clientId="315427253338-10dlpebi8btbc6b0is4vncq2n72796cq.apps.googleusercontent.com">
-      <Router>
-        <AuthProvider>
-          <AppInner />
-        </AuthProvider>
-      </Router>
-    </GoogleOAuthProvider>
+    <ThemeProvider>
+      <GoogleOAuthProvider clientId="315427253338-10dlpebi8btbc6b0is4vncq2n72796cq.apps.googleusercontent.com">
+        <Router>
+          <AuthProvider>
+            <AppInner />
+          </AuthProvider>
+        </Router>
+      </GoogleOAuthProvider>
+    </ThemeProvider>
   );
 }
 

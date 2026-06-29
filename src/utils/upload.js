@@ -2,7 +2,8 @@
 // Architecture: Browser → sign(backend) → upload(Cloudinary directly) → save URL(Supabase)
 // NO localStorage for files. NO base64. NO unsigned preset issues.
 
-const SIGN_API = 'https://famamennou-server.onrender.com/api';
+const SIGN_API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
+const IS_DEV   = process.env.REACT_APP_DEV_MODE === 'true';
 
 const CLOUD = 'dcantqizj';
 
@@ -30,19 +31,51 @@ export function warmVideoUpload(folder = 'famamennou/videos') {
   preloadVideoSignature(folder);
 }
 
-/** Upload an MP4 video file to Cloudinary */
+/** Upload an MP4 video file */
 export function uploadVideo(file, folder = 'famamennou/videos', onProgress = null) {
+  if (IS_DEV) return localUpload(file, 'videos', onProgress);
   return signedUpload(file, 'video', folder, onProgress);
 }
 
-/** Upload an image file to Cloudinary */
+/** Upload an image file */
 export function uploadImage(file, folder = 'famamennou/images', onProgress = null) {
+  if (IS_DEV) return localUpload(file, 'images', onProgress);
   return signedUpload(file, 'image', folder, onProgress);
 }
 
-/** Upload a PDF or document to Cloudinary */
+/** Upload a PDF or document */
 export function uploadDocument(file, folder = 'famamennou/docs', onProgress = null) {
+  if (IS_DEV) return localUpload(file, 'docs', onProgress);
   return signedUpload(file, 'raw', folder, onProgress);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INTERNAL — Local upload (dev only)
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function localUpload(file, folder, onProgress) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folder', folder);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    if (onProgress) {
+      xhr.upload.addEventListener('progress', e => {
+        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      });
+    }
+    xhr.addEventListener('load', () => {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (data.error) return reject(new Error(data.error));
+        resolve({ secure_url: data.secure_url, public_id: data.public_id });
+      } catch { reject(new Error('Invalid response')); }
+    });
+    xhr.addEventListener('error', () => reject(new Error('Upload failed')));
+    xhr.open('POST', `${SIGN_API}/uploads/local`);
+    xhr.send(formData);
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 // components/Input.jsx
 import { forwardRef, useState } from "react";
- 
+
 const Input = forwardRef(
   (
     {
@@ -22,43 +22,41 @@ const Input = forwardRef(
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === "password";
     const inputType = isPassword ? (showPassword ? "text" : "password") : type;
- 
+
     const sizeMap = {
       sm: "px-3 py-2 text-sm",
       md: "px-4 py-2.5 text-sm",
       lg: "px-4 py-3 text-base",
     };
- 
+
     return (
       <div className={["flex flex-col gap-1.5", containerClass].join(" ")}>
         {label && (
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+          <label className="text-sm flex items-center gap-1" style={{ color: "#dcdef0", fontWeight: 700 }}>
             {label}
-            {required && <span className="text-rose-500">*</span>}
+            {required && <span style={{ color: "#f87171" }}>*</span>}
           </label>
         )}
- 
+
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3 flex items-center pointer-events-none text-slate-400">
+            <div className="absolute left-3 flex items-center pointer-events-none" style={{ color: "#62668a" }}>
               {leftIcon}
             </div>
           )}
- 
+
           <input
             ref={ref}
             type={inputType}
             disabled={disabled}
             className={[
               "w-full rounded-xl border transition-all duration-200",
-              "bg-white dark:bg-slate-900",
-              "text-slate-900 dark:text-slate-100",
-              "placeholder-slate-400 dark:placeholder-slate-600",
-              "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
+              "bg-[#15122c] text-[#f4f3fb] placeholder-[#4a4e6a]",
+              "focus:outline-none focus:ring-2",
               error
-                ? "border-rose-400 dark:border-rose-600 focus:ring-rose-500"
-                : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600",
-              disabled ? "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800" : "",
+                ? "border-[rgba(248,113,113,0.6)] focus:ring-rose-500/20 focus:border-rose-400"
+                : "border-[rgba(255,255,255,0.12)] focus:ring-[rgba(124,108,246,0.25)] focus:border-[#7c6cf6]",
+              disabled ? "opacity-50 cursor-not-allowed" : "",
               leftIcon ? "pl-10" : "",
               rightIcon || isPassword ? "pr-10" : "",
               sizeMap[size] ?? sizeMap.md,
@@ -67,50 +65,68 @@ const Input = forwardRef(
               .filter(Boolean)
               .join(" ")}
             {...props}
+            onCopy={isPassword        ? e => e.preventDefault() : props.onCopy}
+            onCut={isPassword         ? e => e.preventDefault() : props.onCut}
+            onContextMenu={isPassword ? e => e.preventDefault() : props.onContextMenu}
           />
- 
+
           {isPassword && (
             <button
               type="button"
+              tabIndex={-1}
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              style={{
+                position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer',
+                background: 'transparent', color: showPassword ? '#9b8cff' : '#62668a',
+                transition: 'color 0.18s, background 0.18s',
+                outline: 'none',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#9b8cff'; e.currentTarget.style.background = 'rgba(124,108,246,0.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = showPassword ? '#9b8cff' : '#62668a'; e.currentTarget.style.background = 'transparent'; }}
             >
               {showPassword ? (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" />
+                /* Eye-open: password is visible */
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
                 </svg>
               ) : (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                /* Eye-slash: password is hidden */
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
                 </svg>
               )}
             </button>
           )}
- 
+
           {rightIcon && !isPassword && (
-            <div className="absolute right-3 flex items-center pointer-events-none text-slate-400">
+            <div className="absolute right-3 flex items-center pointer-events-none" style={{ color: "#62668a" }}>
               {rightIcon}
             </div>
           )}
         </div>
- 
+
         {error && (
-          <p className="text-xs text-rose-500 dark:text-rose-400 flex items-center gap-1">
+          <p className="text-xs flex items-center gap-1" style={{ color: "#f87171" }}>
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
             {error}
           </p>
         )}
- 
+
         {hint && !error && (
-          <p className="text-xs text-slate-500 dark:text-slate-400">{hint}</p>
+          <p className="text-xs" style={{ color: "#a7abc8" }}>{hint}</p>
         )}
       </div>
     );
   }
 );
- 
+
 Input.displayName = "Input";
 export default Input;

@@ -2,146 +2,270 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
-const API = 'https://famamennou-server.onrender.com/api';
+const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
+
+const C = {
+  bg:'#070b14', card:'rgba(255,255,255,0.028)', cardHov:'rgba(255,255,255,0.05)',
+  border:'rgba(255,255,255,0.07)', borderAcc:'rgba(124,108,246,0.45)',
+  surface:'#0d1220',
+  accent:'#7c6cf6', accentMid:'#9b8cff', accentDim:'rgba(124,108,246,0.1)',
+  emerald:'#10b981', emeraldDim:'rgba(16,185,129,0.1)', emeraldBord:'rgba(16,185,129,0.28)',
+  amber:'#f59e0b', amberDim:'rgba(245,158,11,0.1)', amberBord:'rgba(245,158,11,0.28)',
+  rose:'#f87171', roseDim:'rgba(248,113,113,0.1)', roseBord:'rgba(248,113,113,0.28)',
+  text:'#f4f3fb', sub:'#a7abc8', muted:'#62668a',
+};
+
+const INP = {
+  width:'100%', boxSizing:'border-box', padding:'13px 16px', borderRadius:14,
+  background:'rgba(255,255,255,0.04)', border:`1.5px solid ${C.border}`,
+  color:C.text, fontSize:14, outline:'none', fontFamily:'inherit',
+  transition:'border-color .2s, background .2s, box-shadow .2s',
+};
+const focusOn  = e => { e.target.style.borderColor='rgba(124,108,246,0.5)'; e.target.style.background='rgba(124,108,246,0.06)'; e.target.style.boxShadow='0 0 0 3px rgba(124,108,246,0.1)'; };
+const focusOff = e => { e.target.style.borderColor=C.border; e.target.style.background='rgba(255,255,255,0.04)'; e.target.style.boxShadow='none'; };
+
+const IcShield  = ({s=16}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+const IcKey     = ({s=16}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>;
+const IcGlobe   = ({s=16}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;
+const IcBell    = ({s=16}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+const IcLogout  = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+const IcTrash   = ({s=14}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>;
+const IcArrow   = ({s=13}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
+const IcCheck   = ({s=14}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+const IcEye     = ({s=15,off}) => off
+  ? <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+  : <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
+
+function SectionCard({ title, icon, children }) {
+  return (
+    <div style={{ marginBottom:18, borderRadius:22, background:C.card, border:`1px solid ${C.border}` }}>
+      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'18px 24px', borderBottom:`1px solid ${C.border}` }}>
+        <div style={{ color:C.accentMid }}>{icon}</div>
+        <p style={{ fontSize:12, fontWeight:800, color:C.text, margin:0, textTransform:'uppercase', letterSpacing:'0.08em' }}>{title}</p>
+      </div>
+      <div style={{ padding:'20px 24px' }}>{children}</div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, badge }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBlock:12, borderBottom:`1px solid ${C.border}` }}>
+      <p style={{ fontSize:13, fontWeight:500, color:C.sub, margin:0 }}>{label}</p>
+      {badge
+        ? <span style={{ fontSize:11.5, fontWeight:800, color:badge.color, background:badge.bg, border:`1px solid ${badge.border}`, padding:'3px 12px', borderRadius:20 }}>{value}</span>
+        : <p style={{ fontSize:13, fontWeight:600, color:C.muted, margin:0 }}>{value}</p>
+      }
+    </div>
+  );
+}
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const { user, logout } = useAuth();
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [msg, setMsg] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const { user, logout, addNotification } = useAuth();
+  const [currPass,  setCurrPass]  = useState('');
+  const [showCurr,  setShowCurr]  = useState(false);
+  const [newPass,   setNewPass]   = useState('');
+  const [showNew,   setShowNew]   = useState(false);
+  const [confirm,   setConfirm]   = useState('');
+  const [showConf,  setShowConf]  = useState(false);
+  const [passMsg,   setPassMsg]   = useState('');
+  const [passErr,   setPassErr]   = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [logoutModal, setLogoutModal] = useState(false);
 
   if (!user) return null;
 
-  async function handleChangePassword() {
-    setMsg(''); setError('');
-    if (!newPassword) { setError(t('Password is required')); return; }
-    if (newPassword.length < 6) { setError(t('At least 6 characters')); return; }
-    if (newPassword !== confirmPassword) { setError(t('Passwords do not match')); return; }
+  const cinStatus = user.cinStatus;
+  const statusBadge = cinStatus==='approved'
+    ? { color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, label:'Vérifié' }
+    : cinStatus==='pending'
+    ? { color:C.amber,   bg:C.amberDim,   border:C.amberBord,   label:'En attente' }
+    : { color:C.rose,    bg:C.roseDim,    border:C.roseBord,    label:'Non vérifié' };
+
+  async function handleChangePassword(e) {
+    e.preventDefault();
+    setPassMsg(''); setPassErr('');
+
+    if (!currPass)           { setPassErr('Le mot de passe actuel est requis.');        return; }
+    if (!newPass)            { setPassErr('Le nouveau mot de passe est requis.');        return; }
+    if (newPass.length < 6)  { setPassErr('Minimum 6 caractères.');                     return; }
+    if (newPass !== confirm)  { setPassErr('Les mots de passe ne correspondent pas.');  return; }
+
     setLoading(true);
     try {
-      const res = await fetch(`${API}/auth/reset-password`, {
+      /* Single call — verifies current password AND stores new hash atomically */
+      const res  = await fetch(`${API}/auth/change-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, newPassword }),
+        body: JSON.stringify({ email: user.email, currentPassword: currPass, newPassword: newPass }),
       });
       const data = await res.json();
-      if (data.success) { setMsg(t('Password changed successfully!')); setNewPassword(''); setConfirmPassword(''); }
-      else setError(t('Something went wrong.'));
-    } catch { setError(t('Network error.')); }
-    finally { setLoading(false); }
+
+      if (data.error === 'wrongPassword') {
+        setPassErr('Mot de passe actuel incorrect.');
+        setLoading(false);
+        return;
+      }
+      if (data.error) {
+        setPassErr('Erreur. Réessayez.');
+        setLoading(false);
+        return;
+      }
+
+      /* Step 3 — success: clear fields, show message, fire notification */
+      setCurrPass(''); setNewPass(''); setConfirm('');
+      setPassMsg('Mot de passe mis à jour avec succès !');
+
+      await addNotification({
+        type:    'user',
+        kind:    'password_changed',
+        title:   '🔒 Mot de passe modifié',
+        message: 'Votre mot de passe a été mis à jour. Cliquez ici pour accéder à vos paramètres.',
+        email:   user.email,
+        name:    user.name,
+      });
+
+    } catch { setPassErr('Erreur réseau. Réessayez.'); }
+    finally  { setLoading(false); }
   }
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">⚙️ {t('Paramètres')}</h1>
+    <div style={{ minHeight:'100vh', background:C.bg, fontFamily:"'Plus Jakarta Sans','Inter',sans-serif", paddingBottom:80 }}>
 
-        {/* Account info */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 mb-4">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">{t('Account')}</p>
-          <div className="space-y-3">
-            {[
-              { label: t('Name'), value: user.name },
-              { label: t('Email'), value: user.email },
-              { label: t('Role'), value: user.role },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
-                <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
-                <span className="text-sm font-semibold text-slate-900 dark:text-white capitalize">{value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Change password */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 mb-4">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">{t('Change Password')}</p>
-          <div className="space-y-3">
-            <input
-              type="password"
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
-              placeholder={t('New password')}
-              className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              placeholder={t('Confirm password')}
-              className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            {error && <p className="text-xs text-rose-500">{error}</p>}
-            {msg && <p className="text-xs text-emerald-500">{msg}</p>}
-            <button
-              onClick={handleChangePassword}
-              disabled={loading}
-              className="w-full py-2.5 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white transition-colors"
-            >
-              {loading ? t('Processing…') : t('Update Password')}
-            </button>
-          </div>
-        </div>
-
-        {/* Log out */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
-          <button
-            onClick={() => setLogoutConfirm(true)}
-            className="w-full py-2.5 rounded-xl text-sm font-bold border-2 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center justify-center gap-2"
-          >
-            🚪 {t('Log out')}
-          </button>
-        </div>
+      {/* Blobs */}
+      <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
+        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'radial-gradient(circle,rgba(124,108,246,0.12),transparent 68%)', top:'-200px', left:'-150px', animation:'spBlob1 20s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.08),transparent 68%)', top:'40%', right:'-160px', animation:'spBlob2 26s ease-in-out infinite' }}/>
       </div>
 
-      {/* Logout Confirmation Modal */}
-      {logoutConfirm && (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.5)' }}
-        >
-          <div
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-6 pt-6 pb-0">
-              <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-2xl">
-                🚪
+      <div className="fm-page-header" style={{ position:'relative', zIndex:1, maxWidth:680, margin:'0 auto' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom:36 }}>
+          <p style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>MON COMPTE</p>
+          <h1 style={{ fontSize:38, fontWeight:900, color:C.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1.1 }}>
+            Mes{' '}
+            <span style={{ background:'linear-gradient(120deg,#c4baff 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+              paramètres
+            </span>
+          </h1>
+          <p style={{ fontSize:14, color:C.muted, margin:0 }}>Gérez votre compte, sécurité et préférences</p>
+        </div>
+
+        {/* Account info */}
+        <SectionCard title="Informations du compte" icon={<IcShield s={16}/>}>
+          <InfoRow label="Nom complet" value={user.name || '—'}/>
+          <InfoRow label="Adresse email" value={user.email}/>
+          <InfoRow label="Rôle" value={user.role === 'client' ? 'Client' : user.role === 'freelancer' ? 'Freelancer' : user.role}/>
+          <InfoRow label="Statut" value={statusBadge.label} badge={statusBadge}/>
+          <div style={{ borderBottom:`1px solid ${C.border}` }}/>
+        </SectionCard>
+
+        {/* Password */}
+        <SectionCard title="Changer le mot de passe" icon={<IcKey s={16}/>}>
+          <form onSubmit={handleChangePassword} style={{ display:'flex', flexDirection:'column', gap:14 }}>
+
+            {/* ── reusable eye button renderer ── */}
+            {[
+              { label:'Mot de passe actuel',           show:showCurr, setShow:setShowCurr, val:currPass, setVal:setCurrPass },
+              { label:'Nouveau mot de passe',           show:showNew,  setShow:setShowNew,  val:newPass,  setVal:setNewPass  },
+              { label:'Confirmer le nouveau mot de passe', show:showConf, setShow:setShowConf, val:confirm, setVal:setConfirm },
+            ].map(({ label, show, setShow, val, setVal }) => (
+              <div key={label}>
+                <p style={{ fontSize:10.5, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', margin:'0 0 7px' }}>{label}</p>
+                <div style={{ position:'relative' }}>
+                  <input
+                    type={show ? 'text' : 'password'}
+                    value={val} onChange={e => setVal(e.target.value)}
+                    placeholder=""
+                    style={{ ...INP, paddingRight:50 }} onFocus={focusOn} onBlur={focusOff}
+                    onCopy={e => e.preventDefault()} onCut={e => e.preventDefault()} onContextMenu={e => e.preventDefault()}
+                  />
+                  <button
+                    type="button" tabIndex={-1}
+                    onClick={() => setShow(v => !v)}
+                    style={{ position:'absolute', top:'50%', right:12, transform:'translateY(-50%)', zIndex:10, width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color: show ? '#9b8cff' : '#8a8eb8', transition:'color .18s, background .18s', outline:'none' }}
+                    onMouseEnter={e => { e.currentTarget.style.color='#9b8cff'; e.currentTarget.style.background='rgba(124,108,246,0.12)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = show ? '#9b8cff' : '#8a8eb8'; e.currentTarget.style.background='transparent'; }}
+                  >
+                    {show
+                      ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      : <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    }
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => setLogoutConfirm(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
+            ))}
+            {passErr && (
+              <div style={{ padding:'11px 16px', borderRadius:12, background:C.roseDim, border:`1px solid ${C.roseBord}` }}>
+                <p style={{ fontSize:12.5, color:C.rose, margin:0, fontWeight:600 }}>{passErr}</p>
+              </div>
+            )}
+            {passMsg && (
+              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 16px', borderRadius:12, background:C.emeraldDim, border:`1px solid ${C.emeraldBord}` }}>
+                <IcCheck s={14}/> <p style={{ fontSize:12.5, color:C.emerald, margin:0, fontWeight:700 }}>{passMsg}</p>
+              </div>
+            )}
+            <button type="submit" disabled={loading}
+              style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8, padding:'13px 28px', borderRadius:14, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontWeight:800, fontSize:14, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:'0 8px 24px -6px rgba(124,108,246,0.55)', transition:'opacity .15s, transform .15s', letterSpacing:'0.01em', alignSelf:'flex-start' }}
+              onMouseEnter={e=>{if(!loading){e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}}
+              onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}>
+              {loading ? 'Enregistrement…' : 'Mettre à jour le mot de passe'}
+            </button>
+          </form>
+        </SectionCard>
+
+        {/* Session */}
+        <SectionCard title="Session" icon={<IcLogout s={16}/>}>
+          <button onClick={()=>setLogoutModal(true)}
+            style={{ display:'inline-flex', alignItems:'center', gap:9, padding:'12px 26px', borderRadius:13, background:C.roseDim, border:`1.5px solid ${C.roseBord}`, color:C.rose, fontWeight:700, fontSize:13.5, cursor:'pointer', transition:'all .18s' }}
+            onMouseEnter={e=>{e.currentTarget.style.background='rgba(248,113,113,0.18)';e.currentTarget.style.transform='translateY(-1px)';}}
+            onMouseLeave={e=>{e.currentTarget.style.background=C.roseDim;e.currentTarget.style.transform='translateY(0)';}}>
+            <IcLogout s={15}/> Se déconnecter
+          </button>
+        </SectionCard>
+
+      </div>
+
+      {/* Logout modal */}
+      {logoutModal && (
+        <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:24, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(6px)' }}
+          onClick={()=>setLogoutModal(false)}>
+          <div style={{ width:'100%', maxWidth:380, background:'#0d1120', border:`1px solid ${C.border}`, borderRadius:24, boxShadow:'0 24px 64px rgba(0,0,0,0.8)', overflow:'hidden' }}
+            onClick={e=>e.stopPropagation()}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'22px 24px 0' }}>
+              <div style={{ width:48, height:48, borderRadius:16, background:C.roseDim, border:`1px solid ${C.roseBord}`, display:'flex', alignItems:'center', justifyContent:'center', color:C.rose }}><IcLogout s={22}/></div>
+              <button onClick={()=>setLogoutModal(false)} style={{ width:32, height:32, borderRadius:'50%', background:'rgba(255,255,255,0.06)', border:'none', cursor:'pointer', color:C.sub, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
-            <div className="px-6 py-4">
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">{t('Se déconnecter ?')}</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{t('Vous serez redirigé vers la page d\'accueil.')}</p>
-            </div>
-            <div className="flex gap-3 px-6 pb-6">
-              <button
-                onClick={() => setLogoutConfirm(false)}
-                className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-              >
-                {t('Annuler')}
-              </button>
-              <button
-                onClick={() => { logout(); setLogoutConfirm(false); }}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-sm font-bold text-white transition-colors shadow-sm shadow-rose-500/30"
-              >
-                {t('Oui, déconnecter')}
-              </button>
+            <div style={{ padding:'16px 24px 22px' }}>
+              <p style={{ fontSize:16, fontWeight:900, color:C.text, margin:'0 0 6px' }}>Se déconnecter ?</p>
+              <p style={{ fontSize:13, color:C.muted, margin:'0 0 24px', lineHeight:1.5 }}>Vous serez redirigé vers la page d'accueil.</p>
+              <div style={{ display:'flex', gap:12 }}>
+                <button onClick={()=>setLogoutModal(false)}
+                  style={{ flex:1, padding:'12px', borderRadius:13, border:`1px solid ${C.border}`, background:'none', color:C.sub, fontWeight:700, fontSize:13, cursor:'pointer', transition:'background .15s' }}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='none';}}>
+                  Annuler
+                </button>
+                <button onClick={()=>{logout();setLogoutModal(false);}}
+                  style={{ flex:1, padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#dc2626,#ef4444)', border:'none', color:'#fff', fontWeight:700, fontSize:13, cursor:'pointer', boxShadow:'0 4px 14px -3px rgba(239,68,68,0.45)' }}>
+                  Oui, déconnecter
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes spBlob1 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(50px,-40px)scale(1.08)} }
+        @keyframes spBlob2 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(-40px,35px)scale(1.06)} }
+        select option { background:#0d1220; }
+        input::placeholder { color:#3a3d5c; }
+      `}</style>
     </div>
   );
 }

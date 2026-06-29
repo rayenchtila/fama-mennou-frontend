@@ -2,384 +2,317 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const API = 'https://famamennou-server.onrender.com/api';
+const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
-function isYouTube(url = '') {
-  return /youtube\.com|youtu\.be/.test(url);
-}
+const C = {
+  bg:     '#07060f',
+  panel:  '#0e0c1a',
+  accent: '#7c6cf6',
+  purple: '#a855f7',
+  emerald:'#10b981',
+  amber:  '#f59e0b',
+  rose:   '#f43f5e',
+  text:   '#f1f5f9',
+  muted:  '#94a3b8',
+  dim:    '#475569',
+  border: 'rgba(255,255,255,0.08)',
+  card:   'rgba(255,255,255,0.04)',
+};
 
-function getYouTubeId(url = '') {
-  const m = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
-  return m ? m[1] : '';
-}
+const GS = `
+@keyframes vpSpin{to{transform:rotate(360deg)}}
+@keyframes vpUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes vpFade{from{opacity:0}to{opacity:1}}
+`;
 
-function MuxPlayer({ playbackId }) {
-  const ref = React.useRef(null);
+/* ── YouTube helpers ── */
+function isYT(url=''){return /youtube\.com|youtu\.be/.test(url);}
+function getYTId(url=''){const m=url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);return m?m[1]:'';}
 
-  React.useEffect(() => {
-    const video = ref.current;
-    if (!video || !playbackId) return;
-    const src = `https://stream.mux.com/${playbackId}.m3u8`;
-
-    // iOS Safari — native HLS, no JS needed
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = src;
-      return;
-    }
-
-    const init = () => {
-      if (!window.Hls?.isSupported()) return;
-      const hls = new window.Hls({
-        enableWorker:           true,
-        startLevel:             -1,
-        autoStartLoad:          true,
-        maxBufferLength:        20,          // low for budget phones
-        maxMaxBufferLength:     40,
-        maxBufferSize:          20*1000*1000, // 20MB — fits A06's 3GB RAM
-        lowLatencyMode:         false,
-        backBufferLength:       10,
-        abrEwmaDefaultEstimate: 300000,      // start at 300kbps for slow networks
-        abrBandWidthFactor:     0.8,
-        abrBandWidthUpFactor:   0.5,
-      });
-      hls.loadSource(src);
-      hls.attachMedia(video);
-      hls.on(window.Hls.Events.ERROR, (_, d) => {
-        if (d.fatal) {
-          if (d.type === window.Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-          else if (d.type === window.Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-          else hls.destroy();
-        }
-      });
+/* ── MuxPlayer ── */
+function MuxPlayer({playbackId}){
+  const ref=React.useRef(null);
+  React.useEffect(()=>{
+    const video=ref.current;if(!video||!playbackId)return;
+    const src=`https://stream.mux.com/${playbackId}.m3u8`;
+    if(video.canPlayType('application/vnd.apple.mpegurl')){video.src=src;return;}
+    const init=()=>{
+      if(!window.Hls?.isSupported())return;
+      const hls=new window.Hls({enableWorker:true,startLevel:-1,autoStartLoad:true,maxBufferLength:20,maxMaxBufferLength:40,maxBufferSize:20*1000*1000,lowLatencyMode:false,backBufferLength:10,abrEwmaDefaultEstimate:300000,abrBandWidthFactor:.8,abrBandWidthUpFactor:.5});
+      hls.loadSource(src);hls.attachMedia(video);
+      hls.on(window.Hls.Events.ERROR,(_,d)=>{if(d.fatal){if(d.type===window.Hls.ErrorTypes.NETWORK_ERROR)hls.startLoad();else if(d.type===window.Hls.ErrorTypes.MEDIA_ERROR)hls.recoverMediaError();else hls.destroy();}});
     };
-
-    // Load HLS.js once (regular script, not module — works on ALL Android)
-    if (window.Hls) { init(); return; }
-    const existing = document.getElementById('hls-js');
-    if (existing) { existing.addEventListener('load', init); return; }
-    const s = document.createElement('script');
-    s.id  = 'hls-js';
-    s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
-    s.onload = init;
-    document.head.appendChild(s);
-
-    return () => { if (video) video.src = ''; };
-  }, [playbackId]);
-
-  return (
-    <video
-      ref={ref}
-      className="w-full aspect-video bg-black"
-      controls
-      playsInline
-      preload="auto"
+    if(window.Hls){init();return;}
+    const ex=document.getElementById('hls-js');
+    if(ex){ex.addEventListener('load',init);return;}
+    const s=document.createElement('script');s.id='hls-js';s.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';s.onload=init;document.head.appendChild(s);
+    return()=>{if(video)video.src='';};
+  },[playbackId]);
+  return(
+    <video ref={ref} style={{width:'100%',aspectRatio:'16/9',background:'#000',display:'block'}}
+      controls playsInline preload="auto"
       controlsList="nodownload nofullscreen"
-      onContextMenu={e => e.preventDefault()}
-      draggable={false}
-    />
+      onContextMenu={e=>e.preventDefault()} draggable={false}/>
   );
 }
 
-function VideoPlayer({ url }) {
-  const isMux      = (url || '').startsWith('mux:');
-  const isYT       = isYouTube(url || '');
-  const isStream   = /^https?:\/\//i.test(url || '');
-  const isB64      = (url || '').startsWith('data:video');
-
-  if (isMux) {
-    const playbackId = (url || '').replace('mux:', '');
-    return <MuxPlayer playbackId={playbackId} />;
-  }
-
-  if (!url) return (
-    <div className="w-full aspect-video bg-slate-900 flex items-center justify-center">
-      <p className="text-slate-400 text-sm">Aucune vidéo disponible</p>
+/* ── VideoPlayer ── */
+function VideoPlayer({url}){
+  const isMux=(url||'').startsWith('mux:');
+  if(isMux)return <MuxPlayer playbackId={(url||'').replace('mux:','')}/>;
+  if(!url)return(
+    <div style={{width:'100%',aspectRatio:'16/9',background:'#000',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <p style={{color:C.muted,fontSize:14}}>Aucune vidéo disponible</p>
     </div>
   );
-
-  if (isYT) {
-    const id = getYouTubeId(url);
-    return (
-      <iframe
-        className="w-full aspect-video"
-        src={`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`}
+  if(isYT(url)){
+    return(
+      <iframe style={{width:'100%',aspectRatio:'16/9',display:'block',border:'none'}}
+        src={`https://www.youtube.com/embed/${getYTId(url)}?rel=0&modestbranding=1`}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        title="Lesson video"
-      />
+        allowFullScreen title="Lesson video"/>
     );
   }
-
-  return (
-    <video
-      className="w-full aspect-video bg-black"
-      src={url}
-      controls
-      playsInline
+  return(
+    <video style={{width:'100%',aspectRatio:'16/9',background:'#000',display:'block'}}
+      src={url} controls playsInline
       controlsList="nodownload nofullscreen"
-      onContextMenu={e => e.preventDefault()}
-      draggable={false}
-    />
+      onContextMenu={e=>e.preventDefault()} draggable={false}/>
   );
 }
 
-function CertificateCard({ cert }) {
-  return (
-    <div className="mt-6 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-2 border-amber-300 dark:border-amber-700 rounded-2xl p-6 text-center">
-      <div className="text-4xl mb-2">🏆</div>
-      <h3 className="text-lg font-extrabold text-amber-800 dark:text-amber-300 mb-1">Certificate of Completion</h3>
-      <p className="text-sm text-amber-700 dark:text-amber-400 mb-3">
-        Awarded to <span className="font-bold">{cert.student_name}</span> for completing<br />
-        <span className="font-bold">{cert.course_title}</span>
+/* ── CertificateCard ── */
+function CertificateCard({cert}){
+  return(
+    <div style={{marginTop:24,padding:'28px',borderRadius:18,background:'linear-gradient(135deg,rgba(245,158,11,.12),rgba(251,191,36,.08))',border:'2px solid rgba(245,158,11,.35)',textAlign:'center',animation:'vpUp .4s ease'}}>
+      <div style={{display:'flex',justifyContent:'center',marginBottom:10}}>
+        <svg width={44} height={44} fill="none" viewBox="0 0 24 24" stroke="#fbbf24" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H2V2h4M18 9h4V2h-4M6 9a6 6 0 0 0 12 0M12 15v4M8 19h8"/></svg>
+      </div>
+      <h3 style={{fontSize:18,fontWeight:900,color:'#fbbf24',marginBottom:8}}>Certificat de Réussite</h3>
+      <p style={{color:'#f59e0b',fontSize:14,lineHeight:1.6,marginBottom:14}}>
+        Décerné à <strong style={{color:'#fff'}}>{cert.student_name}</strong> pour avoir complété<br/>
+        <strong style={{color:'#fff'}}>{cert.course_title}</strong>
       </p>
-      <p className="text-[11px] text-amber-600 dark:text-amber-500 font-mono bg-amber-100 dark:bg-amber-900/40 rounded-lg px-3 py-1.5 inline-block mb-3">
+      <code style={{display:'inline-block',fontSize:12,color:'#fbbf24',background:'rgba(245,158,11,.15)',borderRadius:8,padding:'6px 14px',marginBottom:12,fontFamily:'monospace'}}>
         {cert.certificate_uid}
-      </p>
-      <p className="text-xs text-amber-600 dark:text-amber-500">
-        Issued {new Date(cert.issued_at).toLocaleDateString()}
-        {cert.instructor_name ? ` · Instructor: ${cert.instructor_name}` : ''}
+      </code>
+      <p style={{color:'#d97706',fontSize:12}}>
+        Émis le {new Date(cert.issued_at).toLocaleDateString('fr-FR')}
+        {cert.instructor_name?` · Instructeur : ${cert.instructor_name}`:''}
       </p>
     </div>
   );
 }
 
-export default function VideoPlayerPage() {
-  const { courseId, lessonId } = useParams();
-  const navigate = useNavigate();
-  const { user } = useAuth();
+/* ═══════════════════════════════════════════════════════ */
+export default function VideoPlayerPage(){
+  const {courseId,lessonId}=useParams();
+  const navigate=useNavigate();
+  const {user}=useAuth();
 
-  const [lessons,      setLessons]      = useState([]);
-  const [lesson,       setLesson]       = useState(null);
-  const [course,       setCourse]       = useState(null);
-  const [progress,     setProgress]     = useState({ completed_ids: [], pct: 0 });
-  const [cert,         setCert]         = useState(null);
-  const [marking,      setMarking]      = useState(false);
-  const [certLoading,  setCertLoading]  = useState(false);
-  const [sidebarOpen,  setSidebarOpen]  = useState(true);
-  const [purchases,    setPurchases]    = useState([]);
+  const [lessons,     setLessons]     = useState([]);
+  const [lesson,      setLesson]      = useState(null);
+  const [course,      setCourse]      = useState(null);
+  const [progress,    setProgress]    = useState({completed_ids:[],pct:0});
+  const [cert,        setCert]        = useState(null);
+  const [marking,     setMarking]     = useState(false);
+  const [certLoad,    setCertLoad]    = useState(false);
+  const [sideOpen,    setSideOpen]    = useState(true);
+  const [purchases,   setPurchases]   = useState([]);
 
-  const email = user?.email;
+  const email=user?.email;
 
-  const fetchAll = useCallback(async () => {
-    try {
-      const [lsRes, cRes, pRes, certRes, purchRes] = await Promise.all([
+  const fetchAll=useCallback(async()=>{
+    try{
+      const [lsR,cR,pR,certR,purR]=await Promise.all([
         fetch(`${API}/lessons/course/${courseId}`),
         fetch(`${API}/courses/${courseId}`),
         fetch(`${API}/progress/${email}/${courseId}`),
         fetch(`${API}/certificates/${email}/${courseId}`),
-        email ? fetch(`${API}/course-purchases/user/${email}`) : Promise.resolve({ json: () => [] }),
+        email?fetch(`${API}/course-purchases/user/${email}`):Promise.resolve({json:()=>[]}),
       ]);
-      const [ls, c, p, certData, purch] = await Promise.all([
-        lsRes.json(), cRes.json(), pRes.json(), certRes.json(),
-        email ? purchRes.json() : [],
-      ]);
-      if (Array.isArray(ls)) setLessons(ls);
-      if (c && c.id)         setCourse(c);
-      if (p && p.completed_ids) setProgress(p);
-      if (certData && certData.id) setCert(certData);
-      if (Array.isArray(purch)) {
-        setPurchases(purch.filter(p => Number(p.course_id) === Number(courseId)));
-      }
-    } catch {}
-  }, [courseId, email]);
+      const [ls,c,p,certD,pur]=await Promise.all([lsR.json(),cR.json(),pR.json(),certR.json(),email?purR.json():[]]);
+      if(Array.isArray(ls))setLessons(ls);
+      if(c&&c.id)setCourse(c);
+      if(p&&p.completed_ids)setProgress(p);
+      if(certD&&certD.id)setCert(certD);
+      if(Array.isArray(pur))setPurchases(pur.filter(p=>Number(p.course_id)===Number(courseId)));
+    }catch{}
+  },[courseId,email]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(()=>{fetchAll();},[fetchAll]);
 
-  const hasFull       = purchases.some(p => !p.lesson_id);
-  const isInstructor  = course && user?.email === course.creator_email;
+  const hasFull      = purchases.some(p=>!p.lesson_id);
+  const isInstructor = course&&user?.email===course.creator_email;
 
-  function canWatch(l) {
-    if (!l) return false;
-    if (l.is_free_preview) return true;
-    if (!user) return false;
-    if (user.isAdmin) return true;
-    if (isInstructor) return true;
-    if (hasFull) return true;
+  function canWatch(l){
+    if(!l)return false;
+    if(l.is_free_preview)return true;
+    if(!user)return false;
+    if(user.isAdmin||isInstructor||hasFull)return true;
     return false;
   }
 
-  useEffect(() => {
-    if (lessons.length && lessonId) {
-      const found = lessons.find(l => String(l.id) === String(lessonId));
-      setLesson(found || lessons[0]);
-    } else if (lessons.length) {
-      setLesson(lessons[0]);
-    }
-  }, [lessons, lessonId]);
+  useEffect(()=>{
+    if(lessons.length&&lessonId){
+      const f=lessons.find(l=>String(l.id)===String(lessonId));
+      setLesson(f||lessons[0]);
+    }else if(lessons.length){setLesson(lessons[0]);}
+  },[lessons,lessonId]);
 
-  const currentIndex = lessons.findIndex(l => l.id === lesson?.id);
-  const prevLesson   = currentIndex > 0 ? lessons[currentIndex - 1] : null;
-  const nextLesson   = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;
+  const curIdx  = lessons.findIndex(l=>l.id===lesson?.id);
+  const prevL   = curIdx>0?lessons[curIdx-1]:null;
+  const nextL   = curIdx<lessons.length-1?lessons[curIdx+1]:null;
+  const isDone  = progress.completed_ids.includes(lesson?.id);
 
-  const isCompleted  = progress.completed_ids.includes(lesson?.id);
-
-  const markComplete = async () => {
-    if (!lesson || marking || isCompleted) return;
+  async function markComplete(){
+    if(!lesson||marking||isDone)return;
     setMarking(true);
-    try {
-      await fetch(`${API}/progress`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_email: email, lesson_id: lesson.id, course_id: Number(courseId) }),
-      });
+    try{
+      await fetch(`${API}/progress`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_email:email,lesson_id:lesson.id,course_id:Number(courseId)})});
       await fetchAll();
-    } catch {}
+    }catch{}
     setMarking(false);
-  };
+  }
 
-  const claimCert = async () => {
-    if (cert || certLoading) return;
-    setCertLoading(true);
-    try {
-      const r = await fetch(`${API}/certificates`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_email: email, course_id: Number(courseId) }),
-      });
-      const d = await r.json();
-      if (d.id) setCert(d);
-    } catch {}
-    setCertLoading(false);
-  };
+  async function claimCert(){
+    if(cert||certLoad)return;
+    setCertLoad(true);
+    try{
+      const r=await fetch(`${API}/certificates`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_email:email,course_id:Number(courseId)})});
+      const d=await r.json();if(d.id)setCert(d);
+    }catch{}
+    setCertLoad(false);
+  }
 
-  const goToLesson = (l) => {
-    navigate(`/courses/${courseId}/lesson/${l.id}`);
-    setLesson(l);
-  };
+  function goTo(l){navigate(`/courses/${courseId}/lesson/${l.id}`);setLesson(l);}
 
-  return (
-    <div className="min-h-screen bg-slate-950 flex flex-col pt-16">
+  /* ── render ── */
+  return(
+    <div style={{minHeight:'100vh',background:C.bg,display:'flex',flexDirection:'column',paddingTop:64}}>
+      <style>{GS}</style>
 
-      {/* Top bar */}
-      <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center gap-3">
-        <button onClick={() => navigate(`/courses/${courseId}`)}
-          className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-sm shrink-0 whitespace-nowrap">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
-          </svg>
-          Back
+      {/* ── top bar ── */}
+      <div style={{background:C.panel,borderBottom:`1px solid ${C.border}`,padding:'12px 20px',display:'flex',alignItems:'center',gap:14,flexWrap:'wrap',position:'sticky',top:64,zIndex:30,backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)'}}>
+        <button onClick={()=>navigate(`/courses/${courseId}`)}
+          style={{display:'flex',alignItems:'center',gap:6,background:'none',border:'none',color:C.muted,fontSize:13,fontWeight:700,cursor:'pointer',flexShrink:0,padding:0,transition:'color .2s'}}
+          onMouseEnter={e=>e.currentTarget.style.color='#fff'}
+          onMouseLeave={e=>e.currentTarget.style.color=C.muted}>
+          <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          Retour
         </button>
-        <div className="flex-1 min-w-0 order-3 sm:order-none basis-full sm:basis-auto">
-          <p className="text-white text-sm font-semibold truncate">{course?.title}</p>
+
+        <div style={{width:1,height:20,background:C.border,flexShrink:0}}/>
+
+        <div style={{flex:1,minWidth:0}}>
+          <p style={{color:'#fff',fontSize:13,fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',margin:0}}>{course?.title}</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-slate-400 whitespace-nowrap">{Math.round(progress.pct)}%</span>
-          <div className="w-16 sm:w-24 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-            <div className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-              style={{ width: `${progress.pct}%` }} />
+
+        {/* progress */}
+        <div style={{display:'flex',alignItems:'center',gap:10,flexShrink:0}}>
+          <div style={{width:100,height:5,borderRadius:3,background:'rgba(255,255,255,.1)',overflow:'hidden'}}>
+            <div style={{height:'100%',width:`${progress.pct}%`,background:`linear-gradient(90deg,${C.accent},${C.purple})`,borderRadius:3,transition:'width .5s ease'}}/>
           </div>
+          <span style={{color:C.muted,fontSize:12,fontWeight:600,whiteSpace:'nowrap'}}>{Math.round(progress.pct)}%</span>
         </div>
-        <button onClick={() => setSidebarOpen(v => !v)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-          </svg>
+
+        {/* sidebar toggle */}
+        <button onClick={()=>setSideOpen(v=>!v)}
+          style={{padding:'7px 9px',borderRadius:9,background:sideOpen?'rgba(124,108,246,.18)':'rgba(255,255,255,.06)',border:`1px solid ${sideOpen?'rgba(124,108,246,.4)':C.border}`,color:sideOpen?C.accent:C.muted,cursor:'pointer',flexShrink:0,transition:'all .2s'}}
+          title="Toggle sidebar">
+          <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+      {/* ── body ── */}
+      <div style={{display:'flex',flex:1,overflow:'hidden',minHeight:0}}>
 
-        {/* Main video area */}
-        <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
-          <div className="bg-black">
-            {canWatch(lesson) ? (
-              <div
-                className="relative select-none"
-                onContextMenu={e => e.preventDefault()}
-                style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
-              >
-                <VideoPlayer url={lesson?.video_url} />
-                {/* Floating watermark — deters screen recording by embedding user identity */}
-                <div
-                  className="pointer-events-none absolute inset-0 flex items-center justify-center"
-                  style={{ zIndex: 10 }}
-                >
-                  <p
-                    style={{
-                      color: 'rgba(255,255,255,0.10)',
-                      fontSize: '1rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.05em',
-                      transform: 'rotate(-25deg)',
-                      whiteSpace: 'nowrap',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                      userSelect: 'none',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    {user?.name || user?.email}
+        {/* main */}
+        <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column',overflowY:'auto'}}>
+
+          {/* video */}
+          <div style={{background:'#000',position:'relative'}}>
+            {canWatch(lesson)?(
+              <div style={{position:'relative',userSelect:'none'}} onContextMenu={e=>e.preventDefault()}>
+                <VideoPlayer url={lesson?.video_url}/>
+                {/* watermark */}
+                <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:10,pointerEvents:'none'}}>
+                  <p style={{color:'rgba(255,255,255,.09)',fontSize:15,fontWeight:700,letterSpacing:'.05em',transform:'rotate(-25deg)',whiteSpace:'nowrap',userSelect:'none',pointerEvents:'none'}}>
+                    {user?.name||user?.email}
                   </p>
                 </div>
               </div>
-            ) : (
-              <div className="w-full aspect-video bg-slate-900 flex flex-col items-center justify-center gap-4 px-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                  </svg>
+            ):(
+              <div style={{width:'100%',aspectRatio:'16/9',background:'#000',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:18,padding:'0 24px',textAlign:'center'}}>
+                <div style={{width:64,height:64,borderRadius:'50%',background:'rgba(255,255,255,.06)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width={28} height={28} fill="none" viewBox="0 0 24 24" stroke={C.muted} strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
                 <div>
-                  <p className="text-white font-bold text-base mb-1">Leçon verrouillée</p>
-                  <p className="text-slate-400 text-sm max-w-xs">Vous devez acheter le cours complet pour accéder aux leçons payantes.</p>
+                  <p style={{color:'#fff',fontWeight:800,fontSize:16,marginBottom:6}}>Leçon verrouillée</p>
+                  <p style={{color:C.muted,fontSize:14,maxWidth:320}}>Vous devez acheter le cours complet pour accéder aux leçons payantes.</p>
                 </div>
-                <button onClick={() => navigate(`/courses/${courseId}`)}
-                  className="mt-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-colors">
+                <button onClick={()=>navigate(`/courses/${courseId}`)}
+                  style={{padding:'11px 28px',borderRadius:12,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
                   Acheter le cours →
                 </button>
               </div>
             )}
           </div>
 
-          <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-6">
-            {/* Lesson header */}
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold text-white mb-1">{lesson?.title}</h1>
-                {lesson?.description && (
-                  <p className="text-sm text-slate-400">{lesson.description}</p>
-                )}
+          {/* lesson info */}
+          <div style={{maxWidth:860,margin:'0 auto',width:'100%',padding:'28px 24px 60px',animation:'vpUp .4s ease'}}>
+
+            {/* header */}
+            <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:16,marginBottom:20,flexWrap:'wrap'}}>
+              <div style={{flex:1,minWidth:0}}>
+                <h1 style={{fontSize:'clamp(18px,3vw,24px)',fontWeight:800,color:'#fff',margin:'0 0 6px',lineHeight:1.25}}>{lesson?.title}</h1>
+                {lesson?.description&&<p style={{color:C.muted,fontSize:14,margin:0,lineHeight:1.6}}>{lesson.description}</p>}
               </div>
-              <button
-                onClick={markComplete}
-                disabled={marking || isCompleted}
-                className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                  isCompleted
-                    ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-800 cursor-default'
-                    : 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                }`}>
-                {isCompleted ? (
-                  <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> Completed</>
-                ) : marking ? 'Saving…' : (
-                  <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> Mark Complete</>
-                )}
+              <button onClick={markComplete} disabled={marking||isDone}
+                style={{display:'flex',alignItems:'center',gap:8,padding:'10px 18px',borderRadius:11,background:isDone?'rgba(16,185,129,.12)':'linear-gradient(135deg,#7c6cf6,#a855f7)',color:isDone?C.emerald:'#fff',border:isDone?'1px solid rgba(16,185,129,.3)':'none',fontWeight:700,fontSize:13,cursor:isDone?'default':'pointer',flexShrink:0,opacity:marking?.7:1,transition:'all .2s',boxShadow:isDone?'none':'0 6px 20px rgba(124,108,246,.35)'}}>
+                <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                {isDone?'Complété':marking?'Sauvegarde…':'Marquer terminé'}
               </button>
             </div>
 
-            {/* Navigation */}
-            <div className="flex gap-3 mb-6">
-              <button onClick={() => prevLesson && goToLesson(prevLesson)}
-                disabled={!prevLesson}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                Previous
+            {/* progress bar */}
+            <div style={{marginBottom:22}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                <span style={{color:C.muted,fontSize:12,fontWeight:600}}>Progression du cours</span>
+                <span style={{color:progress.pct===100?C.emerald:C.accent,fontSize:12,fontWeight:700}}>{Math.round(progress.pct)}% · {progress.completed_ids.length}/{lessons.length} leçons</span>
+              </div>
+              <div style={{height:6,borderRadius:4,background:'rgba(255,255,255,.08)',overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${progress.pct}%`,background:progress.pct===100?`linear-gradient(90deg,${C.emerald},#059669)`:`linear-gradient(90deg,${C.accent},${C.purple})`,borderRadius:4,transition:'width .6s ease'}}/>
+              </div>
+            </div>
+
+            {/* prev / next */}
+            <div style={{display:'flex',gap:12,marginBottom:28}}>
+              <button onClick={()=>prevL&&goTo(prevL)} disabled={!prevL}
+                style={{display:'flex',alignItems:'center',gap:7,padding:'10px 18px',borderRadius:10,background:'rgba(255,255,255,.06)',border:`1px solid ${C.border}`,color:prevL?C.text:C.dim,fontWeight:600,fontSize:13,cursor:prevL?'pointer':'not-allowed',transition:'all .2s',opacity:prevL?1:.4}}
+                onMouseEnter={e=>prevL&&(e.currentTarget.style.background='rgba(255,255,255,.1)')}
+                onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,.06)'}>
+                <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                Précédent
               </button>
-              <button onClick={() => nextLesson && goToLesson(nextLesson)}
-                disabled={!nextLesson}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed ml-auto">
-                Next
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+              <button onClick={()=>nextL&&goTo(nextL)} disabled={!nextL}
+                style={{display:'flex',alignItems:'center',gap:7,padding:'10px 18px',borderRadius:10,background:nextL?`linear-gradient(135deg,${C.accent},${C.purple})`:'rgba(255,255,255,.06)',border:'none',color:nextL?'#fff':C.dim,fontWeight:700,fontSize:13,cursor:nextL?'pointer':'not-allowed',transition:'all .2s',marginLeft:'auto',opacity:nextL?1:.4,boxShadow:nextL?'0 4px 16px rgba(124,108,246,.3)':'none'}}>
+                Suivant
+                <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
               </button>
             </div>
 
-            {/* Certificate section */}
-            {progress.pct === 100 && (
-              cert ? <CertificateCard cert={cert} /> : (
-                <div className="bg-amber-900/20 border border-amber-700/50 rounded-2xl p-5 text-center">
-                  <div className="text-3xl mb-2">🎉</div>
-                  <p className="text-amber-300 font-bold mb-3">You've completed all lessons! Claim your certificate.</p>
-                  <button onClick={claimCert} disabled={certLoading}
-                    className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-sm transition-colors disabled:opacity-50">
-                    {certLoading ? 'Generating…' : '🏆 Get Certificate'}
+            {/* certificate */}
+            {progress.pct===100&&(
+              cert?<CertificateCard cert={cert}/>:(
+                <div style={{padding:'24px',borderRadius:18,background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.3)',textAlign:'center',animation:'vpFade .5s ease'}}>
+                  <div style={{display:'flex',justifyContent:'center',marginBottom:10}}>
+                    <svg width={38} height={38} fill="none" viewBox="0 0 24 24" stroke="#fbbf24" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <p style={{color:'#fbbf24',fontWeight:800,fontSize:16,marginBottom:14}}>Vous avez terminé toutes les leçons ! Réclamez votre certificat.</p>
+                  <button onClick={claimCert} disabled={certLoad}
+                    style={{padding:'11px 28px',borderRadius:11,background:'linear-gradient(135deg,#f59e0b,#d97706)',color:'#fff',fontWeight:700,fontSize:14,border:'none',cursor:'pointer',opacity:certLoad?.6:1,boxShadow:'0 6px 20px rgba(245,158,11,.3)'}}>
+                    {certLoad?'Génération…':'Obtenir mon certificat'}
                   </button>
                 </div>
               )
@@ -387,56 +320,44 @@ export default function VideoPlayerPage() {
           </div>
         </div>
 
-        {/* Sidebar */}
-        {sidebarOpen && (
-          <div className="w-full lg:w-80 bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col overflow-hidden shrink-0 max-h-[60vh] lg:max-h-none">
-            <div className="p-4 border-b border-slate-800">
-              <p className="text-white font-bold text-sm">Course Content</p>
-              <p className="text-xs text-slate-400 mt-0.5">
-                {progress.completed_ids.length} / {lessons.length} lessons completed
+        {/* ── sidebar ── */}
+        {sideOpen&&(
+          <div style={{width:300,background:C.panel,borderLeft:`1px solid ${C.border}`,display:'flex',flexDirection:'column',overflow:'hidden',flexShrink:0,maxHeight:'calc(100vh - 128px)',position:'sticky',top:128}}>
+            {/* sidebar header */}
+            <div style={{padding:'16px 18px',borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+              <p style={{color:'#fff',fontWeight:800,fontSize:14,margin:'0 0 3px'}}>Contenu du cours</p>
+              <p style={{color:C.muted,fontSize:12,margin:0}}>
+                <span style={{color:C.accent,fontWeight:700}}>{progress.completed_ids.length}</span> / {lessons.length} leçons terminées
               </p>
             </div>
-            <div className="flex-1 overflow-y-auto">
-              {lessons.map((l, i) => {
-                const done      = progress.completed_ids.includes(l.id);
-                const active    = l.id === lesson?.id;
-                const watchable = canWatch(l);
-                return (
+            {/* lesson list */}
+            <div style={{flex:1,overflowY:'auto'}}>
+              {lessons.map((l,i)=>{
+                const done  = progress.completed_ids.includes(l.id);
+                const act   = l.id===lesson?.id;
+                const watch = canWatch(l);
+                return(
                   <button key={l.id}
-                    onClick={() => watchable ? goToLesson(l) : navigate(`/courses/${courseId}`)}
-                    className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors border-b border-slate-800/50 ${
-                      active ? 'bg-indigo-900/40 border-l-2 border-l-indigo-500' : 'hover:bg-slate-800/60'
-                    }`}>
-                    <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
-                      !watchable  ? 'bg-slate-800 text-slate-600' :
-                      done        ? 'bg-emerald-600 text-white' :
-                      active      ? 'bg-indigo-600 text-white' :
-                                    'bg-slate-700 text-slate-400'
-                    }`}>
-                      {!watchable ? (
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                      ) : done ? '✓' : i + 1}
+                    onClick={()=>watch?goTo(l):navigate(`/courses/${courseId}`)}
+                    style={{width:'100%',textAlign:'left',padding:'12px 16px',display:'flex',alignItems:'flex-start',gap:12,background:act?'rgba(124,108,246,.15)':'transparent',borderLeft:act?`3px solid ${C.accent}`:'3px solid transparent',borderRight:'none',borderTop:'none',borderBottom:`1px solid ${C.border}`,cursor:'pointer',transition:'all .15s'}}
+                    onMouseEnter={e=>{if(!act)e.currentTarget.style.background='rgba(255,255,255,.04)';}}
+                    onMouseLeave={e=>{if(!act)e.currentTarget.style.background='transparent';}}>
+
+                    {/* status dot */}
+                    <div style={{marginTop:1,width:22,height:22,borderRadius:'50%',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,background:!watch?'rgba(255,255,255,.06)':done?'rgba(16,185,129,.2)':act?'rgba(124,108,246,.25)':'rgba(255,255,255,.06)',border:`1px solid ${!watch?C.dim:done?C.emerald:act?C.accent:C.border}`,color:!watch?C.dim:done?C.emerald:act?C.accent:C.muted}}>
+                      {!watch?(
+                        <svg width={11} height={11} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                      ):done?<svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>:i+1}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-semibold line-clamp-2 ${
-                        !watchable ? 'text-slate-600' :
-                        active     ? 'text-indigo-300' :
-                        done       ? 'text-slate-400' : 'text-slate-200'
-                      }`}>
+
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:12,fontWeight:600,lineHeight:1.4,margin:'0 0 4px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',color:!watch?C.dim:act?'#fff':done?C.muted:C.text}}>
                         {l.title}
                       </p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {l.duration_min > 0 && (
-                          <p className="text-[10px] text-slate-500">{l.duration_min} min</p>
-                        )}
-                        {!watchable && (
-                          <span className="text-[9px] font-bold text-slate-600 uppercase tracking-wide">Payant</span>
-                        )}
-                        {l.is_free_preview && (
-                          <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wide">Gratuit</span>
-                        )}
+                      <div style={{display:'flex',alignItems:'center',gap:7}}>
+                        {l.duration_min>0&&<span style={{color:C.dim,fontSize:11}}>{l.duration_min} min</span>}
+                        {!watch&&<span style={{color:C.dim,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:.3}}>Payant</span>}
+                        {l.is_free_preview&&<span style={{color:C.emerald,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:.3}}>Gratuit</span>}
                       </div>
                     </div>
                   </button>

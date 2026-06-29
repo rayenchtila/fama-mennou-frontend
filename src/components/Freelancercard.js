@@ -81,14 +81,6 @@ export default function FreelancerCard({ name, skill, rate, rating, reviews, ava
       {/* Actions */}
       <div className="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
         <Button
-          variant="outline"
-          size="sm"
-          fullWidth
-          onClick={() => onView?.(freelancer)}
-        >
-          View Profile
-        </Button>
-        <Button
           variant="primary"
           size="sm"
           fullWidth

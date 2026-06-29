@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:#0a0817}
+  ::selection{background:#7c6cf6;color:#fff}
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-track{background:#0a0817}
+  ::-webkit-scrollbar-thumb{background:#2a2750;border-radius:8px;border:3px solid #0a0817}
+  ::-webkit-scrollbar-thumb:hover{background:#3a3568}
+  input::placeholder{color:#6f7392}
+  @keyframes brandIn{0%{opacity:0;letter-spacing:.16em}100%{opacity:1;letter-spacing:-.01em}}
+  @keyframes glowFloat{0%,100%{filter:drop-shadow(0 0 10px rgba(108,140,246,.45))}50%{filter:drop-shadow(0 0 18px rgba(108,140,246,.75))}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(960px 540px at 14% -6%,rgba(124,108,246,.22),transparent 60%),radial-gradient(860px 540px at 96% -2%,rgba(58,140,224,.16),transparent 60%),linear-gradient(180deg,#100d28 0%,#0a0817 58%);color:#f4f3fb;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;">
+
+  <sc-if value="{{ showChrome }}" hint-placeholder-val="{{ true }}">
+  <header style="position:sticky;top:0;z-index:50;background:rgba(12,10,30,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08);">
+    <div style="max-width:1200px;margin:0 auto;padding:0 28px;height:66px;display:flex;align-items:center;gap:30px;">
+      <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0;flex:none;">
+        <img src="assets/logo-glow.png" alt="Fama Mennou" style="height:38px;width:auto;object-fit:contain;display:block;animation:glowFloat 4s ease-in-out infinite;">
+        <span style="font-weight:700;font-size:17px;letter-spacing:-.01em;animation:brandIn .9s cubic-bezier(.2,.7,.2,1) both;white-space:nowrap;color:#f4f3fb;">Fama<span style="color:#9b8cff;">&nbsp;Mennou</span></span>
+      </button>
+
+      <nav style="display:flex;align-items:center;gap:2px;">
+        <button onClick="{{ goFreelancers }}" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;white-space:nowrap;color:{{ navFlColor }};padding:8px 13px;border-radius:8px;" style-hover="background:rgba(255,255,255,.06);color:#fff">Hire Freelancers</button>
+        <button onClick="{{ goClients }}" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;white-space:nowrap;color:{{ navClColor }};padding:8px 13px;border-radius:8px;" style-hover="background:rgba(255,255,255,.06);color:#fff">Find Clients</button>
+        <button onClick="{{ goCourses }}" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;white-space:nowrap;color:{{ navCoColor }};padding:8px 13px;border-radius:8px;" style-hover="background:rgba(255,255,255,.06);color:#fff">Courses</button>
+      </nav>
+
+      <div style="flex:1;min-width:14px;"></div>
+
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button onClick="{{ goMessages }}" title="Messages" style="position:relative;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#c2c5dd;" style-hover="color:#fff;border-color:rgba(124,108,246,.5)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span style="position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:#9b8cff;border:2px solid #0c0a1e;"></span>
+        </button>
+        <button onClick="{{ goLogin }}" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;white-space:nowrap;color:#c2c5dd;padding:8px 10px;" style-hover="color:#fff">Log in</button>
+        <button onClick="{{ goSignup }}" style="background:#7c6cf6;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;white-space:nowrap;color:#fff;padding:9px 18px;border-radius:10px;box-shadow:0 6px 16px -5px rgba(124,108,246,.7);" style-hover="background:#6a5cf0">Sign up</button>
+      </div>
+    </div>
+  </header>
+  </sc-if>
+
+  <main>
+
+    <!-- ================= HOME ================= -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div>
+
+      <!-- HERO -->
+      <section style="position:relative;overflow:hidden;">
+        <div style="position:relative;max-width:880px;margin:0 auto;padding:80px 28px 64px;text-align:center;">
+          <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;background:rgba(124,108,246,.12);border:1px solid rgba(124,108,246,.3);font-size:12.5px;font-weight:600;color:#b9aeff;margin-bottom:24px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#9b8cff;box-shadow:0 0 8px #9b8cff;"></span>All-in-one freelance ecosystem in Tunisia
+          </span>
+          <h1 style="font-weight:800;font-size:clamp(34px,5.4vw,56px);line-height:1.06;letter-spacing:-.03em;margin:0 0 18px;color:#fbfbff;">Hire Talent. Find Clients.<br><span style="background:linear-gradient(110deg,#9b8cff,#6c8cf6 60%,#3ec2e8);-webkit-background-clip:text;background-clip:text;color:transparent;">Learn Skills.</span></h1>
+          <p style="font-size:clamp(16px,2vw,19px);color:#a7abc8;max-width:520px;margin:0 auto 34px;line-height:1.55;">One platform to hire verified freelancers, win projects, and grow your skills.</p>
+
+          <div style="max-width:640px;margin:0 auto;">
+            <div style="display:flex;gap:5px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:5px;margin-bottom:12px;max-width:340px;margin-left:auto;margin-right:auto;">
+              <sc-for list="{{ types }}" as="t" hint-placeholder-count="3">
+                <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;background:#15122c;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:7px 7px 7px 16px;box-shadow:0 18px 44px -18px rgba(0,0,0,.7);">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+              <input placeholder="{{ searchPlaceholder }}" style="flex:1;min-width:0;background:none;border:none;outline:none;color:#f4f3fb;font-family:inherit;font-size:15px;">
+              <button style="padding:11px 22px;border-radius:10px;background:#7c6cf6;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14.5px;flex:none;box-shadow:0 6px 16px -5px rgba(124,108,246,.7);" style-hover="background:#6a5cf0">Search</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px;">
+            <button onClick="{{ goFreelancers }}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:11px;background:#7c6cf6;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14.5px;box-shadow:0 8px 22px -8px rgba(124,108,246,.7);" style-hover="background:#6a5cf0">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path></svg>Hire Freelancers</button>
+            <button onClick="{{ goClients }}" style="padding:12px 22px;border-radius:11px;background:rgba(255,255,255,.06);color:#e7e8f4;border:1px solid rgba(255,255,255,.16);cursor:pointer;font-family:inherit;font-weight:600;font-size:14.5px;" style-hover="border-color:#7c6cf6;color:#fff">Find Clients</button>
+            <button onClick="{{ goCourses }}" style="padding:12px 22px;border-radius:11px;background:rgba(255,255,255,.06);color:#e7e8f4;border:1px solid rgba(255,255,255,.16);cursor:pointer;font-family:inherit;font-weight:600;font-size:14.5px;" style-hover="border-color:#7c6cf6;color:#fff">Learn Skills</button>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:30px;font-size:13.5px;color:#7e82a0;flex-wrap:wrap;">
+            <span style="color: rgb(58, 55, 96);"><br></span>
+            
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 ACTION CARDS -->
+      <section style="max-width:1140px;margin:0 auto;padding:16px 28px 0;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+          <button onClick="{{ goFreelancers }}" style="text-align:left;background:#16142e;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:26px;cursor:pointer;font-family:inherit;transition:box-shadow .18s,transform .18s,border-color .18s;display:flex;flex-direction:column;gap:14px;" style-hover="box-shadow:0 18px 40px -16px rgba(0,0,0,.6);transform:translateY(-3px);border-color:rgba(124,108,246,.5)">
+            <span style="width:48px;height:48px;border-radius:13px;background:rgba(124,108,246,.16);border:1px solid rgba(124,108,246,.3);display:flex;align-items:center;justify-content:center;color:#b9aeff;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+            <div><div style="font-weight:700;font-size:18px;color:#fbfbff;margin-bottom:5px;">Hire Freelancers</div><div style="font-size:14px;color:#a7abc8;line-height:1.5;">Browse verified talent by skill and region.</div></div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:#b9aeff;margin-top:auto;">Browse talent <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></div>
+          </button>
+          <button onClick="{{ goClients }}" style="text-align:left;background:#16142e;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:26px;cursor:pointer;font-family:inherit;transition:box-shadow .18s,transform .18s,border-color .18s;display:flex;flex-direction:column;gap:14px;" style-hover="box-shadow:0 18px 40px -16px rgba(0,0,0,.6);transform:translateY(-3px);border-color:rgba(124,108,246,.5)">
+            <span style="width:48px;height:48px;border-radius:13px;background:rgba(124,108,246,.16);border:1px solid rgba(124,108,246,.3);display:flex;align-items:center;justify-content:center;color:#b9aeff;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 12h18"></path></svg></span>
+            <div><div style="font-weight:700;font-size:18px;color:#fbfbff;margin-bottom:5px;">Get Clients</div><div style="font-size:14px;color:#a7abc8;line-height:1.5;">Find open projects and win contracts.</div></div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:#b9aeff;margin-top:auto;">View projects <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></div>
+          </button>
+          <button onClick="{{ goCourses }}" style="text-align:left;background:#16142e;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:26px;cursor:pointer;font-family:inherit;transition:box-shadow .18s,transform .18s,border-color .18s;display:flex;flex-direction:column;gap:14px;" style-hover="box-shadow:0 18px 40px -16px rgba(0,0,0,.6);transform:translateY(-3px);border-color:rgba(124,108,246,.5)">
+            <span style="width:48px;height:48px;border-radius:13px;background:rgba(124,108,246,.16);border:1px solid rgba(124,108,246,.3);display:flex;align-items:center;justify-content:center;color:#b9aeff;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+            <div><div style="font-weight:700;font-size:18px;color:#fbfbff;margin-bottom:5px;">Learn Skills</div><div style="font-size:14px;color:#a7abc8;line-height:1.5;">Take courses from expert freelancers.</div></div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:#b9aeff;margin-top:auto;">Explore courses <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></div>
+          </button>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section style="max-width:1140px;margin:0 auto;padding:72px 28px 0;">
+        <div style="text-align:center;margin-bottom:36px;">
+          <h2 style="font-weight:800;font-size:clamp(24px,3.4vw,32px);letter-spacing:-.025em;margin:0 0 8px;color:#fbfbff;">How it works ?</h2>
+          <p style="font-size:16px;color:#a7abc8;margin:0;">Three steps to get started.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;">
+          <div style="text-align:center;padding:8px;">
+            <div style="width:46px;height:46px;border-radius:12px;background:#7c6cf6;color:#fff;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 18px -6px rgba(124,108,246,.7);">1</div>
+            <div style="font-weight:700;font-size:17px;color:#fbfbff;margin-bottom:6px;">Create your account</div>
+            <div style="font-size:14px;color:#a7abc8;line-height:1.55;max-width:280px;margin:0 auto;">Sign up in minutes with quick ID verification.</div>
+          </div>
+          <div style="text-align:center;padding:8px;">
+            <div style="width:46px;height:46px;border-radius:12px;background:#7c6cf6;color:#fff;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 18px -6px rgba(124,108,246,.7);">2</div>
+            <div style="font-weight:700;font-size:17px;color:#fbfbff;margin-bottom:6px;">Choose your role</div>
+            <div style="font-size:14px;color:#a7abc8;line-height:1.55;max-width:280px;margin:0 auto;">Join as a freelancer, a client, or a learner.</div>
+          </div>
+          <div style="text-align:center;padding:8px;">
+            <div style="width:46px;height:46px;border-radius:12px;background:#7c6cf6;color:#fff;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 18px -6px rgba(124,108,246,.7);">3</div>
+            <div style="font-weight:700;font-size:17px;color:#fbfbff;margin-bottom:6px;">Start</div>
+            <div style="font-size:14px;color:#a7abc8;line-height:1.55;max-width:280px;margin:0 auto;">Hire talent, win projects, or learn new skills.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURED FREELANCERS -->
+      <section style="max-width:1140px;margin:0 auto;padding:72px 28px 0;">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px;">
+          <div>
+            <h2 style="font-weight:800;font-size:clamp(22px,3.2vw,29px);letter-spacing:-.025em;margin:0 0 6px;color:#fbfbff;">Featured freelancers</h2>
+            <p style="font-size:15px;color:#a7abc8;margin:0;">Top-rated talent, ready to start.</p>
+          </div>
+          <button onClick="{{ goFreelancers }}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#c2c5dd;border-radius:10px;padding:9px 15px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;flex:none;" style-hover="border-color:#7c6cf6;color:#fff">View all <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+          <sc-for list="{{ featuredFl }}" as="f" hint-placeholder-count="3">
+            <div style="background:#16142e;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;transition:box-shadow .18s,border-color .18s;" style-hover="box-shadow:0 18px 40px -16px rgba(0,0,0,.6);border-color:rgba(124,108,246,.5)">
+              <div style="display:flex;align-items:center;gap:13px;margin-bottom:16px;">
+                <span style="width:50px;height:50px;border-radius:50%;background:{{ f.avBg }};color:{{ f.avFg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none;">{{ f.initials }}</span>
+                <div style="min-width:0;flex:1;">
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-weight:700;font-size:15.5px;color:#fbfbff;">{{ f.name }}</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="#9b8cff" stroke="none" style="flex:none;"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"></path></svg>
+                  </div>
+                  <div style="font-size:13px;color:#a7abc8;margin-top:2px;">{{ f.role }}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;font-size:13.5px;flex:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#9b8cff" stroke="none"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"></path></svg><span style="font-weight:700;color:#fbfbff;">{{ f.rating }}</span></div>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+                <sc-for list="{{ f.skills3 }}" as="s" hint-placeholder-count="3">
+                  <span style="font-size:12px;color:#c2c5dd;background:rgba(255,255,255,.06);border-radius:7px;padding:3px 9px;font-weight:500;">{{ s }}</span>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding-top:15px;border-top:1px solid rgba(255,255,255,.08);">
+                <div style="font-size:13px;color:#7e82a0;display:inline-flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Responds in {{ f.responds }}</div>
+                <div style="font-size:14px;color:#fbfbff;"><strong style="font-weight:700;">{{ f.rate }} TND</strong><span style="color:#7e82a0;font-weight:500;">/h</span></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- TRENDING PROJECTS -->
+      <section style="max-width:1140px;margin:0 auto;padding:72px 28px 0;">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px;">
+          <div>
+            <h2 style="font-weight:800;font-size:clamp(22px,3.2vw,29px);letter-spacing:-.025em;margin:0 0 6px;color:#fbfbff;">Trending projects</h2>
+            <p style="font-size:15px;color:#a7abc8;margin:0;">Fresh opportunities from verified clients.</p>
+          </div>
+          <button onClick="{{ goClients }}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#c2c5dd;border-radius:10px;padding:9px 15px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;flex:none;" style-hover="border-color:#7c6cf6;color:#fff">View all <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px;">
+          <sc-for list="{{ featuredPj }}" as="p" hint-placeholder-count="3">
+            <div style="background:#16142e;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;transition:box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:13px;" style-hover="box-shadow:0 18px 40px -16px rgba(0,0,0,.6);border-color:rgba(124,108,246,.5)">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="width:34px;height:34px;border-radius:9px;background:{{ p.avBg }};color:{{ p.avFg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none;">{{ p.initials }}</span>
+                <span style="font-size:13.5px;font-weight:600;color:#c2c5dd;">{{ p.client }}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#9b8cff" stroke="none" style="flex:none;"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"></path></svg>
+              </div>
+              <div style="font-weight:700;font-size:17px;color:#fbfbff;letter-spacing:-.01em;line-height:1.3;">{{ p.title }}</div>
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <span style="font-size:14px;color:#fbfbff;font-weight:700;">{{ p.budget }}</span>
+                <span style="font-size:13px;color:#7e82a0;display:inline-flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{ p.duration }}</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                <sc-for list="{{ p.tags }}" as="t" hint-placeholder-count="3">
+                  <span style="font-size:12px;color:#c2c5dd;background:rgba(255,255,255,.06);border-radius:7px;padding:3px 9px;font-weight:500;">{{ t }}</span>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);">
+                <span style="font-size:12.5px;color:#7e82a0;">{{ p.proposals }} proposals</span>
+                <button style="padding:8px 18px;border-radius:9px;background:#7c6cf6;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;" style-hover="background:#6a5cf0">Apply</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- COURSES PREVIEW -->
+      <section style="max-width:1140px;margin:0 auto;padding:72px 28px 0;">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px;">
+          <div>
+            <h2 style="font-weight:800;font-size:clamp(22px,3.2vw,29px);letter-spacing:-.025em;margin:0 0 6px;color:#fbfbff;">Learn from experts</h2>
+            <p style="font-size:15px;color:#a7abc8;margin:0;">Courses taught by top freelancers.</p>
+          </div>
+          <button onClick="{{ goCourses }}" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#c2c5dd;border-radius:10px;padding:9px 15px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;flex:none;" style-hover="border-color:#7c6cf6;color:#fff">View all <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;">
+          <sc-for list="{{ courses }}" as="c" hint-placeholder-count="4">
+            <div style="background:#16142e;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;transition:box-shadow .18s,border-color .18s;cursor:pointer;" style-hover="box-shadow:0 18px 40px -16px rgba(0,0,0,.6);border-color:rgba(124,108,246,.5)">
+              <div style="height:120px;background:{{ c.cover }};display:flex;align-items:center;justify-content:center;position:relative;">
+                <span style="position:absolute;top:11px;left:11px;font-size:11px;font-weight:600;color:#fff;background:rgba(0,0,0,.28);padding:3px 9px;border-radius:6px;">{{ c.cat }}</span>
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="opacity:.92;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              </div>
+              <div style="padding:16px 17px 18px;">
+                <div style="font-weight:700;font-size:15px;color:#fbfbff;line-height:1.35;margin-bottom:7px;min-height:40px;">{{ c.title }}</div>
+                <div style="font-size:13px;color:#a7abc8;margin-bottom:12px;">{{ c.instructor }}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div style="display:flex;align-items:center;gap:5px;font-size:13px;color:#a7abc8;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#9b8cff" stroke="none"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"></path></svg><strong style="color:#fbfbff;">{{ c.rating }}</strong> · {{ c.students }}</div>
+                  <div style="font-size:14px;font-weight:700;color:#fbfbff;white-space:nowrap;">{{ c.price }}</div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS -->
+      <section style="max-width:1140px;margin:0 auto;padding:72px 28px 0;">
+        <div style="text-align:center;margin-bottom:34px;">
+          <h2 style="font-weight:800;font-size:clamp(22px,3.2vw,29px);letter-spacing:-.025em;margin:0 0 8px;color:#fbfbff;">Loved by the community</h2>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;">
+          <sc-for list="{{ testimonials }}" as="t" hint-placeholder-count="3">
+            <div style="background:#16142e;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;gap:2px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#9b8cff" stroke="none"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"></path></svg><svg width="15" height="15" viewBox="0 0 24 24" fill="#9b8cff" stroke="none"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"></path></svg><svg width="15" height="15" viewBox="0 0 24 24" fill="#9b8cff" stroke="none"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"></path></svg><svg width="15" height="15" viewBox="0 0 24 24" fill="#9b8cff" stroke="none"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"></path></svg><svg width="15" height="15" viewBox="0 0 24 24" fill="#9b8cff" stroke="none"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"></path></svg>
+              </div>
+              <p style="margin:0;font-size:15px;color:#dcdef0;line-height:1.6;">{{ t.quote }}</p>
+              <div style="display:flex;align-items:center;gap:11px;margin-top:auto;">
+                <span style="width:38px;height:38px;border-radius:50%;background:{{ t.avBg }};color:{{ t.avFg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;">{{ t.initials }}</span>
+                <div><div style="font-size:13.5px;font-weight:700;color:#fbfbff;">{{ t.name }}</div><div style="font-size:12.5px;color:#7e82a0;">{{ t.title }}</div></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section style="max-width:760px;margin:0 auto;padding:72px 28px 0;">
+        <div style="text-align:center;margin-bottom:34px;">
+          <h2 style="font-weight:800;font-size:clamp(22px,3.2vw,29px);letter-spacing:-.025em;margin:0 0 8px;color:#fbfbff;">Frequently asked questions</h2>
+          <p style="font-size:15px;color:#a7abc8;margin:0;">Everything you need to know to get started.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <sc-for list="{{ faqs }}" as="q" hint-placeholder-count="5">
+            <div style="background:#16142e;border:1px solid {{ q.borderColor }};border-radius:14px;overflow:hidden;transition:border-color .18s;">
+              <button onClick="{{ q.onClick }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;background:none;border:none;cursor:pointer;font-family:inherit;padding:18px 20px;">
+                <span style="font-weight:700;font-size:15.5px;color:#fbfbff;">{{ q.question }}</span>
+                <span style="width:26px;height:26px;border-radius:8px;background:rgba(124,108,246,.16);border:1px solid rgba(124,108,246,.3);display:flex;align-items:center;justify-content:center;color:#b9aeff;flex:none;transform:{{ q.iconRotate }};transition:transform .2s;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span>
+              </button>
+              <sc-if value="{{ q.open }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:0 20px 19px;font-size:14.5px;color:#a7abc8;line-height:1.6;">{{ q.answer }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- FINAL CTA -->
+      <section style="max-width:1140px;margin:0 auto;padding:72px 28px 80px;">
+        <div style="position:relative;overflow:hidden;border-radius:24px;background:linear-gradient(135deg,#6c5cf6 0%,#7d5cf0 45%,#3a8ce0 100%);padding:clamp(36px,5vw,60px);text-align:center;box-shadow:0 28px 64px -26px rgba(108,92,246,.8);">
+          <div style="position:absolute;inset:0;background:radial-gradient(440px 240px at 12% 0%,rgba(255,255,255,.2),transparent 70%),radial-gradient(420px 240px at 90% 100%,rgba(255,255,255,.12),transparent 70%);pointer-events:none;"></div>
+          <div style="position:relative;">
+            <h2 style="font-weight:800;font-size:clamp(26px,4vw,38px);letter-spacing:-.025em;margin:0 0 12px;color:#fff;">Ready to get started?</h2>
+            <p style="font-size:17px;color:rgba(255,255,255,.88);max-width:460px;margin:0 auto 30px;">Join thousands of freelancers and clients across Tunisia.</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+              <button onClick="{{ goFreelancers }}" style="padding:13px 26px;border-radius:12px;background:#fff;color:#6a5cf0;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;box-shadow:0 8px 20px -8px rgba(0,0,0,.4);" style-hover="background:#f1eeff">Join as Freelancer</button>
+              <button onClick="{{ goClients }}" style="padding:13px 26px;border-radius:12px;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.45);cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;" style-hover="background:rgba(255,255,255,.26)">Hire Talent</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+    </sc-if>
+
+    <!-- ================= FREELANCERS ================= -->
+    <sc-if value="{{ isFreelancers }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:1060px;margin:0 auto;padding:48px 28px 0;">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.1em;color:#9b8cff;margin-bottom:11px;">MARKETPLACE · FREELANCERS</div>
+      <h1 style="font-weight:800;font-size:clamp(28px,4.2vw,38px);letter-spacing:-.03em;margin:0 0 10px;color:#fbfbff;">Hire a freelancer</h1>
+      <p style="font-size:16px;color:#a7abc8;margin:0 0 24px;max-width:520px;">Verified Tunisian talent, ready to start your projects.</p>
+      <div style="display:flex;align-items:center;gap:10px;background:#15122c;border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:6px 6px 6px 15px;max-width:580px;margin-bottom:14px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input placeholder="Name, skill, region…" style="flex:1;min-width:0;background:none;border:none;outline:none;color:#f4f3fb;font-family:inherit;font-size:14.5px;">
+        <button style="padding:9px 18px;border-radius:9px;background:#7c6cf6;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;flex:none;" style-hover="background:#6a5cf0">Search</button>
+      </div>
+      <div style="font-size:13.5px;color:#7e82a0;margin-bottom:22px;"><strong style="color:#c2c5dd;">{{ flCount }}</strong> verified freelancers · 2 regions</div>
+
+      <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);padding:13px 0;margin-bottom:6px;flex-wrap:wrap;position:sticky;top:66px;background:#0c0a1e;z-index:20;">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+          <sc-for list="{{ flCats }}" as="c" hint-placeholder-count="6">
+            <button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+          </sc-for>
+        </div>
+        <div style="position:relative;flex:none;">
+          <select style="appearance:none;-webkit-appearance:none;background:#15122c;border:1px solid rgba(255,255,255,.12);color:#c2c5dd;border-radius:9px;padding:8px 32px 8px 13px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;outline:none;"><option>Top rated</option><option>Newest</option><option>Lowest rate</option></select>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><path d="m6 9 6 6 6-6"></path></svg>
+        </div>
+      </div>
+
+      <div style="padding-bottom:60px;">
+        <sc-for list="{{ filteredFl }}" as="f" hint-placeholder-count="5">
+          <div style="display:flex;gap:18px;padding:24px 4px;border-bottom:1px solid rgba(255,255,255,.07);flex-wrap:wrap;border-radius:12px;transition:background .15s;" style-hover="background:rgba(255,255,255,.025)">
+            <span style="width:52px;height:52px;border-radius:50%;background:{{ f.avBg }};color:{{ f.avFg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex:none;">{{ f.initials }}</span>
+            <div style="flex:1;min-width:260px;">
+              <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:4px;">
+                <span style="font-weight:700;font-size:17px;color:#fbfbff;">{{ f.name }}</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#b9aeff;background:rgba(124,108,246,.16);border:1px solid rgba(124,108,246,.3);border-radius:6px;padding:2px 8px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"></path></svg>Verified</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:#7e82a0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>{{ f.loc }}</span>
+                <span style="font-size:12.5px;color:#7e82a0;">· Since {{ f.since }}</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:#a7abc8;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#9b8cff" stroke="none"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"></path></svg><strong style="color:#fbfbff;">{{ f.rating }}</strong> ({{ f.reviews }})</span>
+              </div>
+              <div style="font-weight:600;font-size:14.5px;color:#dcdef0;margin-bottom:5px;">{{ f.role }}</div>
+              <div style="font-size:14px;color:#a7abc8;margin-bottom:12px;line-height:1.5;">{{ f.desc }}</div>
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                <sc-for list="{{ f.skills }}" as="s" hint-placeholder-count="4">
+                  <span style="font-size:12.5px;color:#c2c5dd;background:rgba(255,255,255,.06);border-radius:7px;padding:3px 10px;font-weight:500;">{{ s }}</span>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:11px;flex:none;min-width:168px;">
+              <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:#b9aeff;font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;background:#9b8cff;box-shadow:0 0 8px #9b8cff;"></span>{{ f.availLabel }}</div>
+              <div style="font-size:13px;color:#7e82a0;"><strong style="color:#fbfbff;font-weight:700;font-size:15px;">{{ f.rate }} TND</strong>/h</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end;">
+                <button style="display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#c2c5dd;cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;" style-hover="border-color:#7c6cf6;color:#fff"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Message</button>
+                <button style="padding:8px 15px;border-radius:9px;background:#7c6cf6;border:none;color:#fff;cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;" style-hover="background:#6a5cf0">Hire</button>
+              </div>
+              <div style="display:flex;gap:14px;">
+                <button style="background:none;border:none;color:#7e82a0;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;padding:0;" style-hover="color:#b9aeff">View profile</button>
+                <button style="background:none;border:none;color:#7e82a0;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;padding:0;" style-hover="color:#b9aeff">Review</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ================= CLIENTS ================= -->
+    <sc-if value="{{ isClients }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:1060px;margin:0 auto;padding:48px 28px 0;">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.1em;color:#9b8cff;margin-bottom:11px;">MARKETPLACE · PROJECTS</div>
+      <h1 style="font-weight:800;font-size:clamp(28px,4.2vw,38px);letter-spacing:-.03em;margin:0 0 10px;color:#fbfbff;">Find your next client</h1>
+      <p style="font-size:16px;color:#a7abc8;margin:0 0 24px;max-width:540px;">Open projects from verified clients looking for talent.</p>
+      <div style="display:flex;align-items:center;gap:10px;background:#15122c;border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:6px 6px 6px 15px;max-width:580px;margin-bottom:14px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input placeholder="Search a project, a sector…" style="flex:1;min-width:0;background:none;border:none;outline:none;color:#f4f3fb;font-family:inherit;font-size:14.5px;">
+        <button style="padding:9px 18px;border-radius:9px;background:#7c6cf6;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;flex:none;" style-hover="background:#6a5cf0">Search</button>
+      </div>
+      <div style="font-size:13.5px;color:#7e82a0;margin-bottom:22px;"><strong style="color:#c2c5dd;">{{ pjCount }}</strong> open projects</div>
+
+      <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);padding:13px 0;margin-bottom:18px;flex-wrap:wrap;position:sticky;top:66px;background:#0c0a1e;z-index:20;">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+          <sc-for list="{{ clCats }}" as="c" hint-placeholder-count="6">
+            <button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+          </sc-for>
+        </div>
+        <div style="position:relative;flex:none;">
+          <select style="appearance:none;-webkit-appearance:none;background:#15122c;border:1px solid rgba(255,255,255,.12);color:#c2c5dd;border-radius:9px;padding:8px 32px 8px 13px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;outline:none;"><option>Newest</option><option>Highest budget</option><option>Top rated</option></select>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><path d="m6 9 6 6 6-6"></path></svg>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;padding-bottom:60px;">
+        <sc-for list="{{ filteredPj }}" as="p" hint-placeholder-count="5">
+          <div style="background:#16142e;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px 24px;transition:box-shadow .18s,border-color .18s;" style-hover="box-shadow:0 18px 40px -18px rgba(0,0,0,.6);border-color:rgba(124,108,246,.5)">
+            <div style="display:flex;align-items:center;gap:11px;margin-bottom:13px;flex-wrap:wrap;">
+              <span style="width:38px;height:38px;border-radius:10px;background:{{ p.avBg }};color:{{ p.avFg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;">{{ p.initials }}</span>
+              <span style="font-weight:700;font-size:14.5px;color:#fbfbff;">{{ p.client }}</span>
+              <span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:#b9aeff;background:rgba(124,108,246,.16);border:1px solid rgba(124,108,246,.3);border-radius:6px;padding:2px 8px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"></path></svg>Verified</span>
+              <span style="font-size:12.5px;color:#7e82a0;">· {{ p.loc }}</span>
+              <span style="font-size:12.5px;color:#62668a;margin-left:auto;">Posted {{ p.posted }}</span>
+            </div>
+            <div style="font-weight:700;font-size:18px;color:#fbfbff;margin-bottom:6px;letter-spacing:-.01em;">{{ p.title }}</div>
+            <div style="font-size:14px;color:#a7abc8;margin-bottom:15px;line-height:1.55;">{{ p.desc }}</div>
+            <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:15px;">
+              <span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#a7abc8;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9b8cff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg><strong style="color:#fbfbff;">{{ p.budget }}</strong> · {{ p.budgetType }}</span>
+              <span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#a7abc8;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9b8cff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{ p.duration }}</span>
+              <span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#a7abc8;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9b8cff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"></path><path d="M21 7v6h-6"></path></svg>{{ p.level }}</span>
+              <span style="font-size:13px;color:#7e82a0;">{{ p.proposals }} proposals</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div style="display:flex;gap:7px;flex-wrap:wrap;flex:1;">
+                <sc-for list="{{ p.tags }}" as="t" hint-placeholder-count="3">
+                  <span style="font-size:12.5px;color:#c2c5dd;background:rgba(255,255,255,.06);border-radius:7px;padding:3px 10px;font-weight:500;">{{ t }}</span>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:9px;flex:none;">
+                <button style="padding:9px 14px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#c2c5dd;cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;" style-hover="border-color:#7c6cf6;color:#fff">Save</button>
+                <button style="padding:9px 22px;border-radius:9px;background:#7c6cf6;border:none;color:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;box-shadow:0 6px 16px -6px rgba(124,108,246,.7);" style-hover="background:#6a5cf0">Apply</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ================= COURSES CATALOG ================= -->
+    <sc-if value="{{ isCourses }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <section style="text-align:center;max-width:780px;margin:0 auto;padding:60px 28px 0;">
+        <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;background:rgba(124,108,246,.12);border:1px solid rgba(124,108,246,.3);font-size:12.5px;font-weight:600;color:#b9aeff;margin-bottom:18px;"><span style="width:7px;height:7px;border-radius:50%;background:#9b8cff;box-shadow:0 0 8px #9b8cff;"></span>{{ courseTotal }} courses available</span>
+        <h1 style="font-weight:800;font-size:clamp(30px,4.4vw,44px);letter-spacing:-.03em;margin:0 0 12px;color:#fbfbff;">Browse <span style="background:linear-gradient(110deg,#9b8cff,#6c8cf6 60%,#3ec2e8);-webkit-background-clip:text;background-clip:text;color:transparent;">professional courses</span></h1>
+        <p style="font-size:16.5px;color:#a7abc8;max-width:520px;margin:0 auto 26px;line-height:1.55;">Taught by expert freelancers. Learn at your own pace. Earn certificates.</p>
+        <div style="display:flex;align-items:center;gap:10px;background:#15122c;border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:6px 6px 6px 15px;max-width:520px;margin:0 auto 16px;box-shadow:0 12px 30px -16px rgba(0,0,0,.6);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input placeholder="Search courses…" style="flex:1;min-width:0;background:none;border:none;outline:none;color:#f4f3fb;font-family:inherit;font-size:14.5px;">
+        </div>
+        <button onClick="{{ openCreateCourse }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:11px;background:#7c6cf6;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14.5px;box-shadow:0 8px 22px -8px rgba(124,108,246,.7);" style-hover="background:#6a5cf0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>Create a course</button>
+        <div style="display:flex;justify-content:center;gap:48px;margin-top:34px;">
+          <div><div style="font-weight:800;font-size:24px;color:#fbfbff;font-family:inherit;">{{ courseTotal }}</div><div style="font-size:12.5px;color:#7e82a0;margin-top:2px;">Courses</div></div>
+          <div><div style="font-weight:800;font-size:24px;color:#fbfbff;">10</div><div style="font-size:12.5px;color:#7e82a0;margin-top:2px;">Categories</div></div>
+          <div><div style="font-weight:800;font-size:24px;color:#fbfbff;">{{ instructorCount }}</div><div style="font-size:12.5px;color:#7e82a0;margin-top:2px;">Instructors</div></div>
+        </div>
+      </section>
+
+      <div style="max-width:1140px;margin:28px auto 0;padding:0 28px;">
+        <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);padding:13px 0;flex-wrap:wrap;position:sticky;top:66px;background:#0c0a1e;z-index:20;">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+            <sc-for list="{{ courseCats }}" as="c" hint-placeholder-count="8">
+              <button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;flex:none;">
+            <sc-for list="{{ priceChips }}" as="p" hint-placeholder-count="3">
+              <button onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <section style="max-width:1140px;margin:0 auto;padding:24px 28px 72px;">
+        <sc-if value="{{ coursesHasResults }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:20px;">
+          <sc-for list="{{ filteredCourses }}" as="c" hint-placeholder-count="6">
+            <div style="background:#16142e;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;transition:box-shadow .18s,border-color .18s,transform .18s;cursor:pointer;display:flex;flex-direction:column;" style-hover="box-shadow:0 20px 44px -18px rgba(0,0,0,.65);border-color:rgba(124,108,246,.5);transform:translateY(-3px)">
+              <div style="height:138px;background:{{ c.cover }};display:flex;align-items:center;justify-content:center;position:relative;">
+                <span style="position:absolute;top:11px;left:11px;font-size:11px;font-weight:600;color:#fff;background:rgba(0,0,0,.3);padding:3px 9px;border-radius:6px;">{{ c.cat }}</span>
+                <span style="position:absolute;top:11px;right:11px;font-size:11.5px;font-weight:700;color:#0e1015;background:#fff;padding:3px 10px;border-radius:6px;">{{ c.priceLabel }}</span>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.95;"><circle cx="12" cy="12" r="10"></circle><path d="M10 8l6 4-6 4V8z" fill="#fff" stroke="none"></path></svg>
+              </div>
+              <div style="padding:16px 17px 18px;display:flex;flex-direction:column;flex:1;">
+                <div style="font-weight:700;font-size:15.5px;color:#fbfbff;line-height:1.35;margin-bottom:11px;min-height:42px;">{{ c.title }}</div>
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:13px;">
+                  <span style="width:28px;height:28px;border-radius:50%;background:{{ c.avBg }};color:{{ c.avFg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex:none;">{{ c.ini }}</span>
+                  <span style="font-size:13px;color:#a7abc8;">{{ c.instructor }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:14px;font-size:12.5px;color:#7e82a0;margin-bottom:15px;flex-wrap:wrap;">
+                  <span style="display:inline-flex;align-items:center;gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#9b8cff" stroke="none"><path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"></path></svg><strong style="color:#fbfbff;">{{ c.rating }}</strong> ({{ c.reviews }})</span>
+                  <span style="display:inline-flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>{{ c.students }}</span>
+                  <span style="display:inline-flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>{{ c.lessons }} lessons</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);">
+                  <span style="font-size:17px;font-weight:800;color:#fbfbff;white-space:nowrap;">{{ c.priceLabel }}</span>
+                  <button style="padding:8px 18px;border-radius:9px;background:#7c6cf6;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;" style-hover="background:#6a5cf0">Enroll</button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+        <sc-if value="{{ coursesEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:80px 28px;">
+          <span style="display:inline-flex;width:58px;height:58px;border-radius:16px;background:rgba(124,108,246,.16);border:1px solid rgba(124,108,246,.3);align-items:center;justify-content:center;color:#b9aeff;margin-bottom:18px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+          <div style="font-weight:700;font-size:18px;color:#fbfbff;margin-bottom:6px;">No courses found</div>
+          <div style="font-size:14.5px;color:#a7abc8;">Adjust your filters or search to see more results.</div>
+        </div>
+        </sc-if>
+      </section>
+    </div>
+    </sc-if>
+
+    <!-- ================= LOGIN ================= -->
+    <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;">
+      <div style="width:100%;max-width:430px;background:rgba(20,17,44,.5);border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:38px 34px;box-shadow:0 40px 90px -40px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);">
+        <h2 style="font-weight:800;font-size:28px;letter-spacing:-.025em;margin:0 0 7px;color:#fbfbff;display:flex;align-items:center;gap:10px;">Welcome back <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9b8cff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg></h2>
+        <p style="margin:0 0 26px;font-size:14.5px;color:#a7abc8;">Log in to access your dashboard.</p>
+        <div style="display:flex;gap:5px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:5px;margin-bottom:26px;">
+          <button onClick="{{ goLogin }}" style="{{ loginTabStyle }}">Log in</button>
+          <button onClick="{{ goSignup }}" style="{{ signupTabStyle }}">Sign up</button>
+        </div>
+        <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Email address <span style="color:#f06aa0;">*</span></label>
+        <div style="display:flex;align-items:center;gap:10px;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:48px;margin-bottom:18px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg>
+          <input type="email" placeholder="you@example.com" style="flex:1;min-width:0;background:none;border:none;outline:none;color:#f4f3fb;font-family:inherit;font-size:14.5px;">
+        </div>
+        <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Password <span style="color:#f06aa0;">*</span></label>
+        <div style="display:flex;align-items:center;gap:10px;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:48px;margin-bottom:10px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+          <input type="{{ pwdType }}" placeholder="Enter your password" style="flex:1;min-width:0;background:none;border:none;outline:none;color:#f4f3fb;font-family:inherit;font-size:14.5px;">
+          <button onClick="{{ togglePwd }}" style="background:none;border:none;cursor:pointer;color:#7e82a0;padding:4px;display:flex;" style-hover="color:#c2c5dd"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:20px;"><a href="#" style="font-size:13px;font-weight:600;color:#9b8cff;text-decoration:none;" style-hover="color:#b9aeff">Forgot password?</a></div>
+        <button onClick="{{ toggleCaptcha }}" style="display:flex;align-items:center;gap:12px;width:100%;background:#15122c;border:1px solid {{ captchaBorder }};border-radius:11px;padding:14px 16px;margin-bottom:22px;cursor:pointer;font-family:inherit;">
+          <span style="width:24px;height:24px;border-radius:6px;border:2px solid {{ captchaBox }};background:{{ captchaBg }};display:flex;align-items:center;justify-content:center;flex:none;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ captchaTick }};"><path d="M20 6 9 17l-5-5"></path></svg></span>
+          <span style="font-size:14px;color:#dcdef0;font-weight:500;">I'm not a robot</span>
+          <span style="margin-left:auto;font-size:10px;color:#62668a;text-align:center;line-height:1.2;">reCAPTCHA<br>Privacy · Terms</span>
+        </button>
+        <button style="width:100%;padding:14px;border-radius:12px;background:#7c6cf6;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;box-shadow:0 10px 26px -8px rgba(124,108,246,.7);" style-hover="background:#6a5cf0">Log in</button>
+        <p style="text-align:center;font-size:12.5px;color:#62668a;margin:18px 0 0;">By continuing you agree to our <a href="#" style="color:#9b8cff;text-decoration:none;">Terms</a> and <a href="#" style="color:#9b8cff;text-decoration:none;">Privacy Policy</a>.</p>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ================= SIGN UP ================= -->
+    <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:48px 24px 64px;">
+      <div style="width:100%;max-width:460px;background:rgba(20,17,44,.5);border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:36px 32px;box-shadow:0 40px 90px -40px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);">
+        <h2 style="font-weight:800;font-size:28px;letter-spacing:-.025em;margin:0 0 7px;color:#fbfbff;display:flex;align-items:center;gap:10px;">{{ signupHeading }} <span style="flex:none;display:inline-flex;">{{ signupHeadingIcon }}</span></h2>
+        <p style="margin:0 0 24px;font-size:14.5px;color:#a7abc8;">Join thousands of professionals today.</p>
+        <div style="display:flex;gap:5px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:5px;margin-bottom:24px;">
+          <button onClick="{{ goLogin }}" style="{{ loginTabStyle }}">Log in</button>
+          <button onClick="{{ goSignup }}" style="{{ signupTabStyle }}">Sign up</button>
+        </div>
+
+        <div style="text-align:center;font-size:11px;font-weight:700;letter-spacing:.12em;color:#7e82a0;margin-bottom:12px;">I AM JOINING AS</div>
+        <div style="display:flex;gap:10px;margin-bottom:10px;">
+          <sc-if value="{{ isRoleClient }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setRoleClient }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(124,108,246,.6);background:rgba(124,108,246,.16);color:#c7baff;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Client</button></sc-if>
+          <sc-if value="{{ isRoleClientOff }}" hint-placeholder-val="{{ false }}"><button onClick="{{ setRoleClient }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(255,255,255,.12);background:transparent;color:#a7abc8;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Client</button></sc-if>
+          <sc-if value="{{ isRoleFreelancer }}" hint-placeholder-val="{{ false }}"><button onClick="{{ setRoleFreelancer }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(124,108,246,.6);background:rgba(124,108,246,.16);color:#c7baff;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>Freelancer</button></sc-if>
+          <sc-if value="{{ isRoleFreelancerOff }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setRoleFreelancer }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(255,255,255,.12);background:transparent;color:#a7abc8;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>Freelancer</button></sc-if>
+        </div>
+        <div style="text-align:center;font-size:13px;font-weight:600;color:#9b8cff;margin-bottom:22px;">{{ signupRoleHint }}</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+          <div>
+            <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Last name <span style="color:#f06aa0;">*</span></label>
+            <input placeholder="Your last name" style="width:100%;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:46px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">First name <span style="color:#f06aa0;">*</span></label>
+            <input placeholder="Your first name" style="width:100%;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:46px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;">
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Email address <span style="color:#f06aa0;">*</span></label>
+          <input type="email" placeholder="you@example.com" style="width:100%;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:46px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+          <div>
+            <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Password <span style="color:#f06aa0;">*</span></label>
+            <input type="password" placeholder="••••••" style="width:100%;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:46px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Confirm password <span style="color:#f06aa0;">*</span></label>
+            <input type="password" placeholder="Repeat your password" style="width:100%;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:46px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+          <div>
+            <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Date of birth <span style="color:#f06aa0;">*</span></label>
+            <input placeholder="dd / mm / yyyy" style="width:100%;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:46px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Gender <span style="color:#f06aa0;">*</span></label>
+            <div style="display:flex;gap:8px;">
+              <sc-if value="{{ isGenderM }}" hint-placeholder-val="{{ false }}"><button onClick="{{ setGenderM }}" style="flex:1;height:46px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(124,108,246,.6);background:rgba(124,108,246,.16);color:#c7baff;">Male</button></sc-if>
+              <sc-if value="{{ isGenderMOff }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setGenderM }}" style="flex:1;height:46px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(255,255,255,.12);background:#15122c;color:#a7abc8;">Male</button></sc-if>
+              <sc-if value="{{ isGenderF }}" hint-placeholder-val="{{ false }}"><button onClick="{{ setGenderF }}" style="flex:1;height:46px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(124,108,246,.6);background:rgba(124,108,246,.16);color:#c7baff;">Female</button></sc-if>
+              <sc-if value="{{ isGenderFOff }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setGenderF }}" style="flex:1;height:46px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(255,255,255,.12);background:#15122c;color:#a7abc8;">Female</button></sc-if>
+            </div>
+          </div>
+        </div>
+
+        <sc-if value="{{ isFreelancerSignup }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Type <span style="color:#f06aa0;">*</span></label>
+          <div style="display:flex;gap:10px;">
+            <sc-if value="{{ isTypeFreelancer }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setTypeFreelancer }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(124,108,246,.6);background:rgba(124,108,246,.16);color:#c7baff;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M20 6 9 17l-5-5"></path></svg>Freelancer</button></sc-if>
+            <sc-if value="{{ isTypeFreelancerOff }}" hint-placeholder-val="{{ false }}"><button onClick="{{ setTypeFreelancer }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(255,255,255,.12);background:transparent;color:#a7abc8;">Freelancer</button></sc-if>
+            <sc-if value="{{ isTypeInstructor }}" hint-placeholder-val="{{ false }}"><button onClick="{{ setTypeInstructor }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(124,108,246,.6);background:rgba(124,108,246,.16);color:#c7baff;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M20 6 9 17l-5-5"></path></svg>Instructor</button></sc-if>
+            <sc-if value="{{ isTypeInstructorOff }}" hint-placeholder-val="{{ true }}"><button onClick="{{ setTypeInstructor }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid rgba(255,255,255,.12);background:transparent;color:#a7abc8;">Instructor</button></sc-if>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Region <span style="color:#f06aa0;">*</span></label>
+          <div style="position:relative;">
+            <select style="appearance:none;-webkit-appearance:none;width:100%;background:#15122c;border:1px solid rgba(255,255,255,.12);color:#c2c5dd;border-radius:11px;padding:0 38px 0 14px;height:46px;font-family:inherit;font-size:14px;cursor:pointer;outline:none;"><option>Select your governorate</option><option>Tunis</option><option>Ariana</option><option>Sfax</option><option>Sousse</option><option>Bizerte</option></select>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+        </div>
+        </sc-if>
+
+        <div style="display:flex;align-items:center;gap:12px;margin:6px 0 18px;">
+          <span style="flex:1;height:1px;background:rgba(255,255,255,.1);"></span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#7e82a0;">NATIONAL IDENTITY CARD</span>
+          <span style="flex:1;height:1px;background:rgba(255,255,255,.1);"></span>
+        </div>
+        <p style="text-align:center;font-size:12.5px;color:#7e82a0;margin:0 0 14px;">Take a clear photo of each side of your CIN. Must be sharp and well lit.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+          <div>
+            <div style="font-size:12.5px;font-weight:600;color:#a7abc8;margin-bottom:7px;">Front side</div>
+            <div style="border:1px dashed rgba(255,255,255,.2);border-radius:12px;height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;color:#7e82a0;" style-hover="border-color:rgba(124,108,246,.5);color:#b9aeff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"></path><circle cx="12" cy="13" r="3.5"></circle></svg><span style="font-size:12px;">Photo of the front</span></div>
+          </div>
+          <div>
+            <div style="font-size:12.5px;font-weight:600;color:#a7abc8;margin-bottom:7px;">Back side</div>
+            <div style="border:1px dashed rgba(255,255,255,.2);border-radius:12px;height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;color:#7e82a0;" style-hover="border-color:rgba(124,108,246,.5);color:#b9aeff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"></path><circle cx="12" cy="13" r="3.5"></circle></svg><span style="font-size:12px;">Flip and photograph</span></div>
+          </div>
+        </div>
+
+        <sc-if value="{{ isFreelancerSignup }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Your skills <span style="color:#f06aa0;">*</span></label>
+          <input placeholder="e.g. React, Figma, SEO" style="width:100%;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:46px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Short bio</label>
+          <textarea placeholder="Tell clients about yourself…" rows="3" style="width:100%;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:12px 14px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+        </div>
+        </sc-if>
+
+        <button style="width:100%;padding:14px;border-radius:12px;background:#7c6cf6;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;box-shadow:0 10px 26px -8px rgba(124,108,246,.7);margin-top:6px;" style-hover="background:#6a5cf0">Create account</button>
+        <p style="text-align:center;font-size:12.5px;color:#62668a;margin:18px 0 0;">By continuing you agree to our <a href="#" style="color:#9b8cff;text-decoration:none;">Terms</a> and <a href="#" style="color:#9b8cff;text-decoration:none;">Privacy Policy</a>.</p>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ================= MESSAGES ================= -->
+    <sc-if value="{{ isMessages }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:1240px;margin:0 auto;padding:32px 28px 48px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9b8cff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <h1 style="font-weight:800;font-size:24px;letter-spacing:-.02em;margin:0;color:#fbfbff;">Messages</h1>
+      </div>
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:0;background:#13112a;border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;height:72vh;min-height:520px;">
+        <!-- list -->
+        <div style="border-right:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;min-height:0;">
+          <div style="padding:18px 18px 14px;">
+            <div style="display:flex;align-items:center;gap:9px;background:#15122c;border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:0 13px;height:42px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+              <input placeholder="Search by name…" style="flex:1;min-width:0;background:none;border:none;outline:none;color:#f4f3fb;font-family:inherit;font-size:13.5px;">
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;min-height:0;">
+            <sc-for list="{{ conversations }}" as="cv" hint-placeholder-count="4">
+              <button onClick="{{ cv.onClick }}" style="{{ cv.rowStyle }}">
+                <span style="position:relative;flex:none;"><span style="width:44px;height:44px;border-radius:50%;background:{{ cv.avBg }};color:{{ cv.avFg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;">{{ cv.ini }}</span><sc-if value="{{ cv.online }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;bottom:1px;right:1px;width:11px;height:11px;border-radius:50%;background:#7c6cf6;border:2px solid #13112a;"></span></sc-if></span>
+                <span style="flex:1;min-width:0;text-align:left;">
+                  <span style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-weight:700;font-size:14px;color:#fbfbff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ cv.name }}</span><span style="font-size:11.5px;color:#7e82a0;flex:none;">{{ cv.time }}</span></span>
+                  <span style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;"><span style="font-size:12.5px;color:#9296b2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ cv.last }}</span><sc-if value="{{ cv.unread }}" hint-placeholder-val="{{ false }}"><span style="flex:none;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#7c6cf6;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">{{ cv.unread }}</span></sc-if></span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+        <!-- thread -->
+        <div style="display:flex;flex-direction:column;min-height:0;">
+          <div style="display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.08);">
+            <span style="width:40px;height:40px;border-radius:50%;background:{{ activeAvBg }};color:{{ activeAvFg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;">{{ activeIni }}</span>
+            <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:15px;color:#fbfbff;">{{ activeName }}</div><div style="font-size:12.5px;color:#9b8cff;display:flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:50%;background:#9b8cff;"></span>{{ activeStatus }}</div></div>
+            <button style="width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#c2c5dd;cursor:pointer;display:flex;align-items:center;justify-content:center;" style-hover="color:#fff;border-color:rgba(124,108,246,.5)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="12" cy="19" r="1.4"></circle></svg></button>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:14px;min-height:0;background:radial-gradient(420px 300px at 80% 0%,rgba(124,108,246,.06),transparent 70%);">
+            <sc-for list="{{ thread }}" as="m" hint-placeholder-count="4">
+              <div style="{{ m.rowStyle }}">
+                <div style="{{ m.bubbleStyle }}">{{ m.text }}</div>
+                <div style="{{ m.timeStyle }}">{{ m.time }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:16px 22px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;">
+            <button style="width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#c2c5dd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;" style-hover="color:#fff;border-color:rgba(124,108,246,.5)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.1-8.7 8.7a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"></path></svg></button>
+            <div style="flex:1;background:#15122c;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:0 16px;height:46px;display:flex;align-items:center;"><input placeholder="Write a message…" style="flex:1;min-width:0;background:none;border:none;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;"></div>
+            <button style="width:46px;height:46px;border-radius:12px;background:#7c6cf6;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 6px 16px -5px rgba(124,108,246,.7);" style-hover="background:#6a5cf0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ================= CREATE COURSE MODAL ================= -->
+    <sc-if value="{{ createCourseOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:100;background:rgba(6,5,16,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div style="width:100%;max-width:560px;max-height:92vh;overflow-y:auto;background:#15132e;border:1px solid rgba(255,255,255,.1);border-radius:20px;box-shadow:0 40px 90px -30px rgba(0,0,0,.8);">
+        <div style="display:flex;align-items:center;gap:13px;padding:22px 24px;border-bottom:1px solid rgba(255,255,255,.08);">
+          <span style="width:42px;height:42px;border-radius:12px;background:rgba(124,108,246,.16);border:1px solid rgba(124,108,246,.3);display:flex;align-items:center;justify-content:center;color:#b9aeff;flex:none;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+          <div style="flex:1;"><div style="font-weight:800;font-size:18px;color:#fbfbff;letter-spacing:-.01em;">Create a course</div><div style="font-size:13px;color:#a7abc8;">Fill in your course details.</div></div>
+          <button onClick="{{ closeCreateCourse }}" style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#c2c5dd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;" style-hover="color:#fff;background:rgba(255,255,255,.12)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        </div>
+        <div style="padding:24px;">
+          <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Course title <span style="color:#f06aa0;">*</span></label>
+          <input placeholder="e.g. Master React in 30 days" style="width:100%;background:#0f0d24;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:46px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;margin-bottom:18px;">
+          <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Description <span style="color:#f06aa0;">*</span></label>
+          <textarea placeholder="Describe what learners will gain…" rows="4" style="width:100%;background:#0f0d24;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:12px 14px;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;resize:vertical;margin-bottom:18px;"></textarea>
+          <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Course photo <span style="color:#f06aa0;">*</span></label>
+          <div style="border:1px dashed rgba(255,255,255,.22);border-radius:12px;height:96px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;color:#9296b2;margin-bottom:18px;" style-hover="border-color:rgba(124,108,246,.5);color:#b9aeff"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg><span style="font-size:13.5px;font-weight:600;">Choose a photo</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+            <div>
+              <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Category</label>
+              <div style="position:relative;"><select style="appearance:none;-webkit-appearance:none;width:100%;background:#0f0d24;border:1px solid rgba(255,255,255,.12);color:#c2c5dd;border-radius:11px;padding:0 38px 0 14px;height:46px;font-family:inherit;font-size:14px;cursor:pointer;outline:none;"><option>Development</option><option>Design</option><option>Marketing</option><option>Business</option><option>Finance</option></select><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;"><path d="m6 9 6 6 6-6"></path></svg></div>
+            </div>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:700;color:#dcdef0;margin-bottom:7px;">Price (TND) <span style="color:#f06aa0;">*</span></label>
+              <div style="display:flex;align-items:center;background:#0f0d24;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:0 14px;height:46px;"><span style="font-size:12px;font-weight:700;color:#7e82a0;margin-right:8px;">TND</span><input placeholder="50.00" style="flex:1;min-width:0;background:none;border:none;outline:none;color:#f4f3fb;font-family:inherit;font-size:14px;"></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;background:rgba(124,108,246,.1);border:1px solid rgba(124,108,246,.28);border-radius:11px;padding:13px 15px;margin-bottom:22px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9b8cff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 16v-4M12 8h.01"></path></svg>
+            <span style="font-size:13px;color:#c2c5dd;line-height:1.5;">The platform retains a <strong style="color:#fff;">6%</strong> commission on each sale. You receive <strong style="color:#9b8cff;">94%</strong> of the listed price.</span>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <button onClick="{{ closeCreateCourse }}" style="flex:1;padding:13px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);color:#dcdef0;cursor:pointer;font-family:inherit;font-weight:700;font-size:14.5px;" style-hover="background:rgba(255,255,255,.1)">Cancel</button>
+            <button onClick="{{ closeCreateCourse }}" style="flex:1;padding:13px;border-radius:11px;background:#7c6cf6;border:none;color:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:14.5px;box-shadow:0 8px 20px -8px rgba(124,108,246,.7);" style-hover="background:#6a5cf0">Create course</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </main>
+
+  <sc-if value="{{ showChrome }}" hint-placeholder-val="{{ true }}">
+  <footer style="border-top:1px solid rgba(255,255,255,.08);background:rgba(8,6,18,.5);">
+    <div style="max-width:1200px;margin:0 auto;padding:52px 28px 28px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:36px;">
+      <div style="min-width:200px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:13px;">
+          <img src="assets/logo-glow.png" alt="Fama Mennou" style="height:30px;width:auto;object-fit:contain;">
+          <span style="font-weight:700;font-size:16px;color:#fbfbff;">Fama<span style="color:#9b8cff;">&nbsp;Mennou</span></span>
+        </div>
+        <p style="font-size:13.5px;color:#7e82a0;line-height:1.6;max-width:250px;margin:0;">The all-in-one platform connecting freelancers, clients and learners in Tunisia.</p>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:.08em;color:#62668a;margin-bottom:13px;">PLATFORM</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a href="#" style="font-size:13.5px;color:#a7abc8;text-decoration:none;" style-hover="color:#9b8cff">Hire Freelancers</a>
+          <a href="#" style="font-size:13.5px;color:#a7abc8;text-decoration:none;" style-hover="color:#9b8cff">Find Clients</a>
+          <a href="#" style="font-size:13.5px;color:#a7abc8;text-decoration:none;" style-hover="color:#9b8cff">Courses</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:.08em;color:#62668a;margin-bottom:13px;">COMPANY</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a href="#" style="font-size:13.5px;color:#a7abc8;text-decoration:none;" style-hover="color:#9b8cff">About</a>
+          <a href="#" style="font-size:13.5px;color:#a7abc8;text-decoration:none;" style-hover="color:#9b8cff">Blog</a>
+          <a href="#" style="font-size:13.5px;color:#a7abc8;text-decoration:none;" style-hover="color:#9b8cff">Careers</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:.08em;color:#62668a;margin-bottom:13px;">SUPPORT</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a href="#" style="font-size:13.5px;color:#a7abc8;text-decoration:none;" style-hover="color:#9b8cff">Help Center</a>
+          <a href="#" style="font-size:13.5px;color:#a7abc8;text-decoration:none;" style-hover="color:#9b8cff">Privacy</a>
+          <a href="#" style="font-size:13.5px;color:#a7abc8;text-decoration:none;" style-hover="color:#9b8cff">Terms</a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:1200px;margin:0 auto;padding:18px 28px 38px;border-top:1px solid rgba(255,255,255,.07);font-size:13px;color:#62668a;">© {{ year }} Fama Mennou. All rights reserved.</div>
+  </footer>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;showStepArrows&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;stepArrowSize&quot;: { &quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 96, &quot;min&quot;: 48, &quot;max&quot;: 220, &quot;step&quot;: 4, &quot;tsType&quot;: &quot;number&quot; },
+  &quot;stepArrowColor&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#9b8cff&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  state = { page: 'home', searchType: 'freelancers', flCat: 'All', clCat: 'All', openFaq: 0, showPwd: false, captcha: false, signupRole: 'client', signupGender: '', createCourseOpen: false, courseCat: 'All', coursePrice: 'All', activeMsg: 0, flType: 'freelancer' };
+
+  nav(p) {
+    this.setState({ page: p });
+    if (typeof window !== 'undefined' && window.scrollTo) window.scrollTo(0, 0);
+  }
+
+  chip(label, active, onClick) {
+    const base = 'display:inline-flex;align-items:center;padding:8px 14px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .15s,color .15s;border:none;';
+    return { label, onClick, style: base + (active
+      ? 'background:#7c6cf6;color:#fff;'
+      : 'background:transparent;color:#a7abc8;') };
+  }
+
+  renderVals() {
+    const tints = [
+      { avBg: 'rgba(124,108,246,.22)', avFg: '#c7baff' },
+      { avBg: 'rgba(168,85,247,.22)', avFg: '#e2bcff' },
+      { avBg: 'rgba(79,110,247,.22)', avFg: '#b7c6ff' }
+    ];
+    const t = i => tints[i % tints.length];
+
+    const fl = [
+      { id: 1, name: 'Yassine Khelifi', initials: 'YK', role: 'Full-Stack Developer', desc: 'I build fast, reliable web apps end to end, from database to interface.', loc: 'Tunis', since: '2023', rating: '4.9', reviews: 38, availLabel: 'Available', rate: '45', responds: '1h', skills: ['React', 'Node.js', 'TypeScript', 'PostgreSQL'], cat: 'Development' },
+      { id: 2, name: 'Imen Bouazizi', initials: 'IB', role: 'Product & UI/UX Designer', desc: 'Clear interfaces and consistent design systems that convert.', loc: 'Sfax', since: '2022', rating: '5.0', reviews: 52, availLabel: 'Available', rate: '40', responds: '2h', skills: ['Figma', 'Design System', 'Prototyping', 'Webflow'], cat: 'Design' },
+      { id: 3, name: 'Mehdi Trabelsi', initials: 'MT', role: 'SEO & Growth Marketer', desc: 'I grow your organic traffic and conversions with measurable strategy.', loc: 'Sousse', since: '2024', rating: '4.7', reviews: 19, availLabel: 'Busy · 1 week', rate: '35', responds: '3h', skills: ['SEO', 'Google Ads', 'Analytics', 'Content'], cat: 'Marketing' },
+      { id: 4, name: 'Salma Gharbi', initials: 'SG', role: 'Motion Designer & Video Editor', desc: 'Animated videos and dynamic edits for social media and ads.', loc: 'Ariana', since: '2021', rating: '4.8', reviews: 64, availLabel: 'Available', rate: '38', responds: '1h', skills: ['After Effects', 'Premiere', 'Motion', '3D'], cat: 'Video' },
+      { id: 5, name: 'Anis Mansour', initials: 'AM', role: 'Writer & Translator (FR/EN/AR)', desc: 'Persuasive content and polished translations, optimized for SEO.', loc: 'Bizerte', since: '2023', rating: '4.6', reviews: 27, availLabel: 'Available', rate: '25', responds: '4h', skills: ['Copywriting', 'Translation', 'SEO content'], cat: 'Writing' }
+    ].map((f, i) => ({ ...f, avBg: t(i).avBg, avFg: t(i).avFg, skills3: f.skills.slice(0, 3) }));
+
+    const pj = [
+      { id: 1, client: 'NovaTech Solutions', initials: 'NT', loc: 'Tunis', posted: '2d ago', title: 'Full e-commerce platform rebuild', desc: 'Migration to a modern stack, performance optimization and a redesigned checkout funnel.', budget: '4,500 TND', budgetType: 'Fixed', duration: '6–8 weeks', level: 'Expert', proposals: 12, tags: ['React', 'Stripe', 'UX'], cat: 'E-commerce' },
+      { id: 2, client: 'Atelier Médina', initials: 'AM', loc: 'Sousse', posted: '4d ago', title: 'Brand identity & visual guidelines', desc: 'Create a logo, palette and a complete brand guide for an artisan business.', budget: '1,800 TND', budgetType: 'Fixed', duration: '2–3 weeks', level: 'Intermediate', proposals: 8, tags: ['Branding', 'Logo', 'Print'], cat: 'Design' },
+      { id: 3, client: 'Baraka Foods', initials: 'BF', loc: 'Sfax', posted: '1w ago', title: 'Social media management & campaigns', desc: 'Content calendar, creative production and paid ads management over 3 months.', budget: '900 TND/mo', budgetType: 'Recurring', duration: '3 months', level: 'Intermediate', proposals: 5, tags: ['Social Media', 'Ads', 'Content'], cat: 'Marketing' },
+      { id: 4, client: 'Horizon Studio', initials: 'HS', loc: 'Ariana', posted: '3d ago', title: 'Mobile booking app (Flutter)', desc: 'Cross-platform app with payments, notifications and an admin dashboard.', budget: '6,200 TND', budgetType: 'Fixed', duration: '8–10 weeks', level: 'Expert', proposals: 21, tags: ['Flutter', 'Firebase', 'API'], cat: 'Technology' },
+      { id: 5, client: 'EduSmart', initials: 'ES', loc: 'Tunis', posted: '5d ago', title: 'Animated educational videos (10 modules)', desc: 'Scripting, animation and voiceover for an online course series.', budget: '2,400 TND', budgetType: 'Fixed', duration: '4 weeks', level: 'Intermediate', proposals: 9, tags: ['Motion', 'Voiceover', 'Editing'], cat: 'Education' }
+    ].map((p, i) => ({ ...p, avBg: t(i).avBg, avFg: t(i).avFg }));
+
+    const courses = [
+      { id: 1, title: 'React from Zero to Expert', instructor: 'Yassine Khelifi', rating: '4.9', students: '1,240', price: '89 TND', cat: 'Development', cover: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)' },
+      { id: 2, title: 'UI/UX Design Masterclass', instructor: 'Imen Bouazizi', rating: '5.0', students: '860', price: '75 TND', cat: 'Design', cover: 'linear-gradient(135deg,#a855f7,#6c8cf6)' },
+      { id: 3, title: 'SEO & Growth Marketing', instructor: 'Mehdi Trabelsi', rating: '4.7', students: '540', price: '60 TND', cat: 'Marketing', cover: 'linear-gradient(135deg,#5b5ce0,#3ec2e8)' },
+      { id: 4, title: 'Motion Design with After Effects', instructor: 'Salma Gharbi', rating: '4.8', students: '410', price: '70 TND', cat: 'Video', cover: 'linear-gradient(135deg,#7c6cf6,#a855f7)' }
+    ];
+
+    const testimonials = [
+      { quote: '“Found a developer in two days and shipped on time. The whole process was effortless.”', name: 'Sarra Ben Amor', title: 'Founder, NovaTech', initials: 'SB', avBg: t(0).avBg, avFg: t(0).avFg },
+      { quote: '“As a freelancer, Fama Mennou keeps my pipeline full with serious, verified clients.”', name: 'Mehdi Trabelsi', title: 'Full-Stack Developer', initials: 'MT', avBg: t(1).avBg, avFg: t(1).avFg },
+      { quote: '“The courses paid for themselves. I landed my first contract a month later.”', name: 'Anis Mansour', title: 'Designer', initials: 'AM', avBg: t(2).avBg, avFg: t(2).avFg }
+    ];
+
+    const faqData = [
+      { question: 'How does Fama Mennou work?', answer: 'Create a free account, choose whether you want to hire, freelance, or learn, then start browsing. Clients post projects and hire verified freelancers; freelancers apply to projects and offer services; everyone can take courses.' },
+      { question: 'Is it free to join?', answer: 'Yes. Creating an account, browsing freelancers, and posting a project are all free. We only charge a small service fee on completed paid contracts.' },
+      { question: 'How are payments protected?', answer: 'All contract payments are held securely in escrow and only released to the freelancer once you approve the delivered work, so your money is protected from start to finish.' },
+      { question: 'How do you verify freelancers?', answer: 'Every freelancer goes through ID verification and a skills review before earning the verified badge, so you can hire with confidence.' },
+      { question: 'Can I both hire and freelance from one account?', answer: 'Absolutely. A single Fama Mennou account lets you switch between hiring talent, offering your own services, and taking courses — no need for separate logins.' }
+    ];
+    const faqs = faqData.map((f, i) => ({
+      question: f.question,
+      answer: f.answer,
+      open: this.state.openFaq === i,
+      onClick: () => this.setState(s => ({ openFaq: s.openFaq === i ? -1 : i })),
+      borderColor: this.state.openFaq === i ? 'rgba(124,108,246,.5)' : 'rgba(255,255,255,.08)',
+      iconRotate: this.state.openFaq === i ? 'rotate(180deg)' : 'rotate(0deg)'
+    }));
+
+    // ---- Courses catalog ----
+    const courseCatalog = [
+      { title: 'React from Zero to Expert', instructor: 'Yassine Khelifi', ini: 'YK', rating: '4.9', reviews: 312, students: '1.2k', lessons: 42, price: 89, cat: 'Development', cover: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)' },
+      { title: 'UI/UX Design Masterclass', instructor: 'Imen Bouazizi', ini: 'IB', rating: '5.0', reviews: 208, students: '860', lessons: 36, price: 75, cat: 'Design', cover: 'linear-gradient(135deg,#a855f7,#6c8cf6)' },
+      { title: 'SEO & Growth Marketing', instructor: 'Mehdi Trabelsi', ini: 'MT', rating: '4.7', reviews: 140, students: '540', lessons: 28, price: 60, cat: 'Marketing', cover: 'linear-gradient(135deg,#5b5ce0,#3ec2e8)' },
+      { title: 'Motion Design with After Effects', instructor: 'Salma Gharbi', ini: 'SG', rating: '4.8', reviews: 176, students: '410', lessons: 31, price: 70, cat: 'Design', cover: 'linear-gradient(135deg,#7c6cf6,#a855f7)' },
+      { title: 'Freelancing Business Foundations', instructor: 'Anis Mansour', ini: 'AM', rating: '4.6', reviews: 98, students: '620', lessons: 18, price: 0, cat: 'Business', cover: 'linear-gradient(135deg,#6c8cf6,#7c6cf6)' },
+      { title: 'Personal Finance for Freelancers', instructor: 'Sarra Ben Amor', ini: 'SB', rating: '4.9', reviews: 54, students: '300', lessons: 22, price: 45, cat: 'Finance', cover: 'linear-gradient(135deg,#3a8ce0,#7c6cf6)' },
+      { title: 'Product Photography Essentials', instructor: 'Salma Gharbi', ini: 'SG', rating: '4.7', reviews: 67, students: '280', lessons: 20, price: 0, cat: 'Photography', cover: 'linear-gradient(135deg,#a855f7,#3ec2e8)' },
+      { title: 'Node.js & REST APIs', instructor: 'Yassine Khelifi', ini: 'YK', rating: '4.8', reviews: 142, students: '730', lessons: 38, price: 95, cat: 'Development', cover: 'linear-gradient(135deg,#7c6cf6,#6c8cf6)' },
+      { title: 'Brand Strategy & Identity', instructor: 'Imen Bouazizi', ini: 'IB', rating: '4.9', reviews: 88, students: '390', lessons: 24, price: 80, cat: 'Design', cover: 'linear-gradient(135deg,#6c5cf6,#a855f7)' }
+    ];
+    const courseCatNames = ['All', 'Design', 'Development', 'Marketing', 'Business', 'Music', 'Photography', 'Finance', 'Health', 'Other'];
+    const courseCats = courseCatNames.map(c => this.chip(c, c === this.state.courseCat, () => this.setState({ courseCat: c })));
+    const priceChips = ['All', 'Free', 'Paid'].map(p => this.chip(p, p === this.state.coursePrice, () => this.setState({ coursePrice: p })));
+    let filteredCourses = courseCatalog.filter(c =>
+      (this.state.courseCat === 'All' || c.cat === this.state.courseCat) &&
+      (this.state.coursePrice === 'All' || (this.state.coursePrice === 'Free' ? c.price === 0 : c.price > 0)));
+    filteredCourses = filteredCourses.map((c, i) => ({ ...c, avBg: t(i).avBg, avFg: t(i).avFg, priceLabel: c.price === 0 ? 'Free' : c.price + ' TND' }));
+    const coursesHasResults = filteredCourses.length > 0;
+    const courseTotal = courseCatalog.length;
+    const instructorCount = new Set(courseCatalog.map(c => c.instructor)).size;
+
+    // ---- Auth ----
+    const authTabStyle = active => 'flex:1;text-align:center;padding:9px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:background .18s,color .18s;' + (active ? 'background:#7c6cf6;color:#fff;box-shadow:0 4px 12px -3px rgba(124,108,246,.6);' : 'background:transparent;color:#a7abc8;');
+    const roleStyle = active => 'flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid ' + (active ? 'rgba(124,108,246,.6);background:rgba(124,108,246,.16);color:#c7baff;' : 'rgba(255,255,255,.12);background:transparent;color:#a7abc8;');
+    const genderStyle = active => 'flex:1;height:46px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;border:1px solid ' + (active ? 'rgba(124,108,246,.6);background:rgba(124,108,246,.16);color:#c7baff;' : 'rgba(255,255,255,.12);background:#15122c;color:#a7abc8;');
+    const cap = this.state.captcha;
+    const isFreelancerSignup = this.state.signupRole === 'freelancer';
+
+    // ---- Messages ----
+    const convData = [
+      { name: 'Imen Bouazizi', ini: 'IB', last: "Sounds great — I'll send the files.", time: '2m', unread: 2, online: true },
+      { name: 'NovaTech Solutions', ini: 'NT', last: 'Can you start next week?', time: '1h', unread: 0, online: true },
+      { name: 'Mehdi Trabelsi', ini: 'MT', last: 'Thanks for the quick turnaround!', time: '3h', unread: 0, online: false },
+      { name: 'Atelier Médina', ini: 'AM', last: 'The logo looks perfect.', time: '1d', unread: 0, online: false },
+      { name: 'Salma Gharbi', ini: 'SG', last: "I'll review and get back to you.", time: '2d', unread: 0, online: false }
+    ];
+    const convRowStyle = active => 'display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 16px;background:' + (active ? 'rgba(124,108,246,.14)' : 'transparent') + ';border:none;border-left:3px solid ' + (active ? '#7c6cf6' : 'transparent') + ';cursor:pointer;font-family:inherit;';
+    const conversations = convData.map((c, i) => ({ ...c, avBg: t(i).avBg, avFg: t(i).avFg, onClick: () => this.setState({ activeMsg: i }), rowStyle: convRowStyle(i === this.state.activeMsg) }));
+    const activeConv = convData[this.state.activeMsg] || convData[0];
+    const activeTint = t(this.state.activeMsg);
+    const threadData = [
+      { me: false, text: "Hi! I saw your profile and I'd love to work with you on a new project.", time: '10:24' },
+      { me: true, text: "Hi! Thanks for reaching out — I'd be happy to help. Can you share a few details?", time: '10:26' },
+      { me: false, text: "Sure. It's a React dashboard, about 6 screens, due in 3 weeks.", time: '10:28' },
+      { me: true, text: "That works for me. I'll put together a quick proposal today.", time: '10:30' },
+      { me: false, text: "Sounds great — I'll send the files.", time: '10:31' }
+    ];
+    const thread = threadData.map(m => ({
+      text: m.text, time: m.time,
+      rowStyle: 'display:flex;flex-direction:column;align-items:' + (m.me ? 'flex-end' : 'flex-start') + ';gap:3px;',
+      bubbleStyle: 'max-width:78%;padding:11px 15px;border-radius:14px;font-size:14px;line-height:1.5;' + (m.me ? 'background:#7c6cf6;color:#fff;border-bottom-right-radius:4px;' : 'background:#1d1a3a;color:#e7e8f4;border-bottom-left-radius:4px;border:1px solid rgba(255,255,255,.08);'),
+      timeStyle: 'font-size:11px;color:#62668a;padding:0 4px;'
+    }));
+
+    const flCatNames = ['All', 'Design', 'Development', 'Marketing', 'Writing', 'Video', 'Finance'];
+    const clCatNames = ['All', 'Technology', 'Design', 'Marketing', 'E-commerce', 'Education', 'Finance'];
+    const flCats = flCatNames.map(c => this.chip(c, c === this.state.flCat, () => this.setState({ flCat: c })));
+    const clCats = clCatNames.map(c => this.chip(c, c === this.state.clCat, () => this.setState({ clCat: c })));
+    const filteredFl = this.state.flCat === 'All' ? fl : fl.filter(f => f.cat === this.state.flCat);
+    const filteredPj = this.state.clCat === 'All' ? pj : pj.filter(p => p.cat === this.state.clCat);
+
+    const types = [
+      { key: 'freelancers', label: 'Freelancers' },
+      { key: 'services', label: 'Services' },
+      { key: 'courses', label: 'Courses' }
+    ].map(ty => ({
+      label: ty.label,
+      onClick: () => this.setState({ searchType: ty.key }),
+      style: 'flex:1;text-align:center;padding:8px 10px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:background .18s,color .18s,box-shadow .18s;'
+        + (ty.key === this.state.searchType
+          ? 'background:#7c6cf6;color:#fff;box-shadow:0 4px 12px -3px rgba(124,108,246,.6);'
+          : 'background:transparent;color:#a7abc8;')
+    }));
+
+    const searchPlaceholder = this.state.searchType === 'freelancers'
+      ? 'Search freelancers, skills…'
+      : this.state.searchType === 'services'
+        ? 'Search services, projects…'
+        : 'Search courses…';
+
+    const navColor = active => active ? '#9b8cff' : '#c2c5dd';
+
+    return {
+      isHome: this.state.page === 'home',
+      isFreelancers: this.state.page === 'freelancers',
+      isClients: this.state.page === 'clients',
+      isCourses: this.state.page === 'courses',
+      isLogin: this.state.page === 'login',
+      isSignup: this.state.page === 'signup',
+      isMessages: this.state.page === 'messages',
+      showChrome: this.state.page !== 'login' && this.state.page !== 'signup',
+      goLogin: () => this.nav('login'),
+      goSignup: () => this.nav('signup'),
+      goMessages: () => this.nav('messages'),
+      // courses
+      courseCats, priceChips, filteredCourses, coursesHasResults, coursesEmpty: !coursesHasResults,
+      courseTotal, instructorCount,
+      createCourseOpen: this.state.createCourseOpen,
+      openCreateCourse: () => this.setState({ createCourseOpen: true }),
+      closeCreateCourse: () => this.setState({ createCourseOpen: false }),
+      // auth
+      pwdType: this.state.showPwd ? 'text' : 'password',
+      togglePwd: () => this.setState(s => ({ showPwd: !s.showPwd })),
+      toggleCaptcha: () => this.setState(s => ({ captcha: !s.captcha })),
+      captchaBorder: cap ? 'rgba(124,108,246,.5)' : 'rgba(255,255,255,.12)',
+      captchaBox: cap ? '#7c6cf6' : '#3a3760',
+      captchaBg: cap ? '#7c6cf6' : 'transparent',
+      captchaTick: cap ? '1' : '0',
+      loginTabStyle: authTabStyle(this.state.page === 'login'),
+      signupTabStyle: authTabStyle(this.state.page === 'signup'),
+      isFreelancerSignup,
+      signupHeading: isFreelancerSignup ? 'Join as a freelancer' : 'Join as a client',
+      signupHeadingIcon: isFreelancerSignup
+        ? React.createElement('svg', { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: '#9b8cff', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' },
+            React.createElement('path', { d: 'M3 17l6-6 4 4 8-8' }),
+            React.createElement('path', { d: 'M21 7v6h-6' }))
+        : React.createElement('svg', { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: '#9b8cff', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' },
+            React.createElement('rect', { x: 3, y: 7, width: 18, height: 13, rx: 2 }),
+            React.createElement('path', { d: 'M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' }),
+            React.createElement('path', { d: 'M3 12h18' })),
+      signupRoleHint: isFreelancerSignup ? 'Looking for work & clients' : 'Looking to hire talent',
+      clientRoleStyle: roleStyle(!isFreelancerSignup),
+      freelancerRoleStyle: roleStyle(isFreelancerSignup),
+      isRoleClient: !isFreelancerSignup,
+      isRoleClientOff: isFreelancerSignup,
+      isRoleFreelancer: isFreelancerSignup,
+      isRoleFreelancerOff: !isFreelancerSignup,
+      setRoleClient: () => this.setState({ signupRole: 'client' }),
+      setRoleFreelancer: () => this.setState({ signupRole: 'freelancer' }),
+      genderMStyle: genderStyle(this.state.signupGender === 'M'),
+      genderFStyle: genderStyle(this.state.signupGender === 'F'),
+      isGenderM: this.state.signupGender === 'M',
+      isGenderMOff: this.state.signupGender !== 'M',
+      isGenderF: this.state.signupGender === 'F',
+      isGenderFOff: this.state.signupGender !== 'F',
+      setGenderM: () => this.setState({ signupGender: 'M' }),
+      setGenderF: () => this.setState({ signupGender: 'F' }),
+      isTypeFreelancer: this.state.flType === 'freelancer',
+      isTypeInstructor: this.state.flType === 'instructor',
+      isTypeFreelancerOff: this.state.flType !== 'freelancer',
+      isTypeInstructorOff: this.state.flType !== 'instructor',
+      typeFreelancerStyle: roleStyle(this.state.flType === 'freelancer'),
+      typeInstructorStyle: roleStyle(this.state.flType === 'instructor'),
+      setTypeFreelancer: () => this.setState({ flType: 'freelancer' }),
+      setTypeInstructor: () => this.setState({ flType: 'instructor' }),
+      // messages
+      conversations, thread,
+      activeName: activeConv.name, activeIni: activeConv.ini,
+      activeAvBg: activeTint.avBg, activeAvFg: activeTint.avFg,
+      activeStatus: activeConv.online ? 'Online' : 'Offline',
+      navFlColor: navColor(this.state.page === 'freelancers'),
+      navClColor: navColor(this.state.page === 'clients'),
+      navCoColor: navColor(this.state.page === 'courses'),
+      goHome: () => this.nav('home'),
+      goFreelancers: () => this.nav('freelancers'),
+      goClients: () => this.nav('clients'),
+      goCourses: () => this.nav('courses'),
+      featuredFl: fl.slice(0, 3),
+      featuredPj: pj.slice(0, 3),
+      courses, testimonials, faqs,
+      filteredFl, filteredPj, flCats, clCats,
+      flCount: filteredFl.length, pjCount: filteredPj.length,
+      types, searchPlaceholder,
+      // How-it-works arrow tweaks
+      showStepArrows: this.props.showStepArrows ?? true,
+      stepArrowW: Math.round(this.props.stepArrowSize ?? 96),
+      stepArrowH: Math.round((this.props.stepArrowSize ?? 96) * 0.42),
+      stepArrowColor: this.props.stepArrowColor ?? '#9b8cff',
+      year: 2026
+    };
+  }
+}
+</script>
+</body>
+</html>

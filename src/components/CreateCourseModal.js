@@ -1,55 +1,43 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API = 'https://famamennou-server.onrender.com/api';
+const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
 const CATEGORIES = [
   'Design','Development','Marketing','Business',
   'Music','Photography','Finance','Health','Other',
 ];
 
+const inputStyle = {
+  width: '100%', padding: '10px 14px', borderRadius: 12,
+  background: '#15122c', border: '1px solid rgba(255,255,255,.12)',
+  color: '#f4f3fb', fontSize: 14, outline: 'none', fontFamily: 'inherit',
+  transition: 'border-color .15s',
+};
+
+const labelStyle = {
+  display: 'block', fontSize: 13, fontWeight: 700, color: '#dcdef0', marginBottom: 6,
+};
+
 export default function CreateCourseModal({ user, initialType = 'free', onClose, onCreated, onBack }) {
-  const isPaid = initialType === 'paid';
   const navigate = useNavigate();
   const photoRef = useRef();
-  const videoRef = useRef();
-
-  // ── accent palette — switches every color at once ──────────────────────────
-  const ring        = isPaid ? 'focus:ring-amber-500'  : 'focus:ring-emerald-500';
-  const hoverBorder = isPaid ? 'hover:border-amber-400 dark:hover:border-amber-600'   : 'hover:border-emerald-400 dark:hover:border-emerald-600';
-  const hoverText   = isPaid ? 'hover:text-amber-600 dark:hover:text-amber-400'       : 'hover:text-emerald-600 dark:hover:text-emerald-400';
-  const videoBg     = isPaid ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800'     : 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800';
-  const videoTxt    = isPaid ? 'text-amber-600 dark:text-amber-400'  : 'text-emerald-600 dark:text-emerald-400';
-  const videoLabel  = isPaid ? 'text-amber-700 dark:text-amber-400'  : 'text-emerald-700 dark:text-emerald-400';
-  const submitBtn   = isPaid ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/25'  : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25';
-  const successBg    = isPaid ? 'bg-amber-100 dark:bg-amber-900/30'                                              : 'bg-emerald-100 dark:bg-emerald-900/30';
-  const successIcon  = isPaid ? 'text-amber-600 dark:text-amber-400'                                             : 'text-emerald-600 dark:text-emerald-400';
-  const verifyBg     = isPaid ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' : 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800';
-  const verifyTitle  = isPaid ? 'text-amber-700 dark:text-amber-400'                                             : 'text-emerald-700 dark:text-emerald-400';
-  const verifySub    = isPaid ? 'text-amber-600/80 dark:text-amber-500'                                          : 'text-emerald-600/80 dark:text-emerald-500';
 
   const [form, setForm] = useState({
-    title:       '',
-    description: '',
-    photo:       '',
-    video_url:   '',
-    category:    'Development',
-    full_price:  '',
+    title: '', description: '', photo: '', video_url: '', category: 'Development', full_price: '',
   });
-  const [photoPreview,  setPhotoPreview]  = useState('');
-  const [videoName,     setVideoName]     = useState('');
-  const [submitting,    setSubmitting]    = useState(false);
-  const [error,         setError]         = useState('');
-  const [priceError,    setPriceError]    = useState('');
-  const [success,       setSuccess]       = useState(false);
-  const [createdCourse, setCreatedCourse] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [submitting,   setSubmitting]   = useState(false);
+  const [error,        setError]        = useState('');
+  const [priceError,   setPriceError]   = useState('');
+  const [success,      setSuccess]      = useState(false);
+  const [createdCourse,setCreatedCourse]= useState(null);
 
-  // Lock scroll on both body and html — covers all browsers
   useEffect(() => {
-    document.body.style.overflow          = 'hidden';
+    document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow          = '';
+      document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     };
   }, []);
@@ -64,23 +52,16 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
     reader.readAsDataURL(file);
   }
 
-  function handleVideo(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setVideoName(file.name);
-    set('video_url', file.name);
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!form.title.trim()) { setError('Le titre est obligatoire.'); return; }
+    if (!form.title.trim()) { setError('Course title is required.'); return; }
     if (isNaN(Number(form.full_price)) || Number(form.full_price) < 50) {
-      setPriceError('Le prix minimum est 50 TND.');
-      setError('Le prix minimum est 50 TND.'); return;
+      setPriceError('Minimum price is 50 TND.');
+      setError('Minimum price is 50 TND.'); return;
     }
-    if (!form.description.trim()) { setError('La description est obligatoire.'); return; }
-    if (!form.photo)              { setError('La photo du cours est obligatoire.'); return; }
+    if (!form.description.trim()) { setError('Description is required.'); return; }
+    if (!form.photo) { setError('Course photo is required.'); return; }
     setSubmitting(true);
     try {
       const r = await fetch(`${API}/courses`, {
@@ -97,219 +78,256 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
         }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Erreur lors de la création.'); setSubmitting(false); return; }
+      if (!r.ok) { setError(d.error || 'Failed to create course.'); setSubmitting(false); return; }
       setSuccess(true);
       setCreatedCourse(d);
       onCreated?.(d);
     } catch {
-      setError('Impossible de joindre le serveur.');
+      setError('Unable to reach server.');
       setSubmitting(false);
     }
   }
 
+  async function handleSuccessClose() {
+    try {
+      await fetch(`${API}/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type:    'user',
+          kind:    `course_created_${createdCourse?.id ?? Date.now()}`,
+          title:   '📚 Cours en attente de vérification',
+          message: `Votre cours "${createdCourse?.title || form.title}" est en cours de vérification. Résultat sous 24h max.`,
+          email:   user.email,
+          name:    createdCourse?.title || form.title,
+        }),
+      });
+    } catch {}
+    onClose();
+    navigate('/courses');
+  }
+
   return (
-    <div className="fixed inset-0 z-[300]">
-
-      {/* TRUE top-right X — only on success screen, color matches course type */}
-      {success && (
-        <button
-          onClick={async () => {
-            try {
-              await fetch(`${API}/notifications`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  type:    'user',
-                  kind:    `course_created_${createdCourse?.id ?? Date.now()}`,
-                  title:   '📚 Cours en attente de vérification',
-                  message: `Votre cours "${createdCourse?.title || form.title}" est en cours de vérification. Résultat sous 24h max.`,
-                  email:   user.email,
-                  name:    createdCourse?.title || form.title,
-                }),
-              });
-            } catch {}
-            onClose();
-            navigate('/courses');
-          }}
-          className={`fixed top-4 right-4 z-[400] w-10 h-10 flex items-center justify-center rounded-full text-white shadow-lg transition-all active:scale-95 ${
-            isPaid ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'
-          }`}>
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      )}
-
-      <div className="bg-white dark:bg-slate-900 w-full h-full overflow-y-auto flex flex-col">
-
+    <div
+      className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="relative w-full overflow-hidden flex flex-col"
+        style={{
+          maxWidth: 480, maxHeight: '90vh',
+          background: '#15132e',
+          border: '1px solid rgba(255,255,255,.1)',
+          borderRadius: 20,
+          boxShadow: '0 32px 80px -20px rgba(0,0,0,.9)',
+        }}
+      >
         {/* Header */}
-        <div className={`px-4 py-5 rounded-t-3xl flex items-center gap-3 bg-gradient-to-r ${isPaid ? 'from-amber-500 to-amber-600' : 'from-emerald-500 to-green-600'}`}>
-          <button onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
-            </svg>
-          </button>
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg shrink-0">
-              {isPaid ? '💰' : '🎁'}
+        <div style={{ padding: '22px 22px 18px', borderBottom: '1px solid rgba(255,255,255,.07)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(124,108,246,.18)', border: '1px solid rgba(124,108,246,.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+              </svg>
             </div>
-            <div className="min-w-0">
-              <p className="text-white font-extrabold text-sm leading-tight">Créer un cours</p>
-              <p className="text-white/70 text-[11px] mt-0.5">Remplissez les informations de votre cours</p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ fontWeight: 800, fontSize: 18, color: '#fbfbff', margin: '0 0 3px', lineHeight: 1.2 }}>Create a course</h2>
+              <p style={{ fontSize: 13, color: '#7e82a0', margin: 0 }}>Fill in your course details.</p>
             </div>
+            <button
+              onClick={onClose}
+              style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#7e82a0', flexShrink: 0 }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.13)'; e.currentTarget.style.color = '#f4f3fb'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.07)'; e.currentTarget.style.color = '#7e82a0'; }}
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
           </div>
-          <button onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
         </div>
 
-        {/* Success */}
-        {success ? (
-          <div className="flex flex-col items-center justify-center flex-1 px-6 py-10 text-center max-w-2xl mx-auto w-full">
-
-            {/* Checkmark */}
-            <div className={`w-16 h-16 rounded-full ${successBg} flex items-center justify-center mb-4`}>
-              <svg className={`w-8 h-8 ${successIcon}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-              </svg>
-            </div>
-
-            <p className="text-base font-extrabold text-slate-900 dark:text-white mb-2">Course créé et publié ! 🎉</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Votre course est maintenant visible par tout le monde. Ajoutez des leçons depuis la page du course.</p>
-
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
-              Une notification a été envoyée à votre compte.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex-1 p-6 space-y-5 max-w-2xl mx-auto w-full">
-
-            {/* Title */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                Titre du course <span className="text-rose-500">*</span>
-              </label>
-              <input required value={form.title} onChange={e => set('title', e.target.value)}
-                placeholder="ex: Maîtrisez React en 30 jours"
-                className={`w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 ${ring} focus:border-transparent transition-all`} />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Description <span className="text-rose-500">*</span></label>
-              <textarea rows={3} value={form.description} onChange={e => set('description', e.target.value)}
-                placeholder="Décrivez ce que les apprenants vont acquérir…"
-                className={`w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 ${ring} focus:border-transparent transition-all resize-none`} />
-            </div>
-
-            {/* Photo du course */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Photo du course <span className="text-rose-500">*</span></label>
-              <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
-              <button type="button" onClick={() => photoRef.current?.click()}
-                className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 ${hoverBorder} text-sm text-slate-500 dark:text-slate-400 ${hoverText} transition-all`}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        {/* Scrollable body */}
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {success ? (
+            /* Success screen */
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 28px', textAlign: 'center' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(52,211,153,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#34d399" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                 </svg>
-                {photoPreview ? 'Changer la photo' : 'Choisir une photo'}
+              </div>
+              <p style={{ fontWeight: 800, fontSize: 18, color: '#fbfbff', margin: '0 0 8px' }}>Course created! 🎉</p>
+              <p style={{ fontSize: 13, color: '#a7abc8', margin: '0 0 24px', lineHeight: 1.6, maxWidth: 320 }}>
+                Your course is pending review. You will be notified once it's approved.
+              </p>
+              <button
+                onClick={handleSuccessClose}
+                style={{ padding: '11px 28px', borderRadius: 12, background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: 14, boxShadow: '0 6px 16px -5px rgba(124,108,246,.7)' }}
+              >
+                View courses →
               </button>
-              {photoPreview && (
-                <div className="mt-2 relative">
-                  <img src={photoPreview} alt="preview"
-                    className="w-full h-32 object-cover rounded-xl border border-slate-200 dark:border-slate-700" />
-                  <button type="button" onClick={() => { setPhotoPreview(''); set('photo', ''); }}
-                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                  </button>
+            </div>
+          ) : (
+            /* Form */
+            <form onSubmit={handleSubmit} style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+              {/* Course title */}
+              <div>
+                <label style={labelStyle}>
+                  Course title <span style={{ color: '#f87171' }}>*</span>
+                </label>
+                <input
+                  required
+                  value={form.title}
+                  onChange={e => set('title', e.target.value)}
+                  placeholder="e.g. Master React in 30 days"
+                  style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = 'rgba(124,108,246,.5)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,.12)'}
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label style={labelStyle}>
+                  Description <span style={{ color: '#f87171' }}>*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  value={form.description}
+                  onChange={e => set('description', e.target.value)}
+                  placeholder="Describe what learners will gain…"
+                  style={{ ...inputStyle, resize: 'none', lineHeight: 1.55 }}
+                  onFocus={e => e.target.style.borderColor = 'rgba(124,108,246,.5)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,.12)'}
+                />
+              </div>
+
+              {/* Course photo */}
+              <div>
+                <label style={labelStyle}>
+                  Course photo <span style={{ color: '#f87171' }}>*</span>
+                </label>
+                <input ref={photoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
+                <button
+                  type="button"
+                  onClick={() => photoRef.current?.click()}
+                  style={{ width: '100%', padding: '18px 14px', borderRadius: 12, background: 'rgba(255,255,255,.03)', border: '1.5px dashed rgba(255,255,255,.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#7e82a0', fontSize: 13, fontFamily: 'inherit', transition: 'border-color .15s, color .15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; e.currentTarget.style.color = '#9b8cff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,.15)'; e.currentTarget.style.color = '#7e82a0'; }}
+                >
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  {photoPreview ? 'Change photo' : 'Choose a photo'}
+                </button>
+                {photoPreview && (
+                  <div style={{ marginTop: 10, position: 'relative' }}>
+                    <img src={photoPreview} alt="preview" style={{ width: '100%', height: 130, objectFit: 'cover', borderRadius: 12, border: '1px solid rgba(255,255,255,.1)' }} />
+                    <button type="button" onClick={() => { setPhotoPreview(''); set('photo', ''); }}
+                      style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', background: 'rgba(0,0,0,.6)', border: 'none', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Category + Price */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div>
+                  <label style={labelStyle}>Category</label>
+                  <div style={{ position: 'relative' }}>
+                    <select
+                      value={form.category}
+                      onChange={e => set('category', e.target.value)}
+                      style={{ ...inputStyle, appearance: 'none', paddingRight: 32 }}
+                      onFocus={e => e.target.style.borderColor = 'rgba(124,108,246,.5)'}
+                      onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,.12)'}
+                    >
+                      {CATEGORIES.map(c => <option key={c} value={c} style={{ background: '#15122c' }}>{c}</option>)}
+                    </select>
+                    <svg style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#62668a' }} width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>
+                    Price (TND) <span style={{ color: '#f87171' }}>*</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, fontWeight: 700, color: '#62668a' }}>TND</span>
+                    <input
+                      type="number" min="50" step="0.01" required
+                      value={form.full_price}
+                      onChange={e => {
+                        const val = e.target.value;
+                        set('full_price', val);
+                        if (val !== '' && Number(val) < 50) setPriceError('Minimum 50 TND.');
+                        else setPriceError('');
+                      }}
+                      onBlur={e => {
+                        if (e.target.value === '' || Number(e.target.value) < 50) setPriceError('Minimum 50 TND.');
+                      }}
+                      placeholder="50.00"
+                      style={{ ...inputStyle, paddingLeft: 44, borderColor: priceError ? 'rgba(248,113,113,.6)' : 'rgba(255,255,255,.12)' }}
+                      onFocus={e => e.target.style.borderColor = 'rgba(124,108,246,.5)'}
+                    />
+                  </div>
+                  {priceError && <p style={{ marginTop: 4, fontSize: 11, color: '#f87171' }}>{priceError}</p>}
+                </div>
+              </div>
+
+              {/* Commission note */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(124,108,246,.08)', border: '1px solid rgba(124,108,246,.2)', borderRadius: 12, padding: '11px 14px' }}>
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p style={{ fontSize: 12, color: '#9b8cff', lineHeight: 1.6, margin: 0 }}>
+                  Platform commission: <strong>6%</strong>. You receive <strong>94%</strong> of the listed price.
+                </p>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(248,113,113,.1)', border: '1px solid rgba(248,113,113,.25)', borderRadius: 12, padding: '10px 14px' }}>
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#f87171" strokeWidth={2} style={{ flexShrink: 0 }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <p style={{ fontSize: 12, color: '#f87171', margin: 0 }}>{error}</p>
                 </div>
               )}
-            </div>
 
-
-            {/* Category + Price */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Catégorie</label>
-                <select value={form.category} onChange={e => set('category', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 12, paddingBottom: 4 }}>
+                <button type="button" onClick={onClose}
+                  style={{ flex: 1, padding: '11px 0', borderRadius: 12, border: '1px solid rgba(255,255,255,.12)', background: 'transparent', color: '#a7abc8', fontFamily: 'inherit', fontWeight: 600, fontSize: 14, cursor: 'pointer', transition: 'background .15s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.04)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  Cancel
+                </button>
+                <button type="submit" disabled={submitting}
+                  style={{ flex: 1, padding: '11px 0', borderRadius: 12, background: '#7c6cf6', border: 'none', color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: 14, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, boxShadow: '0 6px 16px -5px rgba(124,108,246,.7)', transition: 'background .15s' }}
+                  onMouseEnter={e => { if (!submitting) e.currentTarget.style.background = '#6a5cf0'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#7c6cf6'; }}
+                >
+                  {submitting ? (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" fill="none" viewBox="0 0 24 24">
+                        <circle style={{ opacity: .25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path style={{ opacity: .75 }} fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                      </svg>
+                      Creating…
+                    </span>
+                  ) : 'Create course'}
+                </button>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Prix (TND) <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">TND</span>
-                  <input type="number" min="50" step="0.01" required
-                    value={form.full_price}
-                    onChange={e => {
-                      const val = e.target.value;
-                      set('full_price', val);
-                      if (val !== '' && Number(val) < 50) setPriceError('Le prix minimum est 50 TND.');
-                      else setPriceError('');
-                    }}
-                    onBlur={e => {
-                      if (e.target.value === '' || Number(e.target.value) < 50) setPriceError('Le prix minimum est 50 TND.');
-                    }}
-                    placeholder="50.00"
-                    className={`w-full pl-12 pr-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:border-transparent transition-all ${priceError ? 'border-rose-400 dark:border-rose-500 focus:ring-rose-400/30' : 'border-slate-200 dark:border-slate-700 focus:ring-indigo-500'}`} />
-                {priceError && (
-                  <p className="mt-1.5 text-xs font-semibold text-rose-500 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
-                    Le prix minimum est 50 TND.
-                  </p>
-                )}
-                </div>
-              </div>
-            </div>
+            </form>
+          )}
+        </div>
 
-            {/* Commission note — always visible */}
-            <div className="flex items-start gap-2.5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40 rounded-xl px-4 py-3">
-              <svg className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              <p className="text-[11px] text-indigo-700 dark:text-indigo-400 leading-relaxed">
-                La plateforme retient une commission de <strong>6 %</strong> sur chaque vente.
-                Vous recevez <strong>94 %</strong> du prix affiché.
-              </p>
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 rounded-xl px-4 py-3">
-                <svg className="w-4 h-4 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-1">
-              <button type="button" onClick={onClose}
-                className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                Annuler
-              </button>
-              <button type="submit" disabled={submitting}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-extrabold text-white transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed active:scale-[.98] ${submitBtn}`}>
-                {submitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                    </svg>
-                    Création…
-                  </span>
-                ) : 'Créer le cours'}
-              </button>
-            </div>
-          </form>
-        )}
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     </div>
   );

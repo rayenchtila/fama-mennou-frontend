@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --fm-bg:      #0a0817;
+  --fm-primary: #7c6cf6;
+  --fm-pl:      #9b8cff;
+  --fm-cyan:    #3ec2e8;
+  --fm-border:  rgba(255,255,255,0.08);
+  --fm-card:    rgba(255,255,255,0.025);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  min-height: 100vh;
+  background: var(--fm-bg);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #f4f3fb;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(110deg, #9b8cff, #6c8cf6 60%, #3ec2e8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  transition: border-color .2s, background .2s;
+}
+.glass-card:hover {
+  background: rgba(124,108,246,0.04);
+  border-color: rgba(124,108,246,0.35);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124,108,246,.3); border-radius: 3px; }
+
+/* Chip filter */
+.chip { padding: 6px 14px; border-radius: 999px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); color: #62668a; background: transparent; transition: all .15s; white-space: nowrap; }
+.chip.active { background: rgba(62,194,232,0.18); border-color: rgba(62,194,232,0.45); color: #3ec2e8; }
+.chip:hover:not(.active) { border-color: rgba(255,255,255,0.18); color: #a7abc8; }
