@@ -157,7 +157,11 @@ export function AuthProvider({ children }) {
       account.skills !== user.skills ||
       account.bio !== user.bio ||
       account.portfolio !== user.portfolio ||
-      account.statusSeen !== user.statusSeen
+      account.statusSeen !== user.statusSeen ||
+      account.title !== user.title ||
+      account.portfolio_url !== user.portfolio_url ||
+      account.hourly_rate !== user.hourly_rate ||
+      account.availability !== user.availability
     ) {
       setUser({ ...account, isAdmin: false });
     }
