@@ -39,6 +39,7 @@ const getTint = s => {
 };
 const getInitials = n => (n||'').trim().split(/\s+/).map(w => w[0]?.toUpperCase()||'').slice(0,2).join('');
 const ensureHttp  = url => url && !/^https?:\/\//.test(url) ? `https://${url}` : url;
+const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p[p.length - 1] || name; };
 const parseSkills = raw =>
   Array.isArray(raw) ? raw.filter(Boolean)
   : typeof raw === 'string' && raw.trim()
@@ -243,7 +244,9 @@ export default function PublicProfilePage() {
               </div>
               <div style={{ flex:1, minWidth:0, paddingTop:4 }}>
                 <h1 style={{ fontSize:26, fontWeight:900, color:C.text, margin:'0 0 6px', letterSpacing:'-0.03em', lineHeight:1.15 }}>
-                  {profile.name || email.split('@')[0]}
+                  {isOwnProfile
+                    ? (profile.name || email.split('@')[0])
+                    : getLastName(profile.name || email.split('@')[0])}
                 </h1>
                 {profile.title && (
                   <p style={{ fontSize:12.5, fontWeight:700, color:C.accentMid, margin:'0 0 10px', textTransform:'uppercase', letterSpacing:'0.05em' }}>

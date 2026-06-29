@@ -6,6 +6,7 @@ import ChatDrawer from '../components/ChatDrawer';
 import { cldImg } from '../utils/cloudinary';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
+const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p[p.length - 1] || name; };
 
 const CATEGORIES = ['All', 'Technology', 'Design', 'Marketing', 'Writing', 'E-commerce', 'Finance'];
 
@@ -133,7 +134,7 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
               onClick={() => navigate(`/profile/${encodeURIComponent(freelancer.email)}`)}
               style={{ fontSize:17, fontWeight:900, color:'#f9f8ff', letterSpacing:'-0.02em', lineHeight:1.2, cursor:'pointer', textDecoration:'none', transition:'color .15s' }}
               onMouseEnter={e => e.currentTarget.style.color='#c4baff'}
-              onMouseLeave={e => e.currentTarget.style.color='#f9f8ff'}>{freelancer.name}</span>
+              onMouseLeave={e => e.currentTarget.style.color='#f9f8ff'}>{getLastName(freelancer.name)}</span>
             <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10.5, fontWeight:800, color:'#3ec2e8', background:'rgba(62,194,232,0.08)', border:'1px solid rgba(62,194,232,0.2)', padding:'3px 8px', borderRadius:20 }}>
               <IcShield /> {t('Verified')}
             </span>

@@ -69,8 +69,9 @@ export default function ClientDashboard() {
   const [bio,    setBio]    = useState(user?.bio    || '');
   const [region, setRegion] = useState(user?.region || '');
   const [photo,  setPhoto]  = useState(user?.photo  || '');
-  const [saving, setSaving] = useState(false);
-  const [saved,  setSaved]  = useState(false);
+  const [saving,      setSaving]      = useState(false);
+  const [saved,       setSaved]       = useState(false);
+  const [saveError,   setSaveError]   = useState('');
 
   if (!user) return null;
 
@@ -105,6 +106,10 @@ export default function ClientDashboard() {
 
   async function handleSave(e) {
     e.preventDefault();
+    if (!name.trim())   { setSaveError('Le nom complet est obligatoire.');  return; }
+    if (!region.trim()) { setSaveError('La région est obligatoire.');        return; }
+    if (!bio.trim())    { setSaveError('La biographie est obligatoire.');    return; }
+    setSaveError('');
     setSaving(true);
     try {
       await updateUser(user.email, { name, bio, region, photo });
@@ -404,6 +409,13 @@ export default function ClientDashboard() {
 
             {/* ── Footer: save action ── */}
             <div style={{ padding:'20px 30px', background:'rgba(0,0,0,0.22)', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+
+              {/* Error banner */}
+              {saveError && (
+                <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', marginBottom:14, borderRadius:14, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)' }}>
+                  <p style={{ fontSize:13, fontWeight:700, color:'#f87171', margin:0 }}>{saveError}</p>
+                </div>
+              )}
 
               {/* Success banner */}
               {saved && (
