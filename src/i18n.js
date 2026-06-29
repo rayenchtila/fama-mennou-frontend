@@ -110,6 +110,10 @@ i18n
           "My Projects": "My Projects",
           "Settings": "Settings",
           "Sign out": "Sign out",
+          "nav.gains": "Earnings",
+          "nav.payments": "Payments",
+          "nav.discover": "Discover",
+          "nav.account": "Account",
           // Pages
           "Find Jobs": "Find Jobs",
           "Freelancers": "Freelancers",
@@ -635,6 +639,10 @@ i18n
           "My Projects": "Mes projets",
           "Settings": "Paramètres",
           "Sign out": "Se déconnecter",
+          "nav.gains": "Gains",
+          "nav.payments": "Paiements",
+          "nav.discover": "Découvrir",
+          "nav.account": "Compte",
           // Pages
           "Find Jobs": "Trouver des Emplois",
           "Freelancers": "Freelancers",
@@ -1067,6 +1075,10 @@ i18n
           "My Projects": "مشاريعي",
           "Settings": "الإعدادات",
           "Sign out": "تسجيل الخروج",
+          "nav.gains": "الأرباح",
+          "nav.payments": "المدفوعات",
+          "nav.discover": "استكشف",
+          "nav.account": "الحساب",
           // Pages
           "Find Jobs": "البحث عن وظائف",
           "Freelancers": "المستقلون",

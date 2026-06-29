@@ -361,24 +361,24 @@ export default function Navbar({ onLogin }) {
 
   const MENU_ITEMS = user?.isAdmin
     ? [
-        { icon: <MenuIcon color="#7c6cf6" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, label: "Admin Dashboard", to: "/admin/dashboard" },
-        { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>, label: t("Log out"), logout: true },
+        { icon: <MenuIcon color="#7c6cf6" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, label: t("Dashboard"), to: "/admin/dashboard" },
+        { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>, label: t("Sign out"), logout: true },
       ]
     : user?.role === "freelancer"
       ? [
-          { icon: <MenuIcon color="#7c6cf6" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: "Profil",      to: "/dashboard?tab=profile" },
-          { icon: <MenuIcon color="#10b981" d="M23 6l-9.5 9.5-5-5L1 18" d2="M17 6h6v6"/>,                                        label: "Gains",       to: "/dashboard?tab=gains" },
-          { icon: <MenuIcon color="#3ec2e8" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: "Messages",    to: "/messages" },
-          { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: "Paramètres", to: "/dashboard?tab=settings" },
-          { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: "Log out",     logout: true },
+          { icon: <MenuIcon color="#7c6cf6" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: t("My Profile"),  to: "/dashboard?tab=profile" },
+          { icon: <MenuIcon color="#10b981" d="M23 6l-9.5 9.5-5-5L1 18" d2="M17 6h6v6"/>,                                        label: t("nav.gains"),   to: "/dashboard?tab=gains" },
+          { icon: <MenuIcon color="#3ec2e8" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: t("msg.page_title"), to: "/messages" },
+          { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: t("Settings"), to: "/dashboard?tab=settings" },
+          { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: t("Sign out"),  logout: true },
         ]
       : [
-          { icon: <MenuIcon color="#7c6cf6" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: "Profil",      to: "/dashboard"  },
-          { icon: <MenuIcon color="#f59e0b" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>,         label: "Projets",     to: "/projects"   },
-          { icon: <MenuIcon color="#10b981" d="M1 4h22v16H1z" d2="M1 10h22"/>,                                                     label: "Paiements",   to: "/payments"   },
-          { icon: <MenuIcon color="#3ec2e8" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: "Messages",    to: "/messages"   },
-          { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: "Paramètres", to: "/settings"   },
-          { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: "Log out",     logout: true      },
+          { icon: <MenuIcon color="#7c6cf6" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: t("My Profile"),   to: "/dashboard"  },
+          { icon: <MenuIcon color="#f59e0b" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>,         label: t("My Projects"),  to: "/projects"   },
+          { icon: <MenuIcon color="#10b981" d="M1 4h22v16H1z" d2="M1 10h22"/>,                                                     label: t("nav.payments"), to: "/payments"   },
+          { icon: <MenuIcon color="#3ec2e8" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: t("msg.page_title"), to: "/messages" },
+          { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: t("Settings"),     to: "/settings"   },
+          { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: t("Sign out"),     logout: true      },
         ];
 
   return (
@@ -637,7 +637,7 @@ export default function Navbar({ onLogin }) {
                   onMouseEnter={e => e.currentTarget.style.color = bg.iconHov}
                   onMouseLeave={e => e.currentTarget.style.color = bg.navClr}
                 >
-                  Log in
+                  {t("Log in")}
                 </button>
                 <button
                   onClick={() => onLogin?.("signup")}
@@ -645,7 +645,7 @@ export default function Navbar({ onLogin }) {
                   onMouseEnter={e => e.currentTarget.style.background = "#6a5cf0"}
                   onMouseLeave={e => e.currentTarget.style.background = "#7c6cf6"}
                 >
-                  Sign up
+                  {t("Sign up")}
                 </button>
               </div>
             )}
@@ -738,7 +738,7 @@ export default function Navbar({ onLogin }) {
               <nav className="flex flex-col px-3 py-3 gap-0.5 flex-1">
 
                 {/* ── Discover ── */}
-                <p className="px-3 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>Discover</p>
+                <p className="px-3 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>{t('nav.discover')}</p>
                 {[
                   { label: t('home.ac.hire.title'),   to: "/freelancers", icon: <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>, icon2: <circle cx="9" cy="7" r="4"/>, color: "#9b8cff" },
                   { label: t('home.ac.client.title'), to: "/clients",    icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#0ea5e9" },
@@ -764,13 +764,13 @@ export default function Navbar({ onLogin }) {
                 {/* ── Account (logged-in non-admin) ── */}
                 {user && !user.isAdmin && (
                   <>
-                    <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>Account</p>
+                    <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>{t('nav.account')}</p>
                     {[
-                      { label: "Dashboard",  to: "/dashboard",  icon: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>, color: "#7c6cf6" },
-                      { label: "Projects",   to: "/projects",   icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#f59e0b" },
-                      { label: "Messages",   to: "/messages",   icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
-                      { label: "Payments",   to: "/payments",   icon: <><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></>, color: "#10b981" },
-                      { label: "Settings",   to: "/settings",   icon: <><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></>, color: "#94a3b8" },
+                      { label: t("Dashboard"),        to: "/dashboard",  icon: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>, color: "#7c6cf6" },
+                      { label: t("My Projects"),      to: "/projects",   icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#f59e0b" },
+                      { label: t("msg.page_title"),   to: "/messages",   icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
+                      { label: t("nav.payments"),     to: "/payments",   icon: <><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></>, color: "#10b981" },
+                      { label: t("Settings"),         to: "/settings",   icon: <><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></>, color: "#94a3b8" },
                     ].map(item => {
                       const active = location.pathname === item.to;
                       return (
@@ -801,8 +801,8 @@ export default function Navbar({ onLogin }) {
                   <>
                     <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>Admin</p>
                     {[
-                      { label: "Dashboard", to: "/admin/dashboard", icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, color: "#7c6cf6" },
-                      { label: "Messages",  to: "/messages",        icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
+                      { label: t("Dashboard"),      to: "/admin/dashboard", icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, color: "#7c6cf6" },
+                      { label: t("msg.page_title"), to: "/messages",        icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
                     ].map(item => {
                       const active = location.pathname === item.to;
                       return (
@@ -837,7 +837,7 @@ export default function Navbar({ onLogin }) {
                     style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171" }}
                     onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.18)"}
                     onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,0.1)"}>
-                    Log out
+                    {t("Sign out")}
                   </button>
                 ) : (
                   <div className="flex flex-col gap-3">
@@ -846,12 +846,12 @@ export default function Navbar({ onLogin }) {
                       style={{ border: `1px solid ${bg.headerBd}`, color: bg.text2 }}
                       onMouseEnter={e => e.currentTarget.style.background = bg.btnHovBg}
                       onMouseLeave={e => e.currentTarget.style.background = ""}>
-                      Log in
+                      {t("Log in")}
                     </button>
                     <button onClick={() => { onLogin?.("signup"); setMenuOpen(false); }}
                       className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90"
                       style={{ background: "#7c6cf6", boxShadow: "0 4px 14px -3px rgba(124,108,246,.5)" }}>
-                      Sign up
+                      {t("Sign up")}
                     </button>
                   </div>
                 )}
