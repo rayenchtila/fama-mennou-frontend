@@ -1,6 +1,7 @@
 // components/PostForms.jsx
 // Contains: PostJobModal, PostCourseModal, PostClientModal
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Modal from "./Modal";
 import Input from "./Input";
 import Button from "./Button";
@@ -59,6 +60,7 @@ function Select({ label, options, value, onChange, required }) {
  
 // ── Post Job Modal ───────────────────────────────────────────
 export function PostJobModal({ open, onClose, onSubmit }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     title: "", company: "", location: "", salary: "",
     type: "Full-time", description: "", tags: "", remote: false,
@@ -80,36 +82,36 @@ export function PostJobModal({ open, onClose, onSubmit }) {
   }
  
   return (
-    <Modal open={open} onClose={onClose} title="Post a Job" subtitle="Reach thousands of qualified candidates" size="lg">
+    <Modal open={open} onClose={onClose} title={t("postjob.title")} subtitle={t("postjob.subtitle")} size="lg">
       <div className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Job title" placeholder="e.g. Senior React Developer" value={form.title} onChange={set("title")} required />
-          <Input label="Company name" placeholder="Your company" value={form.company} onChange={set("company")} required />
+          <Input label={t("postjob.job_title")} placeholder={t("postjob.job_title_ph")} value={form.title} onChange={set("title")} required />
+          <Input label={t("postjob.company")} placeholder={t("postjob.company_ph")} value={form.company} onChange={set("company")} required />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Location" placeholder="e.g. Remote, Paris" value={form.location} onChange={set("location")} />
-          <Input label="Salary range" placeholder="e.g. $60k–$90k" value={form.salary} onChange={set("salary")} />
+          <Input label={t("postjob.location")} placeholder={t("postjob.location_ph")} value={form.location} onChange={set("location")} />
+          <Input label={t("postjob.salary")} placeholder={t("postjob.salary_ph")} value={form.salary} onChange={set("salary")} />
         </div>
         <Select
-          label="Job type"
+          label={t("postjob.job_type")}
           value={form.type}
           onChange={set("type")}
           options={["Full-time", "Part-time", "Contract", "Freelance", "Internship"]}
         />
         <Textarea
-          label="Job description"
-          placeholder="Describe the role, responsibilities, and requirements…"
+          label={t("postjob.description")}
+          placeholder={t("postjob.description_ph")}
           value={form.description}
           onChange={set("description")}
           required
           rows={5}
         />
         <Input
-          label="Skills / Tags"
-          placeholder="React, TypeScript, Node.js (comma separated)"
+          label={t("postjob.tags")}
+          placeholder={t("postjob.tags_ph")}
           value={form.tags}
           onChange={set("tags")}
-          hint="Separate multiple tags with commas"
+          hint={t("postjob.tags_hint")}
         />
         <label className="flex items-center gap-3 cursor-pointer">
           <div
@@ -118,13 +120,13 @@ export function PostJobModal({ open, onClose, onSubmit }) {
           >
             <div className={["absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200", form.remote ? "left-5" : "left-0.5"].join(" ")} />
           </div>
-          <span className="text-sm text-slate-700 dark:text-slate-300">Remote-friendly position</span>
+          <span className="text-sm text-slate-700 dark:text-slate-300">{t("postjob.remote_friendly")}</span>
         </label>
       </div>
- 
+
       <div className="flex gap-3 mt-6">
-        <Button variant="secondary" size="md" fullWidth onClick={onClose}>Cancel</Button>
-        <Button variant="primary" size="md" fullWidth loading={loading} onClick={submit}>Post Job</Button>
+        <Button variant="secondary" size="md" fullWidth onClick={onClose}>{t("post.cancel")}</Button>
+        <Button variant="primary" size="md" fullWidth loading={loading} onClick={submit}>{t("postjob.submit")}</Button>
       </div>
     </Modal>
   );
@@ -132,6 +134,7 @@ export function PostJobModal({ open, onClose, onSubmit }) {
  
 // ── Post Course Modal ────────────────────────────────────────
 export function PostCourseModal({ open, onClose, onSubmit }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     title: "", category: "Development", level: "Beginner",
     price: "", description: "", duration: "", lessons: "",
@@ -157,24 +160,24 @@ export function PostCourseModal({ open, onClose, onSubmit }) {
   }
  
   return (
-    <Modal open={open} onClose={onClose} title="Share a Course" subtitle="Teach your skills to thousands of learners" size="lg">
+    <Modal open={open} onClose={onClose} title={t("postcourse.title")} subtitle={t("postcourse.subtitle")} size="lg">
       <div className="space-y-4">
-        <Input label="Course title" placeholder="e.g. Advanced React Patterns" value={form.title} onChange={set("title")} required />
+        <Input label={t("postcourse.course_title")} placeholder={t("postcourse.course_title_ph")} value={form.title} onChange={set("title")} required />
         <div className="grid grid-cols-2 gap-4">
-          <Select label="Category" value={form.category} onChange={set("category")} options={["Development","Design","Marketing","Writing","SEO","Video","Business"]} />
-          <Select label="Level" value={form.level} onChange={set("level")} options={["Beginner","Intermediate","Advanced"]} />
+          <Select label={t("postcourse.category")} value={form.category} onChange={set("category")} options={["Development","Design","Marketing","Writing","SEO","Video","Business"]} />
+          <Select label={t("postcourse.level")} value={form.level} onChange={set("level")} options={["Beginner","Intermediate","Advanced"]} />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Input label="Price (USD)" placeholder="0 for free" value={form.price} onChange={set("price")} type="number" hint="Leave 0 for free course" />
-          <Input label="Duration" placeholder="e.g. 8h 30min" value={form.duration} onChange={set("duration")} />
+          <Input label={t("postcourse.price")} placeholder={t("postcourse.price_ph")} value={form.price} onChange={set("price")} type="number" hint={t("postcourse.price_hint")} />
+          <Input label={t("postcourse.duration")} placeholder={t("postcourse.duration_ph")} value={form.duration} onChange={set("duration")} />
         </div>
-        <Input label="Number of lessons" placeholder="e.g. 24" value={form.lessons} onChange={set("lessons")} type="number" />
-        <Textarea label="Course description" placeholder="What will students learn? Who is this for?" value={form.description} onChange={set("description")} rows={4} required />
+        <Input label={t("postcourse.lessons")} placeholder={t("postcourse.lessons_ph")} value={form.lessons} onChange={set("lessons")} type="number" />
+        <Textarea label={t("postcourse.description")} placeholder={t("postcourse.description_ph")} value={form.description} onChange={set("description")} rows={4} required />
       </div>
- 
+
       <div className="flex gap-3 mt-6">
-        <Button variant="secondary" size="md" fullWidth onClick={onClose}>Cancel</Button>
-        <Button variant="primary" size="md" fullWidth loading={loading} onClick={submit}>Publish Course</Button>
+        <Button variant="secondary" size="md" fullWidth onClick={onClose}>{t("post.cancel")}</Button>
+        <Button variant="primary" size="md" fullWidth loading={loading} onClick={submit}>{t("postcourse.submit")}</Button>
       </div>
     </Modal>
   );
@@ -182,6 +185,7 @@ export function PostCourseModal({ open, onClose, onSubmit }) {
  
 // ── Post Client Brief Modal ─────────────────────────────────
 export function PostClientModal({ open, onClose, onSubmit }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     title: "", budget: "", category: "Development",
     deadline: "", description: "", skills: "",
@@ -203,26 +207,26 @@ export function PostClientModal({ open, onClose, onSubmit }) {
   }
  
   return (
-    <Modal open={open} onClose={onClose} title="Post a Project" subtitle="Get proposals from top freelancers fast" size="lg">
+    <Modal open={open} onClose={onClose} title={t("postproject.title")} subtitle={t("postproject.subtitle")} size="lg">
       <div className="space-y-4">
-        <Input label="Project title" placeholder="e.g. Build an e-commerce website" value={form.title} onChange={set("title")} required />
+        <Input label={t("postproject.project_title")} placeholder={t("postproject.project_title_ph")} value={form.title} onChange={set("title")} required />
         <div className="grid grid-cols-2 gap-4">
-          <Input label="Budget" placeholder="e.g. $500–$2000" value={form.budget} onChange={set("budget")} />
-          <Input label="Deadline" placeholder="e.g. 2 weeks" value={form.deadline} onChange={set("deadline")} />
+          <Input label={t("postproject.budget")} placeholder={t("postproject.budget_ph")} value={form.budget} onChange={set("budget")} />
+          <Input label={t("postproject.deadline")} placeholder={t("postproject.deadline_ph")} value={form.deadline} onChange={set("deadline")} />
         </div>
-        <Select label="Category" value={form.category} onChange={set("category")} options={["Development","Design","Marketing","Writing","SEO","Video","Other"]} />
+        <Select label={t("postcourse.category")} value={form.category} onChange={set("category")} options={["Development","Design","Marketing","Writing","SEO","Video","Other"]} />
         <Input
-          label="Required skills"
-          placeholder="React, Figma, SEO (comma separated)"
+          label={t("postproject.skills")}
+          placeholder={t("postproject.skills_ph")}
           value={form.skills}
           onChange={set("skills")}
         />
-        <Textarea label="Project description" placeholder="Describe your project in detail — goals, deliverables, tech stack…" value={form.description} onChange={set("description")} rows={5} required />
+        <Textarea label={t("postproject.description")} placeholder={t("postproject.description_ph")} value={form.description} onChange={set("description")} rows={5} required />
       </div>
- 
+
       <div className="flex gap-3 mt-6">
-        <Button variant="secondary" size="md" fullWidth onClick={onClose}>Cancel</Button>
-        <Button variant="primary" size="md" fullWidth loading={loading} onClick={submit}>Post Project</Button>
+        <Button variant="secondary" size="md" fullWidth onClick={onClose}>{t("post.cancel")}</Button>
+        <Button variant="primary" size="md" fullWidth loading={loading} onClick={submit}>{t("postproject.submit")}</Button>
       </div>
     </Modal>
   );

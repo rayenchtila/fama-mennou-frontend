@@ -1,5 +1,6 @@
 // components/FilterBar.jsx
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 export default function FilterBar({
   categories = [],
   activeCategory,
@@ -8,9 +9,11 @@ export default function FilterBar({
   activeSort,
   onSortChange,
   resultCount,
-  label = "Results",
+  label,
 }) {
+  const { t } = useTranslation();
   const [showSort, setShowSort] = useState(false);
+  const resultsLabel = label ?? t("filter.results");
  
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -36,7 +39,7 @@ export default function FilterBar({
       <div className="flex items-center gap-3 shrink-0">
         {resultCount !== undefined && (
           <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
-            {resultCount} {label}
+            {resultCount} {resultsLabel}
           </span>
         )}
  
@@ -49,7 +52,7 @@ export default function FilterBar({
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
               </svg>
-              Sort: {activeSort || sortOptions[0]}
+              {t("filter.sort")}: {activeSort || sortOptions[0]}
               <svg className={["w-3.5 h-3.5 transition-transform", showSort ? "rotate-180" : ""].join(" ")} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>

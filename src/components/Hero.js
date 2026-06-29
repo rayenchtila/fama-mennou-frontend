@@ -7,8 +7,8 @@ const FREELANCER_STEPS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
       </svg>
     ),
-    title: "Fill in your info",
-    desc: "Name, email, password, date of birth, gender & region. Takes 30 seconds.",
+    title: "hero.fl.step1.title",
+    desc: "hero.fl.step1.desc",
   },
   {
     icon: (
@@ -16,8 +16,8 @@ const FREELANCER_STEPS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
       </svg>
     ),
-    title: "Add your skills & bio",
-    desc: "List what you do — React, Figma, SEO, writing… keep it short and punchy.",
+    title: "hero.fl.step2.title",
+    desc: "hero.fl.step2.desc",
   },
   {
     icon: (
@@ -26,8 +26,8 @@ const FREELANCER_STEPS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
       </svg>
     ),
-    title: "Upload your CIN",
-    desc: "Clear photo of front & back of your National ID card. Required for verification.",
+    title: "hero.fl.step3.title",
+    desc: "hero.fl.step3.desc",
   },
   {
     icon: (
@@ -35,8 +35,8 @@ const FREELANCER_STEPS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
     ),
-    title: "Get approved & start!",
-    desc: "Admin reviews your file within 24–48 h. Approved? Your profile goes live immediately.",
+    title: "hero.fl.step4.title",
+    desc: "hero.fl.step4.desc",
   },
 ];
 
@@ -47,8 +47,8 @@ const CLIENT_STEPS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
       </svg>
     ),
-    title: "Choose 'Client' at signup",
-    desc: "Select the Client role to unlock job posting and recruiting tools.",
+    title: "hero.cl.step1.title",
+    desc: "hero.cl.step1.desc",
   },
   {
     icon: (
@@ -56,8 +56,8 @@ const CLIENT_STEPS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
       </svg>
     ),
-    title: "Sign up in seconds",
-    desc: "Google, Facebook or email + password. No documents, no waiting.",
+    title: "hero.cl.step2.title",
+    desc: "hero.cl.step2.desc",
   },
   {
     icon: (
@@ -65,8 +65,8 @@ const CLIENT_STEPS = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
       </svg>
     ),
-    title: "You're in — start hiring!",
-    desc: "Account active instantly. Post jobs, browse freelancers, launch your projects.",
+    title: "hero.cl.step3.title",
+    desc: "hero.cl.step3.desc",
   },
 ];
 
@@ -120,8 +120,8 @@ function Hero() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Freelancer</h3>
-                    <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Find clients & land jobs</p>
+                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t("Freelancer")}</h3>
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">{t("hero.fl.subtitle")}</p>
                   </div>
                 </div>
               </div>
@@ -141,9 +141,9 @@ function Hero() {
                     <div className="pb-1">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-indigo-500 dark:text-indigo-400">{step.icon}</span>
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{step.title}</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t(step.title)}</p>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{step.desc}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{t(step.desc)}</p>
                     </div>
                   </div>
                 ))}
@@ -156,7 +156,7 @@ function Hero() {
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
                   </svg>
                   <p className="text-xs text-amber-700 dark:text-amber-400 font-medium leading-relaxed">
-                    CIN verification required. Access is granted only after admin approval — keeps our community safe.
+                    {t("hero.fl.warning")}
                   </p>
                 </div>
               </div>
@@ -176,8 +176,8 @@ function Hero() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Client</h3>
-                    <p className="text-xs text-sky-600 dark:text-sky-400 font-medium">Post jobs & hire top talent</p>
+                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t("Client")}</h3>
+                    <p className="text-xs text-sky-600 dark:text-sky-400 font-medium">{t("hero.cl.subtitle")}</p>
                   </div>
                 </div>
               </div>
@@ -197,9 +197,9 @@ function Hero() {
                     <div className="pb-1">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sky-500 dark:text-sky-400">{step.icon}</span>
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{step.title}</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t(step.title)}</p>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{step.desc}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{t(step.desc)}</p>
                     </div>
                   </div>
                 ))}
@@ -212,14 +212,14 @@ function Hero() {
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                   </svg>
                   <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium leading-relaxed">
-                    No documents needed. Account active the second you sign up — start hiring right now.
+                    {t("hero.cl.success")}
                   </p>
                 </div>
               </div>
 
               {/* Social login icons */}
               <div className="px-6 pb-6">
-                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 text-center">Sign up via</p>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 text-center">{t("hero.signup_via")}</p>
                 <div className="flex items-center justify-center gap-3">
                   <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-medium text-slate-600 dark:text-slate-300">
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
@@ -240,7 +240,7 @@ function Hero() {
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
-                    Email
+                    {t("hero.email")}
                   </div>
                 </div>
               </div>

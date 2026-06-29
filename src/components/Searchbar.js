@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion"; // Added for smooth animations
+import { useTranslation } from "react-i18next";
 
 export default function Searchbar({
   value = "",
@@ -9,6 +10,7 @@ export default function Searchbar({
   suggestions = [],
   compact = false,
 }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState(suggestions);
   const inputRef = useRef(null);
@@ -91,7 +93,7 @@ export default function Searchbar({
               type="button"
               onClick={() => { onChange(""); setIsOpen(false); }}
               className="mr-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-              aria-label="Clear search"
+              aria-label={t("search.clear")}
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path

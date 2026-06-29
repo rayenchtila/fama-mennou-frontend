@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import Modal from "./Modal";
 import Input from "./Input";
 import Button from "./Button";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -238,14 +238,14 @@ function ForgotPasswordScreen({ onBack, onSent }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>Code renvoyé ✅</h2>
-      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>Un nouveau code a été envoyé à</p>
+      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("auth.code_resent_title")}</h2>
+      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>{t("auth.code_resent_msg")}</p>
       <p className="text-sm font-bold mb-6" style={{ color: '#fbfbff' }}>{email}</p>
-      <p className="text-xs mb-6" style={{ color: '#62668a' }}>Vérifiez votre boîte mail et entrez le code reçu.</p>
+      <p className="text-xs mb-6" style={{ color: '#62668a' }}>{t("auth.code_resent_hint")}</p>
       <button onClick={() => setResendDone(false)}
         className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
         style={{ background: '#7c6cf6' }}>
-        Entrer le code →
+        {t("auth.enter_code")}
       </button>
     </div>
   );
@@ -257,13 +257,13 @@ function ForgotPasswordScreen({ onBack, onSent }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>Mot de passe réinitialisé ✅</h2>
-      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>Votre mot de passe a été changé avec succès.</p>
-      <p className="text-xs mb-6" style={{ color: '#62668a' }}>Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
+      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("auth.pw_reset_title")}</h2>
+      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>{t("auth.pw_reset_msg")}</p>
+      <p className="text-xs mb-6" style={{ color: '#62668a' }}>{t("auth.pw_reset_hint")}</p>
       <button onClick={() => onSent(email)}
         className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
         style={{ background: '#7c6cf6' }}>
-        Se connecter →
+        {t("auth.sign_in_arrow")}
       </button>
     </div>
   );
@@ -330,14 +330,14 @@ function ForgotPasswordScreen({ onBack, onSent }) {
             required
           />
           <Input
-            label={t("reset.new_password")} type="password" placeholder="Votre nouveau mot de passe"
+            label={t("reset.new_password")} type="password" placeholder={t("auth.new_password_ph")}
             autoComplete="new-password" data-lpignore="true" data-form-type="other"
             value={newPassword}
             onChange={e => { setNewPassword(e.target.value); setError(""); }}
             required
           />
           <Input
-            label={t("Confirm password")} type="password" placeholder="Répétez votre nouveau mot de passe"
+            label={t("Confirm password")} type="password" placeholder={t("auth.repeat_new_password_ph")}
             autoComplete="new-password" data-lpignore="true" data-form-type="other"
             value={confirmPassword}
             onChange={e => { setConfirmPassword(e.target.value); setError(""); }}
@@ -545,6 +545,7 @@ function CINStatusScreen({ user, onClose, onLogout }) {
 
 // ── Device Approval Waiting Screen ────────────────────────────────────────────
 function DeviceApprovalScreen({ attemptId, device, onApproved, onBack }) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState('waiting'); // 'waiting' | 'approved' | 'rejected' | 'expired' | 'error'
   const [dots,   setDots]   = useState('');
 
@@ -584,7 +585,7 @@ function DeviceApprovalScreen({ attemptId, device, onApproved, onBack }) {
           onMouseLeave={e => (e.currentTarget.style.color = '#a7abc8')}
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-          Retour
+          {t("Back")}
         </button>
       )}
 
@@ -602,18 +603,18 @@ function DeviceApprovalScreen({ attemptId, device, onApproved, onBack }) {
       </div>
 
       {status === 'waiting' && (<>
-        <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: '#fbfbff' }}>Vérifiez votre e-mail</h2>
+        <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: '#fbfbff' }}>{t("device.check_email")}</h2>
         <p className="text-xs text-center mb-5" style={{ color: '#a7abc8' }}>
-          Un e-mail de sécurité a été envoyé. Cliquez sur <strong style={{ color: '#fbfbff' }}>APPROUVER</strong> dans le message pour finaliser la connexion.
+          <Trans i18nKey="device.security_sent" components={{ b: <strong style={{ color: '#fbfbff' }} /> }} />
         </p>
 
         {/* Device info card */}
         {device && (
           <div className="rounded-xl p-4 mb-5 space-y-2" style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
             {[
-              ['🌐 Navigateur', `${device.browser} · ${device.deviceType}`],
+              [`🌐 ${t("device.browser")}`, `${device.browser} · ${device.deviceType}`],
               ['💻 OS', device.os],
-              ['📡 IP', device.ip || 'Inconnue'],
+              [`📡 ${t("device.ip")}`, device.ip || t("device.unknown")],
             ].map(([label, val]) => (
               <div key={label} className="flex justify-between items-center">
                 <span className="text-xs" style={{ color: '#62668a' }}>{label}</span>
@@ -630,39 +631,39 @@ function DeviceApprovalScreen({ attemptId, device, onApproved, onBack }) {
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
           </svg>
           <span className="text-xs font-semibold" style={{ color: '#a7abc8' }}>
-            En attente d'approbation{dots}
+            {t("device.waiting_approval")}{dots}
           </span>
         </div>
 
         <p className="text-xs text-center" style={{ color: '#4a4e6e' }}>
-          Ce lien expire dans <strong>15 minutes</strong>. Vérifiez aussi vos spams.
+          <Trans i18nKey="device.link_expires" components={{ b: <strong /> }} />
         </p>
       </>)}
 
       {status === 'rejected' && (<>
-        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: '#fbfbff' }}>Connexion refusée</h2>
+        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: '#fbfbff' }}>{t("device.login_refused")}</h2>
         <p className="text-sm text-center mb-6" style={{ color: '#f87171' }}>
-          Cette tentative de connexion a été rejetée depuis votre e-mail.
+          {t("device.attempt_rejected")}
         </p>
         <p className="text-xs text-center mb-6" style={{ color: '#62668a' }}>
-          Si c'était vous, réessayez et approuvez la prochaine fois.
+          {t("device.retry_approve")}
         </p>
         <button onClick={onBack}
           className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
           style={{ background: '#7c6cf6' }}>
-          Retour à la connexion
+          {t("Back to login")}
         </button>
       </>)}
 
       {(status === 'expired' || status === 'error') && (<>
-        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: '#fbfbff' }}>Lien expiré</h2>
+        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: '#fbfbff' }}>{t("device.link_expired")}</h2>
         <p className="text-sm text-center mb-6" style={{ color: '#a7abc8' }}>
-          Le lien de vérification a expiré (15 min). Reconnectez-vous pour recevoir un nouveau lien.
+          {t("device.link_expired_msg")}
         </p>
         <button onClick={onBack}
           className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
           style={{ background: '#7c6cf6' }}>
-          Réessayer
+          {t("device.retry")}
         </button>
       </>)}
     </div>
@@ -1035,7 +1036,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     screen === "status"          ? (statusUser?.cinStatus === "approved" ? t("Compte approuvé ✅") : t("Compte refusé ❌")) :
     screen === "forgot"          ? t("Reset Password 🔑") :
     screen === "passwordFound"   ? t("Password Found ✅") :
-    screen === "deviceApproval"  ? "Vérification de l'appareil 🔐" :
+    screen === "deviceApproval"  ? t("device.modal_title") :
     mode === "login"           ? loginTitle :
     isClient ? (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
@@ -1177,7 +1178,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           {mode === "signup" && (
             <div className="mb-5">
               <p className="text-xs font-semibold uppercase tracking-widest text-center mb-3" style={{ color: '#62668a' }}>
-                I AM JOINING AS
+                {t("auth.joining_as")}
               </p>
               <div
                 className="flex items-center w-full rounded-xl p-1 gap-1"
@@ -1374,7 +1375,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,.08)' }} />
                   <span className="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style={{ color: '#62668a' }}>
-                    NATIONAL IDENTITY CARD
+                    {t("auth.cin_section")}
                   </span>
                   <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,.08)' }} />
                 </div>

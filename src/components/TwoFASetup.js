@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 
 const API = process.env.REACT_APP_API_URL || "https://famamennou-server.onrender.com/api";
 
 export default function TwoFASetup({ onDone }) {
+  const { t } = useTranslation();
   const { user, authFetch } = useAuth();
   const [step, setStep] = useState("idle"); // idle | loading | scan | verify | done | disable
   const [qrDataUrl, setQrDataUrl] = useState(null);
@@ -26,16 +28,16 @@ export default function TwoFASetup({ onDone }) {
     try {
       const res  = await authFetch(`${API}/2fa/setup`, { method: "POST", headers: { "Content-Type": "application/json" } });
       const data = await res.json();
-      if (data.error) return setError(data.error === "already_enabled" ? "2FA est déjà activé." : data.error);
+      if (data.error) return setError(data.error === "already_enabled" ? t("twofa.already_enabled") : data.error);
       setQrDataUrl(data.qrDataUrl);
       setSecret(data.secret);
       setStep("scan");
-    } catch { setError("Erreur réseau."); }
+    } catch { setError(t("twofa.network_error")); }
     finally { setBusy(false); }
   }
 
   async function enable() {
-    if (code.length !== 6) return setError("Entrez le code à 6 chiffres.");
+    if (code.length !== 6) return setError(t("twofa.enter_6_digits"));
     setBusy(true); setError(null);
     try {
       const res  = await authFetch(`${API}/2fa/enable`, {
@@ -44,15 +46,15 @@ export default function TwoFASetup({ onDone }) {
         body: JSON.stringify({ token: code, secret }),
       });
       const data = await res.json();
-      if (data.error) return setError("Code invalide. Réessayez.");
+      if (data.error) return setError(t("twofa.invalid_code"));
       setStep("done");
       onDone?.("enabled");
-    } catch { setError("Erreur réseau."); }
+    } catch { setError(t("twofa.network_error")); }
     finally { setBusy(false); }
   }
 
   async function disable() {
-    if (!password) return setError("Entrez votre mot de passe.");
+    if (!password) return setError(t("twofa.enter_password"));
     setBusy(true); setError(null);
     try {
       const res  = await authFetch(`${API}/2fa/disable`, {
@@ -61,10 +63,10 @@ export default function TwoFASetup({ onDone }) {
         body: JSON.stringify({ password }),
       });
       const data = await res.json();
-      if (data.error) return setError(data.error === "wrong_password" ? "Mot de passe incorrect." : data.error);
+      if (data.error) return setError(data.error === "wrong_password" ? t("twofa.wrong_password") : data.error);
       setStep("idle");
       onDone?.("disabled");
-    } catch { setError("Erreur réseau."); }
+    } catch { setError(t("twofa.network_error")); }
     finally { setBusy(false); }
   }
 
@@ -86,9 +88,9 @@ export default function TwoFASetup({ onDone }) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
         <span style={{ fontSize: 22 }}>🔐</span>
         <div>
-          <div style={{ fontWeight: 700, color: text, fontSize: 16 }}>Authentification à deux facteurs (2FA)</div>
+          <div style={{ fontWeight: 700, color: text, fontSize: 16 }}>{t("twofa.title")}</div>
           <div style={{ fontSize: 13, color: sub }}>
-            {step === "done" ? "2FA activé avec succès." : "Protégez votre compte avec Google Authenticator."}
+            {step === "done" ? t("twofa.enabled_success") : t("twofa.protect_account")}
           </div>
         </div>
       </div>
@@ -102,13 +104,13 @@ export default function TwoFASetup({ onDone }) {
       {step === "idle" && (
         <div style={{ display: "flex", gap: 10 }}>
           <button style={btnStyle} onClick={setup} disabled={busy}>
-            {busy ? "Chargement…" : "Activer la 2FA"}
+            {busy ? t("twofa.loading") : t("twofa.enable")}
           </button>
           <button
             style={{ ...btnStyle, background: "linear-gradient(135deg,#ef4444,#dc2626)" }}
             onClick={() => { setStep("disable"); setError(null); }}
           >
-            Désactiver
+            {t("twofa.disable")}
           </button>
         </div>
       )}
@@ -116,14 +118,13 @@ export default function TwoFASetup({ onDone }) {
       {step === "scan" && qrDataUrl && (
         <div style={{ textAlign: "center" }}>
           <p style={{ color: sub, fontSize: 14, marginBottom: 12 }}>
-            1. Ouvrez <strong>Google Authenticator</strong> ou <strong>Authy</strong><br />
-            2. Scannez ce QR code
+            <Trans i18nKey="twofa.scan_steps" components={{ b: <strong />, br: <br /> }} />
           </p>
           <img src={qrDataUrl} alt="QR 2FA" style={{ width: 180, height: 180, borderRadius: 12, marginBottom: 12 }} />
           <p style={{ color: sub, fontSize: 12, marginBottom: 16 }}>
-            Clé manuelle : <code style={{ fontFamily: "monospace", fontSize: 12 }}>{secret}</code>
+            {t("twofa.manual_key")} <code style={{ fontFamily: "monospace", fontSize: 12 }}>{secret}</code>
           </p>
-          <p style={{ color: sub, fontSize: 14, marginBottom: 8 }}>3. Entrez le code à 6 chiffres :</p>
+          <p style={{ color: sub, fontSize: 14, marginBottom: 8 }}>{t("twofa.enter_code_step")}</p>
           <input
             style={inputStyle}
             type="text"
@@ -134,33 +135,33 @@ export default function TwoFASetup({ onDone }) {
             onChange={e => setCode(e.target.value.replace(/\D/g, ""))}
           />
           <button style={{ ...btnStyle, marginTop: 12 }} onClick={enable} disabled={busy || code.length !== 6}>
-            {busy ? "Vérification…" : "Confirmer & Activer"}
+            {busy ? t("twofa.verifying") : t("twofa.confirm_enable")}
           </button>
         </div>
       )}
 
       {step === "done" && (
         <div style={{ textAlign: "center", color: "#10b981", fontWeight: 700, fontSize: 16, padding: "12px 0" }}>
-          ✅ 2FA activé — votre compte est maintenant protégé.
+          {t("twofa.done_msg")}
         </div>
       )}
 
       {step === "disable" && (
         <div>
-          <p style={{ color: sub, fontSize: 14, marginBottom: 8 }}>Confirmez votre mot de passe pour désactiver la 2FA :</p>
+          <p style={{ color: sub, fontSize: 14, marginBottom: 8 }}>{t("twofa.confirm_disable")}</p>
           <input
             style={inputStyle}
             type="password"
-            placeholder="Mot de passe"
+            placeholder={t("Password")}
             value={password}
             onChange={e => setPassword(e.target.value)}
           />
           <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
             <button style={{ ...btnStyle, background: "linear-gradient(135deg,#ef4444,#dc2626)" }} onClick={disable} disabled={busy}>
-              {busy ? "…" : "Désactiver"}
+              {busy ? "…" : t("twofa.disable")}
             </button>
             <button style={{ ...btnStyle, background: "#6b7280" }} onClick={() => { setStep("idle"); setError(null); }}>
-              Annuler
+              {t("twofa.cancel")}
             </button>
           </div>
         </div>
