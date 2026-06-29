@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 
 
-const RECAPTCHA_SITE_KEY = "6Lf-_bMsAAAAAC3k8lKXSuBA1yFrbA4RMV2F4VJi";
+const RECAPTCHA_SITE_KEY = "6LcBezwtAAAAAPrUKtdxbyCPkPMfHDbzY3HDv3Yc";
 const IS_DEV = process.env.REACT_APP_DEV_MODE === 'true';
 
 const TUNISIAN_REGIONS = [
