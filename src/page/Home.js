@@ -161,7 +161,7 @@ function HeroSection() {
         {/* Badge */}
         <style>{`
           @keyframes badgeShimmer {
-            0%   { background-position: -100% center; }
+            0%   { background-position: -200% center; }
             100% { background-position: 200% center; }
           }
           @keyframes badgePulse {
@@ -173,20 +173,12 @@ function HeroSection() {
             50%      { opacity:.6; transform:scale(1.5); }
           }
           .premium-badge-text {
-            background: linear-gradient(
-              90deg,
-              #7c6cf6 0%,
-              #9b8cff 30%,
-              #ffffff 48%,
-              #e0d9ff 52%,
-              #9b8cff 70%,
-              #7c6cf6 100%
-            );
-            background-size: 300% auto;
+            background: linear-gradient(90deg, #b9aeff 0%, #7c6cf6 20%, #3ec2e8 40%, #a78bfa 60%, #7c6cf6 80%, #b9aeff 100%);
+            background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: badgeShimmer 2.4s linear infinite;
+            animation: badgeShimmer 3s linear infinite;
           }
         `}</style>
         <motion.span
