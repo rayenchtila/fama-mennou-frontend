@@ -213,6 +213,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   const [portfolioUrl, setPortfolioUrl] = useState(user.portfolio_url || '');
   const [saving,       setSaving]       = useState(false);
   const [saved,        setSaved]        = useState(false);
+  const [portfolioError, setPortfolioError] = useState('');
   const photoRef = useRef();
 
   useEffect(() => { setBio(user.bio || ''); }, [user.bio]);
@@ -220,6 +221,11 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   useEffect(() => { setPortfolioUrl(user.portfolio_url || ''); }, [user.portfolio_url]);
 
   async function handleSave() {
+    if (!portfolioUrl.trim()) {
+      setPortfolioError('Le lien portfolio est obligatoire.');
+      return;
+    }
+    setPortfolioError('');
     setSaving(true);
     try {
       await updateUser(user.email, { bio, title, portfolio_url: portfolioUrl });
@@ -450,7 +456,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
 
             {/* Portfolio */}
             <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
-              <PFieldLabel>Lien portfolio / profil</PFieldLabel>
+              <PFieldLabel>Lien portfolio / profil <span style={{ color:'#f87171', marginLeft:4 }}>*</span></PFieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:PC.muted, pointerEvents:'none', display:'flex' }}><PIcLink s={15}/></div>
                 <input type="url" value={portfolioUrl} onChange={e => setPortfolioUrl(e.target.value)}
@@ -467,6 +473,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
                 )}
               </div>
               <p style={{ fontSize:11, color:PC.muted, marginTop:7 }}>Behance, GitHub, Notion, Drive…</p>
+              {portfolioError && <p style={{ fontSize:12, color:'#f87171', marginTop:6, fontWeight:600 }}>{portfolioError}</p>}
             </div>
 
             {/* Footer */}
