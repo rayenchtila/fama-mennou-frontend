@@ -377,16 +377,8 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
 
       {/* Actions */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
-        {/* Left: message + review */}
+        {/* Left: review */}
         <div style={{ display:'flex', gap:8 }}>
-          {isFreelancer && !isOwn && (
-            <button onClick={()=>navigate(`/messages?with=${encodeURIComponent(project.client_email)}`)}
-              style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=C.accentBord;e.currentTarget.style.color=C.accent;}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='#9ca3af';}}>
-              <IcMsg /> Message
-            </button>
-          )}
           {isFreelancer && !isOwn && !alreadyReviewed && (
             <button onClick={()=>onReview(project)}
               style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:`1px solid ${C.amberBord}`, color:C.amber, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
@@ -401,8 +393,16 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
           )}
         </div>
 
-        {/* Right: Apply */}
+        {/* Right: Message + Apply */}
         <div style={{ display:'flex', gap:8 }}>
+          {isFreelancer && !isOwn && (
+            <button onClick={()=>navigate(`/messages?with=${encodeURIComponent(project.client_email)}`)}
+              style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=C.accentBord;e.currentTarget.style.color=C.accent;}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='#9ca3af';}}>
+              <IcMsg /> Message
+            </button>
+          )}
           {isFreelancer && !isOwn && !isTaken && (
             hasApplied ? (
               <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:12, background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.25)', color:'#10b981', fontSize:12, fontWeight:700 }}>
