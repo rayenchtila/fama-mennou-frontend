@@ -159,11 +159,43 @@ function HeroSection() {
       <div className="fm-hero-content" style={{ position: 'relative', maxWidth: '880px', margin: '0 auto', textAlign: 'center' }}>
 
         {/* Badge */}
+        <style>{`
+          @keyframes badgeShimmer {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+          @keyframes badgePulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(124,108,246,0.0), 0 0 18px 2px rgba(124,108,246,0.18); }
+            50%      { box-shadow: 0 0 0 4px rgba(124,108,246,0.10), 0 0 28px 6px rgba(62,194,232,0.22); }
+          }
+          @keyframes dotPulse {
+            0%,100% { opacity:1; transform:scale(1); }
+            50%      { opacity:.6; transform:scale(1.5); }
+          }
+          .premium-badge-text {
+            background: linear-gradient(90deg, #b9aeff 0%, #7c6cf6 20%, #3ec2e8 40%, #a78bfa 60%, #7c6cf6 80%, #b9aeff 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: badgeShimmer 3s linear infinite;
+          }
+        `}</style>
         <motion.span
           initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 13px', borderRadius: '999px', background: 'rgba(124,108,246,.12)', border: '1px solid rgba(124,108,246,.3)', fontSize: '12.5px', fontWeight: 600, color: '#b9aeff', marginBottom: '24px' }}>
-          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#9b8cff', boxShadow: '0 0 8px #9b8cff' }} />
-          All-in-one freelance ecosystem in Tunisia
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            padding: '6px 16px', borderRadius: '999px',
+            background: 'linear-gradient(135deg, rgba(124,108,246,0.13) 0%, rgba(62,194,232,0.08) 100%)',
+            border: '1px solid transparent',
+            backgroundClip: 'padding-box',
+            boxShadow: '0 0 0 1px rgba(124,108,246,0.35), 0 0 22px 2px rgba(124,108,246,0.15)',
+            fontSize: '12.5px', fontWeight: 700, marginBottom: '24px',
+            animation: 'badgePulse 3s ease-in-out infinite',
+            backdropFilter: 'blur(8px)',
+          }}>
+          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'linear-gradient(135deg,#9b8cff,#3ec2e8)', boxShadow: '0 0 10px #9b8cff', flexShrink:0, animation:'dotPulse 2s ease-in-out infinite' }} />
+          <span className="premium-badge-text">All-in-one freelance ecosystem in Tunisia</span>
         </motion.span>
 
         {/* H1 */}
