@@ -147,6 +147,8 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   const [resetDone,       setResetDone]       = useState(false);
   const [resendDone,      setResendDone]      = useState(false);
   const [loading,         setLoading]         = useState(false);
+  const [captchaToken,    setCaptchaToken]    = useState(null);
+  const forgotRecaptchaRef = useRef();
 
   async function safeFetch(url, body) {
     const ctrl = new AbortController();
@@ -170,9 +172,10 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   async function handleSendCode() {
     if (!email.trim())                { setError(t("Email is required"));   return; }
     if (!/\S+@\S+\.\S+/.test(email)) { setError(t("Enter a valid email")); return; }
+    if (!IS_DEV && !captchaToken)     { setError(t("Please complete the CAPTCHA")); return; }
     setLoading(true);
     try {
-      let data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
+      let data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase(), captchaToken });
       if (data.error === "serverError") {
         await new Promise(r => setTimeout(r, 3000));
         data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
@@ -342,6 +345,20 @@ function ForgotPasswordScreen({ onBack, onSent }) {
           />
         </>)}
       </div>
+
+      {step === 1 && !IS_DEV && (
+        <div className="mt-4 overflow-x-hidden">
+          <div className="origin-top-left scale-[0.78] w-[128%] sm:scale-100 sm:w-full">
+            <ReCAPTCHA
+              ref={forgotRecaptchaRef}
+              sitekey={RECAPTCHA_SITE_KEY}
+              onChange={token => { setCaptchaToken(token); setError(""); }}
+              onExpired={() => setCaptchaToken(null)}
+              theme="dark"
+            />
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mt-3 flex items-center gap-2 p-3 rounded-xl" style={{ background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)' }}>
@@ -838,7 +855,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       if (!form.skills.trim()) errs.skills = t("Please enter at least one skill");
       if (!form.region)        errs.region = t("Please select your region");
     }
-    if (mode === "login" && !IS_DEV && !captchaToken)
+    if (!IS_DEV && !captchaToken)
       errs.captcha = t("Please complete the CAPTCHA");
     return errs;
   }
@@ -878,7 +895,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         const res = await fetch(`${API}/auth/send-code`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: form.email }),
+          body: JSON.stringify({ email: form.email, captchaToken }),
         });
         const data = await res.json();
         if (data.error) {
@@ -891,9 +908,15 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       }
 
       // LOGIN
-      const result = await login(form.email, form.password);
+      const result = await login(form.email, form.password, undefined, captchaToken);
       if (result.error === "noAccount") {
         setErrors({ email: t("No account found with this email") });
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
+        return;
+      }
+      if (result.error === "accountLocked") {
+        setErrors({ email: t("Account locked due to too many failed attempts. Try again in {{m}} minutes.", { m: result.minutesLeft ?? 30 }) });
         recaptchaRef.current?.reset();
         setCaptchaToken(null);
         return;
@@ -1432,8 +1455,8 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             </div>
           )}
 
-          {/* reCAPTCHA — login only */}
-          {mode === "login" && (
+          {/* reCAPTCHA — login + signup */}
+          {!IS_DEV && (
             <div className="mt-4 overflow-x-hidden">
               <div className="origin-top-left scale-[0.78] w-[128%] sm:scale-100 sm:w-full">
                 <ReCAPTCHA

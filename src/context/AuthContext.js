@@ -164,6 +164,14 @@ export function AuthProvider({ children }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accounts]);
 
+  function safeParseJson(val, fallback) {
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string' && val.startsWith('[')) {
+      try { return JSON.parse(val); } catch { return fallback; }
+    }
+    return val ?? fallback;
+  }
+
   function normalizeUser(r) {
     return {
       email:              r.email,
@@ -175,12 +183,12 @@ export function AuthProvider({ children }) {
       region:             r.region,
       gender:             r.gender     ?? null,
       photo:              r.photo      ?? null,
-      skills:             typeof r.skills === 'string' && r.skills.startsWith('[') ? JSON.parse(r.skills) : (r.skills ?? null),
+      skills:             safeParseJson(r.skills, null),
       bio:                r.bio           ?? null,
       portfolio_url:      r.portfolio_url ?? null,
       hourly_rate:        r.hourly_rate   ?? null,
       title:              r.title         ?? null,
-      portfolio:          typeof r.portfolio === 'string' && r.portfolio.startsWith('[') ? JSON.parse(r.portfolio) : (Array.isArray(r.portfolio) ? r.portfolio : []),
+      portfolio:          safeParseJson(r.portfolio, []),
       cin:                r.cin,
       cinFront:           r.cin_front,
       cinBack:            r.cin_back,
@@ -255,7 +263,7 @@ export function AuthProvider({ children }) {
     return id;
   }
 
-  async function login(email, password, totpCode) {
+  async function login(email, password, totpCode, captchaToken) {
     const deviceId = getOrCreateDeviceId();
 
     try {
@@ -263,10 +271,10 @@ export function AuthProvider({ children }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email: email.toLowerCase(), password, deviceId, totpCode }),
+        body: JSON.stringify({ email: email.toLowerCase(), password, deviceId, totpCode, captchaToken }),
       });
       const data = await res.json();
-      if (data.error) return { error: data.error };
+      if (data.error) return { error: data.error, minutesLeft: data.minutesLeft };
 
       // 2FA required — return pendingToken for TOTP step
       if (data.requiresTOTP) {
