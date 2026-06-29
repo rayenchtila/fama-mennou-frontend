@@ -178,7 +178,7 @@ function HeroSection() {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: badgeShimmer 3s linear infinite;
+            animation: badgeShimmer 6s linear infinite;
           }
         `}</style>
         <motion.span
