@@ -496,7 +496,7 @@ i18n
           "home.ac.hire.title": "Hire Freelancers",
           "home.ac.hire.desc": "Browse verified talent by skill and region.",
           "home.ac.hire.cta": "Browse talent",
-          "home.ac.client.title": "Get Clients",
+          "home.ac.client.title": "Find Clients",
           "home.ac.client.desc": "Find open projects and win contracts.",
           "home.ac.client.cta": "View projects",
           "home.ac.learn.title": "Learn Skills",

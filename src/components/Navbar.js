@@ -27,11 +27,6 @@ function avatarGradient(email = '') {
   return AVATAR_HEX[(email.charCodeAt(0) || 0) % AVATAR_HEX.length];
 }
 
-const NAV_LINKS = [
-  { label: "Hire Freelancers", to: "/freelancers" },
-  { label: "Find Clients",     to: "/clients" },
-  { label: "Courses",          to: "/courses" },
-];
 
 // ── Notification link resolver ─────────────────────────────────────────────────
 async function getNotifLink(n) {
@@ -244,6 +239,11 @@ export default function Navbar({ onLogin }) {
   const location  = useLocation();
   const navigate  = useNavigate();
   const { t, i18n } = useTranslation();
+  const NAV_LINKS = [
+    { label: t('home.ac.hire.title'), to: "/freelancers" },
+    { label: t('home.ac.client.title'), to: "/clients" },
+    { label: t('Courses'), to: "/courses" },
+  ];
   const { user, logout, getUserNotifications, getAdminNotifications,
           markNotificationRead, markAllNotificationsRead, clearNotifications,
           fetchNotifications } = useAuth();
@@ -740,9 +740,9 @@ export default function Navbar({ onLogin }) {
                 {/* ── Discover ── */}
                 <p className="px-3 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>Discover</p>
                 {[
-                  { label: "Hire Freelancers", to: "/freelancers", icon: <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>, icon2: <circle cx="9" cy="7" r="4"/>, color: "#9b8cff" },
-                  { label: "Find Clients",     to: "/clients",    icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#0ea5e9" },
-                  { label: "Courses",          to: "/courses",    icon: <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>, icon2: <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>, color: "#10b981" },
+                  { label: t('home.ac.hire.title'),   to: "/freelancers", icon: <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>, icon2: <circle cx="9" cy="7" r="4"/>, color: "#9b8cff" },
+                  { label: t('home.ac.client.title'), to: "/clients",    icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#0ea5e9" },
+                  { label: t('Courses'),              to: "/courses",    icon: <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>, icon2: <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>, color: "#10b981" },
                 ].map(item => {
                   const active = location.pathname === item.to;
                   return (
