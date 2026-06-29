@@ -254,9 +254,11 @@ export default function PublicProfilePage() {
                   </p>
                 )}
                 <div style={{ display:'flex', flexWrap:'wrap', gap:10, alignItems:'center' }}>
-                  <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:13, color:C.muted, fontWeight:500 }}>
-                    <IcMail/> {profile.email}
-                  </span>
+                  {isOwnProfile && (
+                    <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:13, color:C.muted, fontWeight:500 }}>
+                      <IcMail/> {profile.email}
+                    </span>
+                  )}
                   {profile.region && (
                     <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:13, color:C.sub, fontWeight:600, background:'rgba(255,255,255,0.05)', border:`1px solid ${C.border}`, borderRadius:8, padding:'4px 10px' }}>
                       <IcPin/> {profile.region}
