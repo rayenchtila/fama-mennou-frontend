@@ -846,31 +846,6 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 }
               </p>
             </div>
-            {/* Header action buttons */}
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all"
-                style={{ color: '#62668a', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
-                title="Voice call"
-                onMouseEnter={e => { e.currentTarget.style.color='#34d399'; e.currentTarget.style.borderColor='rgba(52,211,153,0.3)'; e.currentTarget.style.background='rgba(52,211,153,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color='#62668a'; e.currentTarget.style.borderColor='rgba(255,255,255,0.07)'; e.currentTarget.style.background='rgba(255,255,255,0.04)'; }}
-              >
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.7 9.68 19.79 19.79 0 01.65 5.07a2 2 0 012-2.18H5.5a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 10.4a16 16 0 006.29 6.29l1.12-1.12a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.75 2.1z"/>
-                </svg>
-              </button>
-              <button
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all"
-                style={{ color: '#62668a', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
-                title="Video call"
-                onMouseEnter={e => { e.currentTarget.style.color='#3ec2e8'; e.currentTarget.style.borderColor='rgba(62,194,232,0.3)'; e.currentTarget.style.background='rgba(62,194,232,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color='#62668a'; e.currentTarget.style.borderColor='rgba(255,255,255,0.07)'; e.currentTarget.style.background='rgba(255,255,255,0.04)'; }}
-              >
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
-                </svg>
-              </button>
-            </div>
           </div>
 
           {/* Admin: course payment status (3 buttons) */}
