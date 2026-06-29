@@ -317,22 +317,9 @@ export default function PublicProfilePage() {
             4. SERVICES & RATES — always rendered, empty state when no data
             ════════════════ */}
         <SectionCard title={t('Services & Rates', 'Services & Rates')} accent={C.emerald}>
-          {(profile.hourly_rate || portfolioHref)
+          {portfolioHref
             ? (
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {profile.hourly_rate && (
-                  <div style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 18px', borderRadius:14, background:C.accentDim, border:`1px solid ${C.accentBord}` }}>
-                    <div style={{ width:38, height:38, borderRadius:10, background:'rgba(124,108,246,0.15)', display:'flex', alignItems:'center', justifyContent:'center', color:C.accentMid, flexShrink:0 }}>
-                      <IcBriefcase/>
-                    </div>
-                    <div>
-                      <p style={{ fontSize:10, fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 2px' }}>{t('Hourly rate', 'Hourly rate')}</p>
-                      <p style={{ fontSize:18, fontWeight:900, color:C.accentMid, margin:0 }}>
-                        {profile.hourly_rate} <span style={{ fontSize:12, fontWeight:600, color:C.muted }}>TND/h</span>
-                      </p>
-                    </div>
-                  </div>
-                )}
                 {portfolioHref && (
                   <a href={portfolioHref} target="_blank" rel="noopener noreferrer"
                     style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 18px', borderRadius:14, textDecoration:'none', background:C.emeraldDim, border:`1px solid ${C.emeraldBord}`, transition:'all .18s' }}
