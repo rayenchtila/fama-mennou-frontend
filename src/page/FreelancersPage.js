@@ -110,7 +110,7 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
       onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(124,108,246,0.35)'; e.currentTarget.style.background='rgba(124,108,246,0.045)'; e.currentTarget.style.boxShadow='0 16px 48px -12px rgba(124,108,246,0.2), 0 0 0 1px rgba(124,108,246,0.12)'; e.currentTarget.style.transform='translateY(-2px)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.075)'; e.currentTarget.style.background='rgba(255,255,255,0.026)'; e.currentTarget.style.boxShadow='none'; e.currentTarget.style.transform='translateY(0)'; }}>
 
-      <div style={{ display:'flex', gap:20, alignItems:'flex-start' }}>
+      <div style={{ display:'flex', gap:20, alignItems:'stretch' }}>
 
         {/* Avatar — clickable → profile */}
         <div
