@@ -225,6 +225,8 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     if (!title.trim())        { setPortfolioError('Le titre professionnel est obligatoire.'); return; }
     if (!bio.trim())          { setPortfolioError('La biographie est obligatoire.'); return; }
     if (!portfolioUrl.trim()) { setPortfolioError('Le lien portfolio est obligatoire.'); return; }
+    try { const u = new URL(portfolioUrl.trim()); if (!['http:','https:'].includes(u.protocol)) throw new Error(); }
+    catch { setPortfolioError('Le lien portfolio doit être une URL valide (ex: https://monsite.com).'); return; }
     setPortfolioError('');
     setSaving(true);
     try {
