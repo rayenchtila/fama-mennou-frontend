@@ -106,9 +106,10 @@ export default function ClientDashboard() {
 
   async function handleSave(e) {
     e.preventDefault();
-    if (!name.trim())   { setSaveError('Le nom complet est obligatoire.');  return; }
-    if (!region.trim()) { setSaveError('La région est obligatoire.');        return; }
-    if (!bio.trim())    { setSaveError('La biographie est obligatoire.');    return; }
+    if (!photo && !user.photo) { setSaveError('La photo de profil est obligatoire.'); return; }
+    if (!name.trim())         { setSaveError('Le nom complet est obligatoire.');      return; }
+    if (!region.trim())       { setSaveError('La région est obligatoire.');           return; }
+    if (!bio.trim())          { setSaveError('La biographie est obligatoire.');       return; }
     setSaveError('');
     setSaving(true);
     try {

@@ -221,8 +221,9 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   useEffect(() => { setPortfolioUrl(user.portfolio_url || ''); }, [user.portfolio_url]);
 
   async function handleSave() {
-    if (!title.trim()) { setPortfolioError('Le titre professionnel est obligatoire.'); return; }
-    if (!bio.trim())   { setPortfolioError('La biographie est obligatoire.'); return; }
+    if (!photo && !user.photo) { setPortfolioError('La photo de profil est obligatoire.'); return; }
+    if (!title.trim())        { setPortfolioError('Le titre professionnel est obligatoire.'); return; }
+    if (!bio.trim())          { setPortfolioError('La biographie est obligatoire.'); return; }
     if (!portfolioUrl.trim()) { setPortfolioError('Le lien portfolio est obligatoire.'); return; }
     setPortfolioError('');
     setSaving(true);
