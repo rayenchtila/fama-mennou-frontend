@@ -237,7 +237,6 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
             {availLabel}
           </div>
 
-          <div style={{ height:1, background:'rgba(255,255,255,0.06)', borderRadius:1 }} />
 
           {isOwn ? (
             <a href="/dashboard?tab=profile"
