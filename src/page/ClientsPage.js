@@ -388,9 +388,6 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
               Avis
             </button>
           )}
-          {isFreelancer && alreadyReviewed && (
-            <span style={{ fontSize:11, color:'#6b7280', alignSelf:'center' }}>Avis soumis</span>
-          )}
         </div>
 
         {/* Right: Message + Apply */}
