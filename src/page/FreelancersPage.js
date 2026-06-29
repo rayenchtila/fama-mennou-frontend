@@ -249,7 +249,7 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
           ) : currentUser ? (
             <>
               <button onClick={() => navigate(`/messages?with=${encodeURIComponent(freelancer.email)}`)}
-                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'10px 0', borderRadius:12, background:'none', border:'1px solid rgba(124,108,246,0.35)', color:'#b5aaff', fontSize:13, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
+                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'10px 0', borderRadius:12, background:'none', border:'1px solid rgba(124,108,246,0.35)', color:'#b5aaff', fontSize:13, fontWeight:700, cursor:'pointer', transition:'all .2s', marginTop:'auto' }}
                 onMouseEnter={e => { e.currentTarget.style.background='rgba(124,108,246,0.12)'; e.currentTarget.style.borderColor='rgba(124,108,246,0.6)'; e.currentTarget.style.color='#fff'; }}
                 onMouseLeave={e => { e.currentTarget.style.background='none'; e.currentTarget.style.borderColor='rgba(124,108,246,0.35)'; e.currentTarget.style.color='#b5aaff'; }}>
                 <IcChat /> {t('Message')}
