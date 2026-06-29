@@ -316,7 +316,7 @@ export default function PublicProfilePage() {
         {/* ════════════════
             4. SERVICES & RATES — always rendered, empty state when no data
             ════════════════ */}
-        <SectionCard title={t('Services & Rates', 'Services & Rates')} accent={C.emerald}>
+        <SectionCard title={t('Portfolio', 'Portfolio')} accent={C.emerald}>
           {portfolioHref
             ? (
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -337,7 +337,7 @@ export default function PublicProfilePage() {
                 )}
               </div>
             )
-            : <EmptyState text={t('No services listed yet.', 'No services listed yet.')}/>
+            : <EmptyState text={t('No portfolio link added yet.', 'No portfolio link added yet.')}/>
           }
         </SectionCard>
 
