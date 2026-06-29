@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const FEATURED_FREELANCERS = [
   {
@@ -146,6 +147,10 @@ function HeroSection() {
   const [typeIdx, setTypeIdx] = useState(0);
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const SEARCH_LABELS = [t('home.search.tab1'), t('home.search.tab2'), t('home.search.tab3')];
+  const SEARCH_PLACEHOLDERS = [t('home.search.ph1'), t('home.search.ph2'), t('home.search.ph3')];
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -195,16 +200,16 @@ function HeroSection() {
             backdropFilter: 'blur(8px)',
           }}>
           <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'linear-gradient(135deg,#9b8cff,#3ec2e8)', boxShadow: '0 0 10px #9b8cff', flexShrink:0, animation:'dotPulse 2s ease-in-out infinite' }} />
-          <span className="premium-badge-text">All-in-one freelance ecosystem in Tunisia</span>
+          <span className="premium-badge-text">{t('home.badge')}</span>
         </motion.span>
 
         {/* H1 */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
           style={{ fontWeight: 800, fontSize: 'clamp(34px,5.4vw,56px)', lineHeight: 1.06, letterSpacing: '-.03em', margin: '0 0 18px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-          Hire Talent. Find Clients.<br />
+          {t('home.hero.title1')}<br />
           <span style={{ background: 'linear-gradient(110deg,#9b8cff,#6c8cf6 60%,#3ec2e8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-            Learn Skills.
+            {t('home.hero.title2')}
           </span>
         </motion.h1>
 
@@ -212,7 +217,7 @@ function HeroSection() {
         <motion.p
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
           style={{ fontSize: 'clamp(16px,2vw,19px)', color: '#a7abc8', maxWidth: '520px', margin: '0 auto 34px', lineHeight: 1.55 }}>
-          One platform to hire verified freelancers, win projects, and grow your skills.
+          {t('home.hero.subtitle')}
         </motion.p>
 
         {/* Search */}
@@ -241,7 +246,7 @@ function HeroSection() {
             />
             <button type="submit"
               style={{ padding: '11px 22px', borderRadius: '10px', background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', flex: 'none', boxShadow: '0 6px 16px -5px rgba(124,108,246,.7)' }}>
-              Search
+              {t('home.search.btn')}
             </button>
           </form>
         </motion.div>
@@ -253,17 +258,17 @@ function HeroSection() {
           <Link to="/freelancers"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: '#7c6cf6', color: '#fff', border: 'none', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', boxShadow: '0 8px 22px -8px rgba(124,108,246,.7)', textDecoration: 'none' }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Hire Freelancers
+            {t('home.cta.hire_fl')}
           </Link>
           <Link to="/clients"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'rgba(255,255,255,.06)', color: '#e7e8f4', border: '1px solid rgba(255,255,255,.16)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
-            Find Clients
+            {t('home.cta.find_cl')}
           </Link>
           <Link to="/courses"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'rgba(255,255,255,.06)', color: '#e7e8f4', border: '1px solid rgba(255,255,255,.16)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            Learn Skills
+            {t('home.cta.learn')}
           </Link>
         </motion.div>
 
@@ -274,10 +279,16 @@ function HeroSection() {
 
 // ── Section: Action Cards ─────────────────────────────────────────────────────
 function ActionCardsSection() {
+  const { t } = useTranslation();
+  const cards = [
+    { to: '/freelancers', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, title: t('home.ac.hire.title'), desc: t('home.ac.hire.desc'), cta: t('home.ac.hire.cta') },
+    { to: '/clients',     icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>, title: t('home.ac.client.title'), desc: t('home.ac.client.desc'), cta: t('home.ac.client.cta') },
+    { to: '/courses',     icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, title: t('home.ac.learn.title'), desc: t('home.ac.learn.desc'), cta: t('home.ac.learn.cta') },
+  ];
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '16px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '20px' }}>
-        {ACTION_CARDS.map((card, i) => (
+        {cards.map((card, i) => (
           <motion.div key={card.to}
             initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.5, delay: i * 0.1 }}>
@@ -317,16 +328,22 @@ function StepArrow() {
 
 // ── Section: How It Works ─────────────────────────────────────────────────────
 function HowItWorksSection() {
+  const { t } = useTranslation();
+  const steps = [
+    { num: '1', title: t('home.hiw.s1t'), desc: t('home.hiw.s1d') },
+    { num: '2', title: t('home.hiw.s2t'), desc: t('home.hiw.s2d') },
+    { num: '3', title: t('home.hiw.s3t'), desc: t('home.hiw.s3d') },
+  ];
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ textAlign: 'center', marginBottom: '36px' }}>
         <h2 style={{ fontWeight: 800, fontSize: 'clamp(24px,3.4vw,32px)', letterSpacing: '-.025em', margin: '0 0 8px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-          How it works ?
+          {t('home.hiw.title')}
         </h2>
-        <p style={{ fontSize: '16px', color: '#a7abc8', margin: 0 }}>Three steps to get started.</p>
+        <p style={{ fontSize: '16px', color: '#a7abc8', margin: 0 }}>{t('home.hiw.sub')}</p>
       </div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        {HOW_IT_WORKS.map((step, i) => (
+        {steps.map((step, i) => (
           <React.Fragment key={step.num}>
             <motion.div
               initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -348,18 +365,19 @@ function HowItWorksSection() {
 
 // ── Section: Featured Freelancers ─────────────────────────────────────────────
 function FeaturedFreelancersSection() {
+  const { t } = useTranslation();
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-            Featured freelancers
+            {t('home.ff.title')}
           </h2>
-          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>Top-rated talent, ready to start.</p>
+          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>{t('home.ff.sub')}</p>
         </div>
         <Link to="/freelancers"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.14)', color: '#c2c5dd', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
-          View all <ChevronRight />
+          {t('home.ff.view_all')} <ChevronRight />
         </Link>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: '18px' }}>
@@ -396,7 +414,7 @@ function FeaturedFreelancersSection() {
             {/* Footer */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
               <div style={{ fontSize: '13px', color: '#7e82a0', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                <ClockIcon /> Responds in {f.responds}
+                <ClockIcon /> {t('home.ff.responds', { time: f.responds })}
               </div>
               <div style={{ fontSize: '14px', color: '#fbfbff' }}>
                 <strong style={{ fontWeight: 700 }}>{f.rate} TND</strong><span style={{ color: '#7e82a0', fontWeight: 500 }}>/h</span>
@@ -411,18 +429,19 @@ function FeaturedFreelancersSection() {
 
 // ── Section: Trending Projects ────────────────────────────────────────────────
 function TrendingProjectsSection() {
+  const { t } = useTranslation();
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-            Trending projects
+            {t('home.tp.title')}
           </h2>
-          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>Fresh opportunities from verified clients.</p>
+          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>{t('home.tp.sub')}</p>
         </div>
         <Link to="/clients"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.14)', color: '#c2c5dd', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
-          View all <ChevronRight />
+          {t('home.tp.view_all')} <ChevronRight />
         </Link>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(330px,1fr))', gap: '18px' }}>
@@ -456,10 +475,10 @@ function TrendingProjectsSection() {
             </div>
             {/* Footer */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
-              <span style={{ fontSize: '12.5px', color: '#7e82a0' }}>{p.proposals} proposals</span>
+              <span style={{ fontSize: '12.5px', color: '#7e82a0' }}>{t('home.tp.proposals', { count: p.proposals })}</span>
               <Link to="/clients"
                 style={{ padding: '8px 18px', borderRadius: '9px', background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '13.5px', textDecoration: 'none' }}>
-                Apply
+                {t('home.tp.apply')}
               </Link>
             </div>
           </motion.div>
@@ -471,18 +490,19 @@ function TrendingProjectsSection() {
 
 // ── Section: Courses Preview ──────────────────────────────────────────────────
 function CoursesPreviewSection() {
+  const { t } = useTranslation();
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-            Learn from experts
+            {t('home.cp.title')}
           </h2>
-          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>Courses taught by top freelancers.</p>
+          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>{t('home.cp.sub')}</p>
         </div>
         <Link to="/courses"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.14)', color: '#c2c5dd', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
-          View all <ChevronRight />
+          {t('home.cp.view_all')} <ChevronRight />
         </Link>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: '18px' }}>
@@ -520,11 +540,12 @@ function CoursesPreviewSection() {
 
 // ── Section: Testimonials ─────────────────────────────────────────────────────
 function TestimonialsSection() {
+  const { t } = useTranslation();
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ textAlign: 'center', marginBottom: '34px' }}>
         <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 8px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-          Loved by the community
+          {t('home.test.title')}
         </h2>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '18px' }}>
@@ -566,17 +587,25 @@ function ChevronDown({ size = 14, rotated = false }) {
 function FAQSection() {
   const [openIdx, setOpenIdx] = useState(null);
   const toggle = useCallback((i) => setOpenIdx(prev => prev === i ? null : i), []);
+  const { t } = useTranslation();
+  const faqItems = [
+    { question: t('home.faq.q1'), answer: t('home.faq.a1') },
+    { question: t('home.faq.q2'), answer: t('home.faq.a2') },
+    { question: t('home.faq.q3'), answer: t('home.faq.a3') },
+    { question: t('home.faq.q4'), answer: t('home.faq.a4') },
+    { question: t('home.faq.q5'), answer: t('home.faq.a5') },
+  ];
 
   return (
     <section className="fm-section" style={{ maxWidth: '760px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ textAlign: 'center', marginBottom: '34px' }}>
         <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 8px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-          Frequently asked questions
+          {t('home.faq.title')}
         </h2>
-        <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>Everything you need to know to get started.</p>
+        <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>{t('home.faq.sub')}</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {FAQ_ITEMS.map((q, i) => {
+        {faqItems.map((q, i) => {
           const isOpen = openIdx === i;
           return (
             <motion.div key={q.question}
@@ -605,6 +634,7 @@ function FAQSection() {
 
 // ── Section: Final CTA ────────────────────────────────────────────────────────
 function CTASection() {
+  const { t } = useTranslation();
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px', paddingBottom: '80px' }}>
       <motion.div
@@ -614,19 +644,19 @@ function CTASection() {
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(440px 240px at 12% 0%,rgba(255,255,255,.2),transparent 70%),radial-gradient(420px 240px at 90% 100%,rgba(255,255,255,.12),transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative' }}>
           <h2 style={{ fontWeight: 800, fontSize: 'clamp(26px,4vw,38px)', letterSpacing: '-.025em', margin: '0 0 12px', color: '#fff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-            Ready to get started?
+            {t('home.final.title')}
           </h2>
           <p style={{ fontSize: '17px', color: 'rgba(255,255,255,.88)', maxWidth: '460px', margin: '0 auto 30px' }}>
-            Join thousands of freelancers and clients across Tunisia.
+            {t('home.final.sub')}
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/freelancers"
               style={{ padding: '13px 26px', borderRadius: '12px', background: '#fff', color: '#6a5cf0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '15px', boxShadow: '0 8px 20px -8px rgba(0,0,0,.4)', textDecoration: 'none' }}>
-              Join as Freelancer
+              {t('home.final.join_fl')}
             </Link>
             <Link to="/clients"
               style={{ padding: '13px 26px', borderRadius: '12px', background: 'rgba(255,255,255,.16)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '15px', textDecoration: 'none' }}>
-              Hire Talent
+              {t('home.final.hire')}
             </Link>
           </div>
         </div>
