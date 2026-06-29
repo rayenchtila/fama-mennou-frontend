@@ -31,8 +31,8 @@ const JobsPage = () => {
           label={t("Jobs")}
         />
         <div className="text-center py-16 text-slate-400 dark:text-slate-500">
-          <p className="text-lg font-medium">Aucun emploi trouvé</p>
-          <p className="text-sm mt-1">Aucune offre disponible pour le moment.</p>
+          <p className="text-lg font-medium">{t("jobs.none_found")}</p>
+          <p className="text-sm mt-1">{t("jobs.none_available")}</p>
         </div>
       </div>
     </div>

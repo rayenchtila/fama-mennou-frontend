@@ -1,5 +1,6 @@
 // components/Input.jsx
 import { forwardRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const Input = forwardRef(
   (
@@ -19,6 +20,7 @@ const Input = forwardRef(
     },
     ref
   ) => {
+    const { t } = useTranslation();
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === "password";
     const inputType = isPassword ? (showPassword ? "text" : "password") : type;
@@ -75,7 +77,7 @@ const Input = forwardRef(
               type="button"
               tabIndex={-1}
               onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-label={showPassword ? t("input.hide_password") : t("input.show_password")}
               style={{
                 position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',

@@ -1,6 +1,7 @@
 // components/JobCard.jsx
 import Badge from "./Badge";
 import Button from "./Button";
+import { useTranslation } from "react-i18next";
  
 const TYPE_COLOR = {
   "Full-time": "emerald",
@@ -16,6 +17,7 @@ const LOGO_COLORS = [
 ];
  
 export default function JobCard({ title, company, location, salary, type, tags = [], logo, postedAt, remote, description, onApply, onSave, saved = false, index = 0 }) {
+  const { t } = useTranslation();
   const job = { title, company, location, salary, type, tags, logo, postedAt, remote, description };
  
   return (
@@ -37,7 +39,7 @@ export default function JobCard({ title, company, location, salary, type, tags =
             <button
               onClick={() => onSave?.(job)}
               className={["shrink-0 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-200 active:scale-90", saved ? "text-rose-500 bg-rose-50 dark:bg-rose-900/20" : "text-slate-300 dark:text-slate-600 hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20"].join(" ")}
-              aria-label="Save job"
+              aria-label={t("job.save")}
             >
               <svg className="w-4 h-4" fill={saved ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -75,7 +77,7 @@ export default function JobCard({ title, company, location, salary, type, tags =
       {/* Badges row */}
       <div className="flex flex-wrap gap-1.5 mb-4">
         <Badge color={TYPE_COLOR[type] ?? "slate"} size="xs">{type}</Badge>
-        {remote && <Badge color="indigo" size="xs">Remote</Badge>}
+        {remote && <Badge color="indigo" size="xs">{t("job.remote")}</Badge>}
         {tags.slice(0, 3).map((tag) => (
           <Badge key={tag} color="slate" size="xs">{tag}</Badge>
         ))}
@@ -84,7 +86,7 @@ export default function JobCard({ title, company, location, salary, type, tags =
       {/* Apply button */}
       <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
         <Button variant="primary" size="sm" fullWidth onClick={() => onApply?.(job)}>
-          Apply Now
+          {t("job.apply_now")}
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
