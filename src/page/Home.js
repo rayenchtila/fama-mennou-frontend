@@ -161,8 +161,8 @@ function HeroSection() {
         {/* Badge */}
         <style>{`
           @keyframes badgeShimmer {
-            0%   { background-position: -200% center; }
-            100% { background-position: 200% center; }
+            0%   { background-position: 200% center; }
+            100% { background-position: -200% center; }
           }
           @keyframes badgePulse {
             0%,100% { box-shadow: 0 0 0 0 rgba(124,108,246,0.0), 0 0 18px 2px rgba(124,108,246,0.18); }
