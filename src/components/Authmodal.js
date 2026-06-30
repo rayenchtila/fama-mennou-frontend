@@ -1007,13 +1007,15 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       // Registration actually failed — show the real reason instead of a fake success screen
       if (regResult?.error) {
         const messages = {
-          emailTaken:     t("An account with this email already exists."),
-          passwordTooShort: t("Password must be at least 8 characters."),
-          missing:        t("Please fill in all required fields."),
-          networkError:   t("Network error. Please check your connection and try again."),
-          serverError:    t("Something went wrong. Please try again."),
+          emailTaken:        t("An account with this email already exists."),
+          passwordTooShort:  t("Password must be at least 8 characters."),
+          missing:           t("Please fill in all required fields."),
+          networkError:      t("Network error. Please check your connection and try again."),
+          serverError:       t("Something went wrong. Please try again."),
+          too_many_requests: t("Too many attempts. Please wait a few minutes and try again."),
+          validation_error:  t("Some information you entered isn't valid. Please check the form and try again."),
         };
-        setCodeError(messages[regResult.error] || t("Registration failed. Please try again."));
+        setCodeError(messages[regResult.error] || t("Registration failed ({{error}}). Please try again.", { error: regResult.error }));
         return;
       }
 
