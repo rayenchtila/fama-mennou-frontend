@@ -18,8 +18,8 @@ function applyTheme(isDark) {
 }
 
 export function ThemeProvider({ children }) {
-  const [mode, setModeState] = useState(() => localStorage.getItem('fm_theme') || 'system');
-  const [isDark, setIsDark] = useState(() => resolveIsDark(localStorage.getItem('fm_theme') || 'system'));
+  const [mode, setModeState] = useState(() => localStorage.getItem('fm_theme') || 'dark');
+  const [isDark, setIsDark] = useState(() => resolveIsDark(localStorage.getItem('fm_theme') || 'dark'));
 
   const setMode = (m) => {
     const next = resolveIsDark(m);
