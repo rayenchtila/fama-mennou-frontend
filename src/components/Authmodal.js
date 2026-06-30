@@ -842,7 +842,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       errs.email = t("Enter a valid email");
     if (!form.password)
       errs.password = t("Password is required");
-    else if (form.password.length < 6)
+    else if (mode === "signup" && form.password.length < 8)
+      errs.password = t("Password must be at least 8 characters");
+    else if (mode === "signup" && !/[0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(form.password))
+      errs.password = t("Password must contain at least one number or special character");
+    else if (mode === "login" && form.password.length < 6)
       errs.password = t("At least 6 characters");
     if (mode === "signup" && form.password !== form.confirmPassword)
       errs.confirmPassword = t("Passwords do not match");
