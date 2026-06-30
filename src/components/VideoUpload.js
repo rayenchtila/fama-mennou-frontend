@@ -2,9 +2,11 @@
 // Usage: <VideoUpload onUpload={(url) => setVideoUrl(url)} />
 
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { uploadVideo, validateVideoFile, formatFileSize } from '../utils/upload';
 
 export default function VideoUpload({ onUpload, folder = 'famamennou/videos', disabled = false }) {
+  const { t } = useTranslation();
   const [state,     setState]    = useState('idle'); // idle | uploading | done | error
   const [progress,  setProgress] = useState(0);
   const [fileName,  setFileName] = useState('');
@@ -72,8 +74,8 @@ export default function VideoUpload({ onUpload, folder = 'famamennou/videos', di
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
           </svg>
           <div className="text-center">
-            <p className="text-sm font-semibold">Cliquez pour importer une vidéo MP4</p>
-            <p className="text-xs opacity-60 mt-0.5">MP4, WebM, MOV — max 500 MB</p>
+            <p className="text-sm font-semibold">{t('vu.click_to_upload')}</p>
+            <p className="text-xs opacity-60 mt-0.5">{t('vu.formats_hint')}</p>
           </div>
         </button>
       )}
@@ -98,7 +100,7 @@ export default function VideoUpload({ onUpload, folder = 'famamennou/videos', di
             />
           </div>
           <p className="text-xs text-slate-400 text-center">
-            {progress < 100 ? 'Envoi en cours… ne fermez pas cette page.' : 'Traitement…'}
+            {progress < 100 ? t('vu.uploading') : t('vu.processing')}
           </p>
         </div>
       )}
@@ -111,14 +113,14 @@ export default function VideoUpload({ onUpload, folder = 'famamennou/videos', di
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
             </svg>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Vidéo uploadée ✅</p>
+              <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">{t('vu.uploaded')}</p>
               <p className="text-xs text-emerald-600 dark:text-emerald-500 truncate">{fileName}</p>
             </div>
             <button
               type="button"
               onClick={reset}
               className="text-slate-400 hover:text-rose-500 transition-colors shrink-0"
-              title="Supprimer et choisir une autre vidéo"
+              title={t('vu.remove_choose_other')}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -153,7 +155,7 @@ export default function VideoUpload({ onUpload, folder = 'famamennou/videos', di
             onClick={reset}
             className="w-full py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
           >
-            ↩ Réessayer
+            {t('vu.retry')}
           </button>
         </div>
       )}

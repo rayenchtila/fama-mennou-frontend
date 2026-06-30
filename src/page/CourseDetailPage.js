@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { uploadVideo, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
@@ -93,6 +94,7 @@ function PlaySvg({size=18,col=C.accent}){
 
 /* ═══════════════════════════════════════════════════════ */
 export default function CourseDetailPage() {
+  const { t }      = useTranslation();
   const { id }     = useParams();
   const navigate   = useNavigate();
   const { user }   = useAuth();
@@ -199,9 +201,9 @@ export default function CourseDetailPage() {
       try{
         const r=await fetch(`${API}/course-purchases`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({buyer_email:user.email,course_id:id})});
         const d=await r.json();
-        if(d.success){setPurchases(p=>[...p,{course_id:id,lesson_id:null}]);setBuyMsg('Inscription réussie !');setBuyMsgOk(true);sendAdmin(course?.title||`Cours #${id}`,id,'free');}
-        else{setBuyMsg('Inscription échouée. Réessaie.');setBuyMsgOk(false);}
-      }catch{setBuyMsg('Inscription échouée. Réessaie.');setBuyMsgOk(false);}
+        if(d.success){setPurchases(p=>[...p,{course_id:id,lesson_id:null}]);setBuyMsg(t('cdp.enroll_success'));setBuyMsgOk(true);sendAdmin(course?.title||`Cours #${id}`,id,'free');}
+        else{setBuyMsg(t('cdp.enroll_failed'));setBuyMsgOk(false);}
+      }catch{setBuyMsg(t('cdp.enroll_failed'));setBuyMsgOk(false);}
       finally{setBuying(false);}
       return;
     }
@@ -212,13 +214,13 @@ export default function CourseDetailPage() {
       if(d.success){
         if(d.already_has_access){setPurchases(p=>[...p,{course_id:id,lesson_id:null}]);}
         else{
-          setRequestStatus(d.status||'pending');setBuyMsg('Demande envoyée ! Redirection vers le chat…');setBuyMsgOk(true);
+          setRequestStatus(d.status||'pending');setBuyMsg(t('cdp.request_sent'));setBuyMsgOk(true);
           const _d=Number(course?.discount_pct)||0,_fp=Number(course?.full_price)||0;
           await sendAdmin(course?.title||`Cours #${id}`,id,'paid',(_d>0?_fp*(1-_d/100):_fp).toFixed(2));
           navigate('/messages?with=admin@famamennou.com');
         }
-      }else{setBuyMsg('Demande échouée. Réessaie.');setBuyMsgOk(false);}
-    }catch{setBuyMsg('Demande échouée. Réessaie.');setBuyMsgOk(false);}
+      }else{setBuyMsg(t('cdp.request_failed'));setBuyMsgOk(false);}
+    }catch{setBuyMsg(t('cdp.request_failed'));setBuyMsgOk(false);}
     finally{setRequesting(false);}
   }
 
@@ -269,19 +271,19 @@ export default function CourseDetailPage() {
       const r=await fetch(`${API}/course-reviews`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({course_id:id,reviewer_email:user.email,rating:myRating,review_text:myReview})});
       const d=await r.json();
       if(d.id){setReviews(p=>[{...d,reviewer_name:user.name},...p.filter(x=>x.reviewer_email!==user.email)]);setMyRating(0);setMyReview('');setCourse(p=>({...p,avg_rating:d.rating}));}
-      else alert(d.error||'Failed');
+      else alert(d.error||t('cdp.failed'));
     }catch{}finally{setSubmitting(false);}
   }
 
   async function submitReply(rid,text){
-    const t=(text||'').trim();if(!t||!user)return;
+    const txt=(text||'').trim();if(!txt||!user)return;
     setReplySend(true);
     try{
-      const r=await fetch(`${API}/course-reviews/${rid}/reply`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({instructor_email:user.email,reply:t})});
+      const r=await fetch(`${API}/course-reviews/${rid}/reply`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({instructor_email:user.email,reply:txt})});
       const d=await r.json();
       if(d.id){setReviews(p=>p.map(rv=>rv.id===rid?{...rv,instructor_reply:d.instructor_reply,replied_at:d.replied_at}:rv));setReplyingId(null);setReplyDraft(p=>{const n={...p};delete n[rid];return n;});}
-      else alert(d.error||'Erreur');
-    }catch(e){alert('Erreur réseau: '+e.message);}
+      else alert(d.error||t('cdp.error'));
+    }catch(e){alert(t('cdp.network_error')+': '+e.message);}
     finally{setReplySend(false);}
   }
 
@@ -290,7 +292,7 @@ export default function CourseDetailPage() {
     <div style={{minHeight:'100vh',background:C.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
       <style>{GS}</style>
       <div style={{width:42,height:42,borderRadius:'50%',border:`3px solid ${C.border}`,borderTopColor:C.accent,animation:'cdSpin .85s linear infinite'}}/>
-      <p style={{color:C.muted,fontSize:14,fontWeight:600}}>Chargement du cours…</p>
+      <p style={{color:C.muted,fontSize:14,fontWeight:600}}>{t('cdp.loading')}</p>
     </div>
   );
 
@@ -300,8 +302,8 @@ export default function CourseDetailPage() {
       <div style={{width:72,height:72,borderRadius:20,background:'rgba(124,108,246,.1)',border:'1px solid rgba(124,108,246,.25)',display:'flex',alignItems:'center',justifyContent:'center'}}>
         <svg width={34} height={34} fill="none" viewBox="0 0 24 24" stroke="rgba(124,108,246,0.7)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
-      <p style={{color:C.text,fontWeight:700,fontSize:18}}>Cours introuvable</p>
-      <button onClick={()=>navigate('/courses')} style={{color:C.accent,background:'none',border:'none',cursor:'pointer',fontSize:14,fontWeight:600}}>← Parcourir les cours</button>
+      <p style={{color:C.text,fontWeight:700,fontSize:18}}>{t('cdp.not_found')}</p>
+      <button onClick={()=>navigate('/courses')} style={{color:C.accent,background:'none',border:'none',cursor:'pointer',fontSize:14,fontWeight:600}}>{t('cdp.browse_courses')}</button>
     </div>
   );
 
@@ -312,9 +314,9 @@ export default function CourseDetailPage() {
   const totalMin   = visLessons.reduce((s,l)=>s+(Number(l.duration_min)||0),0);
 
   const TABS=[
-    {id:'curriculum',label:isInstructor?`Mes Leçons (${visLessons.length})`:`Leçons (${visLessons.length})`},
-    {id:'reviews',   label:isInstructor?`Mes Reviews (${reviews.length})`:`Reviews (${reviews.length})`},
-    {id:'live',      label:'Live Sessions'},
+    {id:'curriculum',label:isInstructor?t('cdp.tab_my_lessons',{count:visLessons.length}):t('cdp.tab_lessons',{count:visLessons.length})},
+    {id:'reviews',   label:isInstructor?t('cdp.tab_my_reviews',{count:reviews.length}):t('cdp.tab_reviews',{count:reviews.length})},
+    {id:'live',      label:t('cdp.tab_live')},
   ];
 
   /* ── render ── */
@@ -340,7 +342,7 @@ export default function CourseDetailPage() {
             <div style={{flex:'1 1 480px',minWidth:0,animation:'cdUp .5s ease both'}}>
               <button onClick={()=>navigate('/courses')} style={{display:'flex',alignItems:'center',gap:6,background:'none',border:'none',color:C.accent,fontWeight:700,fontSize:13,cursor:'pointer',marginBottom:22,padding:0}}>
                 <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                Tous les cours
+                {t('cdp.all_courses')}
               </button>
 
               <span style={{display:'inline-flex',alignItems:'center',padding:'4px 12px',borderRadius:20,background:'rgba(124,108,246,.16)',border:'1px solid rgba(124,108,246,.32)',color:C.accent,fontSize:11,fontWeight:800,letterSpacing:.5,textTransform:'uppercase',marginBottom:16}}>
@@ -359,12 +361,12 @@ export default function CourseDetailPage() {
                 <div style={{display:'flex',alignItems:'center',gap:6}}>
                   <svg width={15} height={15} fill={C.amber} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z"/></svg>
                   <span style={{color:'#fff',fontWeight:800,fontSize:14}}>{Number(course.avg_rating).toFixed(1)}</span>
-                  <span style={{color:C.muted,fontSize:13}}>({reviews.length} avis)</span>
+                  <span style={{color:C.muted,fontSize:13}}>({t('cdp.reviews_count',{count:reviews.length})})</span>
                 </div>
                 {[
-                    ['users',fmtNum(course.total_students),'étudiants'],
-                    ['book',visLessons.length,'leçons'],
-                    totalMin>0?['clock',`${Math.floor(totalMin/60)}h${totalMin%60>0?' '+totalMin%60+'m':''}`,'durée']:null,
+                    ['users',fmtNum(course.total_students),t('cdp.students')],
+                    ['book',visLessons.length,t('cdp.lessons')],
+                    totalMin>0?['clock',`${Math.floor(totalMin/60)}h${totalMin%60>0?' '+totalMin%60+'m':''}`,t('cdp.duration')]:null,
                   ].filter(Boolean).map(([ic,v,lb],i)=>(
                   <div key={i} style={{display:'flex',alignItems:'center',gap:5}}>
                     {ic==='users' && <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
@@ -380,7 +382,7 @@ export default function CourseDetailPage() {
               <div onClick={() => navigate(`/profile/${encodeURIComponent(course.creator_email)}`)} style={{display:'inline-flex',alignItems:'center',gap:13,padding:'11px 18px',borderRadius:14,background:C.card,border:`1px solid ${C.border}`,cursor:'pointer'}}>
                 <Avatar name={course.instructor_name||course.creator_email} photo={course.instructor_photo} size={42}/>
                 <div>
-                  <p style={{color:C.muted,fontSize:11,fontWeight:600,letterSpacing:.3,textTransform:'uppercase',marginBottom:2}}>Instructeur</p>
+                  <p style={{color:C.muted,fontSize:11,fontWeight:600,letterSpacing:.3,textTransform:'uppercase',marginBottom:2}}>{t('cdp.instructor')}</p>
                   <p style={{color:'#fff',fontSize:14,fontWeight:700}}>{course.instructor_name||course.creator_email}</p>
                 </div>
               </div>
@@ -403,7 +405,7 @@ export default function CourseDetailPage() {
                   {/* price */}
                   <div style={{marginBottom:18}}>
                     {isFree?(
-                      <p style={{fontSize:30,fontWeight:900,color:C.emerald,margin:0}}>Gratuit</p>
+                      <p style={{fontSize:30,fontWeight:900,color:C.emerald,margin:0}}>{t('cdp.free')}</p>
                     ):hasDisc?(
                       <div style={{display:'flex',alignItems:'baseline',gap:10,flexWrap:'wrap'}}>
                         <p style={{fontSize:30,fontWeight:900,color:C.rose,margin:0}}>{finalPrice.toFixed(2)} TND</p>
@@ -430,37 +432,37 @@ export default function CourseDetailPage() {
                   {isInstructor?(
                     <div style={{display:'flex',flexDirection:'column',gap:10}}>
                       <div style={{padding:'10px 13px',borderRadius:10,background:'rgba(124,108,246,.1)',border:'1px solid rgba(124,108,246,.25)',color:C.accent,fontSize:12,fontWeight:600,textAlign:'center'}}>
-                        Vous êtes l'instructeur de ce cours
+                        {t('cdp.you_are_instructor')}
                       </div>
                       {!isFree&&(
                         <>
                           {discPct>0&&(
                             <div style={{display:'flex',justifyContent:'space-between',fontSize:12,padding:'0 2px'}}>
-                              <span style={{display:'flex',alignItems:'center',gap:5,color:C.rose,fontWeight:700}}><svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Remise active : -{discPct}%</span>
+                              <span style={{display:'flex',alignItems:'center',gap:5,color:C.rose,fontWeight:700}}><svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>{t('cdp.discount_active',{pct:discPct})}</span>
                               <span style={{color:C.dim}}>{finalPrice.toFixed(2)} TND</span>
                             </div>
                           )}
                           <button onClick={()=>{setShowDisc(v=>!v);setDiscInput(discPct>0?String(discPct):'');}}
                             style={{padding:'11px 13px',borderRadius:10,background:discPct>0?'rgba(244,63,94,.1)':'rgba(255,255,255,.06)',border:`1px solid ${discPct>0?'rgba(244,63,94,.3)':'rgba(255,255,255,.1)'}`,color:discPct>0?C.rose:C.muted,fontWeight:700,fontSize:12,cursor:'pointer'}}>
                             <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                            {discPct>0?`Modifier la remise (${discPct}% actif)`:'Appliquer une remise'}
+                            {discPct>0?t('cdp.edit_discount',{pct:discPct}):t('cdp.apply_discount')}
                           </button>
                           {showDisc&&(
                             <div style={{padding:'14px',borderRadius:12,background:'rgba(255,255,255,.04)',border:`1px solid ${C.border}`}}>
-                              <p style={{color:C.dim,fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>Réduction (%)</p>
+                              <p style={{color:C.dim,fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:.4,marginBottom:10}}>{t('cdp.discount_pct')}</p>
                               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                                <input type="number" min="0" max="100" step="1" value={discInput} onChange={e=>setDiscInput(e.target.value)} placeholder="ex: 20"
+                                <input type="number" min="0" max="100" step="1" value={discInput} onChange={e=>setDiscInput(e.target.value)} placeholder={t('cdp.discount_placeholder')}
                                   style={{width:64,textAlign:'center',padding:'8px',borderRadius:8,border:`1px solid ${C.border}`,background:'rgba(255,255,255,.05)',color:C.text,fontWeight:800,fontSize:14,outline:'none'}}/>
                                 <span style={{color:C.dim,fontSize:13}}>%</span>
                                 {discInput!==''&&Number(discInput)>0&&<span style={{color:C.emerald,fontWeight:700,fontSize:12}}>→ {(Number(course.full_price)*(1-Number(discInput)/100)).toFixed(2)} TND</span>}
                               </div>
-                              <p style={{color:C.dim,fontSize:11,marginBottom:10}}>Mettez 0 pour supprimer la remise.</p>
+                              <p style={{color:C.dim,fontSize:11,marginBottom:10}}>{t('cdp.discount_hint')}</p>
                               <div style={{display:'flex',gap:8}}>
                                 <button onClick={saveDisc} disabled={discSaving||discInput===''} style={{flex:1,padding:'9px',borderRadius:9,background:'linear-gradient(135deg,#f43f5e,#e11d48)',color:'#fff',fontWeight:700,fontSize:12,border:'none',cursor:'pointer',opacity:(discSaving||discInput==='')?0.5:1}}>
-                                  {discSaving?'Enregistrement…':'Appliquer'}
+                                  {discSaving?t('cdp.saving'):t('cdp.apply')}
                                 </button>
                                 <button onClick={()=>{setShowDisc(false);setDiscInput('');}} style={{padding:'9px 13px',borderRadius:9,background:'rgba(255,255,255,.05)',border:`1px solid ${C.border}`,color:C.muted,fontWeight:600,fontSize:12,cursor:'pointer'}}>
-                                  Annuler
+                                  {t('cdp.cancel')}
                                 </button>
                               </div>
                             </div>
@@ -471,32 +473,32 @@ export default function CourseDetailPage() {
                   ):hasFull||requestStatus==='approved'?(
                     <button onClick={()=>document.getElementById('curr-sec')?.scrollIntoView({behavior:'smooth'})}
                       style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#10b981,#059669)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,boxShadow:'0 8px 24px rgba(16,185,129,.3)'}}>
-                      ▶ Voir le cours
+                      {t('cdp.view_course')}
                     </button>
                   ):requestStatus==='pending'?(
                     paymentStatus==='en_cours'?(
-                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px',borderRadius:12,background:'rgba(14,165,233,.1)',border:'1px solid rgba(14,165,233,.3)',color:C.sky,fontWeight:700,fontSize:13,marginBottom:12}}><svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z"/><path d="M12 6v6l4 2"/></svg>Paiement en cours de traitement</div>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px',borderRadius:12,background:'rgba(14,165,233,.1)',border:'1px solid rgba(14,165,233,.3)',color:C.sky,fontWeight:700,fontSize:13,marginBottom:12}}><svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z"/><path d="M12 6v6l4 2"/></svg>{t('cdp.payment_processing')}</div>
                     ):(
-                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px',borderRadius:12,background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.3)',color:C.amber,fontWeight:700,fontSize:13,marginBottom:12}}><svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Demande en attente de validation</div>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px',borderRadius:12,background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.3)',color:C.amber,fontWeight:700,fontSize:13,marginBottom:12}}><svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{t('cdp.request_pending')}</div>
                     )
                   ):requestStatus==='rejected'?(
                     <>
-                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,background:'rgba(244,63,94,.1)',border:'1px solid rgba(244,63,94,.3)',color:C.rose,fontSize:12,marginBottom:10}}><svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>Demande refusée</div>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,background:'rgba(244,63,94,.1)',border:'1px solid rgba(244,63,94,.3)',color:C.rose,fontSize:12,marginBottom:10}}><svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>{t('cdp.request_rejected')}</div>
                       <button onClick={buyFull} disabled={requesting} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,opacity:requesting?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.3)'}}>
-                        {requesting?'Envoi…':'Renvoyer la demande'}
+                        {requesting?t('cdp.sending'):t('cdp.resend_request')}
                       </button>
                     </>
                   ):(
                     <button onClick={buyFull} disabled={buying||requesting} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,opacity:(buying||requesting)?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
-                      {requesting?'Envoi en cours…':buying?'Traitement…':isFree?'S\'inscrire gratuitement':'Acheter le cours'}
+                      {requesting?t('cdp.sending_progress'):buying?t('cdp.processing'):isFree?t('cdp.enroll_free'):t('cdp.buy_course')}
                     </button>
                   )}
 
                   {/* perks */}
                   <div style={{display:'flex',flexDirection:'column',gap:7,marginTop:14}}>
                     {[
-                      ['check','Accès à vie'],
-                      course.first_lesson_free?['unlock','Première leçon en aperçu gratuit']:null,
+                      ['check',t('cdp.lifetime_access')],
+                      course.first_lesson_free?['unlock',t('cdp.first_lesson_free')]:null,
                     ].filter(Boolean).map(([ic,tx],i)=>(
                       <div key={i} style={{display:'flex',alignItems:'center',gap:8}}>
                         {ic==='check'
@@ -512,7 +514,7 @@ export default function CourseDetailPage() {
                         onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,.1)';e.currentTarget.style.borderColor='rgba(124,108,246,.4)';e.currentTarget.style.color=C.accent;}}
                         onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,.04)';e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.muted;}}>
                         <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                        Contacter l'instructeur
+                        {t('cdp.contact_instructor')}
                       </button>
                     )}
                   </div>
@@ -525,10 +527,10 @@ export default function CourseDetailPage() {
         {/* ═══ TABS ═══ */}
         <div style={{position:'sticky',top:64,zIndex:20,backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',background:'rgba(10,8,23,.88)',borderBottom:`1px solid ${C.border}`}}>
           <div style={{maxWidth:1200,margin:'0 auto',padding:'0 24px',display:'flex',gap:2}}>
-            {TABS.map(t=>(
-              <button key={t.id} onClick={()=>setActiveTab(t.id)}
-                style={{padding:'15px 20px',background:'none',border:'none',borderBottom:`2px solid ${activeTab===t.id?C.accent:'transparent'}`,color:activeTab===t.id?C.accent:C.muted,fontSize:13,fontWeight:700,cursor:'pointer',transition:'all .2s',whiteSpace:'nowrap'}}>
-                {t.label}
+            {TABS.map(tab=>(
+              <button key={tab.id} onClick={()=>setActiveTab(tab.id)}
+                style={{padding:'15px 20px',background:'none',border:'none',borderBottom:`2px solid ${activeTab===tab.id?C.accent:'transparent'}`,color:activeTab===tab.id?C.accent:C.muted,fontSize:13,fontWeight:700,cursor:'pointer',transition:'all .2s',whiteSpace:'nowrap'}}>
+                {tab.label}
               </button>
             ))}
           </div>
@@ -544,8 +546,8 @@ export default function CourseDetailPage() {
                 <div style={{display:'flex',gap:13,alignItems:'flex-start',padding:16,borderRadius:14,background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.25)',marginBottom:16}}>
                   <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke={C.amber} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,marginTop:1}}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                   <div>
-                    <p style={{color:'#fbbf24',fontWeight:800,fontSize:14,margin:0}}>Leçon envoyée à l'admin</p>
-                    <p style={{color:'#d97706',fontSize:12,marginTop:4,margin:0}}>En attente de vérification · Résultat sous 24h · Vous serez notifié</p>
+                    <p style={{color:'#fbbf24',fontWeight:800,fontSize:14,margin:0}}>{t('cdp.lesson_sent_admin')}</p>
+                    <p style={{color:'#d97706',fontSize:12,marginTop:4,margin:0}}>{t('cdp.lesson_sent_desc')}</p>
                   </div>
                 </div>
               )}
@@ -559,16 +561,16 @@ export default function CourseDetailPage() {
                       onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,.11)';e.currentTarget.style.borderColor='rgba(124,108,246,.65)';e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.boxShadow='0 8px 24px -6px rgba(124,108,246,0.2)';}}
                       onMouseLeave={e=>{e.currentTarget.style.background='rgba(124,108,246,.05)';e.currentTarget.style.borderColor='rgba(124,108,246,.35)';e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='none';}}>
                       <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
-                      Ajouter une leçon
+                      {t('cdp.add_lesson')}
                     </button>
                   ):(
                     <form onSubmit={addLesson} style={{padding:24,borderRadius:20,background:'rgba(124,108,246,0.04)',border:'1px solid rgba(124,108,246,.28)',boxShadow:'0 8px 32px -8px rgba(124,108,246,0.12)'}}>
-                      <p style={{fontWeight:900,fontSize:16,color:C.text,margin:'0 0 20px',letterSpacing:'-0.01em'}}>Nouvelle leçon</p>
+                      <p style={{fontWeight:900,fontSize:16,color:C.text,margin:'0 0 20px',letterSpacing:'-0.01em'}}>{t('cdp.new_lesson')}</p>
                       <input type="file" accept="video/mp4,video/*" style={{display:'none'}} ref={r=>{muxRef.current=r;}} onChange={e=>{const f=e.target.files?.[0];if(f)handleUpload(f);}}/>
 
-                      <p style={{color:C.muted,fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>TYPE *</p>
+                      <p style={{color:C.muted,fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>{t('cdp.type_label')}</p>
                       <div style={{display:'flex',gap:8,marginBottom:18,padding:4,borderRadius:14,background:'rgba(255,255,255,0.04)'}}>
-                        {[{v:true,lb:'Gratuit',col:C.emerald},{v:false,lb:'Payant',col:C.accent}].map(({v,lb,col})=>(
+                        {[{v:true,lb:t('cdp.free'),col:C.emerald},{v:false,lb:t('cdp.paid'),col:C.accent}].map(({v,lb,col})=>(
                           <button key={String(v)} type="button" onClick={()=>setNewLesson(p=>({...p,is_free_preview:v,...(v&&{price:0})}))}
                             style={{flex:1,padding:'11px 10px',borderRadius:11,border:`2px solid ${newLesson.is_free_preview===v?col:'transparent'}`,background:newLesson.is_free_preview===v?`${col}18`:C.bg,color:newLesson.is_free_preview===v?col:C.muted,fontWeight:800,fontSize:13,cursor:'pointer',transition:'all .22s',boxShadow:newLesson.is_free_preview===v?`0 4px 14px -4px ${col}55`:'none'}}>
                             {lb}
@@ -576,8 +578,8 @@ export default function CourseDetailPage() {
                         ))}
                       </div>
 
-                      <p style={{color:C.muted,fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>TITRE *</p>
-                      <input required placeholder="Titre de la leçon…" value={newLesson.title} onChange={e=>setNewLesson(p=>({...p,title:e.target.value}))}
+                      <p style={{color:C.muted,fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>{t('cdp.title_label')}</p>
+                      <input required placeholder={t('cdp.lesson_title_placeholder')} value={newLesson.title} onChange={e=>setNewLesson(p=>({...p,title:e.target.value}))}
                         style={{width:'100%',padding:'12px 15px',borderRadius:12,border:`1.5px solid ${C.border}`,background:'rgba(255,255,255,.05)',color:C.text,fontSize:14,outline:'none',boxSizing:'border-box',marginBottom:16,fontFamily:'inherit',transition:'border-color .2s, background .2s'}}
                         onFocus={e=>{e.target.style.borderColor='rgba(124,108,246,0.55)';e.target.style.background='rgba(124,108,246,0.04)';}} onBlur={e=>{e.target.style.borderColor=C.border;e.target.style.background='rgba(255,255,255,.05)';}}/>
 
@@ -587,7 +589,7 @@ export default function CourseDetailPage() {
                           onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,.1)';e.currentTarget.style.borderColor='rgba(124,108,246,.65)';e.currentTarget.style.transform='translateY(-1px)';}}
                           onMouseLeave={e=>{e.currentTarget.style.background='rgba(124,108,246,.04)';e.currentTarget.style.borderColor='rgba(124,108,246,.35)';e.currentTarget.style.transform='translateY(0)';}}>
                           <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                          Importer une vidéo MP4 *
+                          {t('cdp.import_mp4')}
                         </button>
                       )}
                       {upState==='uploading'&&(
@@ -604,14 +606,14 @@ export default function CourseDetailPage() {
                       {upState==='processing'&&(
                         <div style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',borderRadius:10,background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.25)',marginBottom:12}}>
                           <svg width={16} height={16} fill="none" viewBox="0 0 24 24" style={{animation:'cdSpin .9s linear infinite',flexShrink:0}}><circle cx="12" cy="12" r="10" stroke={C.amber} strokeWidth="4" strokeOpacity=".25"/><path fill={C.amber} d="M4 12a8 8 0 018-8v8z"/></svg>
-                          <div><p style={{color:C.amber,fontWeight:700,fontSize:13,margin:0}}>Traitement…</p><p style={{color:'#d97706',fontSize:11,margin:0}}>1–2 minutes</p></div>
+                          <div><p style={{color:C.amber,fontWeight:700,fontSize:13,margin:0}}>{t('cdp.processing')}</p><p style={{color:'#d97706',fontSize:11,margin:0}}>{t('cdp.processing_time')}</p></div>
                         </div>
                       )}
                       {upState==='done'&&(
                         <div style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',borderRadius:10,background:'rgba(16,185,129,.1)',border:'1px solid rgba(16,185,129,.25)',marginBottom:12}}>
                           <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke={C.emerald} strokeWidth={2.5} style={{flexShrink:0}}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                           <div style={{flex:1,minWidth:0}}>
-                            <p style={{color:C.emerald,fontWeight:700,fontSize:13,margin:0}}>Vidéo prête</p>
+                            <p style={{color:C.emerald,fontWeight:700,fontSize:13,margin:0}}>{t('cdp.video_ready')}</p>
                             <p style={{color:'#059669',fontSize:11,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',margin:0}}>{upFile}</p>
                           </div>
                           <button type="button" onClick={()=>{setUpState('idle');setUpPct(0);setUpFile('');setNewLesson(p=>({...p,video_url:''}));if(muxRef.current)muxRef.current.value='';}} style={{background:'none',border:'none',cursor:'pointer',color:C.dim,padding:0}}>
@@ -623,11 +625,11 @@ export default function CourseDetailPage() {
                         <div style={{marginBottom:12}}>
                           <div style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',borderRadius:10,background:'rgba(244,63,94,.1)',border:'1px solid rgba(244,63,94,.25)',marginBottom:8}}>
                             <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke={C.rose} strokeWidth={2} style={{flexShrink:0}}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <div><p style={{color:C.rose,fontWeight:700,fontSize:13,margin:0}}>L'upload a échoué</p><p style={{color:'#e11d48',fontSize:11,margin:0}}>Vérifiez votre connexion et réessayez.</p></div>
+                            <div><p style={{color:C.rose,fontWeight:700,fontSize:13,margin:0}}>{t('cdp.upload_failed')}</p><p style={{color:'#e11d48',fontSize:11,margin:0}}>{t('cdp.upload_failed_desc')}</p></div>
                           </div>
                           <button type="button" onClick={()=>{setUpState('idle');setUpPct(0);setUpFile('');setNewLesson(p=>({...p,video_url:''}));if(muxRef.current)muxRef.current.value='';}}
                             style={{width:'100%',padding:'10px',borderRadius:10,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:700,fontSize:13,border:'none',cursor:'pointer'}}>
-                            Réimporter la vidéo
+                            {t('cdp.reimport_video')}
                           </button>
                         </div>
                       )}
@@ -637,13 +639,13 @@ export default function CourseDetailPage() {
                           style={{flex:1,padding:'12px',borderRadius:12,border:`1.5px solid ${C.border}`,background:'transparent',color:C.muted,fontWeight:700,fontSize:13,cursor:'pointer',transition:'all .18s'}}
                           onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.2)';e.currentTarget.style.color=C.text;}}
                           onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.color=C.muted;}}>
-                          Annuler
+                          {t('cdp.cancel')}
                         </button>
                         <button type="submit" disabled={addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)||upState==='uploading'||upState==='processing'}
                           style={{flex:1,padding:'12px',borderRadius:12,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:800,fontSize:13,border:'none',cursor:'pointer',transition:'opacity .18s, transform .18s',opacity:(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)||upState==='uploading'||upState==='processing')?.45:1,boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)'}}
                           onMouseEnter={e=>{if(!(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)))e.currentTarget.style.opacity='0.88';}}
                           onMouseLeave={e=>{e.currentTarget.style.opacity=(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url))?.45:'1';}}>
-                          {addingL?'Ajout…':upState==='uploading'?'Upload…':upState==='processing'?'Traitement…':'Ajouter'}
+                          {addingL?t('cdp.adding'):upState==='uploading'?t('cdp.upload_short'):upState==='processing'?t('cdp.processing'):t('cdp.add')}
                         </button>
                       </div>
                     </form>
@@ -655,7 +657,7 @@ export default function CourseDetailPage() {
               {lockedMsg&&(
                 <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderRadius:12,background:'rgba(124,108,246,.12)',border:'1px solid rgba(124,108,246,.3)',marginBottom:12,animation:'cdPls 1.5s ease infinite'}}>
                   <LockSvg/>
-                  <p style={{color:C.accent,fontSize:13,fontWeight:600,margin:0}}>Vous devez acheter le cours complet pour accéder aux leçons payantes.</p>
+                  <p style={{color:C.accent,fontSize:13,fontWeight:600,margin:0}}>{t('cdp.locked_msg')}</p>
                 </div>
               )}
 
@@ -665,7 +667,7 @@ export default function CourseDetailPage() {
                   <div style={{display:'flex',justifyContent:'center',marginBottom:14}}>
                     <svg width={44} height={44} fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.2)" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                   </div>
-                  <p style={{color:C.dim,fontSize:14}}>{lessons.length===0?'Aucune leçon ajoutée pour l\'instant':'Aucune leçon disponible'}</p>
+                  <p style={{color:C.dim,fontSize:14}}>{lessons.length===0?t('cdp.no_lessons_added'):t('cdp.no_lessons_available')}</p>
                 </div>
               ):(
                 <div style={{display:'flex',flexDirection:'column',gap:8}}>
@@ -673,7 +675,7 @@ export default function CourseDetailPage() {
                     const w=canWatch(lesson);
                     return(
                       <div key={lesson.id}
-                        onClick={()=>{if(w)navigate(`/courses/${id}/lesson/${lesson.id}`);else if(!lesson.is_free_preview){setBuyMsg('Achetez le cours complet.');setLockedMsg(true);setTimeout(()=>setLockedMsg(false),4000);}}}
+                        onClick={()=>{if(w)navigate(`/courses/${id}/lesson/${lesson.id}`);else if(!lesson.is_free_preview){setBuyMsg(t('cdp.buy_full_course'));setLockedMsg(true);setTimeout(()=>setLockedMsg(false),4000);}}}
                         style={{display:'flex',alignItems:'center',gap:15,padding:'13px 17px',borderRadius:14,background:w?C.card:'rgba(255,255,255,.02)',border:`1px solid ${w?C.border:'rgba(255,255,255,.04)'}`,cursor:'pointer',transition:'all .2s',userSelect:'none'}}
                         onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,.08)';e.currentTarget.style.borderColor='rgba(124,108,246,.3)';}}
                         onMouseLeave={e=>{e.currentTarget.style.background=w?C.card:'rgba(255,255,255,.02)';e.currentTarget.style.borderColor=w?C.border:'rgba(255,255,255,.04)';}}>
@@ -685,15 +687,15 @@ export default function CourseDetailPage() {
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
                             <p style={{color:w?C.text:C.muted,fontSize:14,fontWeight:600,margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lesson.title}</p>
-                            {lesson.status==='pending'&&<Chip label="En attente" col={C.amber}/>}
-                            {lesson.status==='rejected'&&<Chip label="Refusée" col={C.rose}/>}
+                            {lesson.status==='pending'&&<Chip label={t('cdp.chip_pending')} col={C.amber}/>}
+                            {lesson.status==='rejected'&&<Chip label={t('cdp.chip_rejected')} col={C.rose}/>}
                           </div>
                           {lesson.description&&<p style={{color:C.dim,fontSize:12,margin:'3px 0 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lesson.description}</p>}
                         </div>
 
                         <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
-                          {lesson.is_free_preview&&<Chip label="Gratuit" col={C.emerald}/>}
-                          {!lesson.is_free_preview&&!w&&<Chip label="Payant" col={C.muted}/>}
+                          {lesson.is_free_preview&&<Chip label={t('cdp.free')} col={C.emerald}/>}
+                          {!lesson.is_free_preview&&!w&&<Chip label={t('cdp.paid')} col={C.muted}/>}
                           {lesson.duration_min>0&&<span style={{color:C.dim,fontSize:12}}>{lesson.duration_min}m</span>}
                           {!w&&<LockSvg/>}
                         </div>
@@ -713,7 +715,7 @@ export default function CourseDetailPage() {
                 <div style={{textAlign:'center',minWidth:80}}>
                   <p style={{fontSize:50,fontWeight:900,color:'#fff',lineHeight:1,margin:0}}>{Number(course.avg_rating).toFixed(1)}</p>
                   <div style={{marginTop:8}}><StarRating rating={course.avg_rating} size={15}/></div>
-                  <p style={{color:C.muted,fontSize:12,marginTop:6}}>{reviews.length} avis</p>
+                  <p style={{color:C.muted,fontSize:12,marginTop:6}}>{t('cdp.reviews_count',{count:reviews.length})}</p>
                 </div>
                 <div style={{flex:1,minWidth:160,display:'flex',flexDirection:'column',gap:7}}>
                   {[5,4,3,2,1].map(s=>{
@@ -736,19 +738,19 @@ export default function CourseDetailPage() {
               {/* review form */}
               {hasFull&&!isInstructor&&!reviews.some(r=>r.reviewer_email===user?.email)&&(
                 <div style={{padding:'22px',borderRadius:18,background:C.card,border:`1px solid ${C.border}`}}>
-                  <p style={{fontWeight:800,fontSize:15,marginBottom:14}}>Laisser un avis</p>
+                  <p style={{fontWeight:800,fontSize:15,marginBottom:14}}>{t('cdp.leave_review')}</p>
                   <StarRating rating={myRating} interactive onRate={setMyRating} size={24}/>
-                  <textarea value={myReview} onChange={e=>setMyReview(e.target.value)} rows={3} placeholder="Partagez votre expérience…"
+                  <textarea value={myReview} onChange={e=>setMyReview(e.target.value)} rows={3} placeholder={t('cdp.share_experience')}
                     style={{marginTop:13,width:'100%',padding:'11px 15px',borderRadius:11,border:`1px solid ${C.border}`,background:'rgba(255,255,255,.04)',color:C.text,fontSize:14,resize:'none',outline:'none',boxSizing:'border-box'}}
                     onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=C.border}/>
                   <div style={{display:'flex',gap:10,marginTop:12}}>
                     <button onClick={submitReview} disabled={!myRating||submitting}
                       style={{padding:'10px 22px',borderRadius:10,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:700,fontSize:13,border:'none',cursor:'pointer',opacity:(!myRating||submitting)?.5:1}}>
-                      {submitting?'Envoi…':'Envoyer l\'avis'}
+                      {submitting?t('cdp.sending'):t('cdp.send_review')}
                     </button>
                     <button onClick={()=>{setMyRating(0);setMyReview('');}}
                       style={{padding:'10px 22px',borderRadius:10,background:'rgba(255,255,255,.06)',border:`1px solid ${C.border}`,color:C.muted,fontWeight:600,fontSize:13,cursor:'pointer'}}>
-                      Annuler
+                      {t('cdp.cancel')}
                     </button>
                   </div>
                 </div>
@@ -760,7 +762,7 @@ export default function CourseDetailPage() {
                   <div style={{display:'flex',justifyContent:'center',marginBottom:14}}>
                     <svg width={42} height={42} fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.2)" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   </div>
-                  <p style={{color:C.dim,fontSize:14}}>Aucun avis pour l'instant — soyez le premier !</p>
+                  <p style={{color:C.dim,fontSize:14}}>{t('cdp.no_reviews_yet')}</p>
                 </div>
               ):reviews.map(r=>(
                 <div key={r.id} id={`review-${r.id}`} style={{display:'flex',gap:15,padding:'18px 22px',borderRadius:18,background:C.card,border:`1px solid ${C.border}`,scrollMarginTop:80}}>
@@ -791,24 +793,24 @@ export default function CourseDetailPage() {
                     {isInstructor&&!r.instructor_reply&&(
                       replyingId===r.id?(
                         <div style={{marginTop:11}}>
-                          <textarea value={replyDraft[r.id]||''} rows={2} onChange={e=>setReplyDraft(p=>({...p,[r.id]:e.target.value}))} placeholder="Votre réponse…"
+                          <textarea value={replyDraft[r.id]||''} rows={2} onChange={e=>setReplyDraft(p=>({...p,[r.id]:e.target.value}))} placeholder={t('cdp.your_reply')}
                             style={{width:'100%',padding:'9px 13px',borderRadius:10,border:`1px solid ${C.border}`,background:'rgba(255,255,255,.04)',color:C.text,fontSize:13,resize:'none',outline:'none',boxSizing:'border-box'}}
                             onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=C.border}/>
                           <div style={{display:'flex',gap:8,marginTop:8}}>
                             <button onClick={()=>submitReply(r.id,replyDraft[r.id])} disabled={!replyDraft[r.id]?.trim()||replySend}
                               style={{padding:'7px 15px',borderRadius:8,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:700,fontSize:12,border:'none',cursor:'pointer',opacity:(!replyDraft[r.id]?.trim()||replySend)?.5:1}}>
-                              {replySend?'Envoi…':'Répondre'}
+                              {replySend?t('cdp.sending'):t('cdp.reply')}
                             </button>
                             <button onClick={()=>{setReplyingId(null);setReplyDraft(p=>{const n={...p};delete n[r.id];return n;});}}
                               style={{padding:'7px 15px',borderRadius:8,background:'rgba(255,255,255,.06)',border:`1px solid ${C.border}`,color:C.muted,fontWeight:600,fontSize:12,cursor:'pointer'}}>
-                              Annuler
+                              {t('cdp.cancel')}
                             </button>
                           </div>
                         </div>
                       ):(
                         <button onClick={()=>setReplyingId(r.id)}
                           style={{background:'none',border:'none',color:C.accent,fontSize:12,fontWeight:600,cursor:'pointer',marginTop:8,padding:0}}>
-                          ↩ Répondre
+                          {t('cdp.reply_arrow')}
                         </button>
                       )
                     )}
@@ -825,12 +827,12 @@ export default function CourseDetailPage() {
                 <svg width={32} height={32} fill="none" viewBox="0 0 24 24" stroke="rgba(124,108,246,0.8)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M1 6c0 0 4-4 11-4s11 4 11 4"/><path d="M5 10c0 0 2.5-2.5 7-2.5S19 10 19 10"/><path d="M9 14c0 0 1-1 3-1s3 1 3 1"/><line x1="12" y1="18" x2="12" y2="18" strokeWidth={2.5}/></svg>
               </div>
               <p style={{fontSize:22,fontWeight:900,color:'#fff',letterSpacing:.4}}>
-                BIENTÔT
+                {t('cdp.coming_soon')}
                 <span style={{animation:'soonDot 1.4s infinite',marginLeft:2,animationDelay:'0s'}}>.</span>
                 <span style={{animation:'soonDot 1.4s infinite',animationDelay:'.2s'}}>.</span>
                 <span style={{animation:'soonDot 1.4s infinite',animationDelay:'.4s'}}>.</span>
               </p>
-              <p style={{color:C.muted,fontSize:14,marginTop:8}}>Les sessions live arrivent prochainement.</p>
+              <p style={{color:C.muted,fontSize:14,marginTop:8}}>{t('cdp.live_coming')}</p>
             </div>
           )}
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { cldImg } from '../utils/cloudinary';
 
@@ -118,6 +119,7 @@ function ImageViewer({ src, onClose }) {
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function MessengerChat({ currentUser, allUsers = [], initialChat = null }) {
+  const { t } = useTranslation();
   const senderEmail = currentUser?.isAdmin ? ADMIN_EMAIL : (currentUser?.email || '');
 
   // mobile: 'list' | 'chat' — single-panel toggle on small screens
@@ -659,7 +661,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                   <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                 </svg>
               </div>
-              <h2 className="text-base font-extrabold tracking-tight" style={{ color: '#fbfbff' }}>Messages</h2>
+              <h2 className="text-base font-extrabold tracking-tight" style={{ color: '#fbfbff' }}>{t('msg.page_title')}</h2>
             </div>
             {conversations.length > 0 && (
               <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(124,108,246,0.15)', border: '1px solid rgba(124,108,246,0.25)', color: '#9b8cff' }}>
@@ -673,7 +675,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
             </svg>
             <input value={convSearch} onChange={e => setConvSearch(e.target.value)}
-              placeholder="Search conversations…"
+              placeholder={t('mgc.search_conversations')}
               className="w-full pl-9 pr-3 py-2 text-xs rounded-xl outline-none transition-all"
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,.08)', color: '#f4f3fb' }}
               onFocus={e => { e.target.style.borderColor='rgba(124,108,246,0.4)'; e.target.style.background='rgba(124,108,246,0.06)'; }}
@@ -690,7 +692,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               <svg className="w-10 h-10" style={{ color: 'rgba(255,255,255,.15)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
               </svg>
-              <p className="text-sm" style={{ color: '#7e82a0' }}>No conversations yet</p>
+              <p className="text-sm" style={{ color: '#7e82a0' }}>{t('msg.no_convs')}</p>
             </div>
           )}
           {filteredConvs.map(conv => {
@@ -718,7 +720,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                   </div>
                   <div className="flex items-center gap-1 mt-0.5">
                     <p className="text-xs truncate flex-1" style={{ color: unread > 0 ? '#a7abc8' : '#7e82a0', fontWeight: unread > 0 ? 500 : 400 }}>
-                      {conv.sender_email === senderEmail ? 'You: ' : ''}{conv.last_message || <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>Photo</span>}
+                      {conv.sender_email === senderEmail ? t('mgc.you_prefix') : ''}{conv.last_message || <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span>}
                     </p>
                     {unread > 0 && (
                       <span className="shrink-0 min-w-[18px] h-[18px] text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 leading-none" style={{ background: '#7c6cf6' }}>
@@ -742,7 +744,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             if (newUsers.length === 0) return null;
             return (
               <>
-                <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#62668a' }}>Start new chat</p>
+                <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#62668a' }}>{t('mgc.start_new_chat')}</p>
                 {newUsers.map(u => (
                   <button key={u.email} onClick={() => { selectChat(u.email); setConvSearch(''); }}
                     className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors"
@@ -784,8 +786,8 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             </div>
           </div>
           <div className="text-center" style={{ maxWidth: 240 }}>
-            <p className="font-bold text-base" style={{ color: '#fbfbff', letterSpacing: '-0.01em' }}>Your messages</p>
-            <p className="text-xs mt-1.5 leading-relaxed" style={{ color: '#7e82a0' }}>Select a conversation from the left or search for someone to start chatting</p>
+            <p className="font-bold text-base" style={{ color: '#fbfbff', letterSpacing: '-0.01em' }}>{t('mgc.your_messages')}</p>
+            <p className="text-xs mt-1.5 leading-relaxed" style={{ color: '#7e82a0' }}>{t('mgc.select_conversation_hint')}</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             {[
@@ -815,8 +817,8 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                     <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                   </svg>
                 </div>
-                <p className="font-bold text-sm" style={{ color: '#9b8cff' }}>Drop to send image</p>
-                <p className="text-xs mt-1" style={{ color: '#62668a' }}>Release to upload</p>
+                <p className="font-bold text-sm" style={{ color: '#9b8cff' }}>{t('mgc.drop_to_send')}</p>
+                <p className="text-xs mt-1" style={{ color: '#62668a' }}>{t('mgc.release_to_upload')}</p>
               </div>
             </div>
           )}
@@ -843,7 +845,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               </p>
               <p className="text-xs font-medium flex items-center gap-1.5" style={{ color: otherStatus.online ? '#34d399' : '#62668a' }}>
                 {otherTyping
-                  ? <><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#9b8cff', display: 'inline-block' }} className="animate-pulse" /><span style={{ color: '#9b8cff' }}>typing…</span></>
+                  ? <><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#9b8cff', display: 'inline-block' }} className="animate-pulse" /><span style={{ color: '#9b8cff' }}>{t('mgc.typing')}</span></>
                   : <>{otherStatus.online && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399', display: 'inline-block', flexShrink: 0 }} />}{otherStatus.label}</>
                 }
               </p>
@@ -1064,8 +1066,8 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 className="text-sm px-3 py-2 rounded-xl border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none ring-2 ring-indigo-300 dark:ring-indigo-800 w-full"
                               />
                               <div className="flex items-center gap-3 text-xs px-1">
-                                <button onClick={saveEdit} className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">Save</button>
-                                <button onClick={() => { setEditingId(null); setEditText(''); setEditStagedFile(null); }} className="text-slate-400 hover:underline">Cancel</button>
+                                <button onClick={saveEdit} className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">{t('mgc.save')}</button>
+                                <button onClick={() => { setEditingId(null); setEditText(''); setEditStagedFile(null); }} className="text-slate-400 hover:underline">{t('mgc.cancel')}</button>
                               </div>
                             </div>
                           ) : (
@@ -1088,7 +1090,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                       {resolveUser(m.reply_sender)?.name || m.reply_sender || 'Reply'}
                                     </p>
                                     <p className={`text-xs truncate ${isMine ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'}`}>
-                                      {m.reply_attachment_url ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>Photo</span> : (m.reply_content || '')}
+                                      {m.reply_attachment_url ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span> : (m.reply_content || '')}
                                     </p>
                                   </div>
                                 )}
@@ -1129,7 +1131,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
                               {/* Time + receipt */}
                               <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                {m.edited_at && <span className="text-[10px] italic" style={{ color: '#62668a' }}>edited ·</span>}
+                                {m.edited_at && <span className="text-[10px] italic" style={{ color: '#62668a' }}>{t('mgc.edited')}</span>}
                                 <span className="text-[10px] tabular-nums" style={{ color: '#62668a' }}>{fmtTime(m.created_at)}</span>
                                 {isMine && isLast && (
                                   m.is_read
@@ -1260,7 +1262,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-                  <span className="font-semibold text-sm" style={{ color: '#fbfbff' }}>Forward message</span>
+                  <span className="font-semibold text-sm" style={{ color: '#fbfbff' }}>{t('mgc.forward_message')}</span>
                   <button onClick={() => { setForwardMsg(null); setFwdSearch(''); }}
                     className="w-7 h-7 rounded-full flex items-center justify-center" style={{ color: '#7e82a0' }}>
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -1280,7 +1282,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 {/* Search */}
                 <div className="px-4 py-2 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,.08)' }}>
                   <input autoFocus value={fwdSearch} onChange={e => setFwdSearch(e.target.value)}
-                    placeholder="Search by name…"
+                    placeholder={t('mgc.search_by_name')}
                     className="w-full rounded-xl px-3 py-2 text-sm outline-none"
                     style={{ background: '#15122c', border: '1px solid rgba(255,255,255,.1)', color: '#f4f3fb' }}/>
                 </div>
@@ -1304,7 +1306,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                       !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
                     );
                     if (all.length === 0) return (
-                      <p className="text-center text-sm text-slate-400 py-8">No results</p>
+                      <p className="text-center text-sm text-slate-400 py-8">{t('msg.no_results')}</p>
                     );
                     return all.map(u => (
                       <button key={u.email} onClick={() => forwardTo(u.email)}
@@ -1360,7 +1362,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                     {resolveUser(replyTo.sender_email)?.name || replyTo.sender_email}
                   </p>
                   <p style={{ fontSize: 11, color: '#7e82a0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {replyTo.attachment_url && !replyTo.content ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>Photo</span> : replyTo.content}
+                    {replyTo.attachment_url && !replyTo.content ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span> : replyTo.content}
                   </p>
                 </div>
                 <button onClick={() => setReplyTo(null)}
@@ -1439,7 +1441,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               {/* Textarea */}
               <textarea ref={inputRef} value={newMsg} onChange={handleInputChange} rows={1}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
-                placeholder="Write a message…"
+                placeholder={t('mgc.write_message')}
                 className="flex-1 rounded-2xl px-3.5 sm:px-4 py-2.5 text-sm outline-none resize-none overflow-y-auto leading-relaxed transition-all"
                 style={{ minHeight: 40, maxHeight: 100, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,.09)', color: '#f4f3fb' }}
                 onFocus={e => { e.target.style.borderColor='rgba(124,108,246,0.4)'; e.target.style.background='rgba(124,108,246,0.05)'; e.target.style.boxShadow='0 0 0 3px rgba(124,108,246,0.08)'; }}

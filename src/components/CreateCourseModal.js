@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -20,6 +21,7 @@ const labelStyle = {
 };
 
 export default function CreateCourseModal({ user, initialType = 'free', onClose, onCreated, onBack }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const photoRef = useRef();
 
@@ -55,13 +57,13 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!form.title.trim()) { setError('Course title is required.'); return; }
+    if (!form.title.trim()) { setError(t('ccm.err_title')); return; }
     if (isNaN(Number(form.full_price)) || Number(form.full_price) < 50) {
-      setPriceError('Minimum price is 50 TND.');
-      setError('Minimum price is 50 TND.'); return;
+      setPriceError(t('ccm.err_min_price'));
+      setError(t('ccm.err_min_price')); return;
     }
-    if (!form.description.trim()) { setError('Description is required.'); return; }
-    if (!form.photo) { setError('Course photo is required.'); return; }
+    if (!form.description.trim()) { setError(t('ccm.err_description')); return; }
+    if (!form.photo) { setError(t('ccm.err_photo')); return; }
     setSubmitting(true);
     try {
       const r = await fetch(`${API}/courses`, {
@@ -78,12 +80,12 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
         }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Failed to create course.'); setSubmitting(false); return; }
+      if (!r.ok) { setError(d.error || t('ccm.err_failed')); setSubmitting(false); return; }
       setSuccess(true);
       setCreatedCourse(d);
       onCreated?.(d);
     } catch {
-      setError('Unable to reach server.');
+      setError(t('ccm.err_server'));
       setSubmitting(false);
     }
   }
@@ -96,8 +98,8 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
         body: JSON.stringify({
           type:    'user',
           kind:    `course_created_${createdCourse?.id ?? Date.now()}`,
-          title:   '📚 Cours en attente de vérification',
-          message: `Votre cours "${createdCourse?.title || form.title}" est en cours de vérification. Résultat sous 24h max.`,
+          title:   t('ccm.notif_title'),
+          message: t('ccm.notif_msg', { title: createdCourse?.title || form.title }),
           email:   user.email,
           name:    createdCourse?.title || form.title,
         }),
@@ -132,8 +134,8 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
               </svg>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h2 style={{ fontWeight: 800, fontSize: 18, color: '#fbfbff', margin: '0 0 3px', lineHeight: 1.2 }}>Create a course</h2>
-              <p style={{ fontSize: 13, color: '#7e82a0', margin: 0 }}>Fill in your course details.</p>
+              <h2 style={{ fontWeight: 800, fontSize: 18, color: '#fbfbff', margin: '0 0 3px', lineHeight: 1.2 }}>{t('fd.create_a_course')}</h2>
+              <p style={{ fontSize: 13, color: '#7e82a0', margin: 0 }}>{t('ccm.subtitle')}</p>
             </div>
             <button
               onClick={onClose}
@@ -158,15 +160,15 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                 </svg>
               </div>
-              <p style={{ fontWeight: 800, fontSize: 18, color: '#fbfbff', margin: '0 0 8px' }}>Course created! 🎉</p>
+              <p style={{ fontWeight: 800, fontSize: 18, color: '#fbfbff', margin: '0 0 8px' }}>{t('ccm.created_title')}</p>
               <p style={{ fontSize: 13, color: '#a7abc8', margin: '0 0 24px', lineHeight: 1.6, maxWidth: 320 }}>
-                Your course is pending review. You will be notified once it's approved.
+                {t('ccm.created_desc')}
               </p>
               <button
                 onClick={handleSuccessClose}
                 style={{ padding: '11px 28px', borderRadius: 12, background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: 14, boxShadow: '0 6px 16px -5px rgba(124,108,246,.7)' }}
               >
-                View courses →
+                {t('ccm.view_courses')}
               </button>
             </div>
           ) : (
@@ -176,13 +178,13 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
               {/* Course title */}
               <div>
                 <label style={labelStyle}>
-                  Course title <span style={{ color: '#f87171' }}>*</span>
+                  {t('ccm.course_title')} <span style={{ color: '#f87171' }}>*</span>
                 </label>
                 <input
                   required
                   value={form.title}
                   onChange={e => set('title', e.target.value)}
-                  placeholder="e.g. Master React in 30 days"
+                  placeholder={t('ccm.title_ph')}
                   style={inputStyle}
                   onFocus={e => e.target.style.borderColor = 'rgba(124,108,246,.5)'}
                   onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,.12)'}
@@ -192,13 +194,13 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
               {/* Description */}
               <div>
                 <label style={labelStyle}>
-                  Description <span style={{ color: '#f87171' }}>*</span>
+                  {t('fd.description')} <span style={{ color: '#f87171' }}>*</span>
                 </label>
                 <textarea
                   rows={4}
                   value={form.description}
                   onChange={e => set('description', e.target.value)}
-                  placeholder="Describe what learners will gain…"
+                  placeholder={t('ccm.desc_ph')}
                   style={{ ...inputStyle, resize: 'none', lineHeight: 1.55 }}
                   onFocus={e => e.target.style.borderColor = 'rgba(124,108,246,.5)'}
                   onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,.12)'}
@@ -208,7 +210,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
               {/* Course photo */}
               <div>
                 <label style={labelStyle}>
-                  Course photo <span style={{ color: '#f87171' }}>*</span>
+                  {t('fd.course_photo')} <span style={{ color: '#f87171' }}>*</span>
                 </label>
                 <input ref={photoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
                 <button
@@ -221,7 +223,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                   </svg>
-                  {photoPreview ? 'Change photo' : 'Choose a photo'}
+                  {photoPreview ? t('fd.change_photo') : t('ccm.choose_photo')}
                 </button>
                 {photoPreview && (
                   <div style={{ marginTop: 10, position: 'relative' }}>
@@ -237,7 +239,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
               {/* Category + Price */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div>
-                  <label style={labelStyle}>Category</label>
+                  <label style={labelStyle}>{t('fd.category')}</label>
                   <div style={{ position: 'relative' }}>
                     <select
                       value={form.category}
@@ -253,7 +255,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                 </div>
                 <div>
                   <label style={labelStyle}>
-                    Price (TND) <span style={{ color: '#f87171' }}>*</span>
+                    {t('fd.price_tnd')} <span style={{ color: '#f87171' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, fontWeight: 700, color: '#62668a' }}>TND</span>
@@ -263,11 +265,11 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                       onChange={e => {
                         const val = e.target.value;
                         set('full_price', val);
-                        if (val !== '' && Number(val) < 50) setPriceError('Minimum 50 TND.');
+                        if (val !== '' && Number(val) < 50) setPriceError(t('ccm.min_50'));
                         else setPriceError('');
                       }}
                       onBlur={e => {
-                        if (e.target.value === '' || Number(e.target.value) < 50) setPriceError('Minimum 50 TND.');
+                        if (e.target.value === '' || Number(e.target.value) < 50) setPriceError(t('ccm.min_50'));
                       }}
                       placeholder="50.00"
                       style={{ ...inputStyle, paddingLeft: 44, borderColor: priceError ? 'rgba(248,113,113,.6)' : 'rgba(255,255,255,.12)' }}
@@ -284,7 +286,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <p style={{ fontSize: 12, color: '#9b8cff', lineHeight: 1.6, margin: 0 }}>
-                  Platform commission: <strong>6%</strong>. You receive <strong>94%</strong> of the listed price.
+                  {t('ccm.commission_pre')} <strong>6%</strong>. {t('ccm.commission_mid')} <strong>94%</strong> {t('ccm.commission_post')}
                 </p>
               </div>
 
@@ -305,7 +307,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.04)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
-                  Cancel
+                  {t('ccm.cancel')}
                 </button>
                 <button type="submit" disabled={submitting}
                   style={{ flex: 1, padding: '11px 0', borderRadius: 12, background: '#7c6cf6', border: 'none', color: '#fff', fontFamily: 'inherit', fontWeight: 700, fontSize: 14, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, boxShadow: '0 6px 16px -5px rgba(124,108,246,.7)', transition: 'background .15s' }}
@@ -318,9 +320,9 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                         <circle style={{ opacity: .25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path style={{ opacity: .75 }} fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                       </svg>
-                      Creating…
+                      {t('ccm.creating')}
                     </span>
-                  ) : 'Create course'}
+                  ) : t('ccm.create_course')}
                 </button>
               </div>
             </form>

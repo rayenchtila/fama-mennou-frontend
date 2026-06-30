@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
@@ -58,11 +59,12 @@ function MuxPlayer({playbackId}){
 
 /* ── VideoPlayer ── */
 function VideoPlayer({url}){
+  const { t } = useTranslation();
   const isMux=(url||'').startsWith('mux:');
   if(isMux)return <MuxPlayer playbackId={(url||'').replace('mux:','')}/>;
   if(!url)return(
     <div style={{width:'100%',aspectRatio:'16/9',background:'#000',display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <p style={{color:C.muted,fontSize:14}}>Aucune vidéo disponible</p>
+      <p style={{color:C.muted,fontSize:14}}>{t('vp.no_video')}</p>
     </div>
   );
   if(isYT(url)){
@@ -70,7 +72,7 @@ function VideoPlayer({url}){
       <iframe style={{width:'100%',aspectRatio:'16/9',display:'block',border:'none'}}
         src={`https://www.youtube.com/embed/${getYTId(url)}?rel=0&modestbranding=1`}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen title="Lesson video"/>
+        allowFullScreen title={t('vpp.lesson_video')}/>
     );
   }
   return(
@@ -83,22 +85,23 @@ function VideoPlayer({url}){
 
 /* ── CertificateCard ── */
 function CertificateCard({cert}){
+  const { t } = useTranslation();
   return(
     <div style={{marginTop:24,padding:'28px',borderRadius:18,background:'linear-gradient(135deg,rgba(245,158,11,.12),rgba(251,191,36,.08))',border:'2px solid rgba(245,158,11,.35)',textAlign:'center',animation:'vpUp .4s ease'}}>
       <div style={{display:'flex',justifyContent:'center',marginBottom:10}}>
         <svg width={44} height={44} fill="none" viewBox="0 0 24 24" stroke="#fbbf24" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H2V2h4M18 9h4V2h-4M6 9a6 6 0 0 0 12 0M12 15v4M8 19h8"/></svg>
       </div>
-      <h3 style={{fontSize:18,fontWeight:900,color:'#fbbf24',marginBottom:8}}>Certificat de Réussite</h3>
+      <h3 style={{fontSize:18,fontWeight:900,color:'#fbbf24',marginBottom:8}}>{t('vpp.cert_title')}</h3>
       <p style={{color:'#f59e0b',fontSize:14,lineHeight:1.6,marginBottom:14}}>
-        Décerné à <strong style={{color:'#fff'}}>{cert.student_name}</strong> pour avoir complété<br/>
+        {t('vpp.cert_awarded_to')} <strong style={{color:'#fff'}}>{cert.student_name}</strong> {t('vpp.cert_for_completing')}<br/>
         <strong style={{color:'#fff'}}>{cert.course_title}</strong>
       </p>
       <code style={{display:'inline-block',fontSize:12,color:'#fbbf24',background:'rgba(245,158,11,.15)',borderRadius:8,padding:'6px 14px',marginBottom:12,fontFamily:'monospace'}}>
         {cert.certificate_uid}
       </code>
       <p style={{color:'#d97706',fontSize:12}}>
-        Émis le {new Date(cert.issued_at).toLocaleDateString('fr-FR')}
-        {cert.instructor_name?` · Instructeur : ${cert.instructor_name}`:''}
+        {t('vpp.cert_issued_on', { date: new Date(cert.issued_at).toLocaleDateString('fr-FR') })}
+        {cert.instructor_name?` · ${t('vpp.cert_instructor', { name: cert.instructor_name })}`:''}
       </p>
     </div>
   );
@@ -106,6 +109,7 @@ function CertificateCard({cert}){
 
 /* ═══════════════════════════════════════════════════════ */
 export default function VideoPlayerPage(){
+  const { t } = useTranslation();
   const {courseId,lessonId}=useParams();
   const navigate=useNavigate();
   const {user}=useAuth();
@@ -199,7 +203,7 @@ export default function VideoPlayerPage(){
           onMouseEnter={e=>e.currentTarget.style.color='#fff'}
           onMouseLeave={e=>e.currentTarget.style.color=C.muted}>
           <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-          Retour
+          {t('vpp.back')}
         </button>
 
         <div style={{width:1,height:20,background:C.border,flexShrink:0}}/>
@@ -219,7 +223,7 @@ export default function VideoPlayerPage(){
         {/* sidebar toggle */}
         <button onClick={()=>setSideOpen(v=>!v)}
           style={{padding:'7px 9px',borderRadius:9,background:sideOpen?'rgba(124,108,246,.18)':'rgba(255,255,255,.06)',border:`1px solid ${sideOpen?'rgba(124,108,246,.4)':C.border}`,color:sideOpen?C.accent:C.muted,cursor:'pointer',flexShrink:0,transition:'all .2s'}}
-          title="Toggle sidebar">
+          title={t('vpp.toggle_sidebar')}>
           <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
       </div>
@@ -248,12 +252,12 @@ export default function VideoPlayerPage(){
                   <svg width={28} height={28} fill="none" viewBox="0 0 24 24" stroke={C.muted} strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
                 <div>
-                  <p style={{color:'#fff',fontWeight:800,fontSize:16,marginBottom:6}}>Leçon verrouillée</p>
-                  <p style={{color:C.muted,fontSize:14,maxWidth:320}}>Vous devez acheter le cours complet pour accéder aux leçons payantes.</p>
+                  <p style={{color:'#fff',fontWeight:800,fontSize:16,marginBottom:6}}>{t('vpp.lesson_locked')}</p>
+                  <p style={{color:C.muted,fontSize:14,maxWidth:320}}>{t('cdp.locked_msg')}</p>
                 </div>
                 <button onClick={()=>navigate(`/courses/${courseId}`)}
                   style={{padding:'11px 28px',borderRadius:12,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
-                  Acheter le cours →
+                  {t('vpp.buy_course_arrow')}
                 </button>
               </div>
             )}
@@ -271,15 +275,15 @@ export default function VideoPlayerPage(){
               <button onClick={markComplete} disabled={marking||isDone}
                 style={{display:'flex',alignItems:'center',gap:8,padding:'10px 18px',borderRadius:11,background:isDone?'rgba(16,185,129,.12)':'linear-gradient(135deg,#7c6cf6,#a855f7)',color:isDone?C.emerald:'#fff',border:isDone?'1px solid rgba(16,185,129,.3)':'none',fontWeight:700,fontSize:13,cursor:isDone?'default':'pointer',flexShrink:0,opacity:marking?.7:1,transition:'all .2s',boxShadow:isDone?'none':'0 6px 20px rgba(124,108,246,.35)'}}>
                 <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                {isDone?'Complété':marking?'Sauvegarde…':'Marquer terminé'}
+                {isDone?t('vpp.completed'):marking?t('vpp.saving'):t('vpp.mark_complete')}
               </button>
             </div>
 
             {/* progress bar */}
             <div style={{marginBottom:22}}>
               <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-                <span style={{color:C.muted,fontSize:12,fontWeight:600}}>Progression du cours</span>
-                <span style={{color:progress.pct===100?C.emerald:C.accent,fontSize:12,fontWeight:700}}>{Math.round(progress.pct)}% · {progress.completed_ids.length}/{lessons.length} leçons</span>
+                <span style={{color:C.muted,fontSize:12,fontWeight:600}}>{t('vpp.course_progress')}</span>
+                <span style={{color:progress.pct===100?C.emerald:C.accent,fontSize:12,fontWeight:700}}>{Math.round(progress.pct)}% · {t('vpp.lessons_fraction', { done: progress.completed_ids.length, total: lessons.length })}</span>
               </div>
               <div style={{height:6,borderRadius:4,background:'rgba(255,255,255,.08)',overflow:'hidden'}}>
                 <div style={{height:'100%',width:`${progress.pct}%`,background:progress.pct===100?`linear-gradient(90deg,${C.emerald},#059669)`:`linear-gradient(90deg,${C.accent},${C.purple})`,borderRadius:4,transition:'width .6s ease'}}/>
@@ -293,11 +297,11 @@ export default function VideoPlayerPage(){
                 onMouseEnter={e=>prevL&&(e.currentTarget.style.background='rgba(255,255,255,.1)')}
                 onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,.06)'}>
                 <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                Précédent
+                {t('vpp.previous')}
               </button>
               <button onClick={()=>nextL&&goTo(nextL)} disabled={!nextL}
                 style={{display:'flex',alignItems:'center',gap:7,padding:'10px 18px',borderRadius:10,background:nextL?`linear-gradient(135deg,${C.accent},${C.purple})`:'rgba(255,255,255,.06)',border:'none',color:nextL?'#fff':C.dim,fontWeight:700,fontSize:13,cursor:nextL?'pointer':'not-allowed',transition:'all .2s',marginLeft:'auto',opacity:nextL?1:.4,boxShadow:nextL?'0 4px 16px rgba(124,108,246,.3)':'none'}}>
-                Suivant
+                {t('vpp.next')}
                 <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
               </button>
             </div>
@@ -309,10 +313,10 @@ export default function VideoPlayerPage(){
                   <div style={{display:'flex',justifyContent:'center',marginBottom:10}}>
                     <svg width={38} height={38} fill="none" viewBox="0 0 24 24" stroke="#fbbf24" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                   </div>
-                  <p style={{color:'#fbbf24',fontWeight:800,fontSize:16,marginBottom:14}}>Vous avez terminé toutes les leçons ! Réclamez votre certificat.</p>
+                  <p style={{color:'#fbbf24',fontWeight:800,fontSize:16,marginBottom:14}}>{t('vpp.all_lessons_done')}</p>
                   <button onClick={claimCert} disabled={certLoad}
                     style={{padding:'11px 28px',borderRadius:11,background:'linear-gradient(135deg,#f59e0b,#d97706)',color:'#fff',fontWeight:700,fontSize:14,border:'none',cursor:'pointer',opacity:certLoad?.6:1,boxShadow:'0 6px 20px rgba(245,158,11,.3)'}}>
-                    {certLoad?'Génération…':'Obtenir mon certificat'}
+                    {certLoad?t('vpp.generating'):t('vpp.get_certificate')}
                   </button>
                 </div>
               )
@@ -325,9 +329,9 @@ export default function VideoPlayerPage(){
           <div style={{width:300,background:C.panel,borderLeft:`1px solid ${C.border}`,display:'flex',flexDirection:'column',overflow:'hidden',flexShrink:0,maxHeight:'calc(100vh - 128px)',position:'sticky',top:128}}>
             {/* sidebar header */}
             <div style={{padding:'16px 18px',borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
-              <p style={{color:'#fff',fontWeight:800,fontSize:14,margin:'0 0 3px'}}>Contenu du cours</p>
+              <p style={{color:'#fff',fontWeight:800,fontSize:14,margin:'0 0 3px'}}>{t('vpp.course_content')}</p>
               <p style={{color:C.muted,fontSize:12,margin:0}}>
-                <span style={{color:C.accent,fontWeight:700}}>{progress.completed_ids.length}</span> / {lessons.length} leçons terminées
+                <span style={{color:C.accent,fontWeight:700}}>{progress.completed_ids.length}</span> {t('vpp.lessons_completed_of', { total: lessons.length })}
               </p>
             </div>
             {/* lesson list */}
@@ -355,9 +359,9 @@ export default function VideoPlayerPage(){
                         {l.title}
                       </p>
                       <div style={{display:'flex',alignItems:'center',gap:7}}>
-                        {l.duration_min>0&&<span style={{color:C.dim,fontSize:11}}>{l.duration_min} min</span>}
-                        {!watch&&<span style={{color:C.dim,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:.3}}>Payant</span>}
-                        {l.is_free_preview&&<span style={{color:C.emerald,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:.3}}>Gratuit</span>}
+                        {l.duration_min>0&&<span style={{color:C.dim,fontSize:11}}>{t('vpp.min', { count: l.duration_min })}</span>}
+                        {!watch&&<span style={{color:C.dim,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:.3}}>{t('cdp.paid')}</span>}
+                        {l.is_free_preview&&<span style={{color:C.emerald,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:.3}}>{t('cdp.free')}</span>}
                       </div>
                     </div>
                   </button>

@@ -1,4 +1,5 @@
 // components/CourseCard.jsx
+import { useTranslation } from "react-i18next";
 import Badge from "./Badge";
 import Button from "./Button";
 import { cldImg } from "../utils/cloudinary";
@@ -17,6 +18,7 @@ function Stars({ value }) {
 }
  
 export default function CourseCard({ title, author, price, category, students, rating, level, img, duration, lessons, thumbnail, onEnroll, onPreview }) {
+  const { t } = useTranslation();
   const course = { title, author, price, category, students, rating, level, img, duration, lessons, thumbnail };
   const isFree = price === 0;
  
@@ -45,7 +47,7 @@ export default function CourseCard({ title, author, price, category, students, r
         {/* Free badge */}
         {isFree && (
           <div className="absolute top-2 left-2">
-            <Badge color="emerald" size="sm">Free</Badge>
+            <Badge color="emerald" size="sm">{t("cc.free")}</Badge>
           </div>
         )}
       </div>
@@ -62,13 +64,13 @@ export default function CourseCard({ title, author, price, category, students, r
           {title}
         </h3>
  
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">by {author}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{t("cc.by", { author })}</p>
  
         {/* Stats row */}
         <div className="flex items-center gap-2 mb-3">
           <Stars value={rating} />
           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{rating.toFixed(1)}</span>
-          <span className="text-xs text-slate-400">({students?.toLocaleString()} students)</span>
+          <span className="text-xs text-slate-400">({t("cc.students_count", { count: students || 0 })})</span>
         </div>
  
         {/* Meta */}
@@ -87,7 +89,7 @@ export default function CourseCard({ title, author, price, category, students, r
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
-                {lessons} lessons
+                {t("cc.lessons_count", { count: lessons })}
               </span>
             )}
           </div>
@@ -97,13 +99,13 @@ export default function CourseCard({ title, author, price, category, students, r
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100 dark:border-slate-800">
           <div>
             {isFree ? (
-              <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">Free</span>
+              <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">{t("cc.free")}</span>
             ) : (
               <span className="text-base font-extrabold text-slate-900 dark:text-white">${price}</span>
             )}
           </div>
           <Button variant="primary" size="sm" onClick={() => onEnroll?.(course)}>
-            {isFree ? "Enroll Free" : "Buy Now"}
+            {isFree ? t("cc.enroll_free") : t("cc.buy_now")}
           </Button>
         </div>
       </div>

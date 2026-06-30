@@ -563,6 +563,7 @@ function StatisticsPanel({ allUsers }) {
 // ─── Course/Lesson video player (must be at module scope — never inside a component) ──
 
 function CourseVideoPlayer({ url }) {
+  const { t } = useTranslation();
   const ref = React.useRef(null);
   const isMux  = (url || '').startsWith('mux:');
   const isYT   = /youtube\.com|youtu\.be/.test(url || '');
@@ -598,7 +599,7 @@ function CourseVideoPlayer({ url }) {
     return () => { if (video) video.src = ''; };
   }, [isMux, url]);
 
-  if (!url) return <p className="text-xs text-slate-400 text-center py-3">Aucune vidéo disponible</p>;
+  if (!url) return <p className="text-xs text-slate-400 text-center py-3">{t('vp.no_video')}</p>;
   if (isMux)  return <video ref={ref} className="w-full aspect-video rounded-xl bg-black" controls playsInline />;
   if (isYT) {
     const vid = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
@@ -607,7 +608,7 @@ function CourseVideoPlayer({ url }) {
   if (isURL || isB64 || isBlob) return <video className="w-full aspect-video rounded-xl bg-black" src={cldVideo(url)} controls playsInline />;
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800">
-      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">📎 Lien non lisible — utilisez YouTube ou Mux</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{t('adm.link_unreadable')}</p>
     </div>
   );
 }
@@ -648,6 +649,7 @@ function ChatAvatar({ name, email, photo, size = 'md', online }) {
 }
 
 function AdminChatPanel({ allUsers }) {
+  const { t } = useTranslation();
   const [conversations, setConversations] = React.useState([]);
   const [selectedEmail, setSelectedEmail] = React.useState(null);
   const [messages,      setMessages]      = React.useState([]);
@@ -957,7 +959,7 @@ function AdminChatPanel({ allUsers }) {
         <div className="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="font-extrabold text-slate-900 dark:text-white text-sm">Messages</p>
+              <p className="font-extrabold text-slate-900 dark:text-white text-sm">{t('msg.page_title')}</p>
               <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold">{ADMIN_TEAM_NAME}</p>
             </div>
             <div className="flex items-center gap-2">
@@ -970,7 +972,7 @@ function AdminChatPanel({ allUsers }) {
                 <button
                   onClick={e => { e.stopPropagation(); setShowPicker(p => !p); setPickerSearch(''); }}
                   className="w-7 h-7 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center text-base font-bold transition-colors"
-                  title="Nouvelle conversation"
+                  title={t('adm.new_conversation')}
                 >+</button>
                 {showPicker && (
                   <div className="absolute right-0 top-9 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
@@ -979,7 +981,7 @@ function AdminChatPanel({ allUsers }) {
                         autoFocus
                         value={pickerSearch}
                         onChange={e => setPickerSearch(e.target.value)}
-                        placeholder="Rechercher un utilisateur…"
+                        placeholder={t('msg.search_user')}
                         className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
@@ -994,7 +996,7 @@ function AdminChatPanel({ allUsers }) {
                           </div>
                         </button>
                       ))}
-                      {pickerUsers.length === 0 && <p className="text-xs text-slate-400 text-center py-4">Aucun résultat</p>}
+                      {pickerUsers.length === 0 && <p className="text-xs text-slate-400 text-center py-4">{t('msg.no_results')}</p>}
                     </div>
                   </div>
                 )}
@@ -1006,7 +1008,7 @@ function AdminChatPanel({ allUsers }) {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Nom, email, message…"
+              placeholder={t('adm.chat_search_ph')}
               className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
             />
           </div>
@@ -1029,8 +1031,8 @@ function AdminChatPanel({ allUsers }) {
           ) : filteredConvs.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-400 p-6 text-center">
               <span className="text-4xl mb-3">💬</span>
-              <p className="text-sm font-semibold">{search ? 'Aucun résultat' : 'Aucune conversation'}</p>
-              <p className="text-xs mt-1 opacity-60">{search ? 'Essayez un autre terme' : 'Les utilisateurs vous contacteront ici'}</p>
+              <p className="text-sm font-semibold">{search ? t('msg.no_results') : t('msg.no_convs')}</p>
+              <p className="text-xs mt-1 opacity-60">{search ? t('adm.try_another_term') : t('adm.users_contact_here')}</p>
             </div>
           ) : filteredConvs.map(c => {
             const unread    = Number(c.unread_count) || 0;
@@ -1055,7 +1057,7 @@ function AdminChatPanel({ allUsers }) {
                       </p>
                       {c.user_role && (
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${c.user_role === 'client' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'}`}>
-                          {c.user_role === 'client' ? 'Client' : 'Freelancer'}
+                          {c.user_role === 'client' ? t('Client') : t('Freelancer')}
                         </span>
                       )}
                     </div>
@@ -1063,7 +1065,7 @@ function AdminChatPanel({ allUsers }) {
                   </div>
                   <div className="flex items-center justify-between gap-1">
                     <p className={`text-[11px] truncate ${unread > 0 ? 'text-slate-700 dark:text-slate-200 font-medium' : 'text-slate-400'}`}>
-                      {c.sender_email === ADMIN_EMAIL ? `Vous : ${c.last_message}` : c.last_message}
+                      {c.sender_email === ADMIN_EMAIL ? t('adm.you_prefix', { msg: c.last_message }) : c.last_message}
                     </p>
                     {unread > 0 && (
                       <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-indigo-600 text-white text-[10px] font-extrabold rounded-full shrink-0 ml-1">
@@ -1105,7 +1107,7 @@ function AdminChatPanel({ allUsers }) {
               </div>
               <div className="text-right">
                 <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{ADMIN_TEAM_NAME}</p>
-                <p className="text-[10px] text-slate-400">compte admin</p>
+                <p className="text-[10px] text-slate-400">{t('adm.admin_account')}</p>
               </div>
             </div>
           </div>
@@ -1120,13 +1122,13 @@ function AdminChatPanel({ allUsers }) {
                 type="number" min="0" step="0.01"
                 value={reqAmount}
                 onChange={e => setReqAmount(e.target.value)}
-                placeholder="Montant TND"
+                placeholder={t('adm.amount_tnd')}
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'en_attente', label: '🟡 En attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
-                { id: 'en_cours',   label: '🔵 En cours',   active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
-                { id: 'termine',    label: '🟢 Terminé',    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+                { id: 'en_attente', label: `🟡 ${t('admin.pending')}`, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
+                { id: 'en_cours',   label: `🔵 ${t('fd.status.in_progress')}`,   active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
+                { id: 'termine',    label: `🟢 ${t('fd.status.completed')}`,    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
               ].map(s => {
                 const active = userCourseReq.payment_status === s.id;
                 return (
@@ -1153,13 +1155,13 @@ function AdminChatPanel({ allUsers }) {
                 type="number" min="0" step="0.01"
                 value={projAmount}
                 onChange={e => setProjAmount(e.target.value)}
-                placeholder="Montant TND"
+                placeholder={t('adm.amount_tnd')}
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'completed',        action: 'completed',        label: '✅ Projet terminé',    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.status === 'completed' },
-                { id: 'payment_pending',  action: 'payment_pending',  label: '🟡 Paiement en attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => userProject.payment_status === 'en_attente' },
-                { id: 'payment_received', action: 'payment_received', label: '🟢 Paiement reçu',      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.payment_status === 'recu' },
+                { id: 'completed',        action: 'completed',        label: `✅ ${t('adm.project_completed')}`,    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.status === 'completed' },
+                { id: 'payment_pending',  action: 'payment_pending',  label: `🟡 ${t('adm.payment_pending')}`, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => userProject.payment_status === 'en_attente' },
+                { id: 'payment_received', action: 'payment_received', label: `🟢 ${t('adm.payment_received')}`,      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.payment_status === 'recu' },
               ].map(s => {
                 const active = s.isActive();
                 return (
@@ -1186,14 +1188,14 @@ function AdminChatPanel({ allUsers }) {
                 type="number" min="0" step="0.01"
                 value={clientAmount}
                 onChange={e => setClientAmount(e.target.value)}
-                placeholder="Montant TND"
+                placeholder={t('adm.amount_tnd')}
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'in_progress',      action: 'in_progress',      label: '🔵 Projet en cours',    active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400',    isActive: () => clientProject.status === 'in_progress' },
-                { id: 'completed',        action: 'completed',        label: '✅ Projet terminé',     active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.status === 'completed' },
-                { id: 'payment_pending',  action: 'payment_pending',  label: '🟡 Paiement en attente', active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => clientProject.payment_status === 'en_attente' },
-                { id: 'payment_received', action: 'payment_received', label: '🟢 Paiement reçu',      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.payment_status === 'recu' },
+                { id: 'in_progress',      action: 'in_progress',      label: `🔵 ${t('adm.project_in_progress')}`,    active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400',    isActive: () => clientProject.status === 'in_progress' },
+                { id: 'completed',        action: 'completed',        label: `✅ ${t('adm.project_completed')}`,     active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.status === 'completed' },
+                { id: 'payment_pending',  action: 'payment_pending',  label: `🟡 ${t('adm.payment_pending')}`, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => clientProject.payment_status === 'en_attente' },
+                { id: 'payment_received', action: 'payment_received', label: `🟢 ${t('adm.payment_received')}`,      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.payment_status === 'recu' },
               ].map(s => {
                 const active = s.isActive();
                 return (
@@ -1215,8 +1217,8 @@ function AdminChatPanel({ allUsers }) {
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-slate-400">
                 <span className="text-4xl mb-2">👋</span>
-                <p className="text-sm font-semibold">Démarrez la conversation</p>
-                <p className="text-xs mt-1 opacity-60">Répondez en tant que {ADMIN_TEAM_NAME}</p>
+                <p className="text-sm font-semibold">{t('msg.start_chat')}</p>
+                <p className="text-xs mt-1 opacity-60">{t('adm.reply_as', { team: ADMIN_TEAM_NAME })}</p>
               </div>
             ) : (
               <div className="space-y-0.5">
@@ -1251,8 +1253,8 @@ function AdminChatPanel({ allUsers }) {
                               <div className="flex items-center gap-2 p-2 bg-slate-100 dark:bg-slate-700 rounded-xl">
                                 <img src={editStagedImage?.previewUrl || m.attachment_url} alt="photo" className={`h-14 w-14 rounded-lg object-cover shrink-0 ${editStagedImage ? 'ring-2 ring-indigo-400' : 'opacity-60'}`} />
                                 <div className="min-w-0">
-                                  <button onClick={() => editFileInputRef.current?.click()} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline block">🔄 Remplacer</button>
-                                  {editStagedImage && <button onClick={() => setEditStagedImage(null)} className="text-xs text-slate-400 hover:text-rose-500 mt-0.5 block">✗ Annuler</button>}
+                                  <button onClick={() => editFileInputRef.current?.click()} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline block">{t('adm.replace')}</button>
+                                  {editStagedImage && <button onClick={() => setEditStagedImage(null)} className="text-xs text-slate-400 hover:text-rose-500 mt-0.5 block">{t('adm.cancel_x')}</button>}
                                 </div>
                               </div>
                             )}
@@ -1265,7 +1267,7 @@ function AdminChatPanel({ allUsers }) {
                                   if (e.key === 'Enter') editMsg(m.id, editText);
                                   if (e.key === 'Escape') { setEditingId(null); setEditStagedImage(null); setOpenMenuId(null); }
                                 }}
-                                placeholder={m.attachment_url ? 'Légende…' : undefined}
+                                placeholder={m.attachment_url ? t('adm.caption') : undefined}
                                 className="flex-1 text-sm rounded-xl border-2 border-indigo-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 focus:outline-none min-w-0"
                               />
                               <button onClick={() => editMsg(m.id, editText)} className="w-8 h-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shrink-0 transition-colors">
@@ -1302,7 +1304,7 @@ function AdminChatPanel({ allUsers }) {
                         )}
 
                         <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
-                          {m.edited_at && <span className="text-[10px] text-slate-400 italic">modifié ·</span>}
+                          {m.edited_at && <span className="text-[10px] text-slate-400 italic">{t('adm.edited')}</span>}
                           <span className="text-[10px] text-slate-400 tabular-nums">{formatTime(m.edited_at || m.created_at)}</span>
                           {isMine && isLast && (
                             m.is_read
@@ -1334,14 +1336,14 @@ function AdminChatPanel({ allUsers }) {
                   onClick={() => { setEditingId(openMenuId); setEditText(activeMsg.content || ''); setOpenMenuId(null); }}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors text-left"
                 >
-                  ✏️ Modifier
+                  {t('adm.edit_msg')}
                 </button>
                 {canDelete && (
                   <button
                     onClick={() => { deleteMsg(openMenuId); }}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-left"
                   >
-                    🗑️ Supprimer
+                    {t('adm.delete_msg')}
                   </button>
                 )}
               </div>
@@ -1361,7 +1363,7 @@ function AdminChatPanel({ allUsers }) {
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                   </button>
                 </div>
-                <p className="text-xs text-slate-400 mt-1">Ajouter une légende…</p>
+                <p className="text-xs text-slate-400 mt-1">{t('adm.add_caption')}</p>
               </div>
             )}
             <div className="flex gap-2 items-center px-4 py-3">
@@ -1371,7 +1373,7 @@ function AdminChatPanel({ allUsers }) {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
                 className="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-500 transition-colors shrink-0 disabled:opacity-40"
-                title="Envoyer une photo"
+                title={t('adm.send_photo')}
               >
                 <svg style={{width:'18px',height:'18px'}} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -1382,7 +1384,7 @@ function AdminChatPanel({ allUsers }) {
                 value={newMsg}
                 onChange={e => setNewMsg(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
-                placeholder={`Répondre en tant que ${ADMIN_TEAM_NAME}…`}
+                placeholder={t('adm.reply_as_ph', { team: ADMIN_TEAM_NAME })}
                 className="flex-1 text-sm rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
               />
               <button
@@ -1405,8 +1407,8 @@ function AdminChatPanel({ allUsers }) {
               <svg className="w-8 h-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
             </div>
             <p className="font-bold text-slate-600 dark:text-slate-300 mb-1">{ADMIN_TEAM_NAME}</p>
-            <p className="text-sm">Sélectionnez une conversation</p>
-            <p className="text-xs mt-1 opacity-60">ou cliquez + pour en démarrer une</p>
+            <p className="text-sm">{t('msg.select_conv')}</p>
+            <p className="text-xs mt-1 opacity-60">{t('msg.select_conv_sub')}</p>
           </div>
         </div>
       )}
@@ -1417,6 +1419,7 @@ function AdminChatPanel({ allUsers }) {
 // ─── Admin Gains Tab ──────────────────────────────────────────────────────────
 
 function AdminGainsTab({ API }) {
+  const { t } = useTranslation();
   const [commissions, setCommissions] = React.useState([]);
   const [platform,    setPlatform]    = React.useState(null);
   const [loading,     setLoading]     = React.useState(true);
@@ -1439,15 +1442,15 @@ function AdminGainsTab({ API }) {
   const totalCommission = commissions.reduce((s, c) => s + Number(c.commission_amount || 0), 0);
 
   const TYPE_INFO = {
-    freelancer: { label: 'Projet Freelance', icon: '💼', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-    course:     { label: 'Vente de Cours',   icon: '📚', color: 'text-sky-600 dark:text-sky-400',     bg: 'bg-sky-50 dark:bg-sky-900/20' },
+    freelancer: { label: t('adm.type_freelance_project'), icon: '💼', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+    course:     { label: t('adm.type_course_sale'),   icon: '📚', color: 'text-sky-600 dark:text-sky-400',     bg: 'bg-sky-50 dark:bg-sky-900/20' },
   };
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-4 py-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">💰 Gains Plateforme (6%)</h2>
-        <button onClick={load} className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 transition-colors">⟳ Actualiser</button>
+        <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{t('adm.platform_gains')}</h2>
+        <button onClick={load} className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 transition-colors">{t('adm.refresh')}</button>
       </div>
 
       {/* Summary cards */}
@@ -1456,27 +1459,27 @@ function AdminGainsTab({ API }) {
           <span className="text-2xl">💰</span>
           <div>
             <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{Number(platform?.total_collected || 0).toFixed(2)} TND</p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Total collecté</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{t('adm.total_collected')}</p>
           </div>
         </div>
         <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-5 flex items-center gap-3">
           <span className="text-2xl">🔢</span>
           <div>
             <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">{commissions.length}</p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Transactions</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{t('fd.transactions')}</p>
           </div>
         </div>
       </div>
 
       {/* Transactions list */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Historique des commissions (6%) :</p>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">{t('adm.commissions_history')}</p>
         {loading ? (
-          <div className="text-center py-8 text-sm text-slate-400">Chargement…</div>
+          <div className="text-center py-8 text-sm text-slate-400">{t('fd.loading')}</div>
         ) : commissions.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-3xl mb-2">💰</p>
-            <p className="text-sm text-slate-400">Aucune commission pour le moment</p>
+            <p className="text-sm text-slate-400">{t('adm.no_commission')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -1494,17 +1497,17 @@ function AdminGainsTab({ API }) {
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{c.description || info.label}</p>
                         <p className="text-xs text-slate-400 mt-0.5">
                           {c.payment_type === 'freelancer'
-                            ? <>Client : <span className="font-semibold text-slate-600 dark:text-slate-300">{fromName}</span> → Freelance : <span className="font-semibold text-slate-600 dark:text-slate-300">{toName}</span></>
-                            : <>Acheteur : <span className="font-semibold text-slate-600 dark:text-slate-300">{fromName}</span></>
+                            ? <>{t('adm.client_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{fromName}</span> → {t('adm.freelance_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{toName}</span></>
+                            : <>{t('adm.buyer_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{fromName}</span></>
                           }
                         </p>
                         <p className="text-xs text-slate-400">{dateStr}</p>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-xs text-slate-400">Montant total</p>
+                      <p className="text-xs text-slate-400">{t('adm.total_amount')}</p>
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{Number(c.gross_amount).toFixed(2)} TND</p>
-                      <p className="text-xs text-slate-400 mt-1">Notre commission (6%)</p>
+                      <p className="text-xs text-slate-400 mt-1">{t('adm.our_commission')}</p>
                       <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">+{Number(c.commission_amount).toFixed(2)} TND</p>
                     </div>
                   </div>
@@ -1512,7 +1515,7 @@ function AdminGainsTab({ API }) {
               );
             })}
             <div className="mt-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex justify-between items-center">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Total gagné ({commissions.length} transactions)</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{t('adm.total_earned_tx', { count: commissions.length })}</p>
               <p className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">+{totalCommission.toFixed(2)} TND</p>
             </div>
           </div>
@@ -2011,7 +2014,7 @@ export default function AdminPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <p className="font-extrabold text-slate-900 dark:text-white text-sm leading-tight">Admin Dashboard</p>
+                <p className="font-extrabold text-slate-900 dark:text-white text-sm leading-tight">{t('adm.dashboard_title')}</p>
                 {counts.pending > 0 && (
                   <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-extrabold">
                     <span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span></span>
@@ -2041,7 +2044,7 @@ export default function AdminPage() {
 
             <button onClick={() => setLogoutConfirm(true)} className="flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-              <span className="hidden sm:inline">Log out</span>
+              <span className="hidden sm:inline">{t('Log out')}</span>
             </button>
           </div>
         </div>
@@ -2051,12 +2054,12 @@ export default function AdminPage() {
           const TABS = [
             { id: "cin",        label: t("admin.tab.cin"),   count: counts.pending },
             { id: "allusers",   label: t("admin.tab.all_users"), count: (users ?? []).length },
-            { id: "courses",    label: "📚 Cours",            count: courseCounts.all },
-            { id: "lessons",    label: "📖 Leçons",           count: allLessons.filter(l => l.status === 'pending').length },
-            { id: "paidaccess", label: "💳 Paid Access",      count: paidCourses.length },
-            { id: "chat",       label: "💬 Chat",             count: chatUnreadCount },
-            { id: "projects",   label: "📁 Projects",         count: adminProjects.length },
-            { id: "gains",      label: "💰 Gains",            count: 0 },
+            { id: "courses",    label: `📚 ${t('Courses')}`,            count: courseCounts.all },
+            { id: "lessons",    label: `📖 ${t('fd.lessons')}`,           count: allLessons.filter(l => l.status === 'pending').length },
+            { id: "paidaccess", label: `💳 ${t('adm.tab_paid_access')}`,      count: paidCourses.length },
+            { id: "chat",       label: `💬 ${t('adm.tab_chat')}`,             count: chatUnreadCount },
+            { id: "projects",   label: `📁 ${t('adm.tab_projects')}`,         count: adminProjects.length },
+            { id: "gains",      label: `💰 ${t('nav.gains')}`,            count: 0 },
           ];
           return (
             <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
@@ -2197,10 +2200,10 @@ export default function AdminPage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
               {[
-                { label: 'Total',    value: courseCounts.all,      color: 'text-slate-700 dark:text-slate-200',     bg: 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800' },
-                { label: 'En attente', value: courseCounts.pending, color: 'text-amber-600 dark:text-amber-400',     bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900' },
-                { label: 'Approuvés', value: courseCounts.approved, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900' },
-                { label: 'Refusés',  value: courseCounts.rejected, color: 'text-rose-600 dark:text-rose-400',       bg: 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-900' },
+                { label: t('admin.total'),    value: courseCounts.all,      color: 'text-slate-700 dark:text-slate-200',     bg: 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800' },
+                { label: t('admin.pending'), value: courseCounts.pending, color: 'text-amber-600 dark:text-amber-400',     bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900' },
+                { label: t('admin.approved'), value: courseCounts.approved, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900' },
+                { label: t('admin.rejected'),  value: courseCounts.rejected, color: 'text-rose-600 dark:text-rose-400',       bg: 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-900' },
               ].map(s => (
                 <div key={s.label} className={`${s.bg} rounded-2xl px-4 py-3 border`}>
                   <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
@@ -2211,7 +2214,7 @@ export default function AdminPage() {
 
             {/* Filter pills */}
             <div className="flex flex-wrap gap-1 p-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 mb-5">
-              {[['pending','En attente'],['approved','Approuvés'],['rejected','Refusés'],['all','Tous']].map(([id, label]) => (
+              {[['pending',t('admin.pending')],['approved',t('admin.approved')],['rejected',t('admin.rejected')],['all',t('admin.filter.all')]].map(([id, label]) => (
                 <button key={id} onClick={() => setCourseFilter(id)}
                   className={['px-4 py-1.5 text-xs font-bold rounded-xl transition-all duration-200 flex items-center gap-1.5',
                     courseFilter === id ? 'bg-indigo-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'].join(' ')}>
@@ -2228,7 +2231,7 @@ export default function AdminPage() {
             ) : coursesByFilter.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
                 <span className="text-5xl mb-3">📚</span>
-                <p className="text-sm font-semibold">Aucun cours dans cette catégorie</p>
+                <p className="text-sm font-semibold">{t('adm.no_courses_category')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -2247,7 +2250,7 @@ export default function AdminPage() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
                           </span>
-                          <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Nouveau cours à valider</p>
+                          <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{t('adm.new_course_validate')}</p>
                         </div>
                       )}
 
@@ -2268,15 +2271,15 @@ export default function AdminPage() {
                                 course.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
                                 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
                               }`}>
-                                {course.status === 'approved' ? '✅ Approuvé' : course.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
+                                {course.status === 'approved' ? `✅ ${t('admin.status.approved')}` : course.status === 'rejected' ? `❌ ${t('admin.status.rejected')}` : `⏳ ${t('admin.status.pending')}`}
                               </span>
                             </div>
 
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Par <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
 
                             <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
                               <span className="text-[11px] text-slate-500 dark:text-slate-400">📂 {course.category}</span>
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">💰 {Number(course.full_price) === 0 ? 'Gratuit' : `${Number(course.full_price).toFixed(2)} TND`}</span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">💰 {Number(course.full_price) === 0 ? t('cdp.free') : `${Number(course.full_price).toFixed(2)} TND`}</span>
                               <span className="text-[11px] text-slate-500 dark:text-slate-400">📅 {new Date(course.created_at).toLocaleDateString('fr-TN')}</span>
                             </div>
 
@@ -2297,12 +2300,12 @@ export default function AdminPage() {
                                 <button onClick={() => { setCourseApproveId(course.id); setCourseNote(''); }}
                                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors active:scale-95">
                                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                  Approuver
+                                  {t('admin.card.approve')}
                                 </button>
                                 <button onClick={() => { setCourseRejectId(course.id); setCourseNote(''); }}
                                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors active:scale-95">
                                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                  Refuser
+                                  {t('admin.card.reject')}
                                 </button>
                               </>)}
                               <button onClick={() => toggleLessons(course.id)}
@@ -2315,7 +2318,7 @@ export default function AdminPage() {
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                {expandedCourse === course.id ? 'Masquer leçons' : 'Voir leçons & vidéos'}
+                                {expandedCourse === course.id ? t('adm.hide_lessons') : t('adm.view_lessons_videos')}
                               </button>
                             </div>
                           </div>
@@ -2334,14 +2337,14 @@ export default function AdminPage() {
                               <svg className="w-8 h-8 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.263a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
                               </svg>
-                              <p className="text-xs font-semibold">Aucune leçon ajoutée pour ce cours</p>
+                              <p className="text-xs font-semibold">{t('adm.no_lessons_course')}</p>
                             </div>
                           ) : (
                             <div className="space-y-4">
                               {/* Course-level video */}
                               {(course.video_url || course.photo_url) && (
                                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden p-3 space-y-2">
-                                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300 px-1">📽 Vidéo du cours</p>
+                                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300 px-1">{t('adm.course_video')}</p>
                                   <CourseVideoPlayer url={course.video_url} />
                                   {course.photo_url && (
                                     <img src={cldImg(course.photo_url)} alt="cover" className="w-full h-32 object-cover rounded-xl border border-slate-200 dark:border-slate-700 mt-1" />
@@ -2349,7 +2352,7 @@ export default function AdminPage() {
                                 </div>
                               )}
                               <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                {lessonsByCourse[course.id].length} leçon{lessonsByCourse[course.id].length > 1 ? 's' : ''}
+                                {t('adm.lessons_count', { count: lessonsByCourse[course.id].length })}
                               </p>
                               {lessonsByCourse[course.id].map((lesson, idx) => (
                                 <div key={lesson.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -2361,7 +2364,7 @@ export default function AdminPage() {
                                       <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{lesson.title}</p>
                                       <div className="flex items-center gap-3 mt-0.5">
                                         {lesson.duration_min > 0 && <span className="text-[10px] text-slate-400">⏱ {lesson.duration_min} min</span>}
-                                        {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Free Preview</span>}
+                                        {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{t('fd.free_preview')}</span>}
                                         {Number(lesson.price) > 0 && <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">{Number(lesson.price).toFixed(2)} TND</span>}
                                       </div>
                                     </div>
@@ -2395,19 +2398,19 @@ export default function AdminPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex items-center justify-between mb-4">
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              {lessonsTabLoad ? 'Chargement…' : `${allLessons.filter(l=>l.status==='pending').length} leçon(s) en attente`}
+              {lessonsTabLoad ? t('fd.loading') : t('adm.lessons_pending', { count: allLessons.filter(l=>l.status==='pending').length })}
             </p>
             <button onClick={fetchLessonsTab} disabled={lessonsTabLoad}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 transition-colors disabled:opacity-40">
               <svg className={`w-3.5 h-3.5 ${lessonsTabLoad?'animate-spin':''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              Actualiser
+              {t('adm.refresh_short')}
             </button>
           </div>
 
           {allLessons.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
               <p className="text-4xl mb-3">📖</p>
-              <p className="text-sm font-semibold">Aucune leçon soumise</p>
+              <p className="text-sm font-semibold">{t('adm.no_lessons_submitted')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -2424,11 +2427,11 @@ export default function AdminPage() {
                             : lesson.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-700'
                             : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700'
                           }`}>
-                            {lesson.status === 'approved' ? '✅ Approuvée' : lesson.status === 'rejected' ? '❌ Refusée' : '⏳ En attente'}
+                            {lesson.status === 'approved' ? `✅ ${t('admin.status.approved')}` : lesson.status === 'rejected' ? `❌ ${t('admin.status.rejected')}` : `⏳ ${t('admin.status.pending')}`}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                          📚 <span className="font-semibold">{lesson.course_title}</span> · par <span className="font-semibold">{lesson.instructor_name}</span>
+                          📚 <span className="font-semibold">{lesson.course_title}</span> · {t('adm.by_lower')} <span className="font-semibold">{lesson.instructor_name}</span>
                         </p>
                         {lesson.admin_note && (
                           <p className={`text-[11px] mt-1 ${lesson.status === 'approved' ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -2445,17 +2448,17 @@ export default function AdminPage() {
                         <div className="flex gap-2 shrink-0">
                           <button onClick={() => { setLessonApproveId(lesson.id); setLessonApproveNote(''); }}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 transition-all">
-                            ✓ Approuver
+                            ✓ {t('admin.card.approve')}
                           </button>
                           <button onClick={() => { setLessonRejectId(lesson.id); setLessonNote(''); }}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white active:scale-95 transition-all">
-                            ✕ Refuser
+                            ✕ {t('admin.card.reject')}
                           </button>
                         </div>
                       )}
                       {acted && (
                         <span className={`text-xs font-bold px-3 py-1.5 rounded-xl ${acted==='approved'?'bg-emerald-100 text-emerald-700':'bg-rose-100 text-rose-600'}`}>
-                          {acted==='approved'?'✅ Approuvée':'❌ Refusée'}
+                          {acted==='approved'?`✅ ${t('admin.status.approved')}`:`❌ ${t('admin.status.rejected')}`}
                         </span>
                       )}
                     </div>
@@ -2473,17 +2476,17 @@ export default function AdminPage() {
                   <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0">
                     <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   </div>
-                  <p className="font-bold text-slate-900 dark:text-white">Approuver cette leçon</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{t('adm.approve_lesson')}</p>
                 </div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Message rapide (optionnel)</p>
-                {['Excellent contenu, bien structuré.', 'Vidéo claire et de bonne qualité.', 'Leçon conforme aux standards de la plateforme.'].map(p => (
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t('adm.quick_msg_optional')}</p>
+                {[t('adm.lesson_approve_preset1'), t('adm.lesson_approve_preset2'), t('adm.lesson_approve_preset3')].map(p => (
                   <button key={p} onClick={() => setLessonApproveNote(p)} className={`w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all ${lessonApproveNote===p?'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 text-emerald-700 font-semibold':'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-300'}`}>{p}</button>
                 ))}
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-3">Message personnalisé</p>
-                <textarea value={lessonApproveNote} onChange={e => setLessonApproveNote(e.target.value)} rows={2} placeholder="Message pour l'instructeur…" className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/30 mt-1" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-3">{t('adm.custom_message')}</p>
+                <textarea value={lessonApproveNote} onChange={e => setLessonApproveNote(e.target.value)} rows={2} placeholder={t('adm.message_for_instructor')} className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/30 mt-1" />
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => setLessonApproveId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
-                  <button onClick={() => approveLesson(lessonApproveId, lessonApproveNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">✅ Confirmer l'approbation</button>
+                  <button onClick={() => setLessonApproveId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{t('adm.cancel')}</button>
+                  <button onClick={() => approveLesson(lessonApproveId, lessonApproveNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">{t('adm.confirm_approval')}</button>
                 </div>
               </div>
             </div>
@@ -2497,17 +2500,17 @@ export default function AdminPage() {
                   <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex items-center justify-center shrink-0">
                     <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                   </div>
-                  <p className="font-bold text-slate-900 dark:text-white">Raison du refus</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{t('admin.reject.title')}</p>
                 </div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Raison rapide</p>
-                {['Contenu insuffisant.','Titre peu clair.','Vidéo manquante ou illisible.'].map(p => (
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t('admin.reject.quick_reason')}</p>
+                {[t('adm.lesson_reject_preset1'),t('adm.lesson_reject_preset2'),t('adm.lesson_reject_preset3')].map(p => (
                   <button key={p} onClick={() => setLessonNote(p)} className={`w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all ${lessonNote===p?'bg-rose-50 dark:bg-rose-900/20 border-rose-300 text-rose-700 font-semibold':'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-300'}`}>{p}</button>
                 ))}
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-3">Message personnalisé</p>
-                <textarea value={lessonNote} onChange={e=>setLessonNote(e.target.value)} rows={2} placeholder="Message personnalisé…" className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 mt-1" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-3">{t('adm.custom_message')}</p>
+                <textarea value={lessonNote} onChange={e=>setLessonNote(e.target.value)} rows={2} placeholder={t('adm.custom_message_ph')} className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 mt-1" />
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => setLessonRejectId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
-                  <button onClick={() => rejectLesson(lessonRejectId, lessonNote)} disabled={!lessonNote.trim()} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors">❌ Confirmer le refus</button>
+                  <button onClick={() => setLessonRejectId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{t('adm.cancel')}</button>
+                  <button onClick={() => rejectLesson(lessonRejectId, lessonNote)} disabled={!lessonNote.trim()} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors">{t('adm.confirm_rejection')}</button>
                 </div>
               </div>
             </div>
@@ -2520,14 +2523,14 @@ export default function AdminPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex items-center justify-between mb-4">
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              {paidCoursesLoading ? 'Chargement…' : `${paidCourses.length} cours`}
+              {paidCoursesLoading ? t('fd.loading') : t('adm.n_courses', { count: paidCourses.length })}
             </p>
             <button onClick={fetchPaidCourses} disabled={paidCoursesLoading}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors disabled:opacity-40">
               <svg className={`w-3.5 h-3.5 ${paidCoursesLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
               </svg>
-              Actualiser
+              {t('adm.refresh_short')}
             </button>
           </div>
 
@@ -2536,7 +2539,7 @@ export default function AdminPage() {
           ) : paidCourses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
               <span className="text-5xl mb-3">💳</span>
-              <p className="text-sm font-semibold">Aucun cours payant trouvé</p>
+              <p className="text-sm font-semibold">{t('adm.no_paid_courses')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -2555,16 +2558,16 @@ export default function AdminPage() {
                             course.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
                             'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
                           }`}>
-                            {course.status === 'approved' ? '✅ Approuvé' : course.status === 'rejected' ? '❌ Refusé' : '⏳ En attente'}
+                            {course.status === 'approved' ? `✅ ${t('admin.status.approved')}` : course.status === 'rejected' ? `❌ ${t('admin.status.rejected')}` : `⏳ ${t('admin.status.pending')}`}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Par <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                            👥 {course.total_buyers ?? 0} acheteur{(course.total_buyers ?? 0) !== 1 ? 's' : ''}
+                            👥 {t('adm.buyers_count', { count: course.total_buyers ?? 0 })}
                             {course.buyer_names ? <span className="font-semibold text-slate-600 dark:text-slate-300"> : {course.buyer_names}</span> : ''}
                           </span>
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400">📖 {course.approved_lessons ?? 0} leçon{(course.approved_lessons ?? 0) !== 1 ? 's' : ''}</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">📖 {t('adm.lessons_count', { count: course.approved_lessons ?? 0 })}</span>
                         </div>
                         <button
                           onClick={() => openAccessModal(course)}
@@ -2572,7 +2575,7 @@ export default function AdminPage() {
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.263a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
                           </svg>
-                          Watch Paid Course
+                          {t('adm.watch_paid_course')}
                         </button>
                       </div>
                     </div>
@@ -2597,7 +2600,7 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <p className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{accessModal.course?.title}</p>
-                  <p className="text-xs text-slate-400">Par {accessModal.course?.instructor_name || accessModal.course?.creator_email}</p>
+                  <p className="text-xs text-slate-400">{t('cc.by_label')} {accessModal.course?.instructor_name || accessModal.course?.creator_email}</p>
                 </div>
               </div>
               <button onClick={() => { setAccessModal(null); setWatchLesson(null); }}
@@ -2627,7 +2630,7 @@ export default function AdminPage() {
                     <div className="bg-slate-950 rounded-2xl overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
                         <p className="text-xs font-bold text-white truncate">▶ {watchLesson.lesson_title || watchLesson.title}</p>
-                        <button onClick={() => setWatchLesson(null)} className="text-slate-400 hover:text-white text-xs font-semibold ml-3 shrink-0">Fermer</button>
+                        <button onClick={() => setWatchLesson(null)} className="text-slate-400 hover:text-white text-xs font-semibold ml-3 shrink-0">{t('adm.close')}</button>
                       </div>
                       <div className="p-3">
                         <CourseVideoPlayer url={watchLesson.video_url} />
@@ -2639,7 +2642,7 @@ export default function AdminPage() {
                   {accessModal.lessons?.length > 0 && (
                     <div>
                       <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                        📖 {accessModal.lessons.length} leçon{accessModal.lessons.length !== 1 ? 's' : ''}
+                        📖 {t('adm.lessons_count', { count: accessModal.lessons.length })}
                       </p>
                       <div className="space-y-2">
                         {accessModal.lessons.map((lesson, idx) => (
@@ -2648,7 +2651,7 @@ export default function AdminPage() {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{lesson.title}</p>
                               <div className="flex items-center gap-2 mt-0.5">
-                                {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-500">Free Preview</span>}
+                                {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-500">{t('fd.free_preview')}</span>}
                                 <span className={`text-[10px] font-bold ${lesson.status === 'approved' ? 'text-emerald-500' : lesson.status === 'rejected' ? 'text-rose-500' : 'text-amber-500'}`}>{lesson.status}</span>
                               </div>
                             </div>
@@ -2663,7 +2666,7 @@ export default function AdminPage() {
                                 }}
                                 className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors active:scale-95 shrink-0">
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/></svg>
-                                Watch
+                                {t('adm.watch')}
                               </button>
                             )}
                           </div>
@@ -2680,7 +2683,7 @@ export default function AdminPage() {
                       </svg>
                       <input
                         type="text"
-                        placeholder="Rechercher un utilisateur par email…"
+                        placeholder={t('adm.search_user_email')}
                         value={searchEmail}
                         onChange={e => {
                           const val = e.target.value;
@@ -2758,7 +2761,7 @@ export default function AdminPage() {
                             {grantLoading
                               ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
                               : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
-                            {grantLoading ? 'En cours…' : '✅ Confirm Access'}
+                            {grantLoading ? t('adm.in_progress') : t('adm.confirm_access')}
                           </button>
                         </div>
                       </div>
@@ -2777,12 +2780,12 @@ export default function AdminPage() {
                   {/* Students with access */}
                   <div>
                     <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                      👥 {accessModal.students?.length ?? 0} utilisateur{(accessModal.students?.length ?? 0) !== 1 ? 's' : ''} avec accès
+                      👥 {t('adm.users_with_access', { count: accessModal.students?.length ?? 0 })}
                     </p>
                     {(!accessModal.students || accessModal.students.length === 0) ? (
                       <div className="flex flex-col items-center justify-center py-8 text-slate-400 dark:text-slate-600">
                         <span className="text-3xl mb-2">👤</span>
-                        <p className="text-xs font-semibold">Aucun utilisateur n'a encore acheté ce cours</p>
+                        <p className="text-xs font-semibold">{t('adm.no_buyers_yet')}</p>
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -2798,12 +2801,12 @@ export default function AdminPage() {
                                 onClick={() => setRevokeConfirm(s)}
                                 disabled={!!revokeLoading[s.id]}
                                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 disabled:opacity-40 transition-colors active:scale-95 shrink-0">
-                                {revokeLoading[s.id] ? '…' : '✕ Révoquer'}
+                                {revokeLoading[s.id] ? '…' : t('adm.revoke')}
                               </button>
                             </div>
                             <div className="flex items-center gap-2 mt-1.5 ml-[52px] flex-wrap">
                               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${s.access_type === 'full_course' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400'}`}>
-                                {s.access_type === 'full_course' ? 'Cours complet' : 'Leçon: ' + (s.lesson_title || s.lesson_id)}
+                                {s.access_type === 'full_course' ? t('adm.full_course') : t('adm.lesson_label', { name: s.lesson_title || s.lesson_id })}
                               </span>
                               {Number(s.amount_paid) > 0 && <span className="text-[10px] text-slate-400">{Number(s.amount_paid).toFixed(2)} TND</span>}
                             </div>
@@ -2840,19 +2843,19 @@ export default function AdminPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                 </svg>
               </div>
-              <h2 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">Revoke Course Access</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to remove access for</p>
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">{t('adm.revoke_access_title')}</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{t('adm.revoke_access_confirm')}</p>
 
               {/* User info */}
               <div className="mt-3 w-full bg-slate-50 dark:bg-slate-800 rounded-2xl px-4 py-3 text-left">
                 <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{revokeConfirm.buyer_name || revokeConfirm.buyer_email}</p>
                 <p className="text-xs text-slate-400 truncate">{revokeConfirm.buyer_email}</p>
                 <span className={`inline-block mt-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${revokeConfirm.access_type === 'full_course' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400'}`}>
-                  {revokeConfirm.access_type === 'full_course' ? 'Full course access' : 'Single lesson access'}
+                  {revokeConfirm.access_type === 'full_course' ? t('adm.full_course_access') : t('adm.single_lesson_access')}
                 </span>
               </div>
 
-              <p className="text-xs text-rose-500 dark:text-rose-400 font-semibold mt-3">This action cannot be undone.</p>
+              <p className="text-xs text-rose-500 dark:text-rose-400 font-semibold mt-3">{t('adm.action_irreversible')}</p>
             </div>
 
             {/* Buttons */}
@@ -2860,12 +2863,12 @@ export default function AdminPage() {
               <button
                 onClick={() => setRevokeConfirm(null)}
                 className="flex-1 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                Cancel
+                {t('adm.cancel')}
               </button>
               <button
                 onClick={() => { revokeAccess(revokeConfirm); setRevokeConfirm(null); }}
                 className="flex-1 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-sm font-bold text-white transition-colors shadow-sm shadow-rose-500/30 active:scale-95">
-                Yes, Revoke
+                {t('adm.yes_revoke')}
               </button>
             </div>
           </div>
@@ -2881,22 +2884,22 @@ export default function AdminPage() {
                 <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
-                <p className="font-bold text-slate-900 dark:text-white">Approuver ce cours</p>
+                <p className="font-bold text-slate-900 dark:text-white">{t('adm.approve_course')}</p>
               </div>
               <button onClick={() => setCourseApproveId(null)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
             <div className="px-6 pb-3">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Message pour l'instructeur (optionnel)</p>
-              {[['Excellent contenu, bien structuré !','Cours approuvé, bonne continuation !','Contenu de qualité, félicitations !']].flat().map(p => (
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t('adm.msg_instructor_optional')}</p>
+              {[[t('adm.course_approve_preset1'),t('adm.course_approve_preset2'),t('adm.course_approve_preset3')]].flat().map(p => (
                 <button key={p} onClick={() => setCourseNote(p)} className={['w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all', courseNote === p ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 font-semibold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-300'].join(' ')}>{p}</button>
               ))}
-              <textarea value={courseNote} onChange={e => setCourseNote(e.target.value)} rows={2} placeholder="Message personnalisé…" className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors" />
+              <textarea value={courseNote} onChange={e => setCourseNote(e.target.value)} rows={2} placeholder={t('adm.custom_message_ph')} className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors" />
             </div>
             <div className="flex gap-2 px-6 pb-6">
-              <button onClick={() => setCourseApproveId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
-              <button onClick={() => approveCourse(courseApproveId, courseNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">✅ Confirmer</button>
+              <button onClick={() => setCourseApproveId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{t('adm.cancel')}</button>
+              <button onClick={() => approveCourse(courseApproveId, courseNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">{t('adm.confirm')}</button>
             </div>
           </div>
         </div>
@@ -2911,22 +2914,22 @@ export default function AdminPage() {
                 <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </div>
-                <p className="font-bold text-slate-900 dark:text-white">Refuser ce cours</p>
+                <p className="font-bold text-slate-900 dark:text-white">{t('adm.reject_course')}</p>
               </div>
               <button onClick={() => setCourseRejectId(null)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
             <div className="px-6 pb-3">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Raison du refus</p>
-              {['Contenu insuffisant ou incomplet.','Titre ou description peu clairs.','Catégorie incorrecte.','Vidéo manquante ou illisible.'].map(p => (
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t('admin.reject.title')}</p>
+              {[t('adm.course_reject_preset1'),t('adm.course_reject_preset2'),t('adm.course_reject_preset3'),t('adm.course_reject_preset4')].map(p => (
                 <button key={p} onClick={() => setCourseNote(p)} className={['w-full text-left text-xs px-3 py-2 rounded-xl border mb-1.5 transition-all', courseNote === p ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-400 font-semibold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-300'].join(' ')}>{p}</button>
               ))}
-              <textarea value={courseNote} onChange={e => setCourseNote(e.target.value)} rows={2} placeholder="Raison personnalisée…" className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 focus:border-rose-400 transition-colors" />
+              <textarea value={courseNote} onChange={e => setCourseNote(e.target.value)} rows={2} placeholder={t('adm.custom_reason_ph')} className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 focus:border-rose-400 transition-colors" />
             </div>
             <div className="flex gap-2 px-6 pb-6">
-              <button onClick={() => setCourseRejectId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Annuler</button>
-              <button disabled={!courseNote.trim()} onClick={() => rejectCourse(courseRejectId, courseNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white transition-colors">❌ Confirmer</button>
+              <button onClick={() => setCourseRejectId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{t('adm.cancel')}</button>
+              <button disabled={!courseNote.trim()} onClick={() => rejectCourse(courseRejectId, courseNote)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white transition-colors">{t('adm.confirm_x')}</button>
             </div>
           </div>
         </div>
@@ -3010,37 +3013,37 @@ export default function AdminPage() {
       {mainTab === 'projects' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">📁 Projets (Client ↔ Freelance)</h2>
+            <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{t('adm.projects_title')}</h2>
             <button onClick={fetchAdminProjects} className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 transition-colors">
-              ⟳ Actualiser
+              {t('adm.refresh')}
             </button>
           </div>
 
           {adminProjectsLoading ? (
-            <p className="text-sm text-slate-400">Chargement…</p>
+            <p className="text-sm text-slate-400">{t('fd.loading')}</p>
           ) : adminProjects.length === 0 ? (
-            <p className="text-sm text-slate-400">Aucun projet accepté pour le moment.</p>
+            <p className="text-sm text-slate-400">{t('adm.no_accepted_projects')}</p>
           ) : (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
               <div className="overflow-x-auto">
               <table style={{ minWidth: 620 }} className="w-full">
                 <thead>
                   <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-100 dark:border-slate-800">
-                    <th className="px-3 py-3 font-bold whitespace-nowrap">Projet</th>
-                    <th className="px-3 py-3 font-bold whitespace-nowrap">Client</th>
-                    <th className="px-3 py-3 font-bold whitespace-nowrap">Freelance</th>
-                    <th className="px-3 py-3 font-bold whitespace-nowrap">Montant</th>
-                    <th className="px-3 py-3 font-bold whitespace-nowrap">Date</th>
-                    <th className="px-3 py-3 font-bold whitespace-nowrap">Statut</th>
-                    <th className="px-3 py-3 font-bold whitespace-nowrap">Paiement</th>
+                    <th className="px-3 py-3 font-bold whitespace-nowrap">{t('adm.th_project')}</th>
+                    <th className="px-3 py-3 font-bold whitespace-nowrap">{t('Client')}</th>
+                    <th className="px-3 py-3 font-bold whitespace-nowrap">{t('adm.th_freelance')}</th>
+                    <th className="px-3 py-3 font-bold whitespace-nowrap">{t('adm.th_amount')}</th>
+                    <th className="px-3 py-3 font-bold whitespace-nowrap">{t('adm.th_date')}</th>
+                    <th className="px-3 py-3 font-bold whitespace-nowrap">{t('adm.th_status')}</th>
+                    <th className="px-3 py-3 font-bold whitespace-nowrap">{t('adm.th_payment')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {adminProjects.map(p => {
                     const STATUS_BADGE   = { in_progress: 'bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400', completed: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' };
-                    const STATUS_LABEL   = { in_progress: 'En cours', completed: 'Terminé' };
+                    const STATUS_LABEL   = { in_progress: t('fd.status.in_progress'), completed: t('fd.status.completed') };
                     const PAY_BADGE      = { en_attente: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400', recu: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' };
-                    const PAY_LABEL_FULL = { en_attente: 'Paiement en attente', recu: 'Paiement reçu' };
+                    const PAY_LABEL_FULL = { en_attente: t('adm.payment_pending'), recu: t('adm.payment_received') };
                     const acceptedDate   = p.accepted_at ? new Date(p.accepted_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
                     return (
                       <tr key={p.id} className="border-b border-slate-50 dark:border-slate-800/60 last:border-0">
@@ -3102,15 +3105,15 @@ export default function AdminPage() {
               </button>
             </div>
             <div className="px-6 py-5">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Log out</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to log out?</p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">{t('Log out')}</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{t('adm.logout_confirm')}</p>
             </div>
             <div className="flex gap-3 px-6 pb-6">
               <button onClick={() => setLogoutConfirm(false)} className="flex-1 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                Cancel
+                {t('adm.cancel')}
               </button>
               <button onClick={() => { logout(); setLogoutConfirm(false); }} className="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold transition-colors shadow-sm shadow-rose-500/30">
-                Log out
+                {t('Log out')}
               </button>
             </div>
           </div>

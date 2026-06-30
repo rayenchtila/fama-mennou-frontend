@@ -115,7 +115,7 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
         {/* Avatar — clickable → profile */}
         <div
           onClick={() => navigate(`/profile/${encodeURIComponent(freelancer.email)}`)}
-          title="View profile"
+          title={t('common.view_profile')}
           style={{ width:64, height:64, borderRadius:'50%', flexShrink:0, background:tintBg, color:tintFg, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:22, overflow:'hidden', border:`2.5px solid ${tintFg}40`, boxShadow:`0 0 0 4px ${tintBg}`, cursor:'pointer', transition:'transform .15s, box-shadow .15s' }}
           onMouseEnter={e => { e.currentTarget.style.transform='scale(1.08)'; e.currentTarget.style.boxShadow=`0 0 0 4px ${tintBg}, 0 0 0 6px ${tintFg}40`; }}
           onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow=`0 0 0 4px ${tintBg}`; }}>

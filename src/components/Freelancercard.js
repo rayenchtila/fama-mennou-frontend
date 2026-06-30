@@ -1,4 +1,5 @@
 // components/FreelancerCard.jsx
+import { useTranslation } from "react-i18next";
 import Badge from "./Badge";
 import Button from "./Button";
  
@@ -25,6 +26,7 @@ function Stars({ value }) {
 }
  
 export default function FreelancerCard({ name, skill, rate, rating, reviews, avatar, tags = [], available, bio, completedJobs, onHire, onView, index = 0 }) {
+  const { t } = useTranslation();
   const freelancer = { name, skill, rate, rating, reviews, avatar, tags, available, bio, completedJobs };
   const avatarBg = AVATAR_COLORS[index % AVATAR_COLORS.length];
  
@@ -51,7 +53,7 @@ export default function FreelancerCard({ name, skill, rate, rating, reviews, ava
         <div className="text-right">
           <p className="font-bold text-indigo-600 dark:text-indigo-400 text-sm">{rate}</p>
           <Badge color={available ? "emerald" : "slate"} size="xs" dot>
-            {available ? "Available" : "Busy"}
+            {available ? t("Available") : t("Busy")}
           </Badge>
         </div>
       </div>
@@ -60,9 +62,9 @@ export default function FreelancerCard({ name, skill, rate, rating, reviews, ava
       <div className="flex items-center gap-2 mb-3">
         <Stars value={rating} />
         <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{rating.toFixed(1)}</span>
-        <span className="text-xs text-slate-400">({reviews} reviews)</span>
+        <span className="text-xs text-slate-400">({t("fc.reviews_count", { count: reviews })})</span>
         {completedJobs && (
-          <span className="ml-auto text-xs text-slate-400">{completedJobs} jobs</span>
+          <span className="ml-auto text-xs text-slate-400">{t("fc.jobs_count", { count: completedJobs })}</span>
         )}
       </div>
  
@@ -87,7 +89,7 @@ export default function FreelancerCard({ name, skill, rate, rating, reviews, ava
           onClick={() => onHire?.(freelancer)}
           disabled={!available}
         >
-          {available ? "Hire" : "Unavailable"}
+          {available ? t("fc.hire") : t("Unavailable")}
         </Button>
       </div>
     </div>

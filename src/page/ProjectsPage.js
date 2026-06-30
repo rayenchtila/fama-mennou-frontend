@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { cldImg } from '../utils/cloudinary';
 
@@ -75,12 +76,13 @@ const onBlr = e => { e.target.style.borderColor='rgba(255,255,255,0.1)'; };
 
 /* ── Period Dropdown (custom, fully dark) ── */
 function PeriodSelect({ value, onChange, maxDays }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <div style={{ position:'relative' }}>
       <button type="button" onClick={()=>setOpen(o=>!o)} onBlur={()=>setTimeout(()=>setOpen(false),150)}
         style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(255,255,255,0.05)', border:`1px solid ${open?'rgba(124,108,246,0.5)':'rgba(255,255,255,0.1)'}`, borderRadius:12, color:value?'#f4f3fb':'#62668a', padding:'10px 13px', fontSize:13, cursor:'pointer', fontFamily:'inherit', textAlign:'left', transition:'border-color .2s', boxSizing:'border-box' }}>
-        <span>{value || 'Sélectionner une période…'}</span>
+        <span>{value || t('prp.period_select')}</span>
         <div style={{ transform:open?'rotate(180deg)':'none', transition:'transform .2s', color:'#62668a', flexShrink:0, marginLeft:8 }}><IcChev s={13}/></div>
       </button>
       {open && (
@@ -99,7 +101,7 @@ function PeriodSelect({ value, onChange, maxDays }) {
                 onMouseEnter={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='rgba(255,255,255,0.05)';}}
                 onMouseLeave={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='transparent';}}>
                 <span>{o}</span>
-                {tooLong && <span style={{ fontSize:10, fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:6, padding:'1px 7px', flexShrink:0, marginLeft:8 }}>Trop long</span>}
+                {tooLong && <span style={{ fontSize:10, fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:6, padding:'1px 7px', flexShrink:0, marginLeft:8 }}>{t('prp.too_long')}</span>}
               </button>
             );
           })}
@@ -113,6 +115,7 @@ function PeriodSelect({ value, onChange, maxDays }) {
    APPLY MODAL — freelancer applies to a project
    ══════════════════════════════════════════════════════════════ */
 function ApplyModal({ project, user, onClose, onDone }) {
+  const { t } = useTranslation();
   const [period,    setPeriod]    = useState('');
   const [portfolio, setPortfolio] = useState('');
   const [letter,    setLetter]    = useState('');
@@ -123,10 +126,10 @@ function ApplyModal({ project, user, onClose, onDone }) {
 
   async function submit(e) {
     e.preventDefault();
-    if (!period)    { setErr('Veuillez sélectionner une période.'); return; }
-    if (!portfolio) { setErr('Le lien portfolio est requis.'); return; }
+    if (!period)    { setErr(t('prp.err_period')); return; }
+    if (!portfolio) { setErr(t('prp.err_portfolio')); return; }
     if (clientMaxDays !== undefined && (PERIOD_DAYS[period] || 0) > clientMaxDays) {
-      setErr(`Période trop longue. Le client accepte au maximum : "${project.period}".`);
+      setErr(t('prp.err_period_too_long', { period: project.period }));
       return;
     }
     setSending(true); setErr('');
@@ -136,9 +139,9 @@ function ApplyModal({ project, user, onClose, onDone }) {
         body: JSON.stringify({ projectId:project.id, freelancerEmail:user.email, price:1, deliveryDays:PERIOD_DAYS[period]||1, coverLetter:portfolio ? `[portfolio:${portfolio}]\n${letter}` : letter }),
       });
       const data = await res.json();
-      if (!res.ok || data.error) { setErr(data.error||'Vous avez déjà postulé à ce projet.'); return; }
+      if (!res.ok || data.error) { setErr(data.error||t('prp.err_already_applied')); return; }
       onDone();
-    } catch { setErr('Impossible de joindre le serveur.'); }
+    } catch { setErr(t('prp.err_server_unreachable')); }
     finally { setSending(false); }
   }
 
@@ -148,7 +151,7 @@ function ApplyModal({ project, user, onClose, onDone }) {
       <div style={{ width:'100%', maxWidth:480, background:'#13112a', border:'1px solid rgba(124,108,246,0.3)', borderRadius:22, padding:'28px 28px 24px', boxShadow:'0 24px 80px -12px rgba(0,0,0,0.7)' }}>
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:20 }}>
           <div>
-            <p style={{ fontSize:11, fontWeight:700, color:'#7c6cf6', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 4px' }}>Postuler</p>
+            <p style={{ fontSize:11, fontWeight:700, color:'#7c6cf6', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 4px' }}>{t('prp.apply')}</p>
             <h3 style={{ fontSize:17, fontWeight:900, color:'#f9f8ff', margin:0, lineHeight:1.3 }}>{project.title}</h3>
           </div>
           <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#7e82a0', display:'flex', alignItems:'center', justifyContent:'center' }}><IcX s={14}/></button>
@@ -156,27 +159,27 @@ function ApplyModal({ project, user, onClose, onDone }) {
         <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
           <div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>Période de livraison <span style={{color:'#f87171'}}>*</span></p>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{t('prp.delivery_period')} <span style={{color:'#f87171'}}>*</span></p>
               {clientMaxDays !== undefined && (
                 <span style={{ fontSize:10, fontWeight:700, color:'#f59e0b', background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.22)', borderRadius:6, padding:'2px 8px' }}>
-                  max : {project.period}
+                  {t('prp.max', { period: project.period })}
                 </span>
               )}
             </div>
             <PeriodSelect value={period} onChange={setPeriod} maxDays={clientMaxDays}/>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Lien portfolio / profil <span style={{color:'#f87171'}}>*</span></p>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.portfolio_link')} <span style={{color:'#f87171'}}>*</span></p>
             <input type="url" value={portfolio} onChange={e=>setPortfolio(e.target.value)} placeholder="https://monportfolio.com" style={MI} onFocus={onFoc} onBlur={onBlr}/>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Lettre de motivation</p>
-            <textarea value={letter} onChange={e=>setLetter(e.target.value)} rows={4} placeholder="Pourquoi êtes-vous le bon candidat ?" style={{...MI,resize:'none',lineHeight:1.6}} onFocus={onFoc} onBlur={onBlr}/>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.cover_letter')}</p>
+            <textarea value={letter} onChange={e=>setLetter(e.target.value)} rows={4} placeholder={t('prp.cover_letter_placeholder')} style={{...MI,resize:'none',lineHeight:1.6}} onFocus={onFoc} onBlur={onBlr}/>
           </div>
           {err && <p style={{ fontSize:12, color:'#f87171', margin:0 }}>{err}</p>}
           <button type="submit" disabled={sending}
             style={{ padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:sending?'not-allowed':'pointer', opacity:sending?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
-            {sending ? 'Envoi…' : 'Envoyer ma candidature'}
+            {sending ? t('prp.sending') : t('prp.send_application')}
           </button>
         </form>
       </div>
@@ -188,6 +191,7 @@ function ApplyModal({ project, user, onClose, onDone }) {
    POST MODAL — client posts a new project
    ══════════════════════════════════════════════════════════════ */
 function PostModal({ user, onClose, onDone }) {
+  const { t } = useTranslation();
   const [form, setForm]   = useState({ title:'', description:'', budget:'500', experience:'', period:'', keywords:['','','','',''] });
   const [errs, setErrs]   = useState({});
   const [posting,setPosting]=useState(false);
@@ -196,10 +200,10 @@ function PostModal({ user, onClose, onDone }) {
   async function submit(e) {
     e.preventDefault();
     const errors = {};
-    if (!form.title.trim())       errors.title       = 'Requis';
-    if (!form.description.trim()) errors.description = 'Requis';
-    if (!form.experience)         errors.experience  = 'Requis';
-    if (!form.period)             errors.period      = 'Requis';
+    if (!form.title.trim())       errors.title       = t('prp.required');
+    if (!form.description.trim()) errors.description = t('prp.required');
+    if (!form.experience)         errors.experience  = t('prp.required');
+    if (!form.period)             errors.period      = t('prp.required');
     if (Object.keys(errors).length) { setErrs(errors); return; }
     setPosting(true); setErr('');
     try {
@@ -208,9 +212,9 @@ function PostModal({ user, onClose, onDone }) {
         body: JSON.stringify({ clientEmail:user.email, ...form, keywords:form.keywords.filter(k=>k.trim()).map(k=>`#${k.trim()}`).join(' ') }),
       });
       const data = await res.json();
-      if (!res.ok || data.error) { setErr(data.error||'Erreur serveur'); return; }
+      if (!res.ok || data.error) { setErr(data.error||t('prp.err_server')); return; }
       onDone();
-    } catch { setErr('Impossible de joindre le serveur.'); }
+    } catch { setErr(t('prp.err_server_unreachable')); }
     finally { setPosting(false); }
   }
 
@@ -219,40 +223,40 @@ function PostModal({ user, onClose, onDone }) {
       onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
       <div style={{ width:'100%', maxWidth:560, background:'#13112a', border:'1px solid rgba(124,108,246,0.3)', borderRadius:22, padding:28, boxShadow:'0 24px 80px -12px rgba(0,0,0,0.7)', marginBlock:'auto' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:22 }}>
-          <h3 style={{ fontSize:18, fontWeight:900, color:'#f9f8ff', margin:0 }}>Publier un projet</h3>
+          <h3 style={{ fontSize:18, fontWeight:900, color:'#f9f8ff', margin:0 }}>{t('prp.post_project')}</h3>
           <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#7e82a0', display:'flex', alignItems:'center', justifyContent:'center' }}><IcX s={14}/></button>
         </div>
         <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Titre du projet <span style={{color:'#f87171'}}>*</span></p>
-            <input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} placeholder="Ex: Développement d'une app mobile" style={MI} onFocus={onFoc} onBlur={onBlr}/>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.project_title')} <span style={{color:'#f87171'}}>*</span></p>
+            <input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} placeholder={t('prp.project_title_placeholder')} style={MI} onFocus={onFoc} onBlur={onBlr}/>
             {errs.title && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.title}</p>}
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Description <span style={{color:'#f87171'}}>*</span></p>
-            <textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} rows={3} placeholder="Décrivez votre projet en détail…" style={{...MI,resize:'none'}} onFocus={onFoc} onBlur={onBlr}/>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.description')} <span style={{color:'#f87171'}}>*</span></p>
+            <textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} rows={3} placeholder={t('prp.description_placeholder')} style={{...MI,resize:'none'}} onFocus={onFoc} onBlur={onBlr}/>
             {errs.description && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.description}</p>}
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
             <div>
-              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Expérience <span style={{color:'#f87171'}}>*</span></p>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.experience')} <span style={{color:'#f87171'}}>*</span></p>
               <select value={form.experience} onChange={e=>setForm(f=>({...f,experience:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
-                <option value="">Sélectionner…</option>
+                <option value="">{t('prp.select')}</option>
                 {EXPERIENCE_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
               </select>
               {errs.experience && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.experience}</p>}
             </div>
             <div>
-              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Période <span style={{color:'#f87171'}}>*</span></p>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.period')} <span style={{color:'#f87171'}}>*</span></p>
               <select value={form.period} onChange={e=>setForm(f=>({...f,period:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
-                <option value="">Sélectionner…</option>
+                <option value="">{t('prp.select')}</option>
                 {PERIOD_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
               </select>
               {errs.period && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.period}</p>}
             </div>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Budget (TND)</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.budget_tnd')}</p>
             <div style={{ display:'flex', alignItems:'stretch', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, overflow:'hidden' }}>
               <button type="button" onClick={()=>setForm(f=>({...f,budget:String(Math.max(0,(Number(f.budget)||0)-100))}))}
                 style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'#7e82a0', background:'none', border:'none', cursor:'pointer' }}>−</button>
@@ -263,13 +267,13 @@ function PostModal({ user, onClose, onDone }) {
             </div>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Mots clés</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>{t('prp.keywords')}</p>
             <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
               {form.keywords.map((kw,i)=>(
                 <div key={i} style={{ display:'flex', alignItems:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, overflow:'hidden' }}>
                   <span style={{ paddingLeft:10, fontSize:13, fontWeight:700, color:'#7e82a0' }}>#</span>
                   <input maxLength={25} value={kw} onChange={e=>{const v=e.target.value.replace(/[#\s]/g,'');setForm(f=>({...f,keywords:f.keywords.map((k,idx)=>idx===i?v:k)}));}}
-                    placeholder={`mot ${i+1}`} style={{ background:'transparent', color:'#f4f3fb', fontSize:12, fontWeight:600, padding:'8px 8px 8px 4px', outline:'none', width:'9ch' }}/>
+                    placeholder={t('prp.word_n', { n: i+1 })} style={{ background:'transparent', color:'#f4f3fb', fontSize:12, fontWeight:600, padding:'8px 8px 8px 4px', outline:'none', width:'9ch' }}/>
                 </div>
               ))}
             </div>
@@ -277,7 +281,7 @@ function PostModal({ user, onClose, onDone }) {
           {err && <p style={{fontSize:12,color:'#f87171'}}>{err}</p>}
           <button type="submit" disabled={posting}
             style={{ padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:posting?'not-allowed':'pointer', opacity:posting?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
-            {posting ? 'Publication…' : 'Publier le projet'}
+            {posting ? t('prp.publishing') : t('prp.publish_project')}
           </button>
         </form>
       </div>
@@ -289,6 +293,7 @@ function PostModal({ user, onClose, onDone }) {
    PROPOSAL CARD — single freelancer proposal (in My Projects)
    ══════════════════════════════════════════════════════════════ */
 function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, users }) {
+  const { t } = useTranslation();
   const [showFull, setShowFull] = useState(false);
   const [confirm,  setConfirm]  = useState(null); // null | 'accept' | 'reject'
   const navigate = useNavigate();
@@ -343,7 +348,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
 
             {/* Title */}
             <h3 style={{ fontSize:20, fontWeight:900, color:'#f9f8ff', margin:'0 0 10px', letterSpacing:'-0.02em' }}>
-              {isAccept ? 'Accepter la candidature ?' : 'Refuser la candidature ?'}
+              {isAccept ? t('prp.accept_application') : t('prp.reject_application')}
             </h3>
 
             {/* Freelancer chip */}
@@ -359,8 +364,8 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
             {/* Body text */}
             <p style={{ fontSize:13, color:'#62668a', margin:'0 0 28px', lineHeight:1.65 }}>
               {isAccept
-                ? 'Ce freelancer sera assigné à votre projet. Les autres candidatures seront automatiquement clôturées.'
-                : 'Cette candidature sera refusée. Le freelancer ne pourra plus postuler à ce projet.'}
+                ? t('prp.accept_desc')
+                : t('prp.reject_desc')}
             </p>
 
             {/* Action buttons */}
@@ -369,7 +374,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
                 style={{ flex:1, padding:'13px', borderRadius:14, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#8a8eb0', fontSize:14, fontWeight:700, cursor:'pointer', transition:'all .15s', fontFamily:'inherit' }}
                 onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.09)';e.currentTarget.style.color='#c2c5dd';e.currentTarget.style.borderColor='rgba(255,255,255,0.18)';}}
                 onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.color='#8a8eb0';e.currentTarget.style.borderColor='rgba(255,255,255,0.1)';}}>
-                Annuler
+                {t('prp.cancel')}
               </button>
               <button onClick={doConfirm} disabled={accepting||rejecting}
                 style={{ flex:1.4, padding:'13px', borderRadius:14, border:'none', color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer', fontFamily:'inherit', transition:'all .15s',
@@ -377,7 +382,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
                   boxShadow: isAccept ? '0 6px 24px -6px rgba(124,108,246,0.6)' : '0 6px 24px -6px rgba(239,68,68,0.5)' }}
                 onMouseEnter={e=>{e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}
                 onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}>
-                {isAccept ? 'Oui, accepter' : 'Oui, refuser'}
+                {isAccept ? t('prp.yes_accept') : t('prp.yes_reject')}
               </button>
             </div>
           </div>
@@ -391,7 +396,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
         {/* Avatar — clickable → profile */}
         <div
           onClick={() => navigate(`/profile/${encodeURIComponent(proposal.freelancer_email)}`)}
-          title="View profile"
+          title={t('prp.view_profile')}
           style={{ width:40, height:40, borderRadius:12, background:tintBg, color:tintFg, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:13, flexShrink:0, border:`1.5px solid ${tintFg}35`, overflow:'hidden', cursor:'pointer', transition:'transform .15s, box-shadow .15s' }}
           onMouseEnter={e => { e.currentTarget.style.transform='scale(1.1)'; e.currentTarget.style.boxShadow=`0 0 0 3px ${tintFg}35`; }}
           onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow='none'; }}>
@@ -414,12 +419,12 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
             <div style={{ display:'flex', alignItems:'center', gap:7, flexShrink:0 }}>
               {isAccepted && (
                 <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontWeight:800, color:'#10b981', background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.28)', padding:'4px 12px', borderRadius:20 }}>
-                  <IcCheck s={11}/> Accepté
+                  <IcCheck s={11}/> {t('prp.accepted')}
                 </span>
               )}
               {isRejected && (
                 <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontWeight:800, color:'#f87171', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.25)', padding:'4px 12px', borderRadius:20 }}>
-                  <IcX s={11}/> Refusé
+                  <IcX s={11}/> {t('prp.rejected')}
                 </span>
               )}
               {isPending && (
@@ -428,13 +433,13 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
                     style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 14px', borderRadius:12, background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.22)', color:'#f87171', fontSize:12.5, fontWeight:700, cursor:'pointer', transition:'all .15s' }}
                     onMouseEnter={e=>{e.currentTarget.style.background='rgba(248,113,113,0.15)';e.currentTarget.style.transform='translateY(-1px)';}}
                     onMouseLeave={e=>{e.currentTarget.style.background='rgba(248,113,113,0.08)';e.currentTarget.style.transform='translateY(0)';}}>
-                    <IcX s={12}/>{rejecting?'…':'Annuler'}
+                    <IcX s={12}/>{rejecting?'…':t('prp.cancel_short')}
                   </button>
                   <button onClick={()=>setConfirm('accept')} disabled={accepting}
                     style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:12.5, fontWeight:800, cursor:'pointer', opacity:accepting?0.7:1, boxShadow:'0 4px 14px -4px rgba(124,108,246,0.5)', transition:'all .15s' }}
                     onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.opacity='0.9';}}
                     onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.opacity='1';}}>
-                    <IcCheck s={12}/>{accepting?'…':'Accepter'}
+                    <IcCheck s={12}/>{accepting?'…':t('prp.accept')}
                   </button>
                 </>
               )}
@@ -444,7 +449,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
           <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:10 }}>
             {period && (
               <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#9b8cff', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}>
-                <span style={{fontSize:10,fontWeight:700,opacity:0.8,letterSpacing:'0.03em'}}>Durée</span>{period}
+                <span style={{fontSize:10,fontWeight:700,opacity:0.8,letterSpacing:'0.03em'}}>{t('prp.duration')}</span>{period}
               </span>
             )}
             {portfolio && (
@@ -454,7 +459,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
                 onMouseEnter={e=>{ e.currentTarget.style.background='rgba(62,194,232,0.18)'; e.currentTarget.style.borderColor='rgba(62,194,232,0.4)'; e.currentTarget.style.transform='translateY(-1px)'; }}
                 onMouseLeave={e=>{ e.currentTarget.style.background='rgba(62,194,232,0.08)'; e.currentTarget.style.borderColor='rgba(62,194,232,0.22)'; e.currentTarget.style.transform='translateY(0)'; }}>
                 <IcLink s={11}/>
-                Portfolio
+                {t('prp.portfolio')}
                 <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{opacity:0.7}}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               </a>
             )}
@@ -467,7 +472,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
               </p>
               {coverLetter.length>150 && (
                 <button onClick={()=>setShowFull(v=>!v)} style={{ background:'none', border:'none', color:'#7c6cf6', fontSize:11.5, fontWeight:700, cursor:'pointer', padding:'3px 0', marginTop:2 }}>
-                  {showFull?'Voir moins':'Voir plus'}
+                  {showFull?t('prp.see_less'):t('prp.see_more')}
                 </button>
               )}
             </div>
@@ -482,6 +487,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
    EDIT MODAL — client edits a project (only once allowed)
    ══════════════════════════════════════════════════════════════ */
 function EditModal({ project, onClose, onDone }) {
+  const { t } = useTranslation();
   const parseKws = () => {
     const kws = (project.keywords||'').split(/\s+/).filter(Boolean).map(k=>k.replace(/^#/,''));
     while (kws.length < 5) kws.push('');
@@ -495,10 +501,10 @@ function EditModal({ project, onClose, onDone }) {
   async function submit(e) {
     e.preventDefault();
     const errors = {};
-    if (!form.title.trim())       errors.title       = 'Requis';
-    if (!form.description.trim()) errors.description = 'Requis';
-    if (!form.experience)         errors.experience  = 'Requis';
-    if (!form.period)             errors.period      = 'Requis';
+    if (!form.title.trim())       errors.title       = t('prp.required');
+    if (!form.description.trim()) errors.description = t('prp.required');
+    if (!form.experience)         errors.experience  = t('prp.required');
+    if (!form.period)             errors.period      = t('prp.required');
     if (Object.keys(errors).length) { setErrs(errors); return; }
     setPosting(true); setErr('');
     try {
@@ -507,9 +513,9 @@ function EditModal({ project, onClose, onDone }) {
         body: JSON.stringify({ ...form, keywords:form.keywords.filter(k=>k.trim()).map(k=>`#${k.trim()}`).join(' ') }),
       });
       const data = await res.json();
-      if (!res.ok || data.error) { setErr(data.error||'Erreur serveur'); return; }
+      if (!res.ok || data.error) { setErr(data.error||t('prp.err_server')); return; }
       onDone();
-    } catch { setErr('Impossible de joindre le serveur.'); }
+    } catch { setErr(t('prp.err_server_unreachable')); }
     finally { setPosting(false); }
   }
 
@@ -518,44 +524,44 @@ function EditModal({ project, onClose, onDone }) {
       onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
       <div style={{ width:'100%', maxWidth:560, background:'#13112a', border:'1px solid rgba(124,108,246,0.3)', borderRadius:22, padding:28, boxShadow:'0 24px 80px -12px rgba(0,0,0,0.7)', marginBlock:'auto' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-          <h3 style={{ fontSize:18, fontWeight:900, color:'#f9f8ff', margin:0 }}>Modifier le projet</h3>
+          <h3 style={{ fontSize:18, fontWeight:900, color:'#f9f8ff', margin:0 }}>{t('prp.edit_project')}</h3>
           <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#7e82a0', display:'flex', alignItems:'center', justifyContent:'center' }}><IcX s={14}/></button>
         </div>
         <div style={{ display:'flex', alignItems:'flex-start', gap:10, padding:'10px 14px', borderRadius:12, background:'rgba(245,158,11,0.07)', border:'1px solid rgba(245,158,11,0.22)', marginBottom:18 }}>
           <svg width={15} height={15} fill="none" viewBox="0 0 24 24" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,marginTop:1}}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <p style={{ fontSize:12, color:'#f59e0b', margin:0, fontWeight:600, lineHeight:1.55 }}>Attention : vous ne pouvez modifier ce projet <strong>qu'une seule fois</strong>. Cette action est définitive.</p>
+          <p style={{ fontSize:12, color:'#f59e0b', margin:0, fontWeight:600, lineHeight:1.55 }}>{t('prp.edit_warning_pre')} <strong>{t('prp.edit_warning_once')}</strong>{t('prp.edit_warning_post')}</p>
         </div>
         <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Titre du projet <span style={{color:'#f87171'}}>*</span></p>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.project_title')} <span style={{color:'#f87171'}}>*</span></p>
             <input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} style={MI} onFocus={onFoc} onBlur={onBlr}/>
             {errs.title && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.title}</p>}
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Description <span style={{color:'#f87171'}}>*</span></p>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.description')} <span style={{color:'#f87171'}}>*</span></p>
             <textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} rows={3} style={{...MI,resize:'none'}} onFocus={onFoc} onBlur={onBlr}/>
             {errs.description && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.description}</p>}
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
             <div>
-              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Expérience <span style={{color:'#f87171'}}>*</span></p>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.experience')} <span style={{color:'#f87171'}}>*</span></p>
               <select value={form.experience} onChange={e=>setForm(f=>({...f,experience:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
-                <option value="">Sélectionner…</option>
+                <option value="">{t('prp.select')}</option>
                 {EXPERIENCE_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
               </select>
               {errs.experience && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.experience}</p>}
             </div>
             <div>
-              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Période <span style={{color:'#f87171'}}>*</span></p>
+              <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.period')} <span style={{color:'#f87171'}}>*</span></p>
               <select value={form.period} onChange={e=>setForm(f=>({...f,period:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
-                <option value="">Sélectionner…</option>
+                <option value="">{t('prp.select')}</option>
                 {PERIOD_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
               </select>
               {errs.period && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.period}</p>}
             </div>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Budget (TND)</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.budget_tnd')}</p>
             <div style={{ display:'flex', alignItems:'stretch', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, overflow:'hidden' }}>
               <button type="button" onClick={()=>setForm(f=>({...f,budget:String(Math.max(0,(Number(f.budget)||0)-100))}))}
                 style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'#7e82a0', background:'none', border:'none', cursor:'pointer' }}>−</button>
@@ -566,13 +572,13 @@ function EditModal({ project, onClose, onDone }) {
             </div>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Mots clés</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>{t('prp.keywords')}</p>
             <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
               {form.keywords.map((kw,i)=>(
                 <div key={i} style={{ display:'flex', alignItems:'center', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, overflow:'hidden' }}>
                   <span style={{ paddingLeft:10, fontSize:13, fontWeight:700, color:'#7e82a0' }}>#</span>
                   <input maxLength={25} value={kw} onChange={e=>{const v=e.target.value.replace(/[#\s]/g,'');setForm(f=>({...f,keywords:f.keywords.map((k,idx)=>idx===i?v:k)}));}}
-                    placeholder={`mot ${i+1}`} style={{ background:'transparent', color:'#f4f3fb', fontSize:12, fontWeight:600, padding:'8px 8px 8px 4px', outline:'none', width:'9ch' }}/>
+                    placeholder={t('prp.word_n', { n: i+1 })} style={{ background:'transparent', color:'#f4f3fb', fontSize:12, fontWeight:600, padding:'8px 8px 8px 4px', outline:'none', width:'9ch' }}/>
                 </div>
               ))}
             </div>
@@ -580,7 +586,7 @@ function EditModal({ project, onClose, onDone }) {
           {err && <p style={{fontSize:12,color:'#f87171'}}>{err}</p>}
           <button type="submit" disabled={posting}
             style={{ padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:posting?'not-allowed':'pointer', opacity:posting?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
-            {posting ? 'Modification…' : 'Enregistrer les modifications'}
+            {posting ? t('prp.editing') : t('prp.save_changes')}
           </button>
         </form>
       </div>
@@ -592,7 +598,9 @@ function EditModal({ project, onClose, onDone }) {
    MY PROJECT CARD — client's own project with proposals
    ══════════════════════════════════════════════════════════════ */
 function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAccept, acceptingId, onReject, rejectingId, onEdit, wasEdited, users }) {
+  const { t } = useTranslation();
   const st       = STATUS_MAP[project.status] || STATUS_MAP.open;
+  const stLabel  = t(`fd.status.${project.status}`, st.label);
   const keywords = project.keywords ? project.keywords.split(/\s+/).filter(Boolean) : [];
   const pendingN  = (proposals||[]).filter(p=>!p.status||p.status==='pending').length;
   const rejectedN = (proposals||[]).filter(p=>p.status==='rejected').length;
@@ -606,8 +614,8 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:12 }}>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, flexWrap:'wrap' }}>
-              <span style={{ fontSize:11, fontWeight:800, color:st.color, background:st.bg, border:`1px solid ${st.border}`, padding:'3px 11px', borderRadius:20 }}>{st.label}</span>
-              <span style={{ fontSize:11, color:'#4a4e6e' }}>Publié il y a {timeAgo(project.created_at)}</span>
+              <span style={{ fontSize:11, fontWeight:800, color:st.color, background:st.bg, border:`1px solid ${st.border}`, padding:'3px 11px', borderRadius:20 }}>{stLabel}</span>
+              <span style={{ fontSize:11, color:'#4a4e6e' }}>{t('prp.published_ago', { time: timeAgo(project.created_at) })}</span>
             </div>
             <h3 style={{ fontSize:18, fontWeight:900, color:'#f9f8ff', margin:'0 0 6px', letterSpacing:'-0.02em', lineHeight:1.3 }}>{project.title}</h3>
             {project.description && (
@@ -619,7 +627,7 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
           <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
             {/* Edit button — one-time, hidden when locked */}
             {!isLocked && !wasEdited && (
-              <button onClick={()=>onEdit(project)} title="Modifier le projet (une seule fois)"
+              <button onClick={()=>onEdit(project)} title={t('prp.edit_project_once')}
                 style={{ width:32, height:32, borderRadius:10, background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.2)', color:'#9b8cff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, transition:'background .15s' }}
                 onMouseEnter={e=>{e.currentTarget.style.background='rgba(124,108,246,0.16)';}}
                 onMouseLeave={e=>{e.currentTarget.style.background='rgba(124,108,246,0.08)';}}>
@@ -628,15 +636,15 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
             )}
             {!isLocked && wasEdited && (
               <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, color:'#7c6cf6', background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.18)', padding:'4px 10px', borderRadius:8, whiteSpace:'nowrap' }}
-                title="Ce projet a déjà été modifié — aucune autre modification possible">
-                <IcEdit s={10}/> Modifié
+                title={t('prp.edited_title')}>
+                <IcEdit s={10}/> {t('prp.edited')}
               </span>
             )}
             {/* Delete button — replaced by lock badge when project is accepted */}
             {isLocked ? (
               <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontWeight:700, color:'#10b981', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.22)', padding:'5px 12px', borderRadius:20, whiteSpace:'nowrap' }}
-                title="Projet verrouillé — un freelancer a été accepté">
-                <IcLock s={12}/> Verrouillé
+                title={t('prp.locked_title')}>
+                <IcLock s={12}/> {t('prp.locked')}
               </span>
             ) : (
               <button onClick={()=>onDelete(project.id)}
@@ -652,11 +660,11 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
         <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
           {project.budget && (
             <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:'#9b8cff', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}>
-              <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>Budget</span>{Number(project.budget).toLocaleString('fr-TN')} TND
+              <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>{t('prp.budget')}</span>{Number(project.budget).toLocaleString('fr-TN')} TND
             </span>
           )}
-          {project.period && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Durée</span>{project.period}</span>}
-          {project.experience && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Expérience</span>{project.experience}</span>}
+          {project.period && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.duration')}</span>{project.period}</span>}
+          {project.experience && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.experience')}</span>{project.experience}</span>}
         </div>
         {keywords.length>0 && (
           <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:12 }}>
@@ -667,28 +675,28 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12.5, fontWeight:700, color:(proposals||[]).length>0?'#9b8cff':'#62668a' }}>
-              <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>Candidatures</span>{(proposals||[]).length}
+              <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>{t('prp.applications')}</span>{(proposals||[]).length}
             </span>
             {pendingN>0 && (
               <span style={{ fontSize:11, fontWeight:800, color:'#f59e0b', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.25)', padding:'3px 10px', borderRadius:20 }}>
-                {pendingN} en attente
+                {t('prp.n_pending', { count: pendingN })}
               </span>
             )}
             {accepted && (
               <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, fontWeight:800, color:'#10b981', background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.25)', padding:'3px 10px', borderRadius:20 }}>
-                <IcCheck s={10}/> Accepté
+                <IcCheck s={10}/> {t('prp.accepted')}
               </span>
             )}
             {rejectedN>0 && (
               <span style={{ fontSize:11, fontWeight:800, color:'#f87171', background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', padding:'3px 10px', borderRadius:20 }}>
-                {`${rejectedN} refusé${rejectedN>1?'s':''}`}
+                {t('prp.n_rejected', { count: rejectedN })}
               </span>
             )}
           </div>
           {(proposals||[]).length>0 && (
             <button onClick={()=>onExpand(expanded?null:project.id)}
               style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:11, background:expanded?'rgba(124,108,246,0.15)':'rgba(255,255,255,0.05)', border:`1px solid ${expanded?'rgba(124,108,246,0.35)':'rgba(255,255,255,0.1)'}`, color:expanded?'#9b8cff':'#7e82a0', fontSize:12.5, fontWeight:700, cursor:'pointer', transition:'all .15s' }}>
-              {expanded?'Masquer':'Voir candidatures'}
+              {expanded?t('prp.hide'):t('prp.view_applications')}
               <div style={{ transition:'transform .2s', transform:expanded?'rotate(90deg)':'none' }}><IcChevRight s={12}/></div>
             </button>
           )}
@@ -697,7 +705,7 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
       {/* Proposals panel */}
       {expanded && (proposals||[]).length>0 && (
         <div style={{ borderTop:'1px solid rgba(255,255,255,0.07)', padding:'16px 24px', background:'rgba(0,0,0,0.18)', display:'flex', flexDirection:'column', gap:10 }}>
-          <p style={{ fontSize:10, fontWeight:800, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 4px' }}>Candidatures reçues</p>
+          <p style={{ fontSize:10, fontWeight:800, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 4px' }}>{t('prp.applications_received')}</p>
           {proposals.map(p=>(
             <ProposalCard key={p.id} proposal={p} onAccept={onAccept} accepting={acceptingId===p.id} onReject={onReject} rejecting={rejectingId===p.id} users={users}/>
           ))}
@@ -711,6 +719,7 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
    PROJECT CARD — marketplace browse view
    ══════════════════════════════════════════════════════════════ */
 function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved, onSave, onDelete }) {
+  const { t } = useTranslation();
   const [tintFg, tintBg] = getTint(project.client_email);
   const displayName = clientUser?.name || project.client_email?.split('@')[0] || '?';
   const initials    = getInitials(displayName);
@@ -731,13 +740,13 @@ function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved,
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
               <span style={{ fontSize:14, fontWeight:800, color:'#f4f3fb' }}>{displayName}</span>
-              {isVerified && <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, fontWeight:700, color:'#3ec2e8', background:'rgba(62,194,232,0.08)', border:'1px solid rgba(62,194,232,0.2)', padding:'2px 7px', borderRadius:20 }}><IcVerified s={10}/> Verified</span>}
+              {isVerified && <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, fontWeight:700, color:'#3ec2e8', background:'rgba(62,194,232,0.08)', border:'1px solid rgba(62,194,232,0.2)', padding:'2px 7px', borderRadius:20 }}><IcVerified s={10}/> {t('prp.verified')}</span>}
               {region && <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:11.5, color:'#62668a' }}><IcPin s={11}/>{region}</span>}
             </div>
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <span style={{ fontSize:11.5, color:'#4a4e6e' }}>il y a {timeAgo(project.created_at)}</span>
+          <span style={{ fontSize:11.5, color:'#4a4e6e' }}>{t('prp.time_ago', { time: timeAgo(project.created_at) })}</span>
           {isOwn && (
             <button onClick={()=>onDelete(project.id)}
               style={{ width:28, height:28, borderRadius:8, background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.18)', color:'#f87171', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'background .15s' }}
@@ -751,10 +760,10 @@ function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved,
       <h3 style={{ fontSize:19, fontWeight:900, color:'#f9f8ff', margin:'0 0 8px', letterSpacing:'-0.02em', lineHeight:1.25 }}>{project.title}</h3>
       {project.description && <p style={{ fontSize:13, color:'#8a8eb0', margin:'0 0 14px', lineHeight:1.65 }}>{project.description.length>120?project.description.slice(0,118)+'…':project.description}</p>}
       <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, marginBottom:14 }}>
-        {project.budget && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:'#9b8cff', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>Budget</span>{Number(project.budget).toLocaleString('fr-TN')} TND</span>}
-        {project.period && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Durée</span>{project.period}</span>}
-        {project.experience && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Expérience</span>{project.experience}</span>}
-        {proposalCount>0 && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Candidatures</span>{proposalCount}</span>}
+        {project.budget && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:'#9b8cff', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>{t('prp.budget')}</span>{Number(project.budget).toLocaleString('fr-TN')} TND</span>}
+        {project.period && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.duration')}</span>{project.period}</span>}
+        {project.experience && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.experience')}</span>{project.experience}</span>}
+        {proposalCount>0 && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#62668a', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.applications')}</span>{proposalCount}</span>}
       </div>
       {keywords.length>0 && (
         <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:18 }}>
@@ -767,14 +776,14 @@ function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved,
           style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'9px 18px', borderRadius:12, background:'none', border:`1px solid ${saved?'rgba(124,108,246,0.5)':'rgba(255,255,255,0.12)'}`, color:saved?'#9b8cff':'#7e82a0', fontSize:13, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
           onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(124,108,246,0.4)';e.currentTarget.style.color='#9b8cff';}}
           onMouseLeave={e=>{if(!saved){e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='#7e82a0';}}}>
-          <IcStar s={12} filled={saved}/> {saved?'Enregistré':'Enregistrer'}
+          <IcStar s={12} filled={saved}/> {saved?t('prp.saved'):t('prp.save')}
         </button>
         {!isOwn && isFreelancer && (
           <button onClick={()=>onApply(project)}
             style={{ padding:'9px 22px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}
             onMouseEnter={e=>{e.currentTarget.style.opacity='0.85';}}
             onMouseLeave={e=>{e.currentTarget.style.opacity='1';}}>
-            Postuler
+            {t('prp.apply_btn')}
           </button>
         )}
       </div>
@@ -786,6 +795,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved,
    PAGE
    ══════════════════════════════════════════════════════════════ */
 export default function ProjectsPage() {
+  const { t } = useTranslation();
   const { user, users } = useAuth();
   const isClient     = user?.role === 'client';
   const isFreelancer = user?.role === 'freelancer';
@@ -826,7 +836,7 @@ export default function ProjectsPage() {
   async function handleDelete(projectId) {
     const props = myPropsMap[projectId] || [];
     if (props.some(p => p.status === 'accepted')) return; // locked — button should already be hidden
-    if (!window.confirm('Supprimer ce projet ?')) return;
+    if (!window.confirm(t('prp.confirm_delete'))) return;
     try {
       await fetch(`${API}/projects/${projectId}`, { method:'DELETE' });
       setMyProjects(prev=>prev.filter(p=>p.id!==projectId));
@@ -874,17 +884,17 @@ export default function ProjectsPage() {
         {/* ─── Header ─── */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:28, flexWrap:'wrap' }}>
           <div>
-            <p style={{ fontSize:11, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>MON COMPTE</p>
+            <p style={{ fontSize:11, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>{t('ppg.my_account')}</p>
             <h1 style={{ fontSize:'clamp(26px,6vw,36px)', fontWeight:900, color:'#f4f3fb', margin:'0 0 8px', letterSpacing:'-0.02em' }}>
-              Mes <span style={{ background:'linear-gradient(120deg,#c4baff 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>projets</span>
+              {t('prp.header_title')} <span style={{ background:'linear-gradient(120deg,#c4baff 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{t('prp.header_title_2')}</span>
             </h1>
-            <p style={{ fontSize:14, color:'#7e82a0', margin:0 }}>Gérez vos projets publiés et recevez des candidatures de freelancers.</p>
+            <p style={{ fontSize:14, color:'#7e82a0', margin:0 }}>{t('prp.header_sub')}</p>
           </div>
           <button onClick={()=>setShowPost(true)}
             style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:7, padding:'11px 20px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 18px -4px rgba(124,108,246,0.5)', whiteSpace:'nowrap', transition:'opacity .15s, transform .15s' }}
             onMouseEnter={e=>{e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}
             onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}>
-            <IcPlus s={14}/> Publier un projet
+            <IcPlus s={14}/> {t('prp.publish')}
           </button>
         </div>
 
@@ -902,17 +912,17 @@ export default function ProjectsPage() {
                 <div style={{ width:60, height:60, borderRadius:18, background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', color:'#9b8cff' }}>
                   <IcFolder s={26}/>
                 </div>
-                <p style={{ fontSize:16, fontWeight:700, color:'#c2c5dd', margin:'0 0 6px' }}>Aucun projet publié</p>
-                <p style={{ fontSize:13, color:'#62668a', margin:'0 0 22px' }}>Publiez votre premier projet pour recevoir des candidatures de freelancers.</p>
+                <p style={{ fontSize:16, fontWeight:700, color:'#c2c5dd', margin:'0 0 6px' }}>{t('prp.no_projects')}</p>
+                <p style={{ fontSize:13, color:'#62668a', margin:'0 0 22px' }}>{t('prp.no_projects_sub')}</p>
                 <button onClick={()=>setShowPost(true)}
                   style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'11px 24px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)' }}>
-                  <IcPlus s={13}/> Publier un projet
+                  <IcPlus s={13}/> {t('prp.publish')}
                 </button>
               </div>
             ) : (
               <>
                 <p style={{ fontSize:13, color:'#62668a', margin:'0 0 16px' }}>
-                  <strong style={{color:'#c2c5dd'}}>{myProjects.length}</strong> projet{myProjects.length!==1?'s':''} publié{myProjects.length!==1?'s':''}
+                  {t('prp.n_projects_published', { count: myProjects.length })}
                 </p>
                 <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                   {myProjects.map(p=>(

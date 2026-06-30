@@ -81,12 +81,13 @@ const IcX        = () => <svg width="13" height="13" fill="none" viewBox="0 0 24
 
 /* ── Period Dropdown (custom, fully dark) ── */
 function PeriodSelect({ value, onChange, maxDays }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <div style={{ position:'relative' }}>
       <button type="button" onClick={()=>setOpen(o=>!o)} onBlur={()=>setTimeout(()=>setOpen(false),150)}
         style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(255,255,255,0.05)', border:`1px solid ${open?C.accentBord:'rgba(255,255,255,0.1)'}`, borderRadius:12, color:value?'#f4f3fb':'#6b7280', padding:'10px 13px', fontSize:13, cursor:'pointer', fontFamily:'inherit', textAlign:'left', transition:'border-color .2s', boxSizing:'border-box' }}>
-        <span>{value || 'Sélectionner une période…'}</span>
+        <span>{value || t('prp.period_select')}</span>
         <div style={{ transform:open?'rotate(180deg)':'none', transition:'transform .2s', color:'#6b7280', flexShrink:0, marginLeft:8 }}><IcChev /></div>
       </button>
       {open && (
@@ -105,7 +106,7 @@ function PeriodSelect({ value, onChange, maxDays }) {
                 onMouseEnter={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='rgba(255,255,255,0.06)';}}
                 onMouseLeave={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='transparent';}}>
                 <span>{o}</span>
-                {tooLong && <span style={{ fontSize:10, fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:6, padding:'1px 7px', flexShrink:0, marginLeft:8 }}>Trop long</span>}
+                {tooLong && <span style={{ fontSize:10, fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:6, padding:'1px 7px', flexShrink:0, marginLeft:8 }}>{t('prp.too_long')}</span>}
               </button>
             );
           })}
@@ -117,6 +118,7 @@ function PeriodSelect({ value, onChange, maxDays }) {
 
 /* ── Apply Modal ── */
 function ApplyModal({ project, user, onClose, onDone }) {
+  const { t } = useTranslation();
   const [period,    setPeriod]    = useState('');
   const [portfolio, setPortfolio] = useState('');
   const [letter,    setLetter]    = useState('');
@@ -127,10 +129,10 @@ function ApplyModal({ project, user, onClose, onDone }) {
 
   async function submit(e) {
     e.preventDefault();
-    if (!period)    { setErr('Veuillez sélectionner une période.'); return; }
-    if (!portfolio) { setErr('Le lien portfolio est requis.'); return; }
+    if (!period)    { setErr(t('prp.err_period')); return; }
+    if (!portfolio) { setErr(t('prp.err_portfolio')); return; }
     if (clientMaxDays !== undefined && (PERIOD_DAYS[period] || 0) > clientMaxDays) {
-      setErr(`Période trop longue. Le client accepte au maximum : "${project.period}".`);
+      setErr(t('prp.err_period_too_long', { period: project.period }));
       return;
     }
     setLoading(true); setErr('');
@@ -140,9 +142,9 @@ function ApplyModal({ project, user, onClose, onDone }) {
         body: JSON.stringify({ projectId: project.id, freelancerEmail: user.email, price: 1, deliveryDays: PERIOD_DAYS[period]||1, coverLetter: portfolio ? `[portfolio:${portfolio}]\n${letter}` : letter }),
       });
       const d = await res.json();
-      if (!res.ok || d.error) { setErr(d.error || 'Vous avez déjà postulé à ce projet.'); return; }
+      if (!res.ok || d.error) { setErr(d.error || t('prp.err_already_applied')); return; }
       onDone();
-    } catch { setErr('Serveur inaccessible.'); }
+    } catch { setErr(t('clp.server_unreachable')); }
     finally { setLoading(false); }
   }
 
@@ -156,7 +158,7 @@ function ApplyModal({ project, user, onClose, onDone }) {
       <div style={{ width:'100%', maxWidth:480, background:'#111827', border:`1px solid ${C.accentBord}`, borderRadius:24, padding:'28px 28px 24px', boxShadow:`0 28px 80px -12px rgba(0,0,0,0.8), ${C.accentGlow}` }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:22 }}>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:C.accent, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>Postuler au projet</p>
+            <p style={{ fontSize:10, fontWeight:700, color:C.accent, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>{t('clp.apply_to_project')}</p>
             <h3 style={{ fontSize:17, fontWeight:900, color:'#f9f8ff', margin:0, lineHeight:1.3 }}>{project.title}</h3>
           </div>
           <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#6b7280', display:'flex' }}><IcX /></button>
@@ -164,28 +166,28 @@ function ApplyModal({ project, user, onClose, onDone }) {
         <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
           <div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-              <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>Période de livraison <span style={{color:'#f87171'}}>*</span></p>
+              <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{t('prp.delivery_period')} <span style={{color:'#f87171'}}>*</span></p>
               {clientMaxDays !== undefined && (
                 <span style={{ fontSize:10, fontWeight:700, color:'#f59e0b', background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.22)', borderRadius:6, padding:'2px 8px' }}>
-                  max : {project.period}
+                  {t('prp.max', { period: project.period })}
                 </span>
               )}
             </div>
             <PeriodSelect value={period} onChange={setPeriod} maxDays={clientMaxDays}/>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Lien portfolio / profil <span style={{color:'#f87171'}}>*</span></p>
+            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.portfolio_link')} <span style={{color:'#f87171'}}>*</span></p>
             <input type="url" value={portfolio} onChange={e=>setPortfolio(e.target.value)} placeholder="https://monportfolio.com" style={F} onFocus={onFoc} onBlur={onBlr}/>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>Lettre de motivation</p>
-            <textarea value={letter} onChange={e=>setLetter(e.target.value)} rows={4} placeholder="Expliquez pourquoi vous êtes le meilleur candidat…"
+            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.cover_letter')}</p>
+            <textarea value={letter} onChange={e=>setLetter(e.target.value)} rows={4} placeholder={t('clp.cover_letter_placeholder')}
               style={{...F, resize:'none', lineHeight:1.6}} onFocus={onFoc} onBlur={onBlr}/>
           </div>
           {err && <p style={{ fontSize:12, color:'#f87171', margin:0 }}>{err}</p>}
           <button type="submit" disabled={loading}
             style={{ padding:'12px', borderRadius:13, background:`linear-gradient(135deg,${C.accent},#0284c7)`, border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:C.accentGlow }}>
-            {loading ? 'Envoi…' : 'Envoyer ma candidature →'}
+            {loading ? t('prp.sending') : t('clp.send_application_arrow')}
           </button>
         </form>
       </div>
@@ -195,6 +197,7 @@ function ApplyModal({ project, user, onClose, onDone }) {
 
 /* ── Review Modal ── */
 function ReviewModal({ client, user, onClose, onDone }) {
+  const { t } = useTranslation();
   const [stars,   setStars]   = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState('');
@@ -203,8 +206,8 @@ function ReviewModal({ client, user, onClose, onDone }) {
 
   async function submit(e) {
     e.preventDefault();
-    if (!stars)          { setErr('Choisissez une note.'); return; }
-    if (!comment.trim()) { setErr('Le commentaire est requis.'); return; }
+    if (!stars)          { setErr(t('clp.choose_rating')); return; }
+    if (!comment.trim()) { setErr(t('clp.comment_required')); return; }
     setLoading(true); setErr('');
     try {
       const res = await fetch(`${API}/client-reviews`, {
@@ -212,9 +215,9 @@ function ReviewModal({ client, user, onClose, onDone }) {
         body: JSON.stringify({ clientEmail: client.email, freelancerEmail: user.email, freelancerName: user.name, rating: stars, comment: comment.trim() }),
       });
       const d = await res.json();
-      if (!res.ok || d.error) { setErr(d.error || 'Erreur'); return; }
+      if (!res.ok || d.error) { setErr(d.error || t('clp.error')); return; }
       onDone();
-    } catch { setErr('Serveur inaccessible.'); }
+    } catch { setErr(t('clp.server_unreachable')); }
     finally { setLoading(false); }
   }
 
@@ -224,7 +227,7 @@ function ReviewModal({ client, user, onClose, onDone }) {
       <div style={{ width:'100%', maxWidth:440, background:'#111827', border:`1px solid ${C.amberBord}`, borderRadius:24, padding:'28px', boxShadow:'0 28px 80px -12px rgba(0,0,0,0.8)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:C.amber, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>Laisser un avis</p>
+            <p style={{ fontSize:10, fontWeight:700, color:C.amber, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>{t('Leave a review')}</p>
             <h3 style={{ fontSize:16, fontWeight:900, color:'#f9f8ff', margin:0 }}>{client.name || client.email}</h3>
           </div>
           <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#6b7280', display:'flex' }}><IcX /></button>
@@ -232,7 +235,7 @@ function ReviewModal({ client, user, onClose, onDone }) {
         <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
           {/* Stars */}
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>Note</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>{t('clp.rating')}</p>
             <div style={{ display:'flex', gap:8 }}>
               {[1,2,3,4,5].map(i => (
                 <button key={i} type="button" onClick={()=>setStars(i)} onMouseEnter={()=>setHovered(i)} onMouseLeave={()=>setHovered(0)}
@@ -243,15 +246,15 @@ function ReviewModal({ client, user, onClose, onDone }) {
             </div>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:6 }}>Commentaire</p>
-            <textarea value={comment} onChange={e=>setComment(e.target.value)} rows={4} placeholder="Décrivez votre expérience avec ce client…"
+            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:6 }}>{t('clp.comment')}</p>
+            <textarea value={comment} onChange={e=>setComment(e.target.value)} rows={4} placeholder={t('clp.review_placeholder')}
               style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, color:'#f4f3fb', padding:'10px 13px', fontSize:13, outline:'none', resize:'none', fontFamily:'inherit', lineHeight:1.6 }}
               onFocus={e=>{e.target.style.borderColor=C.amberBord;}} onBlur={e=>{e.target.style.borderColor='rgba(255,255,255,0.1)';}} />
           </div>
           {err && <p style={{ fontSize:12, color:'#f87171', margin:0 }}>{err}</p>}
           <button type="submit" disabled={loading}
             style={{ padding:'12px', borderRadius:13, background:`linear-gradient(135deg,${C.amber},#d97706)`, border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:'0 6px 20px -4px rgba(245,158,11,0.4)' }}>
-            {loading ? 'Envoi…' : 'Envoyer mon avis →'}
+            {loading ? t('prp.sending') : t('clp.send_review_arrow')}
           </button>
         </form>
       </div>
@@ -261,6 +264,7 @@ function ReviewModal({ client, user, onClose, onDone }) {
 
 /* ── Project Card ── */
 function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, onApply, onReview, myReviews, hasApplied }) {
+  const { t } = useTranslation();
   const navigate  = useNavigate();
   const [tintFg, tintBg] = getTint(project.client_email);
   const displayName = clientUser?.company || clientUser?.name || project.client_email?.split('@')[0] || '?';
@@ -295,7 +299,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
               <span onClick={() => navigate(`/profile/${encodeURIComponent(project.client_email)}`)} style={{ fontSize:14, fontWeight:800, color:'#f4f3fb', lineHeight:1.2, cursor:'pointer', transition:'color .15s' }} onMouseEnter={e=>e.currentTarget.style.color='#c4baff'} onMouseLeave={e=>e.currentTarget.style.color='#f4f3fb'}>{displayName}</span>
               {isVerified && (
                 <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, padding:'2px 7px', borderRadius:20 }}>
-                  <IcVerified /> Verified
+                  <IcVerified /> {t('Verified')}
                 </span>
               )}
               {region && (
@@ -314,15 +318,15 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
-          <span style={{ fontSize:11, color:'#4b5563', fontWeight:500, whiteSpace:'nowrap' }}>Posted {timeAgo(project.created_at)}</span>
+          <span style={{ fontSize:11, color:'#4b5563', fontWeight:500, whiteSpace:'nowrap' }}>{t('clp.posted', { time: timeAgo(project.created_at) })}</span>
           {isTaken && (
             <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, color:C.amber, background:C.amberDim, border:`1px solid ${C.amberBord}`, padding:'2px 8px', borderRadius:20 }}>
               <svg width={9} height={9} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              Pris
+              {t('clp.taken')}
             </span>
           )}
           {isOwn && (
-            <span style={{ fontSize:10, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, padding:'2px 8px', borderRadius:20 }}>Votre projet</span>
+            <span style={{ fontSize:10, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, padding:'2px 8px', borderRadius:20 }}>{t('clp.your_project')}</span>
           )}
         </div>
       </div>
@@ -341,22 +345,22 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
       <div style={{ display:'flex', flexWrap:'wrap', gap:7, marginBottom:16 }}>
         {project.budget && (
           <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:C.emerald, background:C.emeraldDim, border:`1px solid ${C.emeraldBord}`, borderRadius:9, padding:'4px 11px' }}>
-            <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>Budget</span>{Number(project.budget).toLocaleString('fr-TN')} TND
+            <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>{t('prp.budget')}</span>{Number(project.budget).toLocaleString('fr-TN')} TND
           </span>
         )}
         {project.period && (
           <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#6b7280', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'4px 11px' }}>
-            <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Durée</span>{project.period}
+            <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.duration')}</span>{project.period}
           </span>
         )}
         {project.experience && (
           <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#6b7280', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'4px 11px' }}>
-            <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Expérience</span>{project.experience}
+            <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.experience')}</span>{project.experience}
           </span>
         )}
         {proposalCount > 0 && (
           <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#6b7280', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'4px 11px' }}>
-            <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>Candidatures</span>{proposalCount}
+            <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.applications')}</span>{proposalCount}
           </span>
         )}
       </div>
@@ -385,7 +389,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
               onMouseEnter={e=>{e.currentTarget.style.background=C.amberDim;}}
               onMouseLeave={e=>{e.currentTarget.style.background='none';}}>
               <svg width={12} height={12} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Avis
+              {t('clp.review')}
             </button>
           )}
         </div>
@@ -397,21 +401,21 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
               style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
               onMouseEnter={e=>{e.currentTarget.style.borderColor=C.accentBord;e.currentTarget.style.color=C.accent;}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='#9ca3af';}}>
-              <IcMsg /> Message
+              <IcMsg /> {t('Message')}
             </button>
           )}
           {isFreelancer && !isOwn && !isTaken && (
             hasApplied ? (
               <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:12, background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.25)', color:'#10b981', fontSize:12, fontWeight:700 }}>
                 <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Candidature envoyée
+                {t('clp.application_sent')}
               </span>
             ) : (
               <button onClick={()=>onApply(project)}
                 style={{ padding:'8px 22px', borderRadius:12, background:`linear-gradient(135deg,${C.accent},#0284c7)`, border:'none', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', boxShadow:C.accentGlow, transition:'opacity .15s' }}
                 onMouseEnter={e=>{e.currentTarget.style.opacity='0.85';}}
                 onMouseLeave={e=>{e.currentTarget.style.opacity='1';}}>
-                Apply
+                {t('prp.apply')}
               </button>
             )
           )}
@@ -535,14 +539,14 @@ export default function ClientsPage() {
 
           {/* Headline */}
           <h1 style={{ fontSize:'clamp(32px,8vw,54px)', fontWeight:900, color:'#f4f3fb', margin:'0 0 16px', letterSpacing:'-0.04em', lineHeight:1.07 }}>
-            Find your{' '}
+            {t('clp.hero_title_1')}{' '}
             <span style={{ background:`linear-gradient(120deg,#7dd3fc 0%,${C.accent} 42%,#0369a1 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
-              client
+              {t('clp.hero_title_2')}
             </span>
           </h1>
 
           <p style={{ fontSize:'clamp(14px,2vw,16px)', color:'#6b7280', margin:'0 auto 38px', lineHeight:1.7, letterSpacing:'0.01em', maxWidth:480 }}>
-            Open projects from verified clients looking for talent.
+            {t('clp.hero_subtitle')}
           </p>
 
           {/* Search bar */}
@@ -571,10 +575,10 @@ export default function ClientsPage() {
           {/* Stats row with separators */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
             {[
-              { n: projects.filter(p=>p.status==='open').length, label:'Open projects' },
-              { n: totalClients, label:'Active clients' },
-              { n: totalRegions, label:'Regions covered' },
-              { n: Object.values(proposals).reduce((s,v)=>s+v,0), label:'Proposals sent' },
+              { n: projects.filter(p=>p.status==='open').length, label:t('clp.stat_open_projects') },
+              { n: totalClients, label:t('clp.stat_active_clients') },
+              { n: totalRegions, label:t('Regions covered') },
+              { n: Object.values(proposals).reduce((s,v)=>s+v,0), label:t('clp.stat_proposals_sent') },
             ].map((s,i) => (
               <div key={i} style={{ display:'flex', alignItems:'center' }}>
                 {i > 0 && <span style={{ width:1, height:36, background:'rgba(255,255,255,0.08)', margin:'0 clamp(12px,3vw,32px)' }} />}
@@ -615,15 +619,15 @@ export default function ClientsPage() {
           <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:14, borderLeft:'1px solid rgba(255,255,255,0.08)', paddingLeft:16, marginLeft:8 }}>
             <span style={{ fontSize:12, whiteSpace:'nowrap' }}>
               <strong style={{ color:C.accent, fontWeight:700 }}>{filtered.length}</strong>
-              <span style={{ color:'#4b5563' }}> project{filtered.length!==1?'s':''}</span>
+              <span style={{ color:'#4b5563' }}> {t('clp.projects_count', { count: filtered.length })}</span>
             </span>
             <div style={{ position:'relative' }}>
               <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
                 style={{ padding:'7px 30px 7px 12px', borderRadius:10, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:12, outline:'none', cursor:'pointer', appearance:'none', fontFamily:'inherit' }}>
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-                <option value="budget">Highest budget</option>
-                <option value="proposals">Most proposals</option>
+                <option value="newest">{t('Newest')}</option>
+                <option value="oldest">{t('clp.sort_oldest')}</option>
+                <option value="budget">{t('clp.sort_budget')}</option>
+                <option value="proposals">{t('clp.sort_proposals')}</option>
               </select>
               <div style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:'#6b7280' }}><IcChev /></div>
             </div>
@@ -636,19 +640,19 @@ export default function ClientsPage() {
         {loading ? (
           <div style={{ textAlign:'center', padding:'70px 0', color:'#4b5563', fontSize:14 }}>
             <div style={{ width:32, height:32, border:`2px solid ${C.accentBord}`, borderTopColor:C.accent, borderRadius:'50%', margin:'0 auto 16px', animation:'spin 0.8s linear infinite' }} />
-            Loading projects…
+            {t('clp.loading_projects')}
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign:'center', padding:'70px 20px', background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.065)', borderRadius:22 }}>
             <div style={{ width:60, height:60, borderRadius:18, background:C.accentDim, border:`1px solid ${C.accentBord}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px' }}>
               <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke={C.accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
             </div>
-            <p style={{ fontSize:16, fontWeight:800, color:'#e5e7eb', margin:'0 0 7px' }}>No projects found</p>
-            <p style={{ fontSize:13, color:'#6b7280', margin:'0 0 18px' }}>{search ? 'Try a different search term.' : 'No open projects at the moment.'}</p>
+            <p style={{ fontSize:16, fontWeight:800, color:'#e5e7eb', margin:'0 0 7px' }}>{t('clp.no_projects_found')}</p>
+            <p style={{ fontSize:13, color:'#6b7280', margin:'0 0 18px' }}>{search ? t('clp.try_different_search') : t('clp.no_open_projects')}</p>
             {search && (
               <button onClick={()=>setSearch('')}
                 style={{ fontSize:13, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, borderRadius:10, padding:'8px 18px', cursor:'pointer' }}>
-                Clear search
+                {t('Clear search')}
               </button>
             )}
           </div>
@@ -672,7 +676,7 @@ export default function ClientsPage() {
 
         {filtered.length > 0 && (
           <p style={{ textAlign:'center', fontSize:13, color:'#374151', padding:'12px 0 4px' }}>
-            {filtered.length} project{filtered.length!==1?'s':''} shown
+            {t('clp.projects_shown', { count: filtered.length })}
           </p>
         )}
       </div>

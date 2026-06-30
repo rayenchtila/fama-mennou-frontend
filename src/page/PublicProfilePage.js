@@ -174,8 +174,8 @@ export default function PublicProfilePage() {
                    : profile.availability === 'busy'        ? t('Busy') : t('Available');
 
   const portfolioHref = ensureHttp(profile.portfolio_url);
-  const roleLabel  = profile.role === 'freelancer' ? 'Freelancer'
-                   : profile.role === 'client'     ? 'Client'
+  const roleLabel  = profile.role === 'freelancer' ? t('Freelancer')
+                   : profile.role === 'client'     ? t('Client')
                    : profile.role || '—';
   const roleColor  = profile.role === 'freelancer' ? C.accent : C.sky;
   const roleDim    = profile.role === 'freelancer' ? C.accentDim : C.skyDim;
@@ -334,7 +334,7 @@ export default function PublicProfilePage() {
                       <IcLink/>
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:10, fontWeight:700, color:'rgba(16,185,129,0.7)', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 2px' }}>Portfolio</p>
+                      <p style={{ fontSize:10, fontWeight:700, color:'rgba(16,185,129,0.7)', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 2px' }}>{t('Portfolio')}</p>
                       <p style={{ fontSize:13, fontWeight:700, color:C.emerald, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{portfolioHref}</p>
                     </div>
                     <div style={{ color:C.emerald, opacity:0.7, flexShrink:0 }}><IcExt/></div>
@@ -364,7 +364,7 @@ export default function PublicProfilePage() {
                     <span style={{ fontSize:32, fontWeight:900, color:C.amber, lineHeight:1 }}>{avgRating.toFixed(1)}</span>
                     <div>
                       <StarRow value={avgRating} count={reviews.length}/>
-                      <p style={{ fontSize:12, color:C.muted, margin:'4px 0 0' }}>{reviews.length} {t('review', 'review')}{reviews.length !== 1 ? 's' : ''}</p>
+                      <p style={{ fontSize:12, color:C.muted, margin:'4px 0 0' }}>{t('ppp.reviews_count', { count: reviews.length })}</p>
                     </div>
                   </div>
                   {/* Individual reviews */}

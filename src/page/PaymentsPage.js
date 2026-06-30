@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
@@ -14,13 +15,13 @@ const C = {
 };
 
 const COURSE_STATUS = {
-  en_attente:{ label:'En attente', color:C.amber,   bg:C.amberDim,   border:C.amberBord,   desc:'Votre preuve de paiement est en cours de vérification par notre équipe.' },
-  en_cours:  { label:'En cours',   color:C.sky,     bg:C.skyDim,     border:C.skyBord,     desc:'Votre paiement est en cours de traitement.'                            },
-  termine:   { label:'Terminé',    color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, desc:'Paiement confirmé et accès activé. Merci pour votre confiance.'         },
+  en_attente:{ labelKey:'ppg.status.pending',     color:C.amber,   bg:C.amberDim,   border:C.amberBord,   descKey:'ppg.course.pending_desc'     },
+  en_cours:  { labelKey:'ppg.status.in_progress', color:C.sky,     bg:C.skyDim,     border:C.skyBord,     descKey:'ppg.course.in_progress_desc' },
+  termine:   { labelKey:'ppg.status.done',        color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, descKey:'ppg.course.done_desc'        },
 };
 const PROJ_STATUS = {
-  en_attente:{ label:'En attente', color:C.amber,   bg:C.amberDim,   border:C.amberBord,   desc:'Le paiement du projet est en attente de confirmation.'  },
-  recu:      { label:'Payé',       color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, desc:'Paiement confirmé pour ce projet. Merci pour votre confiance.' },
+  en_attente:{ labelKey:'ppg.status.pending', color:C.amber,   bg:C.amberDim,   border:C.amberBord,   descKey:'ppg.proj.pending_desc' },
+  recu:      { labelKey:'ppg.status.paid',    color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, descKey:'ppg.proj.paid_desc'    },
 };
 
 const IcDollar = ({s=18}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
@@ -30,16 +31,18 @@ const IcCard    = ({s=32}) => <svg width={s} height={s} fill="none" viewBox="0 0
 const IcReceipt = ({s=36}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>;
 
 function StatusBadge({ statusKey, map }) {
+  const { t } = useTranslation();
   const s = map[statusKey] || map.en_attente;
   return (
     <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:10.5, fontWeight:700, padding:'3px 11px', borderRadius:20, background:s.bg, border:`1px solid ${s.border}`, color:s.color, whiteSpace:'nowrap' }}>
       <span style={{ width:5, height:5, borderRadius:'50%', background:s.color, display:'inline-block' }}/>
-      {s.label}
+      {t(s.labelKey)}
     </span>
   );
 }
 
 function PaymentRow({ label, subLabel, date, amount, statusKey, statusMap }) {
+  const { t } = useTranslation();
   const s = statusMap[statusKey] || statusMap.en_attente;
   return (
     <div style={{ padding:'20px 24px', borderRadius:18, background:C.card, border:`1px solid ${C.border}`, transition:'all .22s' }}
@@ -56,7 +59,7 @@ function PaymentRow({ label, subLabel, date, amount, statusKey, statusMap }) {
           <StatusBadge statusKey={statusKey} map={statusMap}/>
         </div>
       </div>
-      <p style={{ fontSize:11.5, color:C.muted, margin:0, lineHeight:1.5 }}>{s.desc}</p>
+      <p style={{ fontSize:11.5, color:C.muted, margin:0, lineHeight:1.5 }}>{t(s.descKey)}</p>
     </div>
   );
 }
@@ -87,6 +90,7 @@ function EmptyHistory({ text }) {
 }
 
 export default function PaymentsPage() {
+  const { t } = useTranslation();
   const { user, accounts } = useAuth();
   const [courses,  setCourses]  = useState([]);
   const [projects, setProjects] = useState([]);
@@ -128,22 +132,22 @@ export default function PaymentsPage() {
 
         {/* Header */}
         <div style={{ marginBottom:36 }}>
-          <p style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>MON COMPTE</p>
+          <p style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>{t('ppg.my_account')}</p>
           <h1 style={{ fontSize:'clamp(26px,6vw,38px)', fontWeight:900, color:C.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1.1 }}>
-            Mes{' '}
+            {t('ppg.my')}{' '}
             <span style={{ background:'linear-gradient(120deg,#c4baff 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
-              paiements
+              {t('ppg.payments')}
             </span>
           </h1>
-          <p style={{ fontSize:14, color:C.muted, margin:0 }}>Historique et suivi de vos transactions</p>
+          <p style={{ fontSize:14, color:C.muted, margin:0 }}>{t('ppg.subtitle')}</p>
         </div>
 
         {/* Summary cards */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:14, marginBottom:32 }}>
           {[
-            { label:'Total dépensé',  value:loading?'—':`${totalAmt.toFixed(0)} TND`,    color:C.accentMid, bg:C.accentDim, border:'rgba(124,108,246,0.25)', icon:<IcDollar s={20}/> },
-            { label:'En attente',     value:loading?'—':`${pendingCnt} paiem.`,           color:C.amber,     bg:C.amberDim,  border:C.amberBord,             icon:<IcClock s={20}/>  },
-            { label:'Confirmés',      value:loading?'—':`${confirmedCnt} paiem.`,         color:C.emerald,   bg:C.emeraldDim,border:C.emeraldBord,           icon:<IcCheck s={20}/>  },
+            { label:t('ppg.total_spent'),  value:loading?'—':`${totalAmt.toFixed(0)} TND`,    color:C.accentMid, bg:C.accentDim, border:'rgba(124,108,246,0.25)', icon:<IcDollar s={20}/> },
+            { label:t('ppg.pending'),     value:loading?'—':t('ppg.n_payments',{count:pendingCnt}),           color:C.amber,     bg:C.amberDim,  border:C.amberBord,             icon:<IcClock s={20}/>  },
+            { label:t('ppg.confirmed'),      value:loading?'—':t('ppg.n_payments',{count:confirmedCnt}),         color:C.emerald,   bg:C.emeraldDim,border:C.emeraldBord,           icon:<IcCheck s={20}/>  },
           ].map(c => (
             <div key={c.label} style={{ padding:'24px 22px', borderRadius:20, background:c.bg, border:`1px solid ${c.border}`, position:'relative', overflow:'hidden' }}>
               <div style={{ position:'absolute', top:0, right:0, width:80, height:80, borderRadius:'50%', background:`radial-gradient(circle,${c.color}18,transparent 70%)`, transform:'translate(20px,-20px)', pointerEvents:'none' }}/>
@@ -156,24 +160,24 @@ export default function PaymentsPage() {
 
         {/* How it works */}
         <div style={{ padding:'22px 26px', borderRadius:20, background:C.card, border:`1px solid ${C.border}`, marginBottom:32 }}>
-          <p style={{ fontSize:14, fontWeight:800, color:C.text, margin:'0 0 16px', letterSpacing:'-0.01em' }}>Comment ça marche ?</p>
+          <p style={{ fontSize:14, fontWeight:800, color:C.text, margin:'0 0 16px', letterSpacing:'-0.01em' }}>{t('ppg.how_it_works')}</p>
           <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
             {[
-              "Envoyez votre preuve de paiement à l'équipe via le Chat.",
-              'Notre équipe vérifie et met à jour le statut ci-dessous.',
-              'Vous recevez un email avec un reçu PDF à chaque étape.',
-            ].map((t,i) => (
+              t('ppg.step1'),
+              t('ppg.step2'),
+              t('ppg.step3'),
+            ].map((step,i) => (
               <div key={i} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
                 <span style={{ width:24, height:24, borderRadius:8, background:C.accentDim, border:`1px solid ${C.borderAcc}`, color:C.accentMid, fontSize:11, fontWeight:900, display:'inline-flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{i+1}</span>
-                <p style={{ fontSize:13.5, color:C.sub, margin:0, lineHeight:1.55 }}>{t}</p>
+                <p style={{ fontSize:13.5, color:C.sub, margin:0, lineHeight:1.55 }}>{step}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Courses */}
-        <SectionBlock title="Historique — Courses" count={courses.length} loading={loading}>
-          {courses.length === 0 ? <EmptyHistory text="Aucun paiement de cours pour le moment"/> : (
+        <SectionBlock title={t('ppg.history_courses')} count={courses.length} loading={loading}>
+          {courses.length === 0 ? <EmptyHistory text={t('ppg.no_course_payments')}/> : (
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               {courses.map(item => (
                 <PaymentRow key={item.id} label={item.course_title} amount={item.amount} statusKey={item.payment_status} statusMap={COURSE_STATUS}
@@ -184,14 +188,14 @@ export default function PaymentsPage() {
         </SectionBlock>
 
         {/* Projects */}
-        <SectionBlock title="Historique — Projets" count={projects.length} loading={loading}>
-          {projects.length === 0 ? <EmptyHistory text="Aucun paiement de projet pour le moment"/> : (
+        <SectionBlock title={t('ppg.history_projects')} count={projects.length} loading={loading}>
+          {projects.length === 0 ? <EmptyHistory text={t('ppg.no_project_payments')}/> : (
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               {projects.map(item => {
                 const otherEmail = user.role==='freelancer' ? item.client_email : item.freelancer_email;
                 const otherAcc   = accounts?.[otherEmail?.toLowerCase()];
                 const otherName  = otherAcc?.name || item.client_name || item.freelancer_name || otherEmail || '—';
-                const label      = user.role==='freelancer' ? `Client : ${otherName}` : `Freelancer : ${otherName}`;
+                const label      = user.role==='freelancer' ? t('ppg.client_label',{name:otherName}) : t('ppg.freelancer_label',{name:otherName});
                 return (
                   <PaymentRow key={item.id} label={item.title} amount={item.amount} statusKey={item.payment_status} statusMap={PROJ_STATUS}
                     subLabel={label}

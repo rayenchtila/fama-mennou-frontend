@@ -3,9 +3,11 @@
 // Optimized for: slow internet, mobile, buffering, autoplay policies
 
 import { useRef, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cldVideo } from '../utils/cloudinary';
 
 export default function VideoPlayer({ url, title = '', autoPlay = false, className = '' }) {
+  const { t } = useTranslation();
   const videoRef  = useRef(null);
   const [error,   setError]   = useState(false);
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ export default function VideoPlayer({ url, title = '', autoPlay = false, classNa
           <svg className="w-12 h-12 text-slate-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
           </svg>
-          <p className="text-slate-500 text-sm">Aucune vidéo disponible</p>
+          <p className="text-slate-500 text-sm">{t('vp.no_video')}</p>
         </div>
       </div>
     );
@@ -103,7 +105,7 @@ export default function VideoPlayer({ url, title = '', autoPlay = false, classNa
         />
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-            <p className="text-white text-sm">Erreur de lecture vidéo</p>
+            <p className="text-white text-sm">{t('vp.playback_error')}</p>
           </div>
         )}
       </div>
@@ -136,12 +138,12 @@ export default function VideoPlayer({ url, title = '', autoPlay = false, classNa
           style={{ maxHeight: '100%' }}
         >
           <p className="text-white text-sm p-4">
-            Votre navigateur ne supporte pas la lecture vidéo.
+            {t('vp.browser_unsupported')}
           </p>
         </video>
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-            <p className="text-white text-sm">Impossible de charger la vidéo</p>
+            <p className="text-white text-sm">{t('vp.cannot_load')}</p>
           </div>
         )}
       </div>
@@ -150,7 +152,7 @@ export default function VideoPlayer({ url, title = '', autoPlay = false, classNa
 
   return (
     <div className={`w-full aspect-video bg-slate-900 rounded-xl flex items-center justify-center ${className}`}>
-      <p className="text-slate-500 text-sm">Format vidéo non supporté</p>
+      <p className="text-slate-500 text-sm">{t('vp.format_unsupported')}</p>
     </div>
   );
 }
