@@ -30,7 +30,7 @@ export default function Footer() {
   };
 
   return (
-    <footer style={{ borderTop: '1px solid rgba(255,255,255,.08)', background: '#08060f' }}>
+    <footer style={{ borderTop: '1px solid rgba(255,255,255,.08)', background: '#0a0817' }}>
       <div className="fm-footer-grid" style={{ maxWidth: '1200px', margin: '0 auto', padding: '52px 20px 28px' }}>
 
         {/* Brand */}
