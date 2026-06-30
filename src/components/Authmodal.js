@@ -988,7 +988,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       if (cinFrontFile) cinFrontB64 = await fileToBase64(cinFrontFile);
       if (cinBackFile)  cinBackB64  = await fileToBase64(cinBackFile);
 
-      await register({
+      const regResult = await register({
         name:        pendingFormData.firstName + " " + pendingFormData.lastName,
         email:       pendingFormData.email,
         password:    pendingFormData.password,
@@ -1003,6 +1003,19 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         cinBack:     cinBackB64,
         cinVerified: false,
       });
+
+      // Registration actually failed — show the real reason instead of a fake success screen
+      if (regResult?.error) {
+        const messages = {
+          emailTaken:     t("An account with this email already exists."),
+          passwordTooShort: t("Password must be at least 8 characters."),
+          missing:        t("Please fill in all required fields."),
+          networkError:   t("Network error. Please check your connection and try again."),
+          serverError:    t("Something went wrong. Please try again."),
+        };
+        setCodeError(messages[regResult.error] || t("Registration failed. Please try again."));
+        return;
+      }
 
       if (process.env.REACT_APP_DEV_MODE === 'true') {
         setScreen("form");

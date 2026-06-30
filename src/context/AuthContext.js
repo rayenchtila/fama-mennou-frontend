@@ -232,6 +232,12 @@ export function AuthProvider({ children }) {
       });
       const regData = await regRes.json();
 
+      // Registration actually failed (e.g. emailTaken, validation, serverError) —
+      // surface this to the caller instead of silently treating it as success.
+      if (!regRes.ok || regData.error) {
+        return { error: regData.error || "serverError" };
+      }
+
       // In dev mode the backend auto-approves — auto-login so the user never sees the pending screen
       if (regData.dev) {
         const result = await login(userData.email, userData.password);
@@ -253,8 +259,10 @@ export function AuthProvider({ children }) {
       }
 
       fetchAccounts();
+      return { success: true };
     } catch (e) {
       console.error("register error", e);
+      return { error: "networkError" };
     }
   }
 
