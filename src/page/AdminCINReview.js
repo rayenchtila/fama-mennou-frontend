@@ -1,14 +1,16 @@
 // src/pages/AdminCINReview.jsx
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
- 
+
 // ─── tiny helpers ────────────────────────────────────────────────────────────
- 
+
 function Badge({ status }) {
+  const { t } = useTranslation();
   const map = {
-    pending:  { label: "En attente",  cls: "bg-amber-100 text-amber-700 border-amber-200"   },
-    approved: { label: "Approuvé",    cls: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-    rejected: { label: "Rejeté",      cls: "bg-rose-100 text-rose-700 border-rose-200"      },
+    pending:  { label: t("admin.status.pending"),  cls: "bg-amber-100 text-amber-700 border-amber-200"   },
+    approved: { label: t("admin.status.approved"),    cls: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+    rejected: { label: t("admin.status.rejected"),      cls: "bg-rose-100 text-rose-700 border-rose-200"      },
   };
   const { label, cls } = map[status] ?? map.pending;
   return (
@@ -37,25 +39,26 @@ function Avatar({ name }) {
  
 // ─── rejection reason presets ─────────────────────────────────────────────────
  
-const REJECT_PRESETS = [
-  "La photo de la carte d'identité n'est pas suffisamment claire.",
-  "Les informations du compte ne correspondent pas à celles de la CIN.",
-  "La carte d'identité est expirée ou illisible.",
-  "Veuillez fournir les deux faces de la CIN.",
+const REJECT_PRESET_KEYS = [
+  "admin.reject.preset1",
+  "admin.reject.preset2",
+  "admin.reject.preset3",
+  "admin.reject.preset4",
 ];
- 
+
 // ─── approval reason presets ──────────────────────────────────────────────────
- 
-const APPROVE_PRESETS = [
-  "Votre identité a été vérifiée avec succès.",
-  "Vos documents sont conformes. Bienvenue sur la plateforme !",
-  "Votre CIN correspond bien à vos informations. Compte activé.",
-  "Dossier complet et validé par l'équipe d'administration.",
+
+const APPROVE_PRESET_KEYS = [
+  "admin.approve.preset1",
+  "admin.approve.preset2",
+  "admin.approve.preset3",
+  "admin.approve.preset4",
 ];
  
 // ─── CIN image viewer modal ───────────────────────────────────────────────────
  
 function CINImageModal({ user, onClose }) {
+  const { t } = useTranslation();
   const [side, setSide] = useState("front");
   const img = side === "front" ? user.cinFront : user.cinBack;
  
@@ -86,7 +89,7 @@ function CINImageModal({ user, onClose }) {
  
         {/* Side toggle */}
         <div className="flex gap-1 p-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-          {[{ id: "front", label: "Face avant" }, { id: "back", label: "Face arrière" }].map(s => (
+          {[{ id: "front", label: t("Face avant") }, { id: "back", label: t("Face arrière") }].map(s => (
             <button
               key={s.id}
               onClick={() => setSide(s.id)}
@@ -115,7 +118,7 @@ function CINImageModal({ user, onClose }) {
               <svg className="w-10 h-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
               </svg>
-              <span>Image non disponible</span>
+              <span>{t("admin.cin.unavailable")}</span>
             </div>
           )}
         </div>
@@ -123,9 +126,9 @@ function CINImageModal({ user, onClose }) {
         {/* Registered info summary */}
         <div className="px-6 py-4 grid grid-cols-3 gap-4 border-t border-slate-100 dark:border-slate-800">
           {[
-            { label: "Nom complet",        value: user.name },
-            { label: "Date de naissance",  value: user.dob  },
-            { label: "Région",             value: user.region },
+            { label: t("admin.cin.full_name"),        value: user.name },
+            { label: t("admin.cin.dob"),  value: user.dob  },
+            { label: t("admin.cin.region"),             value: user.region },
           ].map(({ label, value }) => (
             <div key={label}>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{label}</p>
@@ -141,6 +144,7 @@ function CINImageModal({ user, onClose }) {
 // ─── reject dialog ────────────────────────────────────────────────────────────
  
 function RejectDialog({ user, onConfirm, onClose }) {
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
@@ -156,15 +160,15 @@ function RejectDialog({ user, onConfirm, onClose }) {
               </svg>
             </div>
             <div>
-              <p className="font-bold text-slate-900 dark:text-white">Rejeter la vérification</p>
+              <p className="font-bold text-slate-900 dark:text-white">{t("admin.reject.title")}</p>
               <p className="text-xs text-slate-400">{user.name}</p>
             </div>
           </div>
- 
+
           {/* Presets */}
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Raison rapide</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("admin.reject.quick_reason")}</p>
           <div className="space-y-1.5 mb-4">
-            {REJECT_PRESETS.map(p => (
+            {REJECT_PRESET_KEYS.map(k => t(k)).map(p => (
               <button
                 key={p}
                 onClick={() => setReason(p)}
@@ -181,12 +185,12 @@ function RejectDialog({ user, onConfirm, onClose }) {
           </div>
  
           {/* Custom reason */}
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Ou écrivez une raison personnalisée</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("admin.reject.custom")}</p>
           <textarea
             value={reason}
             onChange={e => setReason(e.target.value)}
             rows={3}
-            placeholder="Expliquez la raison du rejet…"
+            placeholder={t("admin.reject.placeholder")}
             className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-rose-400/30 focus:border-rose-400 transition-colors"
           />
         </div>
@@ -196,14 +200,14 @@ function RejectDialog({ user, onConfirm, onClose }) {
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
-            Annuler
+            {t("admin.reject.cancel")}
           </button>
           <button
             disabled={!reason.trim()}
             onClick={() => reason.trim() && onConfirm(reason)}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors"
           >
-            Confirmer le rejet
+            {t("admin.reject.confirm")}
           </button>
         </div>
       </div>
@@ -214,6 +218,7 @@ function RejectDialog({ user, onConfirm, onClose }) {
 // ─── approve dialog ──────────────────────────────────────────────────────────
  
 function ApproveDialog({ user, onConfirm, onClose }) {
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
@@ -229,15 +234,15 @@ function ApproveDialog({ user, onConfirm, onClose }) {
               </svg>
             </div>
             <div>
-              <p className="font-bold text-slate-900 dark:text-white">Approuver la vérification</p>
+              <p className="font-bold text-slate-900 dark:text-white">{t("admin.approve.title")}</p>
               <p className="text-xs text-slate-400">{user.name}</p>
             </div>
           </div>
- 
+
           {/* Presets */}
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Message rapide</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("admin.approve.quick_msg")}</p>
           <div className="space-y-1.5 mb-4">
-            {APPROVE_PRESETS.map(p => (
+            {APPROVE_PRESET_KEYS.map(k => t(k)).map(p => (
               <button
                 key={p}
                 onClick={() => setReason(p)}
@@ -254,12 +259,12 @@ function ApproveDialog({ user, onConfirm, onClose }) {
           </div>
  
           {/* Custom reason */}
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Ou écrivez un message personnalisé</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("admin.approve.custom")}</p>
           <textarea
             value={reason}
             onChange={e => setReason(e.target.value)}
             rows={3}
-            placeholder="Message pour le freelancer approuvé…"
+            placeholder={t("admin.approve.placeholder")}
             className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors"
           />
         </div>
@@ -269,14 +274,14 @@ function ApproveDialog({ user, onConfirm, onClose }) {
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
-            Annuler
+            {t("admin.approve.cancel")}
           </button>
           <button
             disabled={!reason.trim()}
             onClick={() => reason.trim() && onConfirm(reason)}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors"
           >
-            Confirmer l'approbation
+            {t("admin.approve.confirm")}
           </button>
         </div>
       </div>
@@ -287,6 +292,7 @@ function ApproveDialog({ user, onConfirm, onClose }) {
 // ─── main admin page ──────────────────────────────────────────────────────────
  
 export default function AdminCINReview() {
+  const { t } = useTranslation();
   const { users, updateUser } = useAuth();
   // ✅ Removed deleteUser — rejected users are NEVER deleted
  
@@ -339,10 +345,10 @@ export default function AdminCINReview() {
   }
  
   const FILTERS = [
-    { id: "pending",  label: "En attente" },
-    { id: "approved", label: "Approuvés"  },
-    { id: "rejected", label: "Rejetés"    },
-    { id: "all",      label: "Tous"       },
+    { id: "pending",  label: t("admin.pending") },
+    { id: "approved", label: t("admin.approved")  },
+    { id: "rejected", label: t("admin.rejected")    },
+    { id: "all",      label: t("admin.filter.all")       },
   ];
  
   return (
@@ -358,8 +364,8 @@ export default function AdminCINReview() {
               </svg>
             </div>
             <div>
-              <p className="font-extrabold text-slate-900 dark:text-white text-sm leading-tight">Vérification CIN</p>
-              <p className="text-[11px] text-slate-400">Panneau administrateur</p>
+              <p className="font-extrabold text-slate-900 dark:text-white text-sm leading-tight">{t("acvr.cin_verification")}</p>
+              <p className="text-[11px] text-slate-400">{t("acvr.admin_panel")}</p>
             </div>
           </div>
  
@@ -370,7 +376,7 @@ export default function AdminCINReview() {
             </svg>
             <input
               type="text"
-              placeholder="Rechercher un freelancer…"
+              placeholder={t("acvr.search_freelancer")}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-colors"
@@ -384,10 +390,10 @@ export default function AdminCINReview() {
         {/* ── Stats strip ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           {[
-            { label: "Total",        value: counts.all,      color: "text-slate-700 dark:text-slate-200",    bg: "bg-white dark:bg-slate-900" },
-            { label: "En attente",   value: counts.pending,  color: "text-amber-600 dark:text-amber-400",    bg: "bg-amber-50 dark:bg-amber-900/20" },
-            { label: "Approuvés",    value: counts.approved, color: "text-emerald-600 dark:text-emerald-400",bg: "bg-emerald-50 dark:bg-emerald-900/20" },
-            { label: "Rejetés",      value: counts.rejected, color: "text-rose-600 dark:text-rose-400",      bg: "bg-rose-50 dark:bg-rose-900/20" },
+            { label: t("admin.total"),        value: counts.all,      color: "text-slate-700 dark:text-slate-200",    bg: "bg-white dark:bg-slate-900" },
+            { label: t("admin.pending"),   value: counts.pending,  color: "text-amber-600 dark:text-amber-400",    bg: "bg-amber-50 dark:bg-amber-900/20" },
+            { label: t("admin.approved"),    value: counts.approved, color: "text-emerald-600 dark:text-emerald-400",bg: "bg-emerald-50 dark:bg-emerald-900/20" },
+            { label: t("admin.rejected"),      value: counts.rejected, color: "text-rose-600 dark:text-rose-400",      bg: "bg-rose-50 dark:bg-rose-900/20" },
           ].map(s => (
             <div key={s.label} className={`${s.bg} rounded-2xl px-4 py-3 border border-slate-100 dark:border-slate-800`}>
               <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
@@ -425,7 +431,7 @@ export default function AdminCINReview() {
             <svg className="w-12 h-12 mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
             </svg>
-            <p className="text-sm font-semibold">Aucun dossier trouvé</p>
+            <p className="text-sm font-semibold">{t("acvr.no_files")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -459,11 +465,11 @@ export default function AdminCINReview() {
                         {/* Registered details grid */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-xs mb-3">
                           {[
-                            { label: "Né(e) le",  value: user.dob    },
-                            { label: "Genre",     value: user.gender === "male" ? "Homme 👨" : user.gender === "female" ? "Femme 👩" : null },
-                            { label: "Région",    value: user.region },
-                            { label: "Skills",    value: user.skills },
-                            { label: "CIN (nom)", value: user.cin    },
+                            { label: t("acvr.born_on"),  value: user.dob    },
+                            { label: t("admin.card.gender"),     value: user.gender === "male" ? t("admin.card.male") : user.gender === "female" ? t("admin.card.female") : null },
+                            { label: t("admin.cin.region"),    value: user.region },
+                            { label: t("admin.table.skills"),    value: user.skills },
+                            { label: t("acvr.cin_name"), value: user.cin    },
                           ].map(({ label, value }) => value ? (
                             <div key={label}>
                               <span className="text-slate-400 font-medium">{label}: </span>
@@ -503,7 +509,7 @@ export default function AdminCINReview() {
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
-                            Voir la CIN
+                            {t("admin.card.view_cin")}
                           </button>
  
                           {status !== "approved" && (
@@ -514,7 +520,7 @@ export default function AdminCINReview() {
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                               </svg>
-                              Approuver
+                              {t("admin.card.approve")}
                             </button>
                           )}
  
@@ -526,7 +532,7 @@ export default function AdminCINReview() {
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
                               </svg>
-                              Rejeter
+                              {t("admin.card.reject")}
                             </button>
                           )}
  
@@ -539,7 +545,7 @@ export default function AdminCINReview() {
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                               </svg>
-                              Remettre en attente
+                              {t("acvr.reopen_pending")}
                             </button>
                           )}
                         </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { supabase } from '../lib/supabaseClient';
 import { cldImg } from '../utils/cloudinary';
@@ -75,6 +76,7 @@ function ReadTick({ read, online }) {
 // ── Main ChatDrawer ────────────────────────────────────────────────────────────
 
 export default function ChatDrawer({ user, initialEmail, onClose }) {
+  const { t } = useTranslation();
   const [usersMap,       setUsersMap]       = useState({});
   const [conversations,  setConversations]  = useState([]);
   const [selectedChat,   setSelectedChat]   = useState(initialEmail || null);
@@ -267,7 +269,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                 </svg>
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Messages
+                  {t('msg.page_title')}
                   {unread > 0 && (
                     <span className="ml-1.5 px-1.5 py-0.5 bg-indigo-600 text-white text-[10px] font-extrabold rounded-full">{unread}</span>
                   )}
@@ -294,9 +296,9 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
               <div className="px-4 pt-4 pb-2 shrink-0">
                 <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40 rounded-2xl px-4 py-3 text-center">
                   <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">
-                    Début de votre conversation avec <span className="font-bold">{otherUser?.name || selectedChat}</span>
+                    {t('chd.conv_start_with')} <span className="font-bold">{otherUser?.name || selectedChat}</span>
                   </p>
-                  <p className="text-[10px] text-indigo-400 mt-0.5">Les messages sont privés et sécurisés</p>
+                  <p className="text-[10px] text-indigo-400 mt-0.5">{t('chd.private_secure')}</p>
                 </div>
               </div>
             )}
@@ -310,7 +312,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                   <div className="flex justify-center mb-2">
                     <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   </div>
-                  <p className="text-xs font-semibold">Démarrez la conversation</p>
+                  <p className="text-xs font-semibold">{t('msg.start_chat')}</p>
                 </div>
               )}
 
@@ -383,7 +385,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
 
                       {!isEditing && (
                         <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
-                          {m.edited_at && <span className="text-[9px] text-slate-400 italic">modifié ·</span>}
+                          {m.edited_at && <span className="text-[9px] text-slate-400 italic">{t('adm.edited')}</span>}
                           <span className="text-[9px] text-slate-400 tabular-nums">
                             {formatTime(m.edited_at || m.created_at)}
                           </span>
@@ -408,13 +410,13 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                   <button onClick={() => { setEditingId(openMenuId); setEditText(msg.content); setOpenMenuId(null); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors text-left">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    Modifier
+                    {t('chd.edit')}
                   </button>
                   {canDelete && (
                     <button onClick={() => deleteMsg(openMenuId)}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-left">
                       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                      Supprimer
+                      {t('chd.delete')}
                     </button>
                   )}
                 </div>
@@ -428,7 +430,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                 onChange={e => setNewMsg(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
                 onClick={() => setOpenMenuId(null)}
-                placeholder={`Message à ${otherUser?.name?.split(' ')[0] || '…'}`}
+                placeholder={t('chd.message_to', { name: otherUser?.name?.split(' ')[0] || '…' })}
                 className="flex-1 text-sm rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
               />
               <button onClick={sendMsg} disabled={!newMsg.trim() || sending}
@@ -457,7 +459,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                     <p className="text-sm font-bold text-indigo-700 dark:text-indigo-300 truncate">
                       {freelancer?.name || initialEmail}
                     </p>
-                    <p className="text-[11px] text-indigo-500 dark:text-indigo-400">Démarrer une conversation →</p>
+                    <p className="text-[11px] text-indigo-500 dark:text-indigo-400">{t('chd.start_conversation')}</p>
                   </div>
                 </button>
               );
@@ -470,8 +472,8 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                   <div className="flex justify-center mb-3">
                     <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   </div>
-                  <p className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-1">Aucune conversation</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Cliquez ci-dessus pour écrire à ce freelancer</p>
+                  <p className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-1">{t('msg.no_convs')}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{t('chd.click_above')}</p>
                 </div>
               )}
 
@@ -494,7 +496,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                           {other?.name || conv.other_email}
                         </p>
                         <span className={`text-[9px] shrink-0 ${st.online ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}>
-                          {st.online ? 'En ligne' : st.text}
+                          {st.online ? t('msg.online') : st.text}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">

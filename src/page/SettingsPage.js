@@ -78,19 +78,19 @@ export default function SettingsPage() {
 
   const cinStatus = user.cinStatus;
   const statusBadge = cinStatus==='approved'
-    ? { color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, label:'Vérifié' }
+    ? { color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, label:t('sp.verified') }
     : cinStatus==='pending'
-    ? { color:C.amber,   bg:C.amberDim,   border:C.amberBord,   label:'En attente' }
-    : { color:C.rose,    bg:C.roseDim,    border:C.roseBord,    label:'Non vérifié' };
+    ? { color:C.amber,   bg:C.amberDim,   border:C.amberBord,   label:t('sp.pending') }
+    : { color:C.rose,    bg:C.roseDim,    border:C.roseBord,    label:t('sp.not_verified') };
 
   async function handleChangePassword(e) {
     e.preventDefault();
     setPassMsg(''); setPassErr('');
 
-    if (!currPass)           { setPassErr('Le mot de passe actuel est requis.');        return; }
-    if (!newPass)            { setPassErr('Le nouveau mot de passe est requis.');        return; }
-    if (newPass.length < 6)  { setPassErr('Minimum 6 caractères.');                     return; }
-    if (newPass !== confirm)  { setPassErr('Les mots de passe ne correspondent pas.');  return; }
+    if (!currPass)           { setPassErr(t('sp.err_current_required'));        return; }
+    if (!newPass)            { setPassErr(t('sp.err_new_required'));        return; }
+    if (newPass.length < 6)  { setPassErr(t('sp.err_min'));                     return; }
+    if (newPass !== confirm)  { setPassErr(t('sp.err_mismatch'));  return; }
 
     setLoading(true);
     try {
@@ -103,30 +103,30 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (data.error === 'wrongPassword') {
-        setPassErr('Mot de passe actuel incorrect.');
+        setPassErr(t('sp.err_wrong'));
         setLoading(false);
         return;
       }
       if (data.error) {
-        setPassErr('Erreur. Réessayez.');
+        setPassErr(t('sp.err_generic'));
         setLoading(false);
         return;
       }
 
       /* Step 3 — success: clear fields, show message, fire notification */
       setCurrPass(''); setNewPass(''); setConfirm('');
-      setPassMsg('Mot de passe mis à jour avec succès !');
+      setPassMsg(t('sp.pw_updated'));
 
       await addNotification({
         type:    'user',
         kind:    'password_changed',
-        title:   '🔒 Mot de passe modifié',
-        message: 'Votre mot de passe a été mis à jour. Cliquez ici pour accéder à vos paramètres.',
+        title:   t('sp.pw_notif_title'),
+        message: t('sp.pw_notif_msg'),
         email:   user.email,
         name:    user.name,
       });
 
-    } catch { setPassErr('Erreur réseau. Réessayez.'); }
+    } catch { setPassErr(t('sp.err_network')); }
     finally  { setLoading(false); }
   }
 
@@ -143,34 +143,34 @@ export default function SettingsPage() {
 
         {/* Header */}
         <div style={{ marginBottom:36 }}>
-          <p style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>MON COMPTE</p>
+          <p style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>{t('sp.my_account')}</p>
           <h1 style={{ fontSize:38, fontWeight:900, color:C.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1.1 }}>
-            Mes{' '}
+            {t('sp.my')}{' '}
             <span style={{ background:'linear-gradient(120deg,#c4baff 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
-              paramètres
+              {t('sp.settings')}
             </span>
           </h1>
-          <p style={{ fontSize:14, color:C.muted, margin:0 }}>Gérez votre compte, sécurité et préférences</p>
+          <p style={{ fontSize:14, color:C.muted, margin:0 }}>{t('sp.subtitle')}</p>
         </div>
 
         {/* Account info */}
-        <SectionCard title="Informations du compte" icon={<IcShield s={16}/>}>
-          <InfoRow label="Nom complet" value={user.name || '—'}/>
-          <InfoRow label="Adresse email" value={user.email}/>
-          <InfoRow label="Rôle" value={user.role === 'client' ? 'Client' : user.role === 'freelancer' ? 'Freelancer' : user.role}/>
-          <InfoRow label="Statut" value={statusBadge.label} badge={statusBadge}/>
+        <SectionCard title={t('sp.account_info')} icon={<IcShield s={16}/>}>
+          <InfoRow label={t('sp.full_name')} value={user.name || '—'}/>
+          <InfoRow label={t('sp.email')} value={user.email}/>
+          <InfoRow label={t('sp.role')} value={user.role === 'client' ? t('dash.role.client') : user.role === 'freelancer' ? t('dash.role.freelancer') : user.role}/>
+          <InfoRow label={t('sp.status')} value={statusBadge.label} badge={statusBadge}/>
           <div style={{ borderBottom:`1px solid ${C.border}` }}/>
         </SectionCard>
 
         {/* Password */}
-        <SectionCard title="Changer le mot de passe" icon={<IcKey s={16}/>}>
+        <SectionCard title={t('sp.change_password')} icon={<IcKey s={16}/>}>
           <form onSubmit={handleChangePassword} style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
             {/* ── reusable eye button renderer ── */}
             {[
-              { label:'Mot de passe actuel',           show:showCurr, setShow:setShowCurr, val:currPass, setVal:setCurrPass },
-              { label:'Nouveau mot de passe',           show:showNew,  setShow:setShowNew,  val:newPass,  setVal:setNewPass  },
-              { label:'Confirmer le nouveau mot de passe', show:showConf, setShow:setShowConf, val:confirm, setVal:setConfirm },
+              { label:t('sp.current_pw'),           show:showCurr, setShow:setShowCurr, val:currPass, setVal:setCurrPass },
+              { label:t('sp.new_pw'),           show:showNew,  setShow:setShowNew,  val:newPass,  setVal:setNewPass  },
+              { label:t('sp.confirm_pw'), show:showConf, setShow:setShowConf, val:confirm, setVal:setConfirm },
             ].map(({ label, show, setShow, val, setVal }) => (
               <div key={label}>
                 <p style={{ fontSize:10.5, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.07em', margin:'0 0 7px' }}>{label}</p>
@@ -211,18 +211,18 @@ export default function SettingsPage() {
               style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8, padding:'13px 28px', borderRadius:14, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontWeight:800, fontSize:14, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:'0 8px 24px -6px rgba(124,108,246,0.55)', transition:'opacity .15s, transform .15s', letterSpacing:'0.01em', alignSelf:'flex-start' }}
               onMouseEnter={e=>{if(!loading){e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}}
               onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}>
-              {loading ? 'Enregistrement…' : 'Mettre à jour le mot de passe'}
+              {loading ? t('sp.saving') : t('sp.update_password')}
             </button>
           </form>
         </SectionCard>
 
         {/* Session */}
-        <SectionCard title="Session" icon={<IcLogout s={16}/>}>
+        <SectionCard title={t('sp.session')} icon={<IcLogout s={16}/>}>
           <button onClick={()=>setLogoutModal(true)}
             style={{ display:'inline-flex', alignItems:'center', gap:9, padding:'12px 26px', borderRadius:13, background:C.roseDim, border:`1.5px solid ${C.roseBord}`, color:C.rose, fontWeight:700, fontSize:13.5, cursor:'pointer', transition:'all .18s' }}
             onMouseEnter={e=>{e.currentTarget.style.background='rgba(248,113,113,0.18)';e.currentTarget.style.transform='translateY(-1px)';}}
             onMouseLeave={e=>{e.currentTarget.style.background=C.roseDim;e.currentTarget.style.transform='translateY(0)';}}>
-            <IcLogout s={15}/> Se déconnecter
+            <IcLogout s={15}/> {t('sp.logout')}
           </button>
         </SectionCard>
 
@@ -241,18 +241,18 @@ export default function SettingsPage() {
               </button>
             </div>
             <div style={{ padding:'16px 24px 22px' }}>
-              <p style={{ fontSize:16, fontWeight:900, color:C.text, margin:'0 0 6px' }}>Se déconnecter ?</p>
-              <p style={{ fontSize:13, color:C.muted, margin:'0 0 24px', lineHeight:1.5 }}>Vous serez redirigé vers la page d'accueil.</p>
+              <p style={{ fontSize:16, fontWeight:900, color:C.text, margin:'0 0 6px' }}>{t('sp.logout_confirm')}</p>
+              <p style={{ fontSize:13, color:C.muted, margin:'0 0 24px', lineHeight:1.5 }}>{t('sp.logout_redirect')}</p>
               <div style={{ display:'flex', gap:12 }}>
                 <button onClick={()=>setLogoutModal(false)}
                   style={{ flex:1, padding:'12px', borderRadius:13, border:`1px solid ${C.border}`, background:'none', color:C.sub, fontWeight:700, fontSize:13, cursor:'pointer', transition:'background .15s' }}
                   onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';}}
                   onMouseLeave={e=>{e.currentTarget.style.background='none';}}>
-                  Annuler
+                  {t('sp.cancel')}
                 </button>
                 <button onClick={()=>{logout();setLogoutModal(false);}}
                   style={{ flex:1, padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#dc2626,#ef4444)', border:'none', color:'#fff', fontWeight:700, fontSize:13, cursor:'pointer', boxShadow:'0 4px 14px -3px rgba(239,68,68,0.45)' }}>
-                  Oui, déconnecter
+                  {t('sp.yes_logout')}
                 </button>
               </div>
             </div>

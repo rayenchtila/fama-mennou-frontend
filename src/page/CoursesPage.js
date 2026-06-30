@@ -156,6 +156,7 @@ const IcX = () => (
    Course Card
    ══════════════════════════════════════════════════════════════════ */
 function CourseCard({ course, onClick }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [hov, setHov] = useState(false);
   const full       = Number(course.full_price||0);
@@ -165,7 +166,7 @@ function CourseCard({ course, onClick }) {
   const hasDisc    = !isFree && pct > 0;
   const catColor   = CAT_COLORS[course.category] || C.accent;
   const thumbGrad  = THUMB_GRAD[course.category]  || THUMB_GRAD.All;
-  const instructor = course.instructor_name || course.creator_email?.split('@')[0] || 'Instructor';
+  const instructor = course.instructor_name || course.creator_email?.split('@')[0] || t('csp.instructor');
   const iColor     = getTint(instructor);
   const iInits     = getInits(instructor);
   const rating     = Number(course.avg_rating||0);
@@ -232,7 +233,7 @@ function CourseCard({ course, onClick }) {
             background:'rgba(255,255,255,0.93)', letterSpacing:'0.01em',
             color: isFree ? '#0f766e' : hasDisc ? '#dc2626' : '#134e4a',
           }}>
-            {isFree ? 'Free' : hasDisc ? `${final.toFixed(0)} TND` : `${full.toFixed(0)} TND`}
+            {isFree ? t('cc.free') : hasDisc ? `${final.toFixed(0)} TND` : `${full.toFixed(0)} TND`}
           </span>
 
           {/* Discount ribbon */}
@@ -295,7 +296,7 @@ function CourseCard({ course, onClick }) {
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:4, color:C.muted }}>
             <IcBook />
-            <span style={{ fontSize:11 }}>{lessons} lessons</span>
+            <span style={{ fontSize:11 }}>{t('cc.lessons_count', { count: lessons })}</span>
           </div>
         </div>
 
@@ -305,7 +306,7 @@ function CourseCard({ course, onClick }) {
         {/* Price + Enroll row */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           {isFree ? (
-            <span style={{ fontSize:17, fontWeight:900, color:C.accentBr }}>Free</span>
+            <span style={{ fontSize:17, fontWeight:900, color:C.accentBr }}>{t('cc.free')}</span>
           ) : hasDisc ? (
             <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
               <span style={{ fontSize:17, fontWeight:900, color:'#f87171' }}>{final.toFixed(0)} TND</span>
@@ -323,7 +324,7 @@ function CourseCard({ course, onClick }) {
             transition:'box-shadow .2s',
             letterSpacing:'0.01em',
           }}>
-            Enroll
+            {t('csp.enroll')}
           </span>
         </div>
       </div>
@@ -431,18 +432,18 @@ export default function CoursesPage() {
 
             {/* Headline */}
             <h1 style={{ fontSize:'clamp(30px,8vw,52px)', fontWeight:900, color:C.text, margin:'0 0 16px', letterSpacing:'-0.04em', lineHeight:1.07 }}>
-              Browse{' '}
+              {t('csp.hero_title_1')}{' '}
               <span style={{
                 background:'linear-gradient(120deg,#5eead4 0%,#14b8a6 42%,#059669 100%)',
                 WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
               }}>
-                professional courses
+                {t('csp.hero_title_2')}
               </span>
             </h1>
 
             {/* Sub-headline */}
             <p style={{ fontSize:16, color:C.sub, margin:'0 auto 36px', lineHeight:1.7, letterSpacing:'0.01em', maxWidth:500 }}>
-              Taught by expert freelancers.&nbsp;&nbsp;Learn at your own pace.&nbsp;&nbsp;Earn certificates.
+              {t('csp.hero_subtitle')}
             </p>
 
             {/* Search bar */}
@@ -492,7 +493,7 @@ export default function CoursesPage() {
                   }}
                   onMouseEnter={e => { e.currentTarget.style.opacity='0.9'; e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=`0 12px 36px -4px rgba(13,148,136,0.75)`; }}
                   onMouseLeave={e => { e.currentTarget.style.opacity='1'; e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow=`0 8px 28px -4px rgba(13,148,136,0.65)`; }}>
-                  <IcPlus /> Create a course
+                  <IcPlus /> {t('fd.create_a_course')}
                 </button>
               </div>
             )}
@@ -500,9 +501,9 @@ export default function CoursesPage() {
             {/* Stats row */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
               {[
-                { n: courses.length,        label: 'Courses'     },
-                { n: CATEGORIES.length - 1, label: 'Categories'  },
-                { n: instructors,           label: 'Instructors'  },
+                { n: courses.length,        label: t('csp.stat_courses')     },
+                { n: CATEGORIES.length - 1, label: t('csp.stat_categories')  },
+                { n: instructors,           label: t('csp.stat_instructors')  },
               ].map((s, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center' }}>
                   {i > 0 && <span style={{ width:1, height:32, background:'rgba(255,255,255,0.09)', margin:'0 clamp(12px,3vw,28px)' }} />}
@@ -559,7 +560,7 @@ export default function CoursesPage() {
 
               {/* All / Free / Paid toggle */}
               <div style={{ display:'flex', gap:3, background:'rgba(255,255,255,0.04)', borderRadius:20, padding:3 }}>
-                {[['all','All'],['free','Free'],['paid','Paid']].map(([v,l]) => (
+                {[['all',t('All')],['free',t('cc.free')],['paid',t('csp.paid')]].map(([v,l]) => (
                   <button key={v} onClick={() => setPriceFilter(v)}
                     style={{
                       padding:'4px 12px', borderRadius:16, fontSize:11.5, fontWeight:700,
@@ -575,7 +576,7 @@ export default function CoursesPage() {
               {/* Course count */}
               <span style={{ fontSize:12, color:C.muted, whiteSpace:'nowrap', fontWeight:500 }}>
                 <strong style={{ color:C.accentBr, fontWeight:800 }}>{courses.length}</strong>
-                {' courses'}
+                {' '}{t('csp.courses_lower')}
               </span>
 
               {/* Sort select */}
@@ -607,12 +608,12 @@ export default function CoursesPage() {
               <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                 <div style={{ width:3, height:18, borderRadius:4, background:`linear-gradient(to bottom,${C.accentBr},${C.accent})` }} />
                 <span style={{ fontSize:13, fontWeight:700, color:C.sub, letterSpacing:'0.04em', textTransform:'uppercase' }}>
-                  {category === 'All' ? 'All Courses' : category}
+                  {category === 'All' ? t('csp.all_courses') : t(category)}
                 </span>
               </div>
               {courses.length > 0 && (
                 <span style={{ fontSize:12, color:C.dim, fontWeight:500 }}>
-                  {courses.length} course{courses.length !== 1 ? 's' : ''} found
+                  {t('csp.courses_found', { count: courses.length })}
                 </span>
               )}
             </div>
@@ -639,9 +640,9 @@ export default function CoursesPage() {
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                 </svg>
               </div>
-              <p style={{ fontSize:18, fontWeight:800, color:C.text, margin:'0 0 8px' }}>No courses found</p>
+              <p style={{ fontSize:18, fontWeight:800, color:C.text, margin:'0 0 8px' }}>{t('csp.no_courses_found')}</p>
               <p style={{ fontSize:13, color:C.muted, margin:'0 0 22px', lineHeight:1.6 }}>
-                {search ? `No results for "${search}"` : 'Try adjusting your filters or search terms.'}
+                {search ? t('csp.no_results_for', { query: search }) : t('csp.adjust_filters')}
               </p>
               {(search || category !== 'All' || priceFilter !== 'all') && (
                 <button
@@ -654,7 +655,7 @@ export default function CoursesPage() {
                   }}
                   onMouseEnter={e => e.currentTarget.style.background='rgba(13,148,136,0.14)'}
                   onMouseLeave={e => e.currentTarget.style.background='rgba(13,148,136,0.08)'}>
-                  Clear all filters
+                  {t('csp.clear_filters')}
                 </button>
               )}
             </div>
@@ -677,7 +678,7 @@ export default function CoursesPage() {
             style={{ width:'100%', maxWidth:340, background:'#0b1f1c', border:`1px solid ${C.border}`, borderRadius:24, padding:28, boxShadow:'0 24px 64px rgba(0,0,0,0.7)' }}
             onClick={e => e.stopPropagation()}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
-              <p style={{ fontSize:17, fontWeight:900, color:C.text, margin:0 }}>Course type</p>
+              <p style={{ fontSize:17, fontWeight:900, color:C.text, margin:0 }}>{t('csp.course_type')}</p>
               <button
                 onClick={() => { setShowTypeModal(false); setSelectedType('free'); }}
                 style={{ width:32, height:32, borderRadius:10, background:'rgba(255,255,255,0.06)', border:'none', color:C.muted, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -685,7 +686,7 @@ export default function CoursesPage() {
               </button>
             </div>
             <div style={{ display:'flex', padding:4, borderRadius:16, background:'rgba(255,255,255,0.04)', marginBottom:22 }}>
-              {[['free','Free','#5eead4'],['paid','Paid','#fbbf24']].map(([v,l,col]) => (
+              {[['free',t('cc.free'),'#5eead4'],['paid',t('csp.paid'),'#fbbf24']].map(([v,l,col]) => (
                 <button key={v} onClick={() => setSelectedType(v)}
                   style={{
                     flex:1, padding:'13px', borderRadius:12,
@@ -712,7 +713,7 @@ export default function CoursesPage() {
               }}
               onMouseEnter={e => e.currentTarget.style.opacity='0.9'}
               onMouseLeave={e => e.currentTarget.style.opacity='1'}>
-              Continue →
+              {t('csp.continue_arrow')}
             </button>
           </div>
         </div>
