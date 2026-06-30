@@ -87,10 +87,11 @@ function SectionHeader({ icon, title, action, onAction }) {
 }
 
 function StatusPill({ status }) {
+  const { t } = useTranslation();
   const map = {
-    open:        { label: 'Ouvert',   dot: '#3ec2e8' },
-    in_progress: { label: 'En cours', dot: '#f59e0b' },
-    completed:   { label: 'Terminé',  dot: '#10b981' },
+    open:        { label: t('fd.status.open'),   dot: '#3ec2e8' },
+    in_progress: { label: t('fd.status.in_progress'), dot: '#f59e0b' },
+    completed:   { label: t('fd.status.completed'),  dot: '#10b981' },
   };
   const s = map[status] || { label: status, dot: '#62668a' };
   return (
@@ -207,6 +208,7 @@ const PIcBriefcase = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="
 // ── TAB: Profil ───────────────────────────────────────────────────────────────
 
 function ProfileTab({ user, updateUser, fetchAccounts }) {
+  const { t } = useTranslation();
   const [photo,        setPhoto]        = useState(user.photo || '');
   const [bio,          setBio]          = useState(user.bio || '');
   const [title,        setTitle]        = useState(user.title || '');
@@ -221,12 +223,12 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   useEffect(() => { setPortfolioUrl(user.portfolio_url || ''); }, [user.portfolio_url]);
 
   async function handleSave() {
-    if (!photo && !user.photo) { setPortfolioError('La photo de profil est obligatoire.'); return; }
-    if (!title.trim())        { setPortfolioError('Le titre professionnel est obligatoire.'); return; }
-    if (!bio.trim())          { setPortfolioError('La biographie est obligatoire.'); return; }
-    if (!portfolioUrl.trim()) { setPortfolioError('Le lien portfolio est obligatoire.'); return; }
+    if (!photo && !user.photo) { setPortfolioError(t('fd.err_photo')); return; }
+    if (!title.trim())        { setPortfolioError(t('fd.err_title')); return; }
+    if (!bio.trim())          { setPortfolioError(t('fd.err_bio')); return; }
+    if (!portfolioUrl.trim()) { setPortfolioError(t('fd.err_portfolio')); return; }
     try { const u = new URL(portfolioUrl.trim()); if (!['http:','https:'].includes(u.protocol)) throw new Error(); }
-    catch { setPortfolioError('Le lien portfolio doit être une URL valide (ex: https://monsite.com).'); return; }
+    catch { setPortfolioError(t('fd.err_portfolio_url')); return; }
     setPortfolioError('');
     setSaving(true);
     try {
@@ -235,8 +237,8 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'user', kind: `profile_saved_${Date.now()}`,
-          title: 'Profil mis à jour',
-          message: 'Vos modifications ont été sauvegardées avec succès.',
+          title: t('fd.notif_updated_title'),
+          message: t('fd.notif_updated_msg'),
           email: user.email, name: user.name,
         }),
       }).catch(() => {});
@@ -266,7 +268,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   const tintP      = getTint_P(user.email || '');
   const initsP     = getInits_P(user.name || user.email);
   const hour       = new Date().getHours();
-  const greeting   = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const greeting   = hour < 12 ? t('dash.greet.morning') : hour < 18 ? t('dash.greet.afternoon') : t('dash.greet.evening');
   const firstName  = (user.name || 'Freelancer').split(' ')[0];
   const avatarSrc  = photo || user.photo;
 
@@ -276,23 +278,23 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   const statusColor = isApproved ? PC.emerald : isPending ? PC.amber : PC.rose;
   const statusDim   = isApproved ? PC.emeraldDim : isPending ? PC.amberDim : PC.roseDim;
   const statusBord  = isApproved ? PC.emeraldBord : isPending ? PC.amberBord : PC.roseBord;
-  const statusLabel = isApproved ? 'Identité vérifiée' : isPending ? 'Vérification en cours' : 'Non vérifié';
+  const statusLabel = isApproved ? t('dash.identity.verified') : isPending ? t('dash.identity.verifying') : t('dash.identity.not_verified');
   const StatusIcon  = isApproved ? PIcShield : isPending ? PIcClock : PIcAlert;
   const statusDesc  = isApproved
-    ? 'Votre identité a été vérifiée. Les clients vous font confiance.'
+    ? t('fd.identity.verified_desc')
     : isPending
-    ? 'Votre CIN est en cours de vérification. Comptez 24–48h.'
-    : 'Soumettez votre CIN pour rassurer les clients et débloquer toutes les fonctionnalités.';
+    ? t('fd.identity.pending_desc')
+    : t('fd.identity.none_desc');
 
   const skillTags = user.skills
     ? (Array.isArray(user.skills) ? user.skills : user.skills.split(',').map(s => s.trim()).filter(Boolean))
     : [];
 
   const completionItems = [
-    { done: !!avatarSrc,                            label: 'Photo de profil'     },
-    { done: !!(title || user.title || '').trim(),   label: 'Titre professionnel' },
-    { done: !!(bio   || user.bio   || '').trim(),   label: 'Biographie'          },
-    { done: !!(portfolioUrl || user.portfolio_url), label: 'Portfolio'           },
+    { done: !!avatarSrc,                            label: t('cd.item.photo')     },
+    { done: !!(title || user.title || '').trim(),   label: t('fd.item.title') },
+    { done: !!(bio   || user.bio   || '').trim(),   label: t('cd.item.bio')          },
+    { done: !!(portfolioUrl || user.portfolio_url), label: t('fd.item.portfolio')           },
   ];
   const completion    = Math.round(completionItems.filter(i => i.done).length / completionItems.length * 100);
   const missing       = completionItems.filter(i => !i.done);
@@ -323,7 +325,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
                 <div style={{ width:6, height:6, borderRadius:'50%', background:tintP, boxShadow:`0 0 8px ${tintP}` }}/>
-                <p style={{ fontSize:10.5, fontWeight:700, color:'rgba(155,140,255,0.65)', textTransform:'uppercase', letterSpacing:'0.12em', margin:0 }}>Mon compte</p>
+                <p style={{ fontSize:10.5, fontWeight:700, color:'rgba(155,140,255,0.65)', textTransform:'uppercase', letterSpacing:'0.12em', margin:0 }}>{t('dash.my_account')}</p>
               </div>
               <h1 style={{ fontSize:30, fontWeight:900, color:PC.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
                 {greeting},{' '}
@@ -332,10 +334,10 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             </div>
             <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:7, flexShrink:0 }}>
               <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:PC.accentDim, border:'1px solid rgba(124,108,246,0.3)', color:PC.accentMid, fontSize:10.5, fontWeight:800, letterSpacing:'0.07em', textTransform:'uppercase' }}>
-                <PIcUser s={10}/> Freelancer
+                <PIcUser s={10}/> {t('dash.role.freelancer')}
               </span>
               <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:statusDim, border:`1px solid ${statusBord}`, color:statusColor, fontSize:10.5, fontWeight:700 }}>
-                <StatusIcon s={10}/> {isApproved ? 'Vérifié' : isPending ? 'En attente' : 'Non vérifié'}
+                <StatusIcon s={10}/> {isApproved ? t('dash.badge.verified') : isPending ? t('dash.badge.pending') : t('dash.badge.not_verified')}
               </span>
             </div>
           </div>
@@ -383,7 +385,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <div style={{ display:'flex', alignItems:'center', gap:7 }}>
                 <PIcSpark s={12}/>
-                <p style={{ fontSize:11.5, fontWeight:700, color: isComplete ? PC.emerald : PC.sub, margin:0 }}>{isComplete ? 'Profil complet !' : 'Compléter le profil'}</p>
+                <p style={{ fontSize:11.5, fontWeight:700, color: isComplete ? PC.emerald : PC.sub, margin:0 }}>{isComplete ? t('cd.profile_complete') : t('cd.complete_profile')}</p>
               </div>
               <span style={{ fontSize:13, fontWeight:900, color: isComplete ? PC.emerald : PC.accentMid, letterSpacing:'-0.02em' }}>{completion}%</span>
             </div>
@@ -424,21 +426,21 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
               <PIcEdit s={19}/>
             </div>
             <div style={{ flex:1 }}>
-              <p style={{ fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em', background:'linear-gradient(90deg,#f4f3fb 0%,#c4baff 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>Informations du profil</p>
-              <p style={{ fontSize:12, color:'#62668a', margin:0 }}>Visibles par les clients lors de vos candidatures</p>
+              <p style={{ fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em', background:'linear-gradient(90deg,#f4f3fb 0%,#c4baff 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{t('fd.profile_info')}</p>
+              <p style={{ fontSize:12, color:'#62668a', margin:0 }}>{t('fd.visible_clients')}</p>
             </div>
-            <span style={{ padding:'5px 13px', borderRadius:20, flexShrink:0, background:'rgba(124,108,246,0.1)', border:'1px solid rgba(124,108,246,0.22)', color:'rgba(155,140,255,0.85)', fontSize:10, fontWeight:800, letterSpacing:'0.09em', textTransform:'uppercase' }}>Éditer</span>
+            <span style={{ padding:'5px 13px', borderRadius:20, flexShrink:0, background:'rgba(124,108,246,0.1)', border:'1px solid rgba(124,108,246,0.22)', color:'rgba(155,140,255,0.85)', fontSize:10, fontWeight:800, letterSpacing:'0.09em', textTransform:'uppercase' }}>{t('cd.edit')}</span>
           </div>
 
           <div style={{ display:'flex', flexDirection:'column' }}>
 
             {/* Titre professionnel */}
             <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
-              <PFieldLabel>Titre professionnel</PFieldLabel>
+              <PFieldLabel>{t('fd.title')}</PFieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:PC.muted, pointerEvents:'none', display:'flex' }}><PIcBriefcase s={15}/></div>
                 <input type="text" value={title} onChange={e => setTitle(e.target.value)}
-                  placeholder="Ex: Full-Stack Developer, UI/UX Designer…"
+                  placeholder={t('fd.title_placeholder')}
                   style={{ ...PINP, paddingLeft:42 }}
                   onFocus={focusOn_P} onBlur={focusOff_P}/>
               </div>
@@ -447,18 +449,18 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             {/* Biographie */}
             <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                <PFieldLabel>Biographie</PFieldLabel>
+                <PFieldLabel>{t('fd.bio')}</PFieldLabel>
                 <span style={{ fontSize:11, fontWeight:600, color: bio.length > 260 ? PC.amber : PC.muted, transition:'color .2s' }}>{bio.length}/300</span>
               </div>
               <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={300} rows={4}
-                placeholder="Présentez-vous, vos compétences et votre façon de travailler…"
+                placeholder={t('fd.bio_placeholder')}
                 style={{ ...PINP, resize:'none', lineHeight:1.7 }}
                 onFocus={focusOn_P} onBlur={focusOff_P}/>
             </div>
 
             {/* Portfolio */}
             <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
-              <PFieldLabel>Lien portfolio / profil <span style={{ color:'#f87171', marginLeft:4 }}>*</span></PFieldLabel>
+              <PFieldLabel>{t('fd.portfolio_label')} <span style={{ color:'#f87171', marginLeft:4 }}>*</span></PFieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:PC.muted, pointerEvents:'none', display:'flex' }}><PIcLink s={15}/></div>
                 <input type="url" value={portfolioUrl} onChange={e => setPortfolioUrl(e.target.value)}
@@ -466,7 +468,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
                   style={{ ...PINP, paddingLeft:42, paddingRight: portfolioUrl && /^https?:\/\//.test(portfolioUrl) ? 50 : 16 }}
                   onFocus={focusOn_P} onBlur={focusOff_P}/>
                 {portfolioUrl && /^https?:\/\//.test(portfolioUrl) && (
-                  <a href={portfolioUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="Ouvrir le portfolio"
+                  <a href={portfolioUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title={t('fd.portfolio_open')}
                     style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', display:'flex', alignItems:'center', justifyContent:'center', width:28, height:28, borderRadius:8, background:'rgba(124,108,246,0.15)', border:'1px solid rgba(124,108,246,0.25)', color:'#9b8cff', textDecoration:'none', transition:'all .15s', flexShrink:0 }}
                     onMouseEnter={e => { e.currentTarget.style.background='rgba(124,108,246,0.28)'; e.currentTarget.style.color='#c4baff'; e.currentTarget.style.borderColor='rgba(124,108,246,0.45)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background='rgba(124,108,246,0.15)'; e.currentTarget.style.color='#9b8cff'; e.currentTarget.style.borderColor='rgba(124,108,246,0.25)'; }}>
@@ -474,7 +476,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
                   </a>
                 )}
               </div>
-              <p style={{ fontSize:11, color:PC.muted, marginTop:7 }}>Behance, GitHub, Notion, Drive…</p>
+              <p style={{ fontSize:11, color:PC.muted, marginTop:7 }}>{t('fd.portfolio_hint')}</p>
               {portfolioError && <p style={{ fontSize:12, color:'#f87171', marginTop:6, fontWeight:600 }}>{portfolioError}</p>}
             </div>
 
@@ -484,18 +486,18 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
                 <div style={{ display:'flex', alignItems:'center', gap:12, padding:'13px 16px', marginBottom:16, borderRadius:14, background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.3)', animation:'fdFadeIn .3s ease' }}>
                   <div style={{ width:32, height:32, borderRadius:10, background:'rgba(16,185,129,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:PC.emerald }}><PIcCheck s={15}/></div>
                   <div>
-                    <p style={{ fontSize:13, fontWeight:800, color:PC.emerald, margin:'0 0 1px' }}>Profil sauvegardé !</p>
-                    <p style={{ fontSize:11.5, color:'rgba(16,185,129,0.7)', margin:0 }}>Vos modifications sont visibles par les clients.</p>
+                    <p style={{ fontSize:13, fontWeight:800, color:PC.emerald, margin:'0 0 1px' }}>{t('cd.profile_saved')}</p>
+                    <p style={{ fontSize:11.5, color:'rgba(16,185,129,0.7)', margin:0 }}>{t('fd.changes_visible')}</p>
                   </div>
                 </div>
               )}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
-                <p style={{ fontSize:12, color:PC.muted, margin:0, lineHeight:1.6 }}>Les modifications sont appliquées immédiatement.</p>
+                <p style={{ fontSize:12, color:PC.muted, margin:0, lineHeight:1.6 }}>{t('cd.changes_immediate')}</p>
                 <button onClick={handleSave} disabled={saving} className="fd-save-btn"
                   style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:10, padding:'14px 34px', borderRadius:16, background:'linear-gradient(135deg,#7c6cf6 0%,#5e4fd4 100%)', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:14, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 rgba(255,255,255,0.16)', transition:'all .2s cubic-bezier(.4,0,.2,1)', letterSpacing:'0.01em', whiteSpace:'nowrap', position:'relative', overflow:'hidden' }}
                   onMouseEnter={e => { if (!saving) { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 16px 44px -6px rgba(124,108,246,0.78), inset 0 1px 0 rgba(255,255,255,0.2)'; } }}
                   onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 rgba(255,255,255,0.16)'; }}>
-                  {saved ? <><PIcCheck s={15}/> Sauvegardé</> : saving ? 'Enregistrement…' : <><PIcEdit s={14}/> Sauvegarder le profil</>}
+                  {saved ? <><PIcCheck s={15}/> {t('cd.saved')}</> : saving ? t('cd.saving') : <><PIcEdit s={14}/> {t('cd.save_profile')}</>}
                 </button>
               </div>
             </div>
@@ -519,6 +521,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
 // ── TAB: Dashboard ────────────────────────────────────────────────────────────
 
 function DashboardTab({ user, users, onNavigate, navigate }) {
+  const { t } = useTranslation();
   const [missions, setMissions]    = useState([]);
   const [convos, setConvos]        = useState([]);
   const [loading, setLoading]      = useState(true);
@@ -537,7 +540,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
 
   const getUser = email => (users ?? []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
   const hour     = new Date().getHours();
-  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const greeting = hour < 12 ? t('dash.greet.morning') : hour < 18 ? t('dash.greet.afternoon') : t('dash.greet.evening');
   const firstName = user.name?.split(' ')[0] || 'Freelancer';
 
   const activeMissions    = missions.filter(p => p.status === 'in_progress').length;
@@ -569,10 +572,10 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
           <div className="flex items-center gap-2">
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: 'rgba(124,108,246,0.12)', border: '1px solid rgba(124,108,246,0.25)', color: '#9b8cff' }}>
               <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Freelancer
+              {t('dash.role.freelancer')}
             </span>
             <button onClick={() => onNavigate('find-projects')} className="text-xs font-bold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm shadow-indigo-500/30">
-              Trouver des projets
+              {t('fd.find_projects')}
             </button>
           </div>
         </div>
@@ -580,21 +583,21 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={<><path d="M13 10V3L4 14h7v7l9-11h-7z"/></>}                                                                                   color="#7c6cf6" label="Missions actives"   value={activeMissions}    sub={`sur ${missions.length} total`}                  loading={loading} />
-        <StatCard icon={<><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></>}                                        color="#10b981" label="Missions terminées" value={completedMissions} sub={completedMissions > 0 ? 'Bien joué !' : 'Aucune'} loading={loading} />
-        <StatCard icon={<><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>}                                               color="#3ec2e8" label="Messages non lus"   value={unread}            sub={unread > 0 ? 'À consulter' : 'Tout lu'}           loading={loading} />
-        <StatCard icon={<><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 6v6l4 2"/></>}                                             color="#f59e0b" label="Gains totaux"       value="—"                 sub="Bientôt disponible"                               loading={false}   />
+        <StatCard icon={<><path d="M13 10V3L4 14h7v7l9-11h-7z"/></>}                                                                                   color="#7c6cf6" label={t('fd.stat.active_missions')}   value={activeMissions}    sub={t('fd.stat.of_total', { count: missions.length })}                  loading={loading} />
+        <StatCard icon={<><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></>}                                        color="#10b981" label={t('fd.stat.completed_missions')} value={completedMissions} sub={completedMissions > 0 ? t('fd.well_done') : t('fd.none_f')} loading={loading} />
+        <StatCard icon={<><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>}                                               color="#3ec2e8" label={t('fd.stat.unread_messages')}   value={unread}            sub={unread > 0 ? t('fd.to_review') : t('fd.all_read')}           loading={loading} />
+        <StatCard icon={<><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 6v6l4 2"/></>}                                             color="#f59e0b" label={t('fd.stat.total_earnings')}       value="—"                 sub={t('fd.coming_soon')}                               loading={false}   />
       </div>
 
       {/* Missions + Messages */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Missions récentes */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-          <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>} title="Missions récentes" action="Voir tout" onAction={() => onNavigate('missions')} />
+          <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>} title={t('fd.recent_missions')} action={t('fd.see_all')} onAction={() => onNavigate('missions')} />
           {loading
             ? [...Array(3)].map((_, i) => <SkeletonRow key={i} />)
             : recentMissions.length === 0
-              ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>} text="Aucune mission pour l'instant" action="Trouver des projets" onAction={() => onNavigate('find-projects')} />
+              ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>} text={t('fd.no_missions')} action={t('fd.find_projects')} onAction={() => onNavigate('find-projects')} />
               : (
                 <div className="space-y-2">
                   {recentMissions.map(p => (
@@ -607,7 +610,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
                         <p className="text-[10px] text-slate-400 mt-0.5">
-                          {p.budget ? <span className="text-emerald-600 font-semibold">{p.budget}</span> : 'Pas de budget'}
+                          {p.budget ? <span className="text-emerald-600 font-semibold">{p.budget}</span> : t('fd.no_budget')}
                           <span className="mx-1.5">·</span>
                           {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short' })}
                         </p>
@@ -622,11 +625,11 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
 
         {/* Messages récents */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-          <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>} title="Messages récents" action="Ouvrir" onAction={() => navigate('/messages')} />
+          <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>} title={t('fd.recent_messages')} action={t('fd.open')} onAction={() => navigate('/messages')} />
           {loading
             ? [...Array(3)].map((_, i) => <SkeletonRow key={i} />)
             : recentConvos.length === 0
-              ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>} text="Aucune conversation" />
+              ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>} text={t('fd.no_conversation')} />
               : (
                 <div className="space-y-1">
                   {recentConvos.map(c => {
@@ -641,7 +644,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`text-xs font-bold truncate ${isUnread ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>{other?.name || c.other_email}</p>
-                          <p className="text-[10px] text-slate-400 truncate">{c.last_message || 'Aucun message'}</p>
+                          <p className="text-[10px] text-slate-400 truncate">{c.last_message || t('fd.no_message')}</p>
                         </div>
                         {isUnread && <span className="text-[9px] font-extrabold bg-indigo-600 text-white px-1.5 py-0.5 rounded-full shrink-0">NEW</span>}
                       </button>
@@ -655,7 +658,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
 
       {/* Clients contactés */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-        <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>} title="Clients contactés" action="Explorer" onAction={() => navigate('/clients')} />
+        <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>} title={t('fd.contacted_clients')} action={t('fd.explore')} onAction={() => navigate('/clients')} />
         {loading
           ? <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">{[...Array(4)].map((_, i) => (
               <div key={i} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 animate-pulse space-y-2">
@@ -664,7 +667,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
               </div>
             ))}</div>
           : clientContacts.length === 0
-            ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>} text="Aucun client contacté" action="Parcourir les clients" onAction={() => navigate('/clients')} />
+            ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>} text={t('fd.no_client_contacted')} action={t('fd.browse_clients')} onAction={() => navigate('/clients')} />
             : (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {clientContacts.map(c => {
@@ -678,8 +681,8 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
                       <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                         {cl?.name?.split(' ')[0] || c.other_email.split('@')[0]}
                       </p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{cl?.region || 'Client'}</p>
-                      <span className="mt-2 inline-block text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">Contacter</span>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{cl?.region || t('dash.role.client')}</p>
+                      <span className="mt-2 inline-block text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">{t('fd.contact')}</span>
                     </button>
                   );
                 })}
@@ -695,13 +698,15 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
 
 const EXPERIENCE_OPTIONS_FL = ['Débutant (0-1 an)', '1-2 ans', '3-5 ans', '5-10 ans', '10+ ans'];
 const PERIOD_OPTIONS_FL     = ['De 1 à 3 jours', 'De 4 à 7 jours', 'De 1 à 2 semaines', 'De 2 à 4 semaines', 'De 1 à 3 mois', 'Plus de 3 mois'];
+const EXPERIENCE_KEY_FL     = { 'Débutant (0-1 an)': 'fd.exp.beginner', '1-2 ans': 'fd.exp.1_2', '3-5 ans': 'fd.exp.3_5', '5-10 ans': 'fd.exp.5_10', '10+ ans': 'fd.exp.10plus' };
 const STATUS_LABELS_FL      = {
-  open:        { label: 'Ouvert',   dot: '#10b981', cls: 'bg-emerald-500/10 text-emerald-400' },
-  in_progress: { label: 'En cours', dot: '#3ec2e8', cls: 'bg-sky-500/10 text-sky-400' },
-  completed:   { label: 'Terminé',  dot: '#9b8cff', cls: 'bg-slate-700 text-slate-300' },
+  open:        { key: 'fd.status.open',        dot: '#10b981', cls: 'bg-emerald-500/10 text-emerald-400' },
+  in_progress: { key: 'fd.status.in_progress', dot: '#3ec2e8', cls: 'bg-sky-500/10 text-sky-400' },
+  completed:   { key: 'fd.status.completed',   dot: '#9b8cff', cls: 'bg-slate-700 text-slate-300' },
 };
 
 function FindProjectsTab({ user, navigate }) {
+  const { t } = useTranslation();
   const [projects,    setProjects]    = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [showForm,    setShowForm]    = useState(false);

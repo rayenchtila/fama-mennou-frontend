@@ -34,7 +34,7 @@ export default function ProfilePage() {
   return (
     <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">👤 {t('Profil')}</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">👤 {t('pp.title')}</h1>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 mb-4">
           {/* Avatar */}
@@ -64,10 +64,10 @@ export default function ProfilePage() {
           {/* Info */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             {[
-              { label: t('Région'), value: user.region },
-              { label: t('Genre'), value: user.gender },
-              { label: t('Date de naissance'), value: user.dob },
-              { label: t('Statut'), value: user.cinStatus },
+              { label: t('pp.region'), value: user.region },
+              { label: t('pp.gender'), value: user.gender },
+              { label: t('pp.dob'), value: user.dob },
+              { label: t('pp.status'), value: user.cinStatus },
             ].filter(f => f.value).map(({ label, value }) => (
               <div key={label} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{label}</p>
@@ -80,7 +80,7 @@ export default function ProfilePage() {
           <div className="space-y-4">
             {user.role === 'freelancer' && (
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">{t('Skills')}</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">{t('pp.skills')}</label>
                 <input
                   type="text"
                   value={skills}
@@ -91,12 +91,12 @@ export default function ProfilePage() {
               </div>
             )}
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">{t('Bio')}</label>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">{t('pp.bio')}</label>
               <textarea
                 value={bio}
                 onChange={e => setBio(e.target.value)}
                 rows={3}
-                placeholder={t('Tell us about yourself...')}
+                placeholder={t('pp.bio_placeholder')}
                 className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -104,7 +104,7 @@ export default function ProfilePage() {
               onClick={handleSave}
               className="w-full py-2.5 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
             >
-              {saved ? '✅ ' + t('Saved!') : t('Save changes')}
+              {saved ? '✅ ' + t('pp.saved') : t('pp.save')}
             </button>
           </div>
         </div>
