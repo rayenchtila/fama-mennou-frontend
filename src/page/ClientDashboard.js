@@ -78,7 +78,7 @@ export default function ClientDashboard() {
   const tint      = getTint(user.email || '');
   const inits     = getInitials(name || user.email);
   const hour      = new Date().getHours();
-  const greeting  = hour < 12 ? t('Good morning') : hour < 18 ? t('Good afternoon') : t('Good evening');
+  const greeting  = hour < 12 ? t('dash.greet.morning') : hour < 18 ? t('dash.greet.afternoon') : t('dash.greet.evening');
   const firstName = (name || user.name || 'Client').split(' ')[0];
   const avatarSrc = photo || user.photo;
 
@@ -88,7 +88,7 @@ export default function ClientDashboard() {
   const statusColor = isApproved ? C.emerald : isPending ? C.amber : C.rose;
   const statusDim   = isApproved ? C.emeraldDim  : isPending ? C.amberDim  : C.roseDim;
   const statusBord  = isApproved ? C.emeraldBord  : isPending ? C.amberBord  : C.roseBord;
-  const statusLabel = isApproved ? t('Identity verified') : isPending ? t('Verification in progress') : t('Not verified');
+  const statusLabel = isApproved ? t('dash.identity.verified') : isPending ? t('dash.identity.verifying') : t('dash.identity.not_verified');
   const StatusIcon  = isApproved ? IcShield : isPending ? IcClock : IcAlert;
   const statusDesc  = isApproved ? t('cd.status_approved') : isPending ? t('cd.status_pending') : t('cd.status_none');
 
@@ -106,10 +106,10 @@ export default function ClientDashboard() {
 
   async function handleSave(e) {
     e.preventDefault();
-    if (!photo && !user.photo) { setSaveError('La photo de profil est obligatoire.'); return; }
-    if (!name.trim())         { setSaveError('Le nom complet est obligatoire.');      return; }
-    if (!region.trim())       { setSaveError('La région est obligatoire.');           return; }
-    if (!bio.trim())          { setSaveError('La biographie est obligatoire.');       return; }
+    if (!photo && !user.photo) { setSaveError(t('cd.err_photo')); return; }
+    if (!name.trim())         { setSaveError(t('cd.err_name'));      return; }
+    if (!region.trim())       { setSaveError(t('cd.err_region'));           return; }
+    if (!bio.trim())          { setSaveError(t('cd.err_bio'));       return; }
     setSaveError('');
     setSaving(true);
     try {
@@ -122,10 +122,10 @@ export default function ClientDashboard() {
 
   /* ── UI-only: profile completion (no effect on data/API) ── */
   const completionItems = [
-    { done: !!avatarSrc,                       label: 'Photo de profil' },
-    { done: !!(name || user.name || '').trim(), label: 'Nom complet'     },
-    { done: !!region,                           label: 'Région'           },
-    { done: !!(bio  || user.bio  || '').trim(), label: 'Biographie'       },
+    { done: !!avatarSrc,                       label: t('cd.item.photo') },
+    { done: !!(name || user.name || '').trim(), label: t('cd.item.full_name')     },
+    { done: !!region,                           label: t('cd.item.region')           },
+    { done: !!(bio  || user.bio  || '').trim(), label: t('cd.item.bio')       },
   ];
   const completion    = Math.round(completionItems.filter(i => i.done).length / completionItems.length * 100);
   const missing       = completionItems.filter(i => !i.done);
@@ -170,7 +170,7 @@ export default function ClientDashboard() {
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
                 <div style={{ width:6, height:6, borderRadius:'50%', background:tint, boxShadow:`0 0 8px ${tint}` }}/>
-                <p style={{ fontSize:10.5, fontWeight:700, color:'rgba(155,140,255,0.65)', textTransform:'uppercase', letterSpacing:'0.12em', margin:0 }}>Mon compte</p>
+                <p style={{ fontSize:10.5, fontWeight:700, color:'rgba(155,140,255,0.65)', textTransform:'uppercase', letterSpacing:'0.12em', margin:0 }}>{t('dash.my_account')}</p>
               </div>
               <h1 style={{ fontSize:30, fontWeight:900, color:C.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
                 {greeting},{' '}
@@ -181,10 +181,10 @@ export default function ClientDashboard() {
             </div>
             <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:7, flexShrink:0 }}>
               <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:C.skyDim, border:`1px solid ${C.skyBord}`, color:C.sky, fontSize:10.5, fontWeight:800, letterSpacing:'0.07em', textTransform:'uppercase' }}>
-                <IcUser s={10}/> Client
+                <IcUser s={10}/> {t('dash.role.client')}
               </span>
               <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:statusDim, border:`1px solid ${statusBord}`, color:statusColor, fontSize:10.5, fontWeight:700 }}>
-                <StatusIcon s={10}/> {isApproved ? 'Vérifié' : isPending ? 'En attente' : 'Non vérifié'}
+                <StatusIcon s={10}/> {isApproved ? t('dash.badge.verified') : isPending ? t('dash.badge.pending') : t('dash.badge.not_verified')}
               </span>
             </div>
           </div>
@@ -240,7 +240,7 @@ export default function ClientDashboard() {
                   <IcPin s={11}/> {region}
                 </span>
               ) : (
-                <span style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>Aucune région renseignée</span>
+                <span style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>{t('cd.no_region')}</span>
               )}
             </div>
           </div>
@@ -251,7 +251,7 @@ export default function ClientDashboard() {
               <div style={{ display:'flex', alignItems:'center', gap:7 }}>
                 <IcSpark s={12} style={{ color: isComplete ? C.emerald : C.accentMid }}/>
                 <p style={{ fontSize:11.5, fontWeight:700, color: isComplete ? C.emerald : C.sub, margin:0 }}>
-                  {isComplete ? 'Profil complet !' : 'Compléter le profil'}
+                  {isComplete ? t('cd.profile_complete') : t('cd.complete_profile')}
                 </p>
               </div>
               <span style={{ fontSize:13, fontWeight:900, color: isComplete ? C.emerald : C.accentMid, letterSpacing:'-0.02em' }}>
@@ -340,14 +340,14 @@ export default function ClientDashboard() {
                 fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em',
                 background:'linear-gradient(90deg,#f4f3fb 0%,#c4baff 100%)',
                 WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
-              }}>Informations du profil</p>
-              <p style={{ fontSize:12, color:'#62668a', margin:0 }}>Visibles par les freelancers lors de vos projets</p>
+              }}>{t('cd.profile_info')}</p>
+              <p style={{ fontSize:12, color:'#62668a', margin:0 }}>{t('cd.visible_clients')}</p>
             </div>
             <span style={{
               padding:'5px 13px', borderRadius:20, flexShrink:0,
               background:'rgba(124,108,246,0.1)', border:'1px solid rgba(124,108,246,0.22)',
               color:'rgba(155,140,255,0.85)', fontSize:10, fontWeight:800, letterSpacing:'0.09em', textTransform:'uppercase',
-            }}>Éditer</span>
+            }}>{t('cd.edit')}</span>
           </div>
 
           {/* ── Form — field sections ── */}
@@ -355,7 +355,7 @@ export default function ClientDashboard() {
 
             {/* Nom complet */}
             <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
-              <FieldLabel>Nom complet</FieldLabel>
+              <FieldLabel>{t('cd.full_name')}</FieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:C.muted, pointerEvents:'none', display:'flex' }}>
                   <IcUser s={15}/>
@@ -363,7 +363,7 @@ export default function ClientDashboard() {
                 <input
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="Votre nom complet…"
+                  placeholder={t('cd.full_name_placeholder')}
                   style={{ ...INP, paddingLeft:42 }}
                   onFocus={focusOn} onBlur={focusOff}
                 />
@@ -372,7 +372,7 @@ export default function ClientDashboard() {
 
             {/* Région */}
             <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
-              <FieldLabel>Région</FieldLabel>
+              <FieldLabel>{t('cd.region')}</FieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:C.muted, pointerEvents:'none', display:'flex' }}>
                   <IcPin s={15}/>
@@ -382,7 +382,7 @@ export default function ClientDashboard() {
                   onChange={e => setRegion(e.target.value)}
                   style={{ ...INP, appearance:'none', cursor:'pointer', paddingLeft:42, paddingRight:44 }}
                   onFocus={focusOn} onBlur={focusOff}>
-                  <option value="">— Sélectionner une région —</option>
+                  <option value="">{t('cd.select_region')}</option>
                   {TUNISIAN_REGIONS.map(r => <option key={r} value={r} style={{ background:C.surface }}>{r}</option>)}
                 </select>
                 <div style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:C.muted }}>
@@ -394,7 +394,7 @@ export default function ClientDashboard() {
             {/* Biographie */}
             <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                <FieldLabel>Biographie <span style={{ fontWeight:500, textTransform:'none', letterSpacing:0, opacity:0.55 }}>(optionnel)</span></FieldLabel>
+                <FieldLabel>{t('cd.bio')} <span style={{ fontWeight:500, textTransform:'none', letterSpacing:0, opacity:0.55 }}>{t('cd.optional')}</span></FieldLabel>
                 <span style={{ fontSize:11, fontWeight:600, color: bio.length > 260 ? C.amber : C.muted, transition:'color .2s' }}>{bio.length}/300</span>
               </div>
               <textarea
@@ -402,7 +402,7 @@ export default function ClientDashboard() {
                 onChange={e => setBio(e.target.value)}
                 maxLength={300}
                 rows={4}
-                placeholder="Décrivez votre activité, votre entreprise ou vos besoins en freelancing…"
+                placeholder={t('cd.bio_placeholder')}
                 style={{ ...INP, resize:'none', lineHeight:1.7 }}
                 onFocus={focusOn} onBlur={focusOff}
               />
@@ -429,15 +429,15 @@ export default function ClientDashboard() {
                     <IcCheck s={15}/>
                   </div>
                   <div>
-                    <p style={{ fontSize:13, fontWeight:800, color:C.emerald, margin:'0 0 1px' }}>Profil sauvegardé !</p>
-                    <p style={{ fontSize:11.5, color:'rgba(16,185,129,0.7)', margin:0 }}>Vos modifications sont visibles par les freelancers.</p>
+                    <p style={{ fontSize:13, fontWeight:800, color:C.emerald, margin:'0 0 1px' }}>{t('cd.profile_saved')}</p>
+                    <p style={{ fontSize:11.5, color:'rgba(16,185,129,0.7)', margin:0 }}>{t('cd.changes_visible')}</p>
                   </div>
                 </div>
               )}
 
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
                 <p style={{ fontSize:12, color:C.muted, margin:0, lineHeight:1.6 }}>
-                  Les modifications sont appliquées immédiatement.
+                  {t('cd.changes_immediate')}
                 </p>
                 <button
                   type="submit"
@@ -459,10 +459,10 @@ export default function ClientDashboard() {
                   onMouseEnter={e => { if (!saving) { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 16px 44px -6px rgba(124,108,246,0.78), inset 0 1px 0 rgba(255,255,255,0.2)'; } }}
                   onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 rgba(255,255,255,0.16)'; }}>
                   {saved
-                    ? <><IcCheck s={15}/> Sauvegardé</>
+                    ? <><IcCheck s={15}/> {t('cd.saved')}</>
                     : saving
-                    ? 'Enregistrement…'
-                    : <><IcEdit s={14}/> Sauvegarder le profil</>}
+                    ? t('cd.saving')
+                    : <><IcEdit s={14}/> {t('cd.save_profile')}</>}
                 </button>
               </div>
             </div>
