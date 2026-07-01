@@ -560,7 +560,7 @@ function TestimonialsSection() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '11px', marginTop: 'auto' }}>
               <span style={{ width: '38px', height: '38px', borderRadius: '50%', background: t.avBg, color: t.avFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', flex: 'none' }}>{t.initials}</span>
               <div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#fbfbff' }}>{t.name}</div>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#fbfbff' }}>{t.name.split(' ')[0]}</div>
                 <div style={{ fontSize: '12.5px', color: '#7e82a0' }}>{t.title}</div>
               </div>
             </div>
