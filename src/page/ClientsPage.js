@@ -280,12 +280,12 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
   const isTaken     = project.status && project.status !== 'open';
 
   return (
-    <div style={{ background:'rgba(255,255,255,0.024)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:24, padding:'26px 30px', transition:'all .28s cubic-bezier(.4,0,.2,1)' }}
+    <div className="cp-card" style={{ background:'rgba(255,255,255,0.024)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:24, padding:'26px 30px', transition:'all .28s cubic-bezier(.4,0,.2,1)' }}
       onMouseEnter={e=>{e.currentTarget.style.borderColor=C.accentBord;e.currentTarget.style.background='rgba(14,165,233,0.04)';e.currentTarget.style.boxShadow=`0 16px 48px -12px rgba(14,165,233,0.18), 0 0 0 1px ${C.accentBord}`;e.currentTarget.style.transform='translateY(-2px)';}}
       onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.024)';e.currentTarget.style.boxShadow='none';e.currentTarget.style.transform='translateY(0)';}}>
 
       {/* Top: avatar + client info + posted time */}
-      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, justifyContent:'space-between' }}>
+      <div className="cp-card-top" style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, justifyContent:'space-between' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12, minWidth:0 }}>
           {photoUrl ? (
             <img src={photoUrl} alt={displayName} onClick={() => navigate(`/profile/${encodeURIComponent(project.client_email)}`)} style={{ width:44, height:44, borderRadius:14, objectFit:'cover', flexShrink:0, border:`1.5px solid ${tintFg}30`, cursor:'pointer' }} />
@@ -380,9 +380,9 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
       <div style={{ height:1, background:'rgba(255,255,255,0.055)', marginBottom:16 }} />
 
       {/* Actions */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
+      <div className="cp-card-actions" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
         {/* Left: review */}
-        <div style={{ display:'flex', gap:8 }}>
+        <div className="cp-btn-group" style={{ display:'flex', gap:8 }}>
           {isFreelancer && !isOwn && !alreadyReviewed && (
             <button onClick={()=>onReview(project)}
               style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:`1px solid ${C.amberBord}`, color:C.amber, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
@@ -395,7 +395,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
         </div>
 
         {/* Right: Message + Apply */}
-        <div style={{ display:'flex', gap:8 }}>
+        <div className="cp-btn-group" style={{ display:'flex', gap:8 }}>
           {isFreelancer && !isOwn && (
             <button onClick={()=>navigate(`/messages?with=${encodeURIComponent(project.client_email)}`)}
               style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
@@ -573,15 +573,15 @@ export default function ClientsPage() {
           </div>
 
           {/* Stats row with separators */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
+          <div className="cp-stats-row" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
             {[
               { n: projects.filter(p=>p.status==='open').length, label:t('clp.stat_open_projects') },
               { n: totalClients, label:t('clp.stat_active_clients') },
               { n: totalRegions, label:t('Regions covered') },
               { n: Object.values(proposals).reduce((s,v)=>s+v,0), label:t('clp.stat_proposals_sent') },
             ].map((s,i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center' }}>
-                {i > 0 && <span style={{ width:1, height:36, background:'rgba(255,255,255,0.08)', margin:'0 clamp(12px,3vw,32px)' }} />}
+              <div key={i} className="cp-stat-item" style={{ display:'flex', alignItems:'center' }}>
+                {i > 0 && <span className="cp-stat-sep" style={{ width:1, height:36, background:'rgba(255,255,255,0.08)', margin:'0 clamp(12px,3vw,32px)' }} />}
                 <div style={{ textAlign:'center' }}>
                   <div style={{ fontSize:28, fontWeight:900, color:C.accent, lineHeight:1.1, letterSpacing:'-0.03em' }}>{s.n}</div>
                   <div style={{ fontSize:11, color:'#6b7280', fontWeight:600, marginTop:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{s.label}</div>
@@ -697,6 +697,18 @@ export default function ClientsPage() {
       )}
 
       <style>{`
+        @media (max-width:640px) {
+          .cp-card { padding:16px 14px !important; border-radius:16px !important; }
+          .cp-card-top { flex-wrap:wrap !important; gap:8px !important; }
+          .cp-card-actions { gap:8px !important; }
+          .cp-btn-group { flex:1 !important; }
+          .cp-btn-group button,
+          .cp-btn-group a,
+          .cp-btn-group span { flex:1 !important; width:100% !important; justify-content:center !important; }
+          .cp-stats-row { gap:6px 0 !important; }
+          .cp-stat-item { min-width:50% !important; justify-content:center !important; padding:10px 0 !important; }
+          .cp-stat-sep { display:none !important; }
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes cpPulse {
           0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(14,165,233,0.5); }
