@@ -230,7 +230,7 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
         </div>
 
         {/* Availability badge — always top-right */}
-        <div style={{ position:'absolute', top:'clamp(12px,2.5vw,22px)', right:'clamp(14px,3vw,30px)', display:'inline-flex', alignItems:'center', gap:6, fontSize:12, fontWeight:700, color:availDot, background:'rgba(10,8,23,0.55)', backdropFilter:'blur(6px)', padding:'4px 10px', borderRadius:20, border:`1px solid ${availDot}30` }}>
+        <div style={{ position:'absolute', top:'clamp(58px,9vw,72px)', right:'clamp(14px,3vw,30px)', display:'inline-flex', alignItems:'center', gap:6, fontSize:12, fontWeight:700, color:availDot, background:'rgba(10,8,23,0.55)', backdropFilter:'blur(6px)', padding:'4px 10px', borderRadius:20, border:`1px solid ${availDot}30` }}>
           <span style={{ width:7, height:7, borderRadius:'50%', background:availDot, boxShadow:`0 0 6px ${availDot}`, flexShrink:0 }} />
           {availLabel}
         </div>
