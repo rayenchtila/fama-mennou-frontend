@@ -106,11 +106,11 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
   }
 
   return (
-    <div style={{ background:'rgba(255,255,255,0.026)', border:'1px solid rgba(255,255,255,0.075)', borderRadius:24, padding:'26px 30px', transition:'all .28s cubic-bezier(.4,0,.2,1)' }}
+    <div className="fp-card" style={{ background:'rgba(255,255,255,0.026)', border:'1px solid rgba(255,255,255,0.075)', borderRadius:24, padding:'26px 30px', transition:'all .28s cubic-bezier(.4,0,.2,1)' }}
       onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(124,108,246,0.35)'; e.currentTarget.style.background='rgba(124,108,246,0.045)'; e.currentTarget.style.boxShadow='0 16px 48px -12px rgba(124,108,246,0.2), 0 0 0 1px rgba(124,108,246,0.12)'; e.currentTarget.style.transform='translateY(-2px)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.075)'; e.currentTarget.style.background='rgba(255,255,255,0.026)'; e.currentTarget.style.boxShadow='none'; e.currentTarget.style.transform='translateY(0)'; }}>
 
-      <div style={{ display:'flex', gap:20, alignItems:'stretch' }}>
+      <div className="fp-card-row" style={{ display:'flex', gap:20, alignItems:'stretch' }}>
 
         {/* Avatar — clickable → profile */}
         <div
@@ -230,9 +230,9 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
         </div>
 
         {/* Right column */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'stretch', gap:10, flexShrink:0, width:168 }}>
+        <div className="fp-card-right" style={{ display:'flex', flexDirection:'column', alignItems:'stretch', gap:10, flexShrink:0, width:168 }}>
 
-          <div style={{ display:'inline-flex', alignItems:'center', justifyContent:'flex-end', gap:6, fontSize:12.5, fontWeight:700, color:availDot }}>
+          <div className="fp-avail" style={{ display:'inline-flex', alignItems:'center', justifyContent:'flex-end', gap:6, fontSize:12.5, fontWeight:700, color:availDot }}>
             <span style={{ width:7, height:7, borderRadius:'50%', background:availDot, boxShadow:`0 0 6px ${availDot}`, flexShrink:0 }} />
             {availLabel}
           </div>
@@ -403,15 +403,15 @@ export default function FreelancersPage() {
           </div>
 
           {/* Stats row with separators */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
+          <div className="fp-stats-row" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
             {[
               { n: approved.length, label: t('Verified freelancers') },
               { n: totalRegions,    label: t('Regions covered')      },
               { n: totalReviews,    label: t('Reviews received')     },
               { n: filtered.length, label: t('Matching now')         },
             ].map((s,i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center' }}>
-                {i > 0 && <span style={{ width:1, height:36, background:'rgba(255,255,255,0.08)', margin:'0 clamp(12px,3vw,32px)' }} />}
+              <div key={i} className="fp-stat-item" style={{ display:'flex', alignItems:'center' }}>
+                {i > 0 && <span className="fp-stat-sep" style={{ width:1, height:36, background:'rgba(255,255,255,0.08)', margin:'0 clamp(12px,3vw,32px)' }} />}
                 <div style={{ textAlign:'center' }}>
                   <div style={{ fontSize:28, fontWeight:900, color:'#9b8cff', lineHeight:1.1, letterSpacing:'-0.03em' }}>{s.n}</div>
                   <div style={{ fontSize:11, color:'#62668a', fontWeight:600, marginTop:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{s.label}</div>
@@ -501,8 +501,25 @@ export default function FreelancersPage() {
         </div>
       </div>
 
-      {/* Animations */}
+      {/* Animations + Mobile */}
       <style>{`
+        @media (max-width:640px) {
+          .fp-card { padding:16px 14px !important; border-radius:16px !important; }
+          .fp-card-row { flex-wrap:wrap !important; gap:12px !important; }
+          .fp-card-right {
+            width:100% !important;
+            flex-direction:row !important;
+            flex-wrap:wrap !important;
+            align-items:center !important;
+            gap:8px !important;
+            margin-top:4px !important;
+          }
+          .fp-card-right > * { flex:1 !important; min-width:130px !important; margin-top:0 !important; }
+          .fp-avail { justify-content:flex-start !important; width:100% !important; flex:none !important; }
+          .fp-stats-row { gap:6px 0 !important; }
+          .fp-stat-item { min-width:50% !important; justify-content:center !important; padding:10px 0 !important; }
+          .fp-stat-sep { display:none !important; }
+        }
         @keyframes fpPulse {
           0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(155,140,255,0.5); }
           50%      { opacity:0.6; box-shadow:0 0 0 5px rgba(155,140,255,0); }
