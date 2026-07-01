@@ -453,7 +453,7 @@ function TrendingProjectsSection() {
             {/* Client */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ width: '34px', height: '34px', borderRadius: '9px', background: p.avBg, color: p.avFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', flex: 'none' }}>{p.initials}</span>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#c2c5dd' }}>{p.client}</span>
+              <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#c2c5dd' }}>{p.client.split(' ')[0]}</span>
               <ShieldIcon size={14} color="#9b8cff" />
             </div>
             {/* Title */}
