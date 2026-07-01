@@ -490,7 +490,7 @@ export function AuthProvider({ children }) {
   const resolveEmail = (email) => {
     if (!email) return '—';
     const acc = accounts[email.toLowerCase()];
-    return (acc?.name && acc.name.trim()) ? acc.name.trim() : email;
+    return (acc?.name && acc.name.trim()) ? acc.name.trim() : '—';
   };
 
   return (
