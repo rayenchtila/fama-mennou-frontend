@@ -951,6 +951,12 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         setCaptchaToken(null);
         return;
       }
+      if (result.error === "emailNotVerified") {
+        setErrors({ email: t("auth.email_not_verified") });
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
+        return;
+      }
 
       // Multiple accounts — show role picker
       if (result.requiresRoleSelect) {
