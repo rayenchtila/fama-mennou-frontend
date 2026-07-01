@@ -499,14 +499,14 @@ export default function CoursesPage() {
             )}
 
             {/* Stats row */}
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
+            <div className="csp-stats-row" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
               {[
                 { n: courses.length,        label: t('csp.stat_courses')     },
                 { n: CATEGORIES.length - 1, label: t('csp.stat_categories')  },
                 { n: instructors,           label: t('csp.stat_instructors')  },
               ].map((s, i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center' }}>
-                  {i > 0 && <span style={{ width:1, height:32, background:'rgba(255,255,255,0.09)', margin:'0 clamp(12px,3vw,28px)' }} />}
+                <div key={i} className="csp-stat-item" style={{ display:'flex', alignItems:'center' }}>
+                  {i > 0 && <span className="csp-stat-sep" style={{ width:1, height:32, background:'rgba(255,255,255,0.09)', margin:'0 clamp(12px,3vw,28px)' }} />}
                   <div style={{ textAlign:'center' }}>
                     <div style={{ fontSize:30, fontWeight:900, color:C.accentBr, lineHeight:1.1, letterSpacing:'-0.03em' }}>
                       {s.n}
@@ -556,7 +556,7 @@ export default function CoursesPage() {
             </div>
 
             {/* Right controls */}
-            <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:10, borderLeft:`1px solid ${C.border}`, paddingLeft:16, marginLeft:8 }}>
+            <div className="csp-filter-right" style={{ flexShrink:0, display:'flex', alignItems:'center', gap:10, borderLeft:`1px solid ${C.border}`, paddingLeft:16, marginLeft:8 }}>
 
               {/* All / Free / Paid toggle */}
               <div style={{ display:'flex', gap:3, background:'rgba(255,255,255,0.04)', borderRadius:20, padding:3 }}>
@@ -574,7 +574,7 @@ export default function CoursesPage() {
               </div>
 
               {/* Course count */}
-              <span style={{ fontSize:12, color:C.muted, whiteSpace:'nowrap', fontWeight:500 }}>
+              <span className="csp-filter-count" style={{ fontSize:12, color:C.muted, whiteSpace:'nowrap', fontWeight:500 }}>
                 <strong style={{ color:C.accentBr, fontWeight:800 }}>{courses.length}</strong>
                 {' '}{t('csp.courses_lower')}
               </span>
@@ -600,7 +600,7 @@ export default function CoursesPage() {
         </div>
 
         {/* ══ SECTION HEADER + COURSE GRID ══ */}
-        <div style={{ maxWidth:1240, margin:'0 auto', padding:'36px 24px 0' }}>
+        <div className="csp-content" style={{ maxWidth:1240, margin:'0 auto', padding:'36px 24px 0' }}>
 
           {/* Section label row */}
           {!loading && (
@@ -621,7 +621,7 @@ export default function CoursesPage() {
 
           {/* Grid */}
           {loading ? (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:24 }}>
+            <div className="csp-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:24 }}>
               {[...Array(6)].map((_,i) => <SkeletonCard key={i} />)}
             </div>
           ) : courses.length === 0 ? (
@@ -660,7 +660,7 @@ export default function CoursesPage() {
               )}
             </div>
           ) : (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:24 }}>
+            <div className="csp-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:24 }}>
               {courses.map(c => (
                 <CourseCard key={c.id} course={c} onClick={() => navigate(`/courses/${c.id}`)} />
               ))}
@@ -731,6 +731,15 @@ export default function CoursesPage() {
       )}
 
       <style>{`
+        @media (max-width:640px) {
+          .csp-stats-row { gap:6px 0 !important; }
+          .csp-stat-item { min-width:50% !important; justify-content:center !important; padding:10px 0 !important; }
+          .csp-stat-sep  { display:none !important; }
+          .csp-grid { grid-template-columns:1fr !important; gap:14px !important; }
+          .csp-content { padding:20px 14px 0 !important; }
+          .csp-filter-right { gap:6px !important; padding-left:10px !important; margin-left:4px !important; }
+          .csp-filter-count { display:none !important; }
+        }
         @keyframes cpBlob1  { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(55px,-45px) scale(1.08)} 66%{transform:translate(-35px,32px) scale(0.95)} }
         @keyframes cpBlob2  { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(-55px,42px) scale(1.06)} 70%{transform:translate(22px,-22px) scale(0.97)} }
         @keyframes cpBlob3  { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(38px,38px) scale(1.1)} }
