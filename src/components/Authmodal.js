@@ -943,6 +943,12 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         setCaptchaToken(null);
         return;
       }
+      if (result.error === "invalidCaptcha") {
+        setErrors({ captcha: t("CAPTCHA expired or invalid. Please complete it again.") });
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
+        return;
+      }
 
       // Multiple accounts — show role picker
       if (result.requiresRoleSelect) {
