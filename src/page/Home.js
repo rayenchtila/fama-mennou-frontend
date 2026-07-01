@@ -44,7 +44,7 @@ const TRENDING_PROJECTS = [
     id: 3, client: 'Baraka Foods', initials: 'BF',
     avBg: 'linear-gradient(135deg,#3ec2e8,#5b5ce0)', avFg: '#fff',
     title: 'Social media management & campaigns',
-    budget: '900 TND/mo', duration: '3 months', proposals: 5,
+    budget: '900 TND', duration: '3 months', proposals: 5,
     tags: ['Social Media', 'Ads', 'Content'],
   },
 ];
