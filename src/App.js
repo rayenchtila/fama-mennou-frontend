@@ -195,6 +195,28 @@ function AppInner() {
     setAuthForced(forced);
   };
 
+  // Handle email verification redirect (?verified=true/false)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const verified = params.get('verified');
+    if (!verified) return;
+    // Remove the query param from URL without reload
+    const clean = window.location.pathname;
+    window.history.replaceState({}, '', clean);
+    if (verified === 'true') {
+      toast.success('✅ Email verified! You can now log in.');
+      setAuthMode('login');
+      setAuthModalOpen(true);
+    } else {
+      const reason = params.get('reason');
+      const msg = reason === 'expired'
+        ? '❌ Verification link expired. Please log in to receive a new one.'
+        : '❌ Verification failed. Please try again.';
+      toast.error(msg);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleAuth = (userData) => {
     setAuthModalOpen(false);
     setAuthForced(false);
