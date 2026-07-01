@@ -237,7 +237,7 @@ function PostModal({ user, onClose, onDone }) {
             <textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} rows={3} placeholder={t('prp.description_placeholder')} style={{...MI,resize:'none'}} onFocus={onFoc} onBlur={onBlr}/>
             {errs.description && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.description}</p>}
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div className="prp-modal-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
             <div>
               <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.experience')} <span style={{color:'#f87171'}}>*</span></p>
               <select value={form.experience} onChange={e=>setForm(f=>({...f,experience:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
@@ -390,7 +390,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
       )}
 
       {/* ── Card ── */}
-      <div style={{ display:'flex', gap:14, padding:'16px 18px', borderRadius:16,
+      <div className="prp-proposal-card" style={{ display:'flex', gap:14, padding:'16px 18px', borderRadius:16,
         background: isAccepted ? 'rgba(16,185,129,0.05)' : isRejected ? 'rgba(248,113,113,0.04)' : 'rgba(255,255,255,0.03)',
         border:`1px solid ${isAccepted?'rgba(16,185,129,0.22)':isRejected?'rgba(248,113,113,0.18)':'rgba(255,255,255,0.07)'}`, transition:'all .2s' }}>
         {/* Avatar — clickable → profile */}
@@ -407,7 +407,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
         {/* Body */}
         <div style={{ flex:1, minWidth:0 }}>
           {/* Name + actions row */}
-          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, marginBottom:8 }}>
+          <div className="prp-proposal-row" style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, marginBottom:8 }}>
             <div
               onClick={() => navigate(`/profile/${encodeURIComponent(proposal.freelancer_email)}`)}
               style={{ cursor:'pointer' }}>
@@ -416,7 +416,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
                 onMouseLeave={e => e.currentTarget.style.color='#f4f3fb'}>{name}</p>
               <p style={{ fontSize:11.5, color:'#62668a', margin:0 }}>{proposal.freelancer_email}</p>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:7, flexShrink:0 }}>
+            <div className="prp-proposal-actions" style={{ display:'flex', alignItems:'center', gap:7, flexShrink:0 }}>
               {isAccepted && (
                 <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontWeight:800, color:'#10b981', background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.28)', padding:'4px 12px', borderRadius:20 }}>
                   <IcCheck s={11}/> {t('prp.accepted')}
@@ -542,7 +542,7 @@ function EditModal({ project, onClose, onDone }) {
             <textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} rows={3} style={{...MI,resize:'none'}} onFocus={onFoc} onBlur={onBlr}/>
             {errs.description && <p style={{fontSize:11,color:'#f87171',margin:'3px 0 0'}}>{errs.description}</p>}
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div className="prp-modal-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
             <div>
               <p style={{ fontSize:10, fontWeight:700, color:'#62668a', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.experience')} <span style={{color:'#f87171'}}>*</span></p>
               <select value={form.experience} onChange={e=>setForm(f=>({...f,experience:e.target.value}))} style={{...MI,cursor:'pointer',appearance:'none'}} onFocus={onFoc} onBlur={onBlr}>
@@ -609,9 +609,9 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
 
   return (
     <div style={{ borderRadius:20, background:'rgba(255,255,255,0.028)', border:`1px solid ${expanded?'rgba(124,108,246,0.3)':'rgba(255,255,255,0.07)'}`, overflow:'hidden', boxShadow:expanded?'0 8px 32px -8px rgba(124,108,246,0.18)':'none', transition:'all .22s' }}>
-      <div style={{ padding:'20px 24px' }}>
+      <div className="prp-myproject-inner" style={{ padding:'20px 24px' }}>
         {/* Top row */}
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:12 }}>
+        <div className="prp-myproject-toprow" style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:12 }}>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, flexWrap:'wrap' }}>
               <span style={{ fontSize:11, fontWeight:800, color:st.color, background:st.bg, border:`1px solid ${st.border}`, padding:'3px 11px', borderRadius:20 }}>{stLabel}</span>
@@ -624,7 +624,7 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
               </p>
             )}
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+          <div className="prp-myproject-right" style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
             {/* Edit button — one-time, hidden when locked */}
             {!isLocked && !wasEdited && (
               <button onClick={()=>onEdit(project)} title={t('prp.edit_project_once')}
@@ -730,7 +730,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved,
   const isFreelancer= user?.role==='freelancer';
 
   return (
-    <div style={{ background:'rgba(255,255,255,0.028)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'22px 24px', transition:'border-color .2s, background .2s, box-shadow .2s' }}
+    <div className="prp-browse-card" style={{ background:'rgba(255,255,255,0.028)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'22px 24px', transition:'border-color .2s, background .2s, box-shadow .2s' }}
       onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(124,108,246,0.28)';e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.boxShadow='0 8px 32px -8px rgba(124,108,246,0.12)';}}
       onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.028)';e.currentTarget.style.boxShadow='none';}}>
       {/* Top row */}
@@ -771,7 +771,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved,
         </div>
       )}
       <div style={{ height:1, background:'rgba(255,255,255,0.06)', marginBottom:16 }}/>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:10 }}>
+      <div className="prp-browse-footer" style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:10 }}>
         <button onClick={()=>onSave(project.id)}
           style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'9px 18px', borderRadius:12, background:'none', border:`1px solid ${saved?'rgba(124,108,246,0.5)':'rgba(255,255,255,0.12)'}`, color:saved?'#9b8cff':'#7e82a0', fontSize:13, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
           onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(124,108,246,0.4)';e.currentTarget.style.color='#9b8cff';}}
@@ -966,6 +966,26 @@ export default function ProjectsPage() {
       )}
 
       <style>{`
+        @media (max-width:640px) {
+          /* Proposal card — Accepted/Accept/Reject row wraps below name */
+          .prp-proposal-card { padding:12px 12px !important; }
+          .prp-proposal-row { flex-wrap:wrap !important; gap:8px !important; }
+          .prp-proposal-actions { width:100% !important; justify-content:flex-start !important; flex-wrap:wrap !important; }
+          .prp-proposal-actions > * { flex:1 !important; justify-content:center !important; }
+
+          /* My project card */
+          .prp-myproject-inner { padding:14px 14px !important; }
+          .prp-myproject-toprow { flex-wrap:wrap !important; gap:8px !important; }
+          .prp-myproject-right { flex-shrink:0 !important; }
+
+          /* Browse project card */
+          .prp-browse-card { padding:14px 14px !important; border-radius:14px !important; }
+          .prp-browse-footer { flex-wrap:wrap !important; }
+          .prp-browse-footer > * { flex:1 !important; justify-content:center !important; }
+
+          /* Modal grids 2-col → 1-col */
+          .prp-modal-grid { grid-template-columns:1fr !important; }
+        }
         @keyframes prBlob1 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(50px,-40px)scale(1.08)} }
         @keyframes prBlob2 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(-40px,30px)scale(1.06)} }
         @keyframes prPulse  { 0%,100%{opacity:.5} 50%{opacity:1} }
