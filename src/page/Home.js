@@ -521,7 +521,7 @@ function CoursesPreviewSection() {
             {/* Body */}
             <div style={{ padding: '16px 17px 18px' }}>
               <div style={{ fontWeight: 700, fontSize: '15px', color: '#fbfbff', lineHeight: 1.35, marginBottom: '7px', minHeight: '40px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{c.title}</div>
-              <div style={{ fontSize: '13px', color: '#a7abc8', marginBottom: '12px' }}>{c.instructor}</div>
+              <div style={{ fontSize: '13px', color: '#a7abc8', marginBottom: '12px' }}>{c.instructor.split(' ')[0]}</div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: '#a7abc8' }}>
                   <StarIcon size={14} /><strong style={{ color: '#fbfbff' }}>{c.rating}</strong> · {c.students}
