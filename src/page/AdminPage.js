@@ -351,7 +351,9 @@ function AllUsersTable({ allUsers, search }) {
                   <p className="font-bold text-slate-900 dark:text-white text-sm">{u.name}</p>
                   {(u.role === "freelancer" || u.role === "client") && <StatusBadge status={status} />}
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${u.role === "client" ? "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800" : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"}`}>
-                    {u.role === "client" ? "Client" : "Freelancer"}
+                    {u.role === "client"
+                      ? <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Client</span>
+                      : <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Freelancer</span>}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{u.email}</p>
@@ -1095,7 +1097,9 @@ function AdminChatPanel({ allUsers }) {
                 <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{selectedConv?.user_name || selectedEmail}</p>
                 {selectedConv?.user_role && (
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${selectedConv.user_role === 'client' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600'}`}>
-                    {selectedConv.user_role === 'client' ? 'Client' : 'Freelancer'}
+                    {selectedConv.user_role === 'client'
+                      ? <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Client</span>
+                      : <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Freelancer</span>}
                   </span>
                 )}
               </div>
@@ -1149,7 +1153,7 @@ function AdminChatPanel({ allUsers }) {
           {userProject && (
             <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
-                {userProject.title}
+                <svg width="11" height="11" className="inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>{userProject.title}
               </span>
               <input
                 type="number" min="0" step="0.01"
@@ -1159,9 +1163,9 @@ function AdminChatPanel({ allUsers }) {
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'completed',        action: 'completed',        label: t('adm.project_completed'),    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.status === 'completed' },
-                { id: 'payment_pending',  action: 'payment_pending',  label: t('adm.payment_pending'), active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => userProject.payment_status === 'en_attente' },
-                { id: 'payment_received', action: 'payment_received', label: t('adm.payment_received'),      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.payment_status === 'recu' },
+                { id: 'completed',        action: 'completed',        label: <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{t('adm.project_completed')}</span>,    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.status === 'completed' },
+                { id: 'payment_pending',  action: 'payment_pending',  label: <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{t('adm.payment_pending')}</span>, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => userProject.payment_status === 'en_attente' },
+                { id: 'payment_received', action: 'payment_received', label: <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{t('adm.payment_received')}</span>,      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.payment_status === 'recu' },
               ].map(s => {
                 const active = s.isActive();
                 return (
@@ -1192,10 +1196,10 @@ function AdminChatPanel({ allUsers }) {
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'in_progress',      action: 'in_progress',      label: t('adm.project_in_progress'),    active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400',    isActive: () => clientProject.status === 'in_progress' },
-                { id: 'completed',        action: 'completed',        label: t('adm.project_completed'),     active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.status === 'completed' },
-                { id: 'payment_pending',  action: 'payment_pending',  label: t('adm.payment_pending'), active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => clientProject.payment_status === 'en_attente' },
-                { id: 'payment_received', action: 'payment_received', label: t('adm.payment_received'),      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.payment_status === 'recu' },
+                { id: 'in_progress',      action: 'in_progress',      label: <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{t('adm.project_in_progress')}</span>,    active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400',    isActive: () => clientProject.status === 'in_progress' },
+                { id: 'completed',        action: 'completed',        label: <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{t('adm.project_completed')}</span>,     active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.status === 'completed' },
+                { id: 'payment_pending',  action: 'payment_pending',  label: <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{t('adm.payment_pending')}</span>, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => clientProject.payment_status === 'en_attente' },
+                { id: 'payment_received', action: 'payment_received', label: <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{t('adm.payment_received')}</span>,      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.payment_status === 'recu' },
               ].map(s => {
                 const active = s.isActive();
                 return (
@@ -2052,14 +2056,14 @@ export default function AdminPage() {
         {/* ── MAIN TABS GRID — always 2 per row ── */}
         {(() => {
           const TABS = [
-            { id: "cin",        label: t("admin.tab.cin"),   count: counts.pending },
-            { id: "allusers",   label: t("admin.tab.all_users"), count: (users ?? []).length },
-            { id: "courses",    label: t('Courses'),            count: courseCounts.all },
-            { id: "lessons",    label: t('fd.lessons'),           count: allLessons.filter(l => l.status === 'pending').length },
-            { id: "paidaccess", label: t('adm.tab_paid_access'),      count: paidCourses.length },
-            { id: "chat",       label: t('adm.tab_chat'),             count: chatUnreadCount },
-            { id: "projects",   label: t('adm.tab_projects'),         count: adminProjects.length },
-            { id: "gains",      label: t('nav.gains'),            count: 0 },
+            { id: "cin",        icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>, label: t("admin.tab.cin"),   count: counts.pending },
+            { id: "allusers",   icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>, label: t("admin.tab.all_users"), count: (users ?? []).length },
+            { id: "courses",    icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>, label: t('Courses'),            count: courseCounts.all },
+            { id: "lessons",    icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>, label: t('fd.lessons'),           count: allLessons.filter(l => l.status === 'pending').length },
+            { id: "paidaccess", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>, label: t('adm.tab_paid_access'),      count: paidCourses.length },
+            { id: "chat",       icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>, label: t('adm.tab_chat'),             count: chatUnreadCount },
+            { id: "projects",   icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, label: t('adm.tab_projects'),         count: adminProjects.length },
+            { id: "gains",      icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>, label: t('nav.gains'),            count: 0 },
           ];
           return (
             <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
@@ -2088,7 +2092,8 @@ export default function AdminPage() {
                           : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700",
                       ].join(" ")}
                     >
-                      <span className={`text-xs font-bold truncate ${active ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>
+                      <span className={`flex items-center gap-1.5 text-xs font-bold truncate ${active ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>
+                        {tab.icon}
                         {tab.label}
                       </span>
                       {showBadge && (
@@ -2271,16 +2276,20 @@ export default function AdminPage() {
                                 course.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
                                 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
                               }`}>
-                                {course.status === 'approved' ? t('admin.status.approved') : course.status === 'rejected' ? t('admin.status.rejected') : t('admin.status.pending')}
+                                {course.status === 'approved'
+                                  ? <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{t('admin.status.approved')}</span>
+                                  : course.status === 'rejected'
+                                  ? <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>{t('admin.status.rejected')}</span>
+                                  : <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{t('admin.status.pending')}</span>}
                               </span>
                             </div>
 
                             <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
 
                             <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">{course.category}</span>
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">{Number(course.full_price) === 0 ? t('cdp.free') : `${Number(course.full_price).toFixed(2)} TND`}</span>
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">{new Date(course.created_at).toLocaleDateString('fr-TN')}</span>
+                              <span className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>{course.category}</span>
+                              <span className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>{Number(course.full_price) === 0 ? t('cdp.free') : `${Number(course.full_price).toFixed(2)} TND`}</span>
+                              <span className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{new Date(course.created_at).toLocaleDateString('fr-TN')}</span>
                             </div>
 
                             {course.description && (
@@ -2427,15 +2436,19 @@ export default function AdminPage() {
                             : lesson.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-700'
                             : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700'
                           }`}>
-                            {lesson.status === 'approved' ? t('admin.status.approved') : lesson.status === 'rejected' ? t('admin.status.rejected') : t('admin.status.pending')}
+                            {lesson.status === 'approved'
+                              ? <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{t('admin.status.approved')}</span>
+                              : lesson.status === 'rejected'
+                              ? <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>{t('admin.status.rejected')}</span>
+                              : <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{t('admin.status.pending')}</span>}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                          <span className="font-semibold">{lesson.course_title}</span> · {t('adm.by_lower')} <span className="font-semibold">{lesson.instructor_name}</span>
+                          <span className="flex items-center gap-1"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span className="font-semibold">{lesson.course_title}</span></span> · {t('adm.by_lower')} <span className="font-semibold">{lesson.instructor_name}</span>
                         </p>
                         {lesson.admin_note && (
                           <p className={`text-[11px] mt-1 ${lesson.status === 'approved' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            {lesson.admin_note}
+                            <span className="flex items-center gap-1"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>{lesson.admin_note}</span>
                           </p>
                         )}
                         {lesson.video_url && (
@@ -2458,7 +2471,9 @@ export default function AdminPage() {
                       )}
                       {acted && (
                         <span className={`text-xs font-bold px-3 py-1.5 rounded-xl ${acted==='approved'?'bg-emerald-100 text-emerald-700':'bg-rose-100 text-rose-600'}`}>
-                          {acted==='approved'?t('admin.status.approved'):t('admin.status.rejected')}
+                          {acted==='approved'
+                            ? <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{t('admin.status.approved')}</span>
+                            : <span className="flex items-center gap-1"><svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>{t('admin.status.rejected')}</span>}
                         </span>
                       )}
                     </div>
@@ -2564,7 +2579,7 @@ export default function AdminPage() {
                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                            {t('adm.buyers_count', { count: course.total_buyers ?? 0 })}
+                            <span className="flex items-center gap-1"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>{t('adm.buyers_count', { count: course.total_buyers ?? 0 })}</span>
                             {course.buyer_names ? <span className="font-semibold text-slate-600 dark:text-slate-300"> : {course.buyer_names}</span> : ''}
                           </span>
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">{t('adm.lessons_count', { count: course.approved_lessons ?? 0 })}</span>
@@ -2780,7 +2795,7 @@ export default function AdminPage() {
                   {/* Students with access */}
                   <div>
                     <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                      {t('adm.users_with_access', { count: accessModal.students?.length ?? 0 })}
+                      <span className="flex items-center gap-1.5"><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>{t('adm.users_with_access', { count: accessModal.students?.length ?? 0 })}</span>
                     </p>
                     {(!accessModal.students || accessModal.students.length === 0) ? (
                       <div className="flex flex-col items-center justify-center py-8 text-slate-400 dark:text-slate-600">

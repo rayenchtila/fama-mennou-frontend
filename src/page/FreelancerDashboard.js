@@ -2118,7 +2118,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
       await addNotification({
         type:    'user',
         kind:    'password_changed',
-        title:   'Mot de passe modifié',
+        title:   '🔒 Mot de passe modifié',
         message: 'Votre mot de passe a été mis à jour avec succès.',
         email:   user.email,
         name:    user.name,
