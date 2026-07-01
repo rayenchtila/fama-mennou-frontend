@@ -417,9 +417,6 @@ function FeaturedFreelancersSection() {
               <div style={{ fontSize: '13px', color: '#7e82a0', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                 <ClockIcon /> {t('home.ff.responds', { time: f.responds })}
               </div>
-              <div style={{ fontSize: '14px', color: '#fbfbff' }}>
-                <strong style={{ fontWeight: 700 }}>{f.rate} TND</strong><span style={{ color: '#7e82a0', fontWeight: 500 }}>/h</span>
-              </div>
             </div>
           </motion.div>
         ))}
