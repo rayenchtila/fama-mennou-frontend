@@ -528,10 +528,10 @@ export default function CoursesPage() {
           background:'rgba(4,13,11,0.96)', backdropFilter:'blur(20px)',
           borderBottom:`1px solid ${C.border}`, borderTop:'1px solid rgba(255,255,255,0.04)',
         }}>
-          <div style={{ maxWidth:1240, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:60, gap:0 }}>
+          <div className="csp-filter-inner" style={{ maxWidth:1240, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:60, gap:0 }}>
 
             {/* Scrollable category pills */}
-            <div style={{ flex:1, display:'flex', gap:5, overflowX:'auto', scrollbarWidth:'none', minWidth:0, paddingRight:4 }}>
+            <div className="csp-filter-pills" style={{ flex:1, display:'flex', gap:5, overflowX:'auto', scrollbarWidth:'none', minWidth:0, paddingRight:4 }}>
               {CATEGORIES.map(cat => {
                 const active = category === cat;
                 return (
@@ -732,6 +732,9 @@ export default function CoursesPage() {
 
       <style>{`
         @media (max-width:640px) {
+          .csp-filter-inner { height:auto !important; flex-wrap:wrap !important; padding:8px 12px !important; gap:6px !important; }
+          .csp-filter-pills { width:100% !important; padding-right:0 !important; }
+          .csp-filter-right { border-left:none !important; padding-left:0 !important; margin-left:0 !important; width:100% !important; justify-content:space-between !important; }
           .csp-stats-row { gap:6px 0 !important; }
           .csp-stat-item { min-width:50% !important; justify-content:center !important; padding:10px 0 !important; }
           .csp-stat-sep  { display:none !important; }

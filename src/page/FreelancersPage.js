@@ -423,10 +423,10 @@ export default function FreelancersPage() {
 
         {/* ── STICKY FILTER BAR ── */}
         <div style={{ position:'sticky', top:64, zIndex:20, background:'rgba(10,8,23,0.94)', backdropFilter:'blur(18px)', borderBottom:'1px solid rgba(255,255,255,0.07)', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
-          <div style={{ maxWidth:1100, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:58, gap:0 }}>
+          <div className="fp-filter-inner" style={{ maxWidth:1100, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:58, gap:0 }}>
 
             {/* Scrollable category pills */}
-            <div style={{ flex:1, display:'flex', gap:6, overflowX:'auto', scrollbarWidth:'none', minWidth:0, paddingRight:4 }}>
+            <div className="fp-filter-pills" style={{ flex:1, display:'flex', gap:6, overflowX:'auto', scrollbarWidth:'none', minWidth:0, paddingRight:4 }}>
               {CATEGORIES.map(cat => {
                 const active = category === cat;
                 return (
@@ -445,7 +445,7 @@ export default function FreelancersPage() {
             </div>
 
             {/* Separator + count + sort */}
-            <div style={{ flexShrink:0, display:'flex', alignItems:'center', gap:14, borderLeft:'1px solid rgba(255,255,255,0.08)', paddingLeft:16, marginLeft:8 }}>
+            <div className="fp-filter-right" style={{ flexShrink:0, display:'flex', alignItems:'center', gap:14, borderLeft:'1px solid rgba(255,255,255,0.08)', paddingLeft:16, marginLeft:8 }}>
               <span style={{ fontSize:12, color:'#4a4e6e', whiteSpace:'nowrap' }}>
                 <strong style={{ color:'#9b8cff', fontWeight:700 }}>{filtered.length}</strong>
                 <span style={{ color:'#4a4e6e' }}> {t('Freelancers').toLowerCase()}</span>
@@ -503,6 +503,9 @@ export default function FreelancersPage() {
       {/* Animations + Mobile */}
       <style>{`
         @media (max-width:640px) {
+          .fp-filter-inner { height:auto !important; flex-wrap:wrap !important; padding:8px 12px !important; gap:6px !important; }
+          .fp-filter-pills { width:100% !important; padding-right:0 !important; }
+          .fp-filter-right { border-left:none !important; padding-left:0 !important; margin-left:0 !important; width:100% !important; justify-content:space-between !important; }
           .fp-card { padding:16px 14px !important; border-radius:16px !important; }
           .fp-card-row { flex-wrap:wrap !important; gap:12px !important; }
           .fp-card-right {
