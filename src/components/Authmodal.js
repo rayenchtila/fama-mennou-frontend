@@ -145,6 +145,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error,           setError]           = useState("");
   const [resetDone,       setResetDone]       = useState(false);
+  const [resetDualRole,   setResetDualRole]   = useState(false);
   const [resendDone,      setResendDone]      = useState(false);
   const [loading,         setLoading]         = useState(false);
   const [captchaToken,    setCaptchaToken]    = useState(null);
@@ -200,7 +201,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       try {
         if (delay > 0) await new Promise(r => setTimeout(r, delay));
         const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
-        if (data && data.success)                { setResetDone(true); setLoading(false); return; }
+        if (data && data.success)                { setResetDualRole(!!data.dualRole); setResetDone(true); setLoading(false); return; }
         if (data && data.error === "noAccount")  { goBackToStep1(); setError(t("No account found with this email")); setLoading(false); return; }
         if (data && data.error === "wrongCode")  { setError(t("Invalid code. Please check and try again.")); setLoading(false); return; }
         if (data && data.error === "expired")    { setError(t("Code expired. Please request a new one.")); setLoading(false); return; }
@@ -258,9 +259,9 @@ function ForgotPasswordScreen({ onBack, onSent }) {
         </svg>
       </div>
       <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("auth.pw_reset_title")}</h2>
-      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>{t("auth.pw_reset_msg")}</p>
-      <p className="text-xs mb-6" style={{ color: '#62668a' }}>{t("auth.pw_reset_hint")}</p>
-      <button onClick={() => onSent(email)}
+      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>{resetDualRole ? t("auth.pw_reset_msg_dual") : t("auth.pw_reset_msg")}</p>
+      <p className="text-xs mb-6" style={{ color: '#62668a' }}>{resetDualRole ? t("auth.pw_reset_hint_dual") : t("auth.pw_reset_hint")}</p>
+      <button onClick={() => onSent(email, resetDualRole)}
         className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
         style={{ background: '#7c6cf6' }}>
         {t("auth.sign_in_arrow")}
@@ -391,7 +392,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 }
 
 // ── Password Reset Success Screen ────────────────────────────────────────────
-function PasswordFoundScreen({ email, onBack }) {
+function PasswordFoundScreen({ email, dualRole, onBack }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center py-6 px-2 text-center">
@@ -402,9 +403,11 @@ function PasswordFoundScreen({ email, onBack }) {
       </div>
       <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("reset.success_title")}</h2>
       <p className="text-xs mb-1" style={{ color: '#a7abc8' }}>
-        {t("Account:")} <span className="font-bold" style={{ color: '#fbfbff' }}>{email}</span>
+        <span className="font-bold" style={{ color: '#fbfbff' }}>{email}</span>
       </p>
-      <p className="text-sm mt-3 mb-6 max-w-xs leading-relaxed" style={{ color: '#a7abc8' }}>{t("reset.success_msg")}</p>
+      <p className="text-sm mt-3 mb-6 max-w-xs leading-relaxed" style={{ color: '#a7abc8' }}>
+        {dualRole ? t("reset.success_msg_dual") : t("reset.success_msg")}
+      </p>
       <button onClick={onBack} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
         style={{ background: '#7c6cf6' }}>
         {t("Back to login")}
@@ -754,6 +757,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const [pendingFormData,   setPendingFormData]   = useState(null);
   const [statusUser,        setStatusUser]        = useState(null);
   const [foundEmail,        setFoundEmail]        = useState("");
+  const [foundDualRole,     setFoundDualRole]     = useState(false);
   const [pendingApproval,   setPendingApproval]   = useState(null); // { attemptId, device }
   const [pendingTOTPToken,  setPendingTOTPToken]  = useState(null); // { pendingToken }
   const [roleSelectData,    setRoleSelectData]    = useState(null); // { roles, selectionToken, email, password }
@@ -1217,8 +1221,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       {screen === "forgot" && (
         <ForgotPasswordScreen
           onBack={() => setScreen("form")}
-          onSent={(email) => {
+          onSent={(email, dualRole) => {
             setFoundEmail(email);
+            setFoundDualRole(!!dualRole);
             setScreen("passwordFound");
           }}
         />
@@ -1228,6 +1233,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       {screen === "passwordFound" && (
         <PasswordFoundScreen
           email={foundEmail}
+          dualRole={foundDualRole}
           onBack={() => setScreen("form")}
         />
       )}
