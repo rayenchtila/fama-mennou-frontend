@@ -106,7 +106,7 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
   }
 
   return (
-    <div className="fp-card" style={{ background:'rgba(255,255,255,0.026)', border:'1px solid rgba(255,255,255,0.075)', borderRadius:24, padding:'26px 30px', transition:'all .28s cubic-bezier(.4,0,.2,1)', position:'relative' }}
+    <div className="fp-card" style={{ background:'rgba(255,255,255,0.026)', border:'1px solid rgba(255,255,255,0.075)', borderRadius:24, padding:'26px 30px', transition:'all .28s cubic-bezier(.4,0,.2,1)' }}
       onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(124,108,246,0.35)'; e.currentTarget.style.background='rgba(124,108,246,0.045)'; e.currentTarget.style.boxShadow='0 16px 48px -12px rgba(124,108,246,0.2), 0 0 0 1px rgba(124,108,246,0.12)'; e.currentTarget.style.transform='translateY(-2px)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.075)'; e.currentTarget.style.background='rgba(255,255,255,0.026)'; e.currentTarget.style.boxShadow='none'; e.currentTarget.style.transform='translateY(0)'; }}>
 
@@ -229,14 +229,13 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
           )}
         </div>
 
-        {/* Availability badge — always top-right */}
-        <div style={{ position:'absolute', top:'clamp(58px,9vw,72px)', right:'clamp(14px,3vw,30px)', display:'inline-flex', alignItems:'center', gap:6, fontSize:12, fontWeight:700, color:availDot, background:'rgba(10,8,23,0.55)', backdropFilter:'blur(6px)', padding:'4px 10px', borderRadius:20, border:`1px solid ${availDot}30` }}>
-          <span style={{ width:7, height:7, borderRadius:'50%', background:availDot, boxShadow:`0 0 6px ${availDot}`, flexShrink:0 }} />
-          {availLabel}
-        </div>
-
         {/* Right column */}
         <div className="fp-card-right" style={{ display:'flex', flexDirection:'column', alignItems:'stretch', gap:10, flexShrink:0, width:168 }}>
+
+          <div className="fp-avail" style={{ display:'inline-flex', alignItems:'center', justifyContent:'flex-end', gap:6, fontSize:12.5, fontWeight:700, color:availDot }}>
+            <span style={{ width:7, height:7, borderRadius:'50%', background:availDot, boxShadow:`0 0 6px ${availDot}`, flexShrink:0 }} />
+            {availLabel}
+          </div>
 
           {isOwn ? (
             <a href="/dashboard?tab=profile"
@@ -515,6 +514,7 @@ export default function FreelancersPage() {
             margin-top:4px !important;
           }
           .fp-card-right > * { flex:1 !important; min-width:130px !important; margin-top:0 !important; }
+          .fp-avail { justify-content:flex-start !important; width:100% !important; flex:none !important; order:-1 !important; }
           .fp-stats-row { gap:6px 0 !important; }
           .fp-stat-item { min-width:50% !important; justify-content:center !important; padding:10px 0 !important; }
           .fp-stat-sep { display:none !important; }
