@@ -317,7 +317,7 @@ function ActionCardsSection() {
 // ── Step arrow SVG ────────────────────────────────────────────────────────────
 function StepArrow() {
   return (
-    <div style={{ flex: 'none', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '46px' }} aria-hidden="true">
+    <div className="hiw-arrow" style={{ flex: 'none', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '46px' }} aria-hidden="true">
       <svg width="72" height="30" viewBox="0 0 72 30" preserveAspectRatio="xMidYMid meet" fill="none" style={{ filter: 'drop-shadow(0 0 8px rgba(124,108,246,.7))', overflow: 'visible' }}>
         <path d="M4 15h50" stroke="rgba(124,108,246,.6)" strokeWidth="3" strokeLinecap="round" strokeDasharray="1 8"/>
         <path d="M52 5l13 10-13 10" stroke="rgba(124,108,246,.6)" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
@@ -342,6 +342,7 @@ function HowItWorksSection() {
         </h2>
         <p style={{ fontSize: '16px', color: '#a7abc8', margin: 0 }}>{t('home.hiw.sub')}</p>
       </div>
+      <style>{`@media(max-width:680px){.hiw-arrow{display:none!important}}`}</style>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
         {steps.map((step, i) => (
           <React.Fragment key={step.num}>
@@ -355,7 +356,7 @@ function HowItWorksSection() {
               <div style={{ fontWeight: 700, fontSize: '17px', color: '#fbfbff', marginBottom: '6px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{step.title}</div>
               <div style={{ fontSize: '14px', color: '#a7abc8', lineHeight: 1.55, maxWidth: '280px', margin: '0 auto' }}>{step.desc}</div>
             </motion.div>
-            {i < HOW_IT_WORKS.length - 1 && <StepArrow />}
+            {i < steps.length - 1 && <StepArrow />}
           </React.Fragment>
         ))}
       </div>
