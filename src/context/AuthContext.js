@@ -275,7 +275,7 @@ export function AuthProvider({ children }) {
     return id;
   }
 
-  async function login(email, password, totpCode, captchaToken) {
+  async function login(email, password, totpCode, captchaToken, role, selectionToken) {
     const deviceId = getOrCreateDeviceId();
 
     try {
@@ -283,10 +283,15 @@ export function AuthProvider({ children }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email: email.toLowerCase(), password, deviceId, totpCode, captchaToken }),
+        body: JSON.stringify({ email: email.toLowerCase(), password, deviceId, totpCode, captchaToken, role: role || undefined, selectionToken: selectionToken || undefined }),
       });
       const data = await res.json();
       if (data.error) return { error: data.error, minutesLeft: data.minutesLeft };
+
+      // Multiple accounts — user must pick a role
+      if (data.requiresRoleSelect) {
+        return { requiresRoleSelect: true, roles: data.roles, selectionToken: data.selectionToken };
+      }
 
       // 2FA required — return pendingToken for TOTP step
       if (data.requiresTOTP) {

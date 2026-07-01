@@ -748,7 +748,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     skills: "", bio: "", dob: "", region: "", gender: "",
   });
 
-  // screen: "form" | "verify" | "pending" | "status" | "forgot" | "passwordFound" | "deviceApproval" | "totp"
+  // screen: "form" | "verify" | "pending" | "status" | "forgot" | "passwordFound" | "deviceApproval" | "totp" | "roleSelect"
   const [screen,            setScreen]            = useState("form");
   const [pendingName,       setPendingName]       = useState("");
   const [pendingFormData,   setPendingFormData]   = useState(null);
@@ -756,6 +756,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const [foundEmail,        setFoundEmail]        = useState("");
   const [pendingApproval,   setPendingApproval]   = useState(null); // { attemptId, device }
   const [pendingTOTPToken,  setPendingTOTPToken]  = useState(null); // { pendingToken }
+  const [roleSelectData,    setRoleSelectData]    = useState(null); // { roles, selectionToken, email, password }
 
   // CAPTCHA
   const [captchaToken, setCaptchaToken] = useState(null);
@@ -900,9 +901,15 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         const res = await fetch(`${API}/auth/send-code`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: form.email, captchaToken }),
+          body: JSON.stringify({ email: form.email, captchaToken, role }),
         });
         const data = await res.json();
+        if (data.error === 'emailTaken') {
+          setErrors({ email: t("An account with this email already exists.") });
+          recaptchaRef.current?.reset();
+          setCaptchaToken(null);
+          return;
+        }
         if (data.error) {
           setErrors({ email: t("Failed to send verification email. Try again.") });
           return;
@@ -930,6 +937,13 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         setErrors({ password: t("Incorrect password") });
         recaptchaRef.current?.reset();
         setCaptchaToken(null);
+        return;
+      }
+
+      // Multiple accounts — show role picker
+      if (result.requiresRoleSelect) {
+        setRoleSelectData({ roles: result.roles, selectionToken: result.selectionToken, email: form.email, password: form.password });
+        setScreen("roleSelect");
         return;
       }
 
@@ -971,6 +985,47 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
   function handleKey(e) {
     if (e.key === "Enter") handleSubmit();
+  }
+
+  async function handleRoleSelect(selectedRole) {
+    if (!roleSelectData) return;
+    setLoading(true);
+    try {
+      const result = await login(roleSelectData.email, roleSelectData.password, undefined, null, selectedRole, roleSelectData.selectionToken);
+      if (result.error) {
+        setErrors({ email: t("Login failed. Please try again.") });
+        setScreen("form");
+        return;
+      }
+      if (result.requiresTOTP) {
+        setPendingTOTPToken(result.pendingToken);
+        setScreen("totp");
+        return;
+      }
+      if (result.pending) {
+        setPendingApproval({ attemptId: result.attemptId, device: result.device });
+        setScreen("deviceApproval");
+        return;
+      }
+      if (!result.user) { setErrors({ email: t("Login failed. Please try again.") }); setScreen("form"); return; }
+      if (result.user.role === "freelancer" || result.user.role === "client") {
+        if ((result.user.cinStatus === "approved" || result.user.cinStatus === "rejected") && !result.user.statusSeen) {
+          setStatusUser(result.user);
+          setScreen("status");
+          return;
+        }
+        if (result.user.cinStatus === "pending") {
+          setPendingName(result.user.name);
+          setScreen("pending");
+          logout();
+          return;
+        }
+      }
+      onAuth?.(result.user);
+      onClose?.();
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleVerifyCode(code, setCodeError) {
@@ -1056,6 +1111,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     screen === "forgot"          ? t("Reset Password 🔑") :
     screen === "passwordFound"   ? t("Password Found ✅") :
     screen === "deviceApproval"  ? t("device.modal_title") :
+    screen === "roleSelect"      ? t("Choose account") :
     mode === "login"           ? loginTitle :
     isClient ? (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
@@ -1094,6 +1150,37 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           onBack={() => setScreen("form")}
           loading={loading}
         />
+      )}
+
+      {/* ── ROLE SELECT SCREEN ── */}
+      {screen === "roleSelect" && roleSelectData && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '24px 0' }}>
+          <p style={{ color: '#a7abc8', fontSize: '14px', textAlign: 'center', marginBottom: '8px' }}>
+            {t("This email has multiple accounts. Choose which one to log into:")}
+          </p>
+          {roleSelectData.roles.map(r => (
+            <button
+              key={r}
+              disabled={loading}
+              onClick={() => handleRoleSelect(r)}
+              style={{
+                width: '100%', maxWidth: '320px', padding: '16px 24px',
+                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                color: '#fff', fontWeight: '700', fontSize: '15px',
+                border: 'none', borderRadius: '14px', cursor: 'pointer',
+                textTransform: 'capitalize', opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {r === 'freelancer' ? t("Freelancer") : t("Client")}
+            </button>
+          ))}
+          <button
+            onClick={() => setScreen("form")}
+            style={{ background: 'none', border: 'none', color: '#7c6cf6', cursor: 'pointer', fontSize: '13px', marginTop: '4px' }}
+          >
+            {t("Back")}
+          </button>
+        </div>
       )}
 
       {/* ── PENDING SCREEN ── */}
