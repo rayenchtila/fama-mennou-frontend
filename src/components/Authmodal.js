@@ -1033,6 +1033,12 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     setLoading(true);
     try {
       const result = await login(roleSelectData.email, roleSelectData.password, undefined, null, selectedRole, roleSelectData.selectionToken);
+      if (result.error === "emailNotVerified") {
+        setUnverifiedEmail(roleSelectData.email);
+        setErrors({ email: t("auth.email_not_verified") });
+        setScreen("form");
+        return;
+      }
       if (result.error) {
         setErrors({ email: t("Login failed. Please try again.") });
         setScreen("form");
