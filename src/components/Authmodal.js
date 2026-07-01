@@ -442,9 +442,9 @@ function PendingVerificationScreen({ userName, onClose }) {
       </p>
       <div className="w-full max-w-xs space-y-2 mb-7">
         {[
-          { icon: "✅", label: t("Account created"),          done: true  },
-          { icon: "🔍", label: t("Verification in progress"), done: false, active: true },
-          { icon: "📬", label: t("Admin decision"),           done: false },
+          { icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>, label: t("Account created"),          done: true  },
+          { icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>, label: t("Verification in progress"), done: false, active: true },
+          { icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.37a16 16 0 006.72 6.72l1.73-1.34a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>, label: t("Admin decision"),           done: false },
         ].map((step, i) => (
           <div key={i} className="flex items-center gap-3 p-3 rounded-xl text-sm"
             style={step.done
@@ -617,9 +617,9 @@ function DeviceApprovalScreen({ attemptId, device, onApproved, onBack }) {
         {device && (
           <div className="rounded-xl p-4 mb-5 space-y-2" style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
             {[
-              [`🌐 ${t("device.browser")}`, `${device.browser} · ${device.deviceType}`],
-              ['💻 OS', device.os],
-              [`📡 ${t("device.ip")}`, device.ip || t("device.unknown")],
+              [t("device.browser"), `${device.browser} · ${device.deviceType}`],
+              ['OS', device.os],
+              [t("device.ip"), device.ip || t("device.unknown")],
             ].map(([label, val]) => (
               <div key={label} className="flex justify-between items-center">
                 <span className="text-xs" style={{ color: '#62668a' }}>{label}</span>

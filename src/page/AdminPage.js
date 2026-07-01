@@ -230,15 +230,15 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
               {[
-                { label: t("admin.card.full_name"),     value: user.name,     icon: "👤" },
-                { label: t("admin.card.email"),         value: user.email,    icon: "📧" },
-                { label: t("admin.card.dob"),           value: user.dob,      icon: "🎂" },
-                { label: t("admin.card.gender"),        value: user.gender === "male" ? t("admin.card.male") : user.gender === "female" ? t("admin.card.female") : null, icon: "⚥" },
-                { label: t("admin.card.region"),        value: user.region,   icon: "📍" },
-                { label: t("admin.card.role"),          value: user.role,     icon: "🏷️" },
-                { label: t("admin.card.skills"),        value: user.skills,   icon: "🛠️" },
-                { label: t("admin.card.bio"),           value: user.bio,      icon: "📝" },
-                { label: t("admin.card.registered_at"), value: user.registeredAt ? new Date(user.registeredAt).toLocaleDateString("fr-TN") : null, icon: "📅" },
+                { label: t("admin.card.full_name"),     value: user.name,     icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+                { label: t("admin.card.email"),         value: user.email,    icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> },
+                { label: t("admin.card.dob"),           value: user.dob,      icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
+                { label: t("admin.card.gender"),        value: user.gender === "male" ? t("admin.card.male") : user.gender === "female" ? t("admin.card.female") : null, icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> },
+                { label: t("admin.card.region"),        value: user.region,   icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> },
+                { label: t("admin.card.role"),          value: user.role,     icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> },
+                { label: t("admin.card.skills"),        value: user.skills,   icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> },
+                { label: t("admin.card.bio"),           value: user.bio,      icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
+                { label: t("admin.card.registered_at"), value: user.registeredAt ? new Date(user.registeredAt).toLocaleDateString("fr-TN") : null, icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
               ].filter(f => f.value).map(({ label, value, icon }) => (
                 <div key={label} className="min-w-0">
                   <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">{icon} {label}</p>
@@ -351,25 +351,25 @@ function AllUsersTable({ allUsers, search }) {
                   <p className="font-bold text-slate-900 dark:text-white text-sm">{u.name}</p>
                   {(u.role === "freelancer" || u.role === "client") && <StatusBadge status={status} />}
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${u.role === "client" ? "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800" : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"}`}>
-                    {u.role === "client" ? "💼 Client" : "🚀 Freelancer"}
+                    {u.role === "client" ? "Client" : "Freelancer"}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{u.email}</p>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
                   {[
-                    { label: t("admin.table.name"),          value: u.name,    icon: "👤" },
-                    { label: t("admin.card.email"),          value: u.email,   icon: "📧" },
-                    { label: t("admin.card.role"),           value: u.role,    icon: "🏷️" },
-                    { label: t("admin.table.dob"),           value: u.dob,     icon: "🎂" },
-                    { label: t("admin.card.gender"),         value: u.gender === "male" ? t("admin.card.male") : u.gender === "female" ? t("admin.card.female") : null, icon: "⚥" },
-                    { label: t("admin.card.region"),         value: u.region,  icon: "📍" },
-                    { label: t("admin.table.skills"),        value: u.skills,  icon: "🛠️" },
-                    { label: t("admin.card.bio"),            value: u.bio,     icon: "📝" },
-                    { label: t("admin.table.registered"),    value: u.registeredAt ? new Date(u.registeredAt).toLocaleDateString("fr-TN") : null, icon: "📅" },
-                    { label: t("admin.table.cin_status"),    value: (u.role === "freelancer" || u.role === "client") ? status : null, icon: "🪪" },
-                    { label: t("admin.table.reject_reason"), value: u.cinRejectionReason ?? null, icon: "❌" },
-                    { label: t("admin.table.approve_msg"),   value: u.cinApprovalReason ?? null, icon: "✅" },
+                    { label: t("admin.table.name"),          value: u.name,    icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+                    { label: t("admin.card.email"),          value: u.email,   icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> },
+                    { label: t("admin.card.role"),           value: u.role,    icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> },
+                    { label: t("admin.table.dob"),           value: u.dob,     icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
+                    { label: t("admin.card.gender"),         value: u.gender === "male" ? t("admin.card.male") : u.gender === "female" ? t("admin.card.female") : null, icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83"/></svg> },
+                    { label: t("admin.card.region"),         value: u.region,  icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> },
+                    { label: t("admin.table.skills"),        value: u.skills,  icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> },
+                    { label: t("admin.card.bio"),            value: u.bio,     icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
+                    { label: t("admin.table.registered"),    value: u.registeredAt ? new Date(u.registeredAt).toLocaleDateString("fr-TN") : null, icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
+                    { label: t("admin.table.cin_status"),    value: (u.role === "freelancer" || u.role === "client") ? status : null, icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> },
+                    { label: t("admin.table.reject_reason"), value: u.cinRejectionReason ?? null, icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> },
+                    { label: t("admin.table.approve_msg"),   value: u.cinApprovalReason ?? null, icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> },
                   ].filter(f => f.value).map(({ label, value, icon }) => (
                     <div key={label} className="min-w-0">
                       <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">{icon} {label}</p>
@@ -451,7 +451,7 @@ function StatisticsPanel({ allUsers }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-900 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl flex items-center justify-center text-base shrink-0">🚀</div>
+              <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl flex items-center justify-center shrink-0"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#4f46e5" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
               <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">{t("Freelancers")}</p>
             </div>
             <p className="text-3xl font-extrabold text-indigo-700 dark:text-indigo-300 mb-0.5">{freelancers.length}</p>
@@ -473,7 +473,7 @@ function StatisticsPanel({ allUsers }) {
           </div>
           <div className="bg-sky-50 dark:bg-sky-900/20 rounded-2xl border border-sky-100 dark:border-sky-900 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-sky-100 dark:bg-sky-900/40 rounded-xl flex items-center justify-center text-base shrink-0">💼</div>
+              <div className="w-8 h-8 bg-sky-100 dark:bg-sky-900/40 rounded-xl flex items-center justify-center shrink-0"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#0284c7" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
               <p className="text-[11px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">{t("Clients")}</p>
             </div>
             <p className="text-3xl font-extrabold text-sky-700 dark:text-sky-300 mb-0.5">{clients.length}</p>
@@ -1030,7 +1030,7 @@ function AdminChatPanel({ allUsers }) {
             </div>
           ) : filteredConvs.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-400 p-6 text-center">
-              <span className="text-4xl mb-3">💬</span>
+              <svg className="w-10 h-10 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
               <p className="text-sm font-semibold">{search ? t('msg.no_results') : t('msg.no_convs')}</p>
               <p className="text-xs mt-1 opacity-60">{search ? t('adm.try_another_term') : t('adm.users_contact_here')}</p>
             </div>
@@ -1095,7 +1095,7 @@ function AdminChatPanel({ allUsers }) {
                 <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{selectedConv?.user_name || selectedEmail}</p>
                 {selectedConv?.user_role && (
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${selectedConv.user_role === 'client' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600'}`}>
-                    {selectedConv.user_role === 'client' ? '💼 Client' : '🚀 Freelancer'}
+                    {selectedConv.user_role === 'client' ? 'Client' : 'Freelancer'}
                   </span>
                 )}
               </div>
@@ -1149,7 +1149,7 @@ function AdminChatPanel({ allUsers }) {
           {userProject && (
             <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
-                💼 {userProject.title}
+                {userProject.title}
               </span>
               <input
                 type="number" min="0" step="0.01"
@@ -1159,9 +1159,9 @@ function AdminChatPanel({ allUsers }) {
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'completed',        action: 'completed',        label: `✅ ${t('adm.project_completed')}`,    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.status === 'completed' },
-                { id: 'payment_pending',  action: 'payment_pending',  label: `🟡 ${t('adm.payment_pending')}`, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => userProject.payment_status === 'en_attente' },
-                { id: 'payment_received', action: 'payment_received', label: `🟢 ${t('adm.payment_received')}`,      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.payment_status === 'recu' },
+                { id: 'completed',        action: 'completed',        label: t('adm.project_completed'),    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.status === 'completed' },
+                { id: 'payment_pending',  action: 'payment_pending',  label: t('adm.payment_pending'), active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => userProject.payment_status === 'en_attente' },
+                { id: 'payment_received', action: 'payment_received', label: t('adm.payment_received'),      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => userProject.payment_status === 'recu' },
               ].map(s => {
                 const active = s.isActive();
                 return (
@@ -1192,10 +1192,10 @@ function AdminChatPanel({ allUsers }) {
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'in_progress',      action: 'in_progress',      label: `🔵 ${t('adm.project_in_progress')}`,    active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400',    isActive: () => clientProject.status === 'in_progress' },
-                { id: 'completed',        action: 'completed',        label: `✅ ${t('adm.project_completed')}`,     active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.status === 'completed' },
-                { id: 'payment_pending',  action: 'payment_pending',  label: `🟡 ${t('adm.payment_pending')}`, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => clientProject.payment_status === 'en_attente' },
-                { id: 'payment_received', action: 'payment_received', label: `🟢 ${t('adm.payment_received')}`,      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.payment_status === 'recu' },
+                { id: 'in_progress',      action: 'in_progress',      label: t('adm.project_in_progress'),    active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400',    isActive: () => clientProject.status === 'in_progress' },
+                { id: 'completed',        action: 'completed',        label: t('adm.project_completed'),     active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.status === 'completed' },
+                { id: 'payment_pending',  action: 'payment_pending',  label: t('adm.payment_pending'), active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400',  isActive: () => clientProject.payment_status === 'en_attente' },
+                { id: 'payment_received', action: 'payment_received', label: t('adm.payment_received'),      active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400', isActive: () => clientProject.payment_status === 'recu' },
               ].map(s => {
                 const active = s.isActive();
                 return (
@@ -1442,8 +1442,8 @@ function AdminGainsTab({ API }) {
   const totalCommission = commissions.reduce((s, c) => s + Number(c.commission_amount || 0), 0);
 
   const TYPE_INFO = {
-    freelancer: { label: t('adm.type_freelance_project'), icon: '💼', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-    course:     { label: t('adm.type_course_sale'),   icon: '📚', color: 'text-sky-600 dark:text-sky-400',     bg: 'bg-sky-50 dark:bg-sky-900/20' },
+    freelancer: { label: t('adm.type_freelance_project'), icon: <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+    course:     { label: t('adm.type_course_sale'),   icon: <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>, color: 'text-sky-600 dark:text-sky-400',     bg: 'bg-sky-50 dark:bg-sky-900/20' },
   };
 
   return (
@@ -1456,14 +1456,14 @@ function AdminGainsTab({ API }) {
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-5 flex items-center gap-3">
-          <span className="text-2xl">💰</span>
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#059669" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/><line x1="12" y1="8" x2="12" y2="12"/><path d="M15 9.5A3.5 3.5 0 008.5 12c0 3 3.5 5 3.5 5s3.5-2 3.5-5A3.5 3.5 0 0015 9.5z"/></svg>
           <div>
             <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{Number(platform?.total_collected || 0).toFixed(2)} TND</p>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{t('adm.total_collected')}</p>
           </div>
         </div>
         <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-5 flex items-center gap-3">
-          <span className="text-2xl">🔢</span>
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
           <div>
             <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">{commissions.length}</p>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{t('fd.transactions')}</p>
@@ -1478,7 +1478,7 @@ function AdminGainsTab({ API }) {
           <div className="text-center py-8 text-sm text-slate-400">{t('fd.loading')}</div>
         ) : commissions.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-3xl mb-2">💰</p>
+            <svg width="36" height="36" className="mb-2 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
             <p className="text-sm text-slate-400">{t('adm.no_commission')}</p>
           </div>
         ) : (
@@ -2054,12 +2054,12 @@ export default function AdminPage() {
           const TABS = [
             { id: "cin",        label: t("admin.tab.cin"),   count: counts.pending },
             { id: "allusers",   label: t("admin.tab.all_users"), count: (users ?? []).length },
-            { id: "courses",    label: `📚 ${t('Courses')}`,            count: courseCounts.all },
-            { id: "lessons",    label: `📖 ${t('fd.lessons')}`,           count: allLessons.filter(l => l.status === 'pending').length },
-            { id: "paidaccess", label: `💳 ${t('adm.tab_paid_access')}`,      count: paidCourses.length },
-            { id: "chat",       label: `💬 ${t('adm.tab_chat')}`,             count: chatUnreadCount },
-            { id: "projects",   label: `📁 ${t('adm.tab_projects')}`,         count: adminProjects.length },
-            { id: "gains",      label: `💰 ${t('nav.gains')}`,            count: 0 },
+            { id: "courses",    label: t('Courses'),            count: courseCounts.all },
+            { id: "lessons",    label: t('fd.lessons'),           count: allLessons.filter(l => l.status === 'pending').length },
+            { id: "paidaccess", label: t('adm.tab_paid_access'),      count: paidCourses.length },
+            { id: "chat",       label: t('adm.tab_chat'),             count: chatUnreadCount },
+            { id: "projects",   label: t('adm.tab_projects'),         count: adminProjects.length },
+            { id: "gains",      label: t('nav.gains'),            count: 0 },
           ];
           return (
             <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
@@ -2271,16 +2271,16 @@ export default function AdminPage() {
                                 course.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
                                 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
                               }`}>
-                                {course.status === 'approved' ? `✅ ${t('admin.status.approved')}` : course.status === 'rejected' ? `❌ ${t('admin.status.rejected')}` : `⏳ ${t('admin.status.pending')}`}
+                                {course.status === 'approved' ? t('admin.status.approved') : course.status === 'rejected' ? t('admin.status.rejected') : t('admin.status.pending')}
                               </span>
                             </div>
 
                             <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
 
                             <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">📂 {course.category}</span>
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">💰 {Number(course.full_price) === 0 ? t('cdp.free') : `${Number(course.full_price).toFixed(2)} TND`}</span>
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">📅 {new Date(course.created_at).toLocaleDateString('fr-TN')}</span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">{course.category}</span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">{Number(course.full_price) === 0 ? t('cdp.free') : `${Number(course.full_price).toFixed(2)} TND`}</span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">{new Date(course.created_at).toLocaleDateString('fr-TN')}</span>
                             </div>
 
                             {course.description && (
@@ -2290,7 +2290,7 @@ export default function AdminPage() {
                             {course.admin_note && !isPending && (
                               <div className={`flex items-start gap-2 p-2.5 rounded-xl mb-3 ${course.status === 'approved' ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800'}`}>
                                 <p className={`text-xs font-semibold ${course.status === 'approved' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-                                  💬 {course.admin_note}
+                                  {course.admin_note}
                                 </p>
                               </div>
                             )}
@@ -2427,15 +2427,15 @@ export default function AdminPage() {
                             : lesson.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-700'
                             : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700'
                           }`}>
-                            {lesson.status === 'approved' ? `✅ ${t('admin.status.approved')}` : lesson.status === 'rejected' ? `❌ ${t('admin.status.rejected')}` : `⏳ ${t('admin.status.pending')}`}
+                            {lesson.status === 'approved' ? t('admin.status.approved') : lesson.status === 'rejected' ? t('admin.status.rejected') : t('admin.status.pending')}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                          📚 <span className="font-semibold">{lesson.course_title}</span> · {t('adm.by_lower')} <span className="font-semibold">{lesson.instructor_name}</span>
+                          <span className="font-semibold">{lesson.course_title}</span> · {t('adm.by_lower')} <span className="font-semibold">{lesson.instructor_name}</span>
                         </p>
                         {lesson.admin_note && (
                           <p className={`text-[11px] mt-1 ${lesson.status === 'approved' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            💬 {lesson.admin_note}
+                            {lesson.admin_note}
                           </p>
                         )}
                         {lesson.video_url && (
@@ -2458,7 +2458,7 @@ export default function AdminPage() {
                       )}
                       {acted && (
                         <span className={`text-xs font-bold px-3 py-1.5 rounded-xl ${acted==='approved'?'bg-emerald-100 text-emerald-700':'bg-rose-100 text-rose-600'}`}>
-                          {acted==='approved'?`✅ ${t('admin.status.approved')}`:`❌ ${t('admin.status.rejected')}`}
+                          {acted==='approved'?t('admin.status.approved'):t('admin.status.rejected')}
                         </span>
                       )}
                     </div>
@@ -2538,7 +2538,7 @@ export default function AdminPage() {
             <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-28 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse" />)}</div>
           ) : paidCourses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
-              <span className="text-5xl mb-3">💳</span>
+              <svg className="w-12 h-12 mb-3 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
               <p className="text-sm font-semibold">{t('adm.no_paid_courses')}</p>
             </div>
           ) : (
@@ -2548,7 +2548,7 @@ export default function AdminPage() {
                   <div className="p-4 sm:p-5">
                     <div className="flex items-start gap-3 sm:gap-4">
                       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-indigo-100 dark:bg-indigo-900/30 shrink-0 flex items-center justify-center text-2xl">
-                        {course.thumbnail_url ? <img src={cldImg(course.thumbnail_url)} alt="" className="w-full h-full object-cover" /> : '📚'}
+                        {course.thumbnail_url ? <img src={cldImg(course.thumbnail_url)} alt="" className="w-full h-full object-cover" /> : <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -2558,16 +2558,16 @@ export default function AdminPage() {
                             course.status === 'rejected' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800' :
                             'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
                           }`}>
-                            {course.status === 'approved' ? `✅ ${t('admin.status.approved')}` : course.status === 'rejected' ? `❌ ${t('admin.status.rejected')}` : `⏳ ${t('admin.status.pending')}`}
+                            {course.status === 'approved' ? t('admin.status.approved') : course.status === 'rejected' ? t('admin.status.rejected') : t('admin.status.pending')}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                            👥 {t('adm.buyers_count', { count: course.total_buyers ?? 0 })}
+                            {t('adm.buyers_count', { count: course.total_buyers ?? 0 })}
                             {course.buyer_names ? <span className="font-semibold text-slate-600 dark:text-slate-300"> : {course.buyer_names}</span> : ''}
                           </span>
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400">📖 {t('adm.lessons_count', { count: course.approved_lessons ?? 0 })}</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">{t('adm.lessons_count', { count: course.approved_lessons ?? 0 })}</span>
                         </div>
                         <button
                           onClick={() => openAccessModal(course)}
@@ -2746,7 +2746,7 @@ export default function AdminPage() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{searchSelectedUser.name || '—'}</p>
                             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{searchSelectedUser.email}</p>
-                            {searchSelectedUser.region && <p className="text-xs text-slate-400 truncate">📍 {searchSelectedUser.region}</p>}
+                            {searchSelectedUser.region && <p className="text-xs text-slate-400 truncate">{searchSelectedUser.region}</p>}
                           </div>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
                             searchSelectedUser.role === 'freelancer' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' :
@@ -2780,11 +2780,11 @@ export default function AdminPage() {
                   {/* Students with access */}
                   <div>
                     <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                      👥 {t('adm.users_with_access', { count: accessModal.students?.length ?? 0 })}
+                      {t('adm.users_with_access', { count: accessModal.students?.length ?? 0 })}
                     </p>
                     {(!accessModal.students || accessModal.students.length === 0) ? (
                       <div className="flex flex-col items-center justify-center py-8 text-slate-400 dark:text-slate-600">
-                        <span className="text-3xl mb-2">👤</span>
+                        <svg className="w-8 h-8 mb-2 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         <p className="text-xs font-semibold">{t('adm.no_buyers_yet')}</p>
                       </div>
                     ) : (
@@ -2976,11 +2976,12 @@ export default function AdminPage() {
                       n.kind.includes("approved")                  ? "bg-emerald-100 dark:bg-emerald-900/30" :
                       n.kind.includes("rejected")                  ? "bg-rose-100 dark:bg-rose-900/30" :
                       "bg-amber-100 dark:bg-amber-900/30"].join(" ")}>
-                      {n.kind.startsWith("course_access_granted") ? "🎓" :
-                       n.kind.startsWith("lesson_pending")         ? "📖" :
-                       n.kind.startsWith("course_pending")         ? "📚" :
-                       n.kind.includes("approved")                  ? "✅" :
-                       n.kind.includes("rejected")                  ? "❌" : "🔔"}
+                      {n.kind.startsWith("course_access_granted") ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg> :
+                       n.kind.startsWith("lesson_pending")         ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> :
+                       n.kind.startsWith("course_pending")         ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> :
+                       n.kind.includes("approved")                 ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> :
+                       n.kind.includes("rejected")                 ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> :
+                       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-bold mb-0.5 ${n.read ? "text-slate-700 dark:text-slate-300" : "text-slate-900 dark:text-white"}`}>{n.title}</p>

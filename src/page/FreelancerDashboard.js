@@ -23,9 +23,9 @@ const AVATAR_COLORS = [
 ];
 
 const TABS = [
-  { id: 'profile',   label: 'Profil',    icon: '👤' },
-  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-  { id: 'logout',    label: 'Log out',   icon: '🚪', danger: true },
+  { id: 'profile',   label: 'Profil',    icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+  { id: 'dashboard', label: 'Dashboard', icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
+  { id: 'logout',    label: 'Log out',   icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>, danger: true },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -2118,7 +2118,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
       await addNotification({
         type:    'user',
         kind:    'password_changed',
-        title:   '🔒 Mot de passe modifié',
+        title:   'Mot de passe modifié',
         message: 'Votre mot de passe a été mis à jour avec succès.',
         email:   user.email,
         name:    user.name,

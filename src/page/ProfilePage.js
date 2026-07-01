@@ -34,7 +34,10 @@ export default function ProfilePage() {
   return (
     <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">👤 {t('pp.title')}</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-2">
+          <svg className="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+          {t('pp.title')}
+        </h1>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 mb-4">
           {/* Avatar */}
@@ -48,7 +51,7 @@ export default function ProfilePage() {
                 </div>
               )}
               <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <span className="text-white text-xs font-bold">📷</span>
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
               </div>
             </div>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
@@ -104,7 +107,9 @@ export default function ProfilePage() {
               onClick={handleSave}
               className="w-full py-2.5 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
             >
-              {saved ? '✅ ' + t('pp.saved') : t('pp.save')}
+              {saved
+                ? <span className="flex items-center justify-center gap-1.5"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>{t('pp.saved')}</span>
+                : t('pp.save')}
             </button>
           </div>
         </div>
