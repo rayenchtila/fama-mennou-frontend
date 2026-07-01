@@ -192,7 +192,8 @@ function ForgotPasswordScreen({ onBack, onSent }) {
   async function handleReset() {
     if (!code || code.length !== 6)      { setError(t("Enter the 6-digit code"));  return; }
     if (!newPassword)                    { setError(t("Password is required"));    return; }
-    if (newPassword.length < 6)         { setError(t("At least 6 characters"));   return; }
+    if (newPassword.length < 8)          { setError(t("reset.pw_min8"));            return; }
+    if (!/[0-9!@#$%^&*()\-_=+[\]{};':",.<>/?\\|`~]/.test(newPassword)) { setError(t("reset.pw_pattern")); return; }
     if (newPassword !== confirmPassword) { setError(t("Passwords do not match")); return; }
     setLoading(true);
     setError("");
@@ -201,10 +202,11 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       try {
         if (delay > 0) await new Promise(r => setTimeout(r, delay));
         const data = await safeFetch(`${API}/auth/reset-password`, { email: email.toLowerCase(), code, newPassword });
-        if (data && data.success)                { setResetDualRole(!!data.dualRole); setResetDone(true); setLoading(false); return; }
-        if (data && data.error === "noAccount")  { goBackToStep1(); setError(t("No account found with this email")); setLoading(false); return; }
-        if (data && data.error === "wrongCode")  { setError(t("Invalid code. Please check and try again.")); setLoading(false); return; }
-        if (data && data.error === "expired")    { setError(t("Code expired. Please request a new one.")); setLoading(false); return; }
+        if (data && data.success)                        { setResetDualRole(!!data.dualRole); setResetDone(true); setLoading(false); return; }
+        if (data && data.error === "noAccount")          { goBackToStep1(); setError(t("No account found with this email")); setLoading(false); return; }
+        if (data && data.error === "wrongCode")          { setError(t("Invalid code. Please check and try again.")); setLoading(false); return; }
+        if (data && data.error === "expired")            { setError(t("Code expired. Please request a new one.")); setLoading(false); return; }
+        if (data && data.error === "validation_error")   { setError(t("reset.pw_min8")); setLoading(false); return; }
       } catch { /* keep retrying */ }
     }
     setLoading(false);
