@@ -414,7 +414,6 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
               <p style={{ fontSize:14, fontWeight:800, color:'#f4f3fb', margin:'0 0 2px', transition:'color .15s' }}
                 onMouseEnter={e => e.currentTarget.style.color='#c4baff'}
                 onMouseLeave={e => e.currentTarget.style.color='#f4f3fb'}>{name}</p>
-              <p style={{ fontSize:11.5, color:'#62668a', margin:0 }}>{proposal.freelancer_email}</p>
             </div>
             <div className="prp-proposal-actions" style={{ display:'flex', alignItems:'center', gap:7, flexShrink:0 }}>
               {isAccepted && (
