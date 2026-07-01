@@ -259,10 +259,10 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
 
           {canReview && !showReview && (
             <button onClick={() => setShowReview(true)}
-              style={{ fontSize:12, color:'#4a4e6e', background:'none', border:'none', cursor:'pointer', padding:'4px 0', fontWeight:600, textAlign:'center', transition:'color .15s' }}
-              onMouseEnter={e => { e.currentTarget.style.color='#9b8cff'; }}
-              onMouseLeave={e => { e.currentTarget.style.color='#4a4e6e'; }}>
-              <svg width={12} height={12} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:7, width:'100%', padding:'9px 16px', borderRadius:10, background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', color:'#f59e0b', fontSize:13, fontWeight:700, cursor:'pointer', transition:'all .18s' }}
+              onMouseEnter={e => { e.currentTarget.style.background='rgba(245,158,11,0.18)'; e.currentTarget.style.borderColor='rgba(245,158,11,0.55)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background='rgba(245,158,11,0.1)'; e.currentTarget.style.borderColor='rgba(245,158,11,0.3)'; }}>
+              <svg width={13} height={13} viewBox="0 0 20 20" fill="currentColor" style={{flexShrink:0}}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
               {t('Leave a review')}
             </button>
           )}
