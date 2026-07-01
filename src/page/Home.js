@@ -389,12 +389,34 @@ function FeaturedFreelancersSection() {
             style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s' }}
             onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
             onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
-            {/* Name only */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '13px' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '13px', marginBottom: '16px' }}>
               <span style={{ width: '50px', height: '50px', borderRadius: '50%', background: f.avBg, color: f.avFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', flex: 'none' }}>
                 {f.initials}
               </span>
-              <span style={{ fontWeight: 700, fontSize: '15.5px', color: '#fbfbff' }}>{f.name}</span>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '15.5px', color: '#fbfbff' }}>{f.name.split(' ')[0]}</span>
+                  <ShieldIcon size={15} color="#9b8cff" />
+                </div>
+                <div style={{ fontSize: '13px', color: '#a7abc8', marginTop: '2px' }}>{f.role}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13.5px', flex: 'none' }}>
+                <StarIcon size={14} color="#9b8cff" />
+                <span style={{ fontWeight: 700, color: '#fbfbff' }}>{f.rating}</span>
+              </div>
+            </div>
+            {/* Skills */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+              {f.skills.map(s => (
+                <span key={s} style={{ fontSize: '12px', color: '#c2c5dd', background: 'rgba(255,255,255,.06)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{s}</span>
+              ))}
+            </div>
+            {/* Footer */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
+              <div style={{ fontSize: '13px', color: '#7e82a0', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <ClockIcon /> {t('home.ff.responds', { time: f.responds })}
+              </div>
             </div>
           </motion.div>
         ))}
