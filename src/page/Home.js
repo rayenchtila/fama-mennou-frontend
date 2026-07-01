@@ -57,7 +57,7 @@ const COURSES = [
 ];
 
 const TESTIMONIALS = [
-  { quote: 'Found a developer in two days. The quality was outstanding and the whole process felt effortless. Highly recommended.', name: 'Sarra Ben Amor', title: 'Founder, NovaTech', initials: 'SB', avBg: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', avFg: '#fff' },
+  { quote: 'Found a developer in two days. The quality was outstanding and the whole process felt effortless. Highly recommended.', name: 'Sarra Ben Amor', title: 'Founder', initials: 'SB', avBg: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', avFg: '#fff' },
   { quote: 'As a freelancer, Fama Mennou keeps my pipeline full. I get 3–4 quality leads every month without any cold outreach.', name: 'Mehdi Trabelsi', title: 'Full-Stack Developer', initials: 'MT', avBg: 'linear-gradient(135deg,#a855f7,#6c8cf6)', avFg: '#fff' },
   { quote: 'The courses paid for themselves in a month. I went from junior to senior-level projects thanks to the instructors here.', name: 'Anis Mansour', title: 'Designer', initials: 'AM', avBg: 'linear-gradient(135deg,#3ec2e8,#5b5ce0)', avFg: '#fff' },
 ];
