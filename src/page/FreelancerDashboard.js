@@ -1804,7 +1804,7 @@ function CoursesTab({ user }) {
                     <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
                       {Number(createdCourse.full_price) === 0 ? 'Gratuit' : `${Number(createdCourse.full_price).toFixed(2)} TND`}
                     </span>
-                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400">⏳ En attente</span>
+                    <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>En attente</span>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 w-full pb-2">
@@ -2001,7 +2001,7 @@ function CoursesTab({ user }) {
                   <div className="flex gap-2">
                     <button type="button" onClick={() => setLForm(f => ({ ...f, is_free_preview: true, price: '0' }))}
                       className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${lForm.is_free_preview ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:border-emerald-300'}`}>
-                      🆓 Free
+                      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>Free
                     </button>
                     <button type="button" onClick={() => setLForm(f => ({ ...f, is_free_preview: false, price: f.price === '0' ? '' : f.price }))}
                       className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${!lForm.is_free_preview ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400' : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:border-indigo-300'}`}>

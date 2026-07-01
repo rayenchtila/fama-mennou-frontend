@@ -695,7 +695,11 @@ function TOTPScreen({ pendingToken, onSuccess, onBack, verifyTOTP, loginWithUser
 
   return (
     <div style={{ textAlign: "center", padding: "8px 0" }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
+      <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(124,58,237,0.35)' }}>
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+      </div>
       <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 6 }}>
         {t("Two-Factor Authentication")}
       </h3>

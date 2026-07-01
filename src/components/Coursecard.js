@@ -32,7 +32,9 @@ export default function CourseCard({ title, author, price, category, students, r
         {thumbnail ? (
           <img src={cldImg(thumbnail)} alt={title} className="w-full h-full object-cover" />
         ) : (
-          <span className="transform group-hover:scale-110 transition-transform duration-300">{img || "📚"}</span>
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)' }}>
+            <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          </div>
         )}
  
         {/* Play overlay on hover */}

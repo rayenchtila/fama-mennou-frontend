@@ -519,14 +519,14 @@ function StatisticsPanel({ allUsers }) {
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">{t("admin.gender")}</p>
             <div className="flex gap-3 mb-3">
               <div className="flex-1 bg-sky-50 dark:bg-sky-900/20 rounded-2xl border border-sky-100 dark:border-sky-900 px-3 py-2.5 flex items-center gap-2">
-                <span className="text-lg">👨</span>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#0ea5e9,#38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
                 <div>
                   <p className="text-lg font-extrabold text-sky-700 dark:text-sky-400">{males}</p>
                   <p className="text-[10px] text-sky-500 font-semibold">{t("admin.men")} · {malePct}%</p>
                 </div>
               </div>
               <div className="flex-1 bg-pink-50 dark:bg-pink-900/20 rounded-2xl border border-pink-100 dark:border-pink-900 px-3 py-2.5 flex items-center gap-2">
-                <span className="text-lg">👩</span>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#ec4899,#f472b6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
                 <div>
                   <p className="text-lg font-extrabold text-pink-600 dark:text-pink-400">{females}</p>
                   <p className="text-[10px] text-pink-500 font-semibold">{t("admin.women")} · {femalePct}%</p>
@@ -1120,7 +1120,7 @@ function AdminChatPanel({ allUsers }) {
           {userCourseReq && (
             <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
-                📚 {userCourseReq.course_title}
+                <svg width="11" height="11" className="inline mr-1" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>{userCourseReq.course_title}
               </span>
               <input
                 type="number" min="0" step="0.01"
@@ -1130,9 +1130,9 @@ function AdminChatPanel({ allUsers }) {
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'en_attente', label: `🟡 ${t('admin.pending')}`, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
-                { id: 'en_cours',   label: `🔵 ${t('fd.status.in_progress')}`,   active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
-                { id: 'termine',    label: `🟢 ${t('fd.status.completed')}`,    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+                { id: 'en_attente', label: <span className="flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="#f59e0b"><circle cx="4" cy="4" r="4"/></svg>{t('admin.pending')}</span>, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
+                { id: 'en_cours',   label: <span className="flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="#0ea5e9"><circle cx="4" cy="4" r="4"/></svg>{t('fd.status.in_progress')}</span>,   active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
+                { id: 'termine',    label: <span className="flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="#10b981"><circle cx="4" cy="4" r="4"/></svg>{t('fd.status.completed')}</span>,    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
               ].map(s => {
                 const active = userCourseReq.payment_status === s.id;
                 return (
@@ -1186,7 +1186,7 @@ function AdminChatPanel({ allUsers }) {
           {clientProject && (
             <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
-                📁 {clientProject.title}
+                <svg width="11" height="11" className="inline mr-1" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>{clientProject.title}
               </span>
               <input
                 type="number" min="0" step="0.01"
@@ -1220,7 +1220,9 @@ function AdminChatPanel({ allUsers }) {
           <div ref={messagesBoxRef} className="flex-1 overflow-y-auto px-4 py-4 bg-slate-50 dark:bg-slate-950">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                <span className="text-4xl mb-2">👋</span>
+                <div style={{ width: 64, height: 64, borderRadius: 20, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, boxShadow: '0 8px 24px rgba(124,58,237,0.25)' }}>
+                  <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                </div>
                 <p className="text-sm font-semibold">{t('msg.start_chat')}</p>
                 <p className="text-xs mt-1 opacity-60">{t('adm.reply_as', { team: ADMIN_TEAM_NAME })}</p>
               </div>
@@ -2235,7 +2237,9 @@ export default function AdminPage() {
               <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-28 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse" />)}</div>
             ) : coursesByFilter.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
-                <span className="text-5xl mb-3">📚</span>
+                <div style={{ width: 72, height: 72, borderRadius: 22, background: 'linear-gradient(135deg,#6366f1,#818cf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, opacity: 0.5 }}>
+                  <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                </div>
                 <p className="text-sm font-semibold">{t('adm.no_courses_category')}</p>
               </div>
             ) : (
@@ -2372,7 +2376,7 @@ export default function AdminPage() {
                                     <div className="flex-1 min-w-0">
                                       <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{lesson.title}</p>
                                       <div className="flex items-center gap-3 mt-0.5">
-                                        {lesson.duration_min > 0 && <span className="text-[10px] text-slate-400">⏱ {lesson.duration_min} min</span>}
+                                        {lesson.duration_min > 0 && <span className="flex items-center gap-1 text-[10px] text-slate-400"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#f59e0b" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{lesson.duration_min} min</span>}
                                         {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{t('fd.free_preview')}</span>}
                                         {Number(lesson.price) > 0 && <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">{Number(lesson.price).toFixed(2)} TND</span>}
                                       </div>
@@ -2418,7 +2422,9 @@ export default function AdminPage() {
 
           {allLessons.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-              <p className="text-4xl mb-3">📖</p>
+              <div style={{ width: 72, height: 72, borderRadius: 22, background: 'linear-gradient(135deg,#6366f1,#818cf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, opacity: 0.45 }}>
+                <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+              </div>
               <p className="text-sm font-semibold">{t('adm.no_lessons_submitted')}</p>
             </div>
           ) : (
@@ -2611,7 +2617,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl flex items-center justify-center text-xl shrink-0">
-                  {accessModal.course?.thumbnail_url ? <img src={cldImg(accessModal.course.thumbnail_url)} alt="" className="w-full h-full object-cover rounded-xl" /> : '📚'}
+                  {accessModal.course?.thumbnail_url ? <img src={cldImg(accessModal.course.thumbnail_url)} alt="" className="w-full h-full object-cover rounded-xl" /> : <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>}
                 </div>
                 <div>
                   <p className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{accessModal.course?.title}</p>
@@ -2644,7 +2650,7 @@ export default function AdminPage() {
                   {watchLesson && (
                     <div className="bg-slate-950 rounded-2xl overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-                        <p className="text-xs font-bold text-white truncate">▶ {watchLesson.lesson_title || watchLesson.title}</p>
+                        <p className="text-xs font-bold text-white truncate flex items-center gap-1.5"><svg width="12" height="12" fill="#a78bfa" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>{watchLesson.lesson_title || watchLesson.title}</p>
                         <button onClick={() => setWatchLesson(null)} className="text-slate-400 hover:text-white text-xs font-semibold ml-3 shrink-0">{t('adm.close')}</button>
                       </div>
                       <div className="p-3">
@@ -2657,7 +2663,7 @@ export default function AdminPage() {
                   {accessModal.lessons?.length > 0 && (
                     <div>
                       <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                        📖 {t('adm.lessons_count', { count: accessModal.lessons.length })}
+                        <span className="flex items-center gap-1.5"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>{t('adm.lessons_count', { count: accessModal.lessons.length })}</span>
                       </p>
                       <div className="space-y-2">
                         {accessModal.lessons.map((lesson, idx) => (

@@ -86,7 +86,9 @@ export default function TwoFASetup({ onDone }) {
   return (
     <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 16, padding: 24 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-        <span style={{ fontSize: 22 }}>🔐</span>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
         <div>
           <div style={{ fontWeight: 700, color: text, fontSize: 16 }}>{t("twofa.title")}</div>
           <div style={{ fontSize: 13, color: sub }}>
