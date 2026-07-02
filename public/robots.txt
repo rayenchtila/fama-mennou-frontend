@@ -1,3 +1,9 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /messages
+Disallow: /payments
+Disallow: /settings
+Disallow: /profile
+
+Sitemap: https://famamennou.tn/sitemap.xml
