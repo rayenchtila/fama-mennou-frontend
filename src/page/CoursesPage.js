@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import CreateCourseModal from '../components/CreateCourseModal';
 import { cldImg } from '../utils/cloudinary';
+import SEOHead from '../components/Seohead';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -403,6 +404,12 @@ export default function CoursesPage() {
 
   return (
     <div style={{ minHeight:'100vh', background:C.bg, fontFamily:"'Plus Jakarta Sans','Inter',sans-serif", paddingBottom:80, position:'relative' }}>
+      <SEOHead
+        title="Cours en ligne en Tunisie"
+        url="/courses"
+        description="Apprenez de nouvelles compétences avec les meilleurs formateurs tunisiens. Cours de développement, design, marketing et plus sur FamaMennou."
+        keywords="cours en ligne tunisie, formation freelance, apprendre développement, cours design, cours marketing tunisie, e-learning tunisie"
+      />
 
       {/* ══ ANIMATED BACKGROUND BLOBS ══ */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { uploadVideo, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
+import SEOHead, { CourseJsonLd } from '../components/Seohead';
 
 const API    = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 const IS_DEV = process.env.REACT_APP_DEV_MODE === 'true';
@@ -322,6 +323,15 @@ export default function CourseDetailPage() {
   /* ── render ── */
   return(
     <div style={{minHeight:'100vh',background:C.bg,color:C.text,position:'relative',overflowX:'hidden'}}>
+      <SEOHead
+        title={course.title}
+        url={`/courses/${id}`}
+        description={course.description ? course.description.slice(0, 155) : `${course.title} — Cours en ligne sur FamaMennou par ${course.creator_name || 'un formateur expert'}.`}
+        image={course.cover_url || undefined}
+        type="article"
+        keywords={`${course.title}, cours en ligne, formation, ${course.category || 'tunisie'}, FamaMennou`}
+      />
+      <CourseJsonLd course={{ ...course, id }} />
       <style>{GS}</style>
 
       {/* blobs */}

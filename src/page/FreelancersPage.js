@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import ChatDrawer from '../components/ChatDrawer';
 import { cldImg } from '../utils/cloudinary';
+import SEOHead from '../components/Seohead';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p[p.length - 1] || name; };
@@ -355,6 +356,12 @@ export default function FreelancersPage() {
 
   return (
     <div style={{ minHeight:'100vh', background:'#0a0817', position:'relative', paddingBottom:80 }}>
+      <SEOHead
+        title="Freelancers en Tunisie"
+        url="/freelancers"
+        description="Trouvez les meilleurs freelancers tunisiens : développeurs, designers, marketeurs et plus. Contactez directement les talents vérifiés sur FamaMennou."
+        keywords="freelancer tunisie, développeur freelance, designer freelance, trouver freelancer, talent tunisien, mission freelance"
+      />
 
       {/* ══ ANIMATED BACKGROUND BLOBS ══ */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>

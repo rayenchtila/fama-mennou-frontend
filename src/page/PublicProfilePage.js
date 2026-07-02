@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { cldImg } from '../utils/cloudinary';
+import SEOHead, { PersonJsonLd } from '../components/Seohead';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -181,8 +182,21 @@ export default function PublicProfilePage() {
   const roleDim    = profile.role === 'freelancer' ? C.accentDim : C.skyDim;
   const roleBord   = profile.role === 'freelancer' ? C.accentBord : C.skyBord;
 
+  const seoDesc = profile.bio
+    ? profile.bio.slice(0, 155)
+    : `${profile.name || email} — ${roleLabel} sur FamaMennou${skills.length ? `. Compétences : ${skills.slice(0,4).join(', ')}` : ''}.`;
+
   return (
     <div style={{ minHeight:'100vh', background:C.bg, fontFamily:"'Plus Jakarta Sans','Inter',sans-serif", paddingBottom:80 }}>
+      <SEOHead
+        title={`${profile.name || email} — ${roleLabel}`}
+        url={`/profile/${encodeURIComponent(email)}`}
+        description={seoDesc}
+        image={profile.avatar_url || undefined}
+        type="profile"
+        keywords={`${profile.name || ''}, freelancer tunisie, ${skills.slice(0,3).join(', ')}, profil freelance`}
+      />
+      <PersonJsonLd user={{ name: profile.name || email, email, role: profile.role, bio: profile.bio, avatar: profile.avatar_url }} />
 
       {/* ── Background blobs ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { cldImg } from '../utils/cloudinary';
+import SEOHead from '../components/Seohead';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -522,6 +523,12 @@ export default function ClientsPage() {
 
   return (
     <div style={{ minHeight:'100vh', background:'#070b14', fontFamily:"'Plus Jakarta Sans', 'Inter', sans-serif", paddingBottom:80, position:'relative' }}>
+      <SEOHead
+        title="Clients & Projets en Tunisie"
+        url="/clients"
+        description="Découvrez les meilleurs clients tunisiens qui recrutent des freelancers. Parcourez les projets disponibles et soumettez vos propositions sur FamaMennou."
+        keywords="clients freelance tunisie, projets freelance, offres de mission, recrutement freelancer, appel d'offres tunisie"
+      />
 
       {/* ══ ANIMATED BACKGROUND BLOBS ══ */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import SEOHead, { OrganizationJsonLd, WebSiteJsonLd } from '../components/Seohead';
 
 const FEATURED_FREELANCERS = [
   {
@@ -673,6 +674,13 @@ export default function Home() {
 
   return (
     <div style={{ background: 'radial-gradient(960px 540px at 14% -6%,rgba(124,108,246,.22),transparent 60%),radial-gradient(860px 540px at 96% -2%,rgba(58,140,224,.16),transparent 60%),linear-gradient(180deg,#100d28 0%,#0a0817 58%)', minHeight: '100vh', fontFamily: "'Plus Jakarta Sans',-apple-system,sans-serif", color: '#f4f3fb', WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
+      <SEOHead
+        url="/"
+        description="FamaMennou — La plateforme tunisienne de freelance. Trouvez des freelancers, publiez vos projets et suivez des formations en ligne."
+        keywords="freelance tunisie, trouver freelancer, cours en ligne tunisie, projets freelance, développeur tunisie, designer tunisie, formation en ligne"
+      />
+      <OrganizationJsonLd />
+      <WebSiteJsonLd />
       <HeroSection />
       <ActionCardsSection />
       <HowItWorksSection />

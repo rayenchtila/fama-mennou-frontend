@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { cldImg } from '../utils/cloudinary';
+import SEOHead from '../components/Seohead';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -871,6 +872,12 @@ export default function ProjectsPage() {
 
   return (
     <div style={{ minHeight:'100vh', background:'#070b14', paddingBottom:80, fontFamily:"'Plus Jakarta Sans','Inter',sans-serif" }}>
+      <SEOHead
+        title="Projets Freelance"
+        url="/projects"
+        description="Parcourez tous les projets freelance disponibles sur FamaMennou. Développement, design, marketing, e-commerce et plus — trouvez votre prochaine mission."
+        keywords="projets freelance tunisie, missions freelance, offres freelance, projets développement, projets design, missions marketing tunisie"
+      />
 
       {/* Blobs */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>

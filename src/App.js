@@ -29,6 +29,7 @@ import { useTranslation } from "react-i18next";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { HelmetProvider } from "react-helmet-async";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -363,15 +364,17 @@ function AppInner() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <GoogleOAuthProvider clientId="315427253338-10dlpebi8btbc6b0is4vncq2n72796cq.apps.googleusercontent.com">
-        <Router>
-          <AuthProvider>
-            <AppInner />
-          </AuthProvider>
-        </Router>
-      </GoogleOAuthProvider>
-    </ThemeProvider>
+    <HelmetProvider>
+      <ThemeProvider>
+        <GoogleOAuthProvider clientId="315427253338-10dlpebi8btbc6b0is4vncq2n72796cq.apps.googleusercontent.com">
+          <Router>
+            <AuthProvider>
+              <AppInner />
+            </AuthProvider>
+          </Router>
+        </GoogleOAuthProvider>
+      </ThemeProvider>
+    </HelmetProvider>
   );
 }
 
