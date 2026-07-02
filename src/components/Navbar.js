@@ -406,7 +406,7 @@ export default function Navbar({ onLogin }) {
           {/* Logo */}
           <Link
             to="/"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             style={{ display: "flex", alignItems: "center", gap: 9, background: "none", border: "none", cursor: "pointer", padding: 0, flex: "none", textDecoration: "none" }}
           >
             <LogoMark style={{ height: 38, width: "auto", display: "block", flexShrink: 0, animation: "glowFloat 4s ease-in-out infinite" }} />
@@ -702,7 +702,7 @@ export default function Navbar({ onLogin }) {
             >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3.5 shrink-0" style={{ borderBottom: `1px solid ${bg.mobileBd}` }}>
-                <Link to="/" onClick={() => { setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} style={{ display: "flex", alignItems: "center", gap: 7, textDecoration: "none" }}>
+                <Link to="/" onClick={() => { setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ display: "flex", alignItems: "center", gap: 7, textDecoration: "none" }}>
                   <LogoMark style={{ height: 30, width: "auto", display: "block", flexShrink: 0 }} />
                   <span style={{ fontWeight: 700, fontSize: 15, color: bg.text1 }}>
                     Fama<span style={{ color: "#9b8cff" }}>&nbsp;Mennou</span>
