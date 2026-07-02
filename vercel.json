@@ -1,0 +1,22 @@
+{
+  "rewrites": [
+    {
+      "source": "/sitemap-dynamic.xml",
+      "destination": "https://famamennou-server.onrender.com/api/sitemap-dynamic"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sitemap.xml",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
+    },
+    {
+      "source": "/sitemap-dynamic.xml",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    }
+  ]
+}

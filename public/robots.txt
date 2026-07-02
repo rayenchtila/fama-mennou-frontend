@@ -7,3 +7,4 @@ Disallow: /settings
 Disallow: /profile
 
 Sitemap: https://famamennou.tn/sitemap.xml
+Sitemap: https://famamennou.tn/sitemap-dynamic.xml

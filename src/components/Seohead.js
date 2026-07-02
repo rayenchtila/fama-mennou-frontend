@@ -150,6 +150,60 @@ export function PersonJsonLd({ user }) {
   );
 }
 
+export function LocalBusinessJsonLd() {
+  return (
+    <Helmet>
+      <script type="application/ld+json">{JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": ["Organization", "OnlineBusiness"],
+        "name": "FamaMennou",
+        "alternateName": "Fama Mennou",
+        "url": SITE_URL,
+        "logo": { "@type": "ImageObject", "url": SITE_IMAGE },
+        "image": SITE_IMAGE,
+        "description": "Plateforme tunisienne de freelance, cours en ligne et gestion de projets. Connectez freelancers, clients et formateurs en Tunisie.",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "TN",
+          "addressLocality": "Tunis",
+          "addressRegion": "Tunis",
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 36.8065,
+          "longitude": 10.1815,
+        },
+        "areaServed": { "@type": "Country", "name": "Tunisia" },
+        "foundingLocation": { "@type": "Place", "name": "Tunis, Tunisia" },
+        "priceRange": "Gratuit",
+        "currenciesAccepted": "TND",
+        "inLanguage": ["fr", "ar"],
+        "serviceType": ["Freelance Marketplace", "Online Learning Platform", "Project Management"],
+        "audience": {
+          "@type": "Audience",
+          "geographicArea": { "@type": "Country", "name": "Tunisia" },
+        },
+      })}</script>
+    </Helmet>
+  );
+}
+
+export function FAQJsonLd({ faqs }) {
+  return (
+    <Helmet>
+      <script type="application/ld+json">{JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": faqs.map(f => ({
+          "@type": "Question",
+          "name": f.question,
+          "acceptedAnswer": { "@type": "Answer", "text": f.answer },
+        })),
+      })}</script>
+    </Helmet>
+  );
+}
+
 export function BreadcrumbJsonLd({ items }) {
   return (
     <Helmet>

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import SEOHead, { OrganizationJsonLd, WebSiteJsonLd } from '../components/Seohead';
+import SEOHead, { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd, FAQJsonLd } from '../components/Seohead';
 
 const FEATURED_FREELANCERS = [
   {
@@ -681,6 +681,14 @@ export default function Home() {
       />
       <OrganizationJsonLd />
       <WebSiteJsonLd />
+      <LocalBusinessJsonLd />
+      <FAQJsonLd faqs={[
+        { question: "Qu'est-ce que FamaMennou ?", answer: "FamaMennou est l'écosystème freelance tout-en-un de Tunisie. Embauchez des talents vérifiés, remportez des contrats ou développez vos compétences — tout en un seul endroit." },
+        { question: "Comment les freelancers sont-ils vérifiés ?", answer: "Chaque freelancer passe par une vérification d'identité via sa carte d'identité nationale. Notre équipe examine chaque profil pour garantir qualité et fiabilité." },
+        { question: "L'inscription est-elle gratuite ?", answer: "Oui, l'inscription est entièrement gratuite. Une petite commission s'applique uniquement lorsqu'un projet est complété avec succès." },
+        { question: "Comment embaucher un freelancer ?", answer: "Parcourez la marketplace, filtrez par compétence ou région, et cliquez sur Embaucher ou envoyez un message directement à un freelancer vérifié." },
+        { question: "Que faire si je ne suis pas satisfait du travail ?", answer: "Nous avons un processus structuré de résolution des litiges. Notre équipe de support sert de médiateur pour parvenir à un résultat équitable pour les deux parties." },
+      ]} />
       <HeroSection />
       <ActionCardsSection />
       <HowItWorksSection />
