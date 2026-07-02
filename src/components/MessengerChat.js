@@ -307,22 +307,11 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     } catch {}
   }, [senderEmail, selectedChat]);
 
-  // Typing indicator now arrives via realtime broadcast (see useRealtimeChannel below);
-  // this poll is just a fallback in case the socket misses an event.
+  // Typing state is driven entirely by Socket.io events (useRealtimeChannel above).
+  // Reset when switching conversations so a stale "typing" badge doesn't persist.
   useEffect(() => {
-    if (!selectedChat) { setOtherTyping(false); return; }
-    const poll = async () => {
-      try {
-        const d = await fetch(
-          `${API}/messages/is-typing?from=${encodeURIComponent(selectedChat)}&to=${encodeURIComponent(senderEmail)}`
-        ).then(r => r.json());
-        setOtherTyping(!!d.typing);
-      } catch {}
-    };
-    poll();
-    typingPollRef.current = setInterval(poll, 15000);
-    return () => clearInterval(typingPollRef.current);
-  }, [selectedChat, senderEmail]);
+    if (!selectedChat) setOtherTyping(false);
+  }, [selectedChat]);
 
   function handleInputChange(e) {
     setNewMsg(e.target.value);

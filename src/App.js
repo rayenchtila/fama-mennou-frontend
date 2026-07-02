@@ -1,5 +1,5 @@
 // App.jsx
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -115,6 +115,7 @@ function AppInner() {
   const { i18n } = useTranslation();
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isAdminDashboard = location.pathname === "/admin/dashboard";
   const isUserDashboard  = location.pathname === "/dashboard" || location.pathname === "/messages";
@@ -221,6 +222,9 @@ function AppInner() {
     setAuthModalOpen(false);
     setAuthForced(false);
     toast.success(`Welcome, ${userData.name}! 🎉`);
+    if (userData.isAdmin) {
+      navigate('/admin/dashboard', { replace: true });
+    }
   };
 
   // FIXED: eslint unused var issue (kept logic unchanged)

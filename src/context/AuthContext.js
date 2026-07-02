@@ -82,18 +82,6 @@ export function AuthProvider({ children }) {
 
   // ── Load users and notifications from backend on mount ──
   const fetchAccounts = useCallback(async () => {
-    // Phase 1 — fast lite fetch for instant count (separate try so Phase 2 always runs)
-    try {
-      const liteRes = await fetch(`${API}/users/lite`);
-      const liteRows = await liteRes.json();
-      if (Array.isArray(liteRows) && liteRows.length > 0) {
-        const liteMap = {};
-        liteRows.forEach(r => { if (r?.email) liteMap[r.email.toLowerCase()] = normalizeUser(r); });
-        setAccounts(liteMap);
-        localStorage.setItem("fm_accounts", JSON.stringify(liteMap));
-      }
-    } catch {}
-    // Phase 2 — full fetch with CIN images (always runs)
     try {
       const res = await fetch(`${API}/users`);
       const rows = await res.json();
@@ -129,9 +117,9 @@ export function AuthProvider({ children }) {
     fetchNotifications();
   }, [fetchAccounts, fetchNotifications]);
 
-  // Poll notifications every 30s as a background refresh
+  // Poll notifications every 5 min as a background fallback (Socket.io is the primary path)
   useEffect(() => {
-    const id = setInterval(fetchNotifications, 30000);
+    const id = setInterval(fetchNotifications, 5 * 60 * 1000);
     return () => clearInterval(id);
   }, [fetchNotifications]);
 
