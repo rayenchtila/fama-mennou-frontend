@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -669,7 +669,7 @@ export default function Home() {
   const { user } = useAuth();
 
   if (user?.isAdmin) {
-    return <div style={{ minHeight: '100vh', background: '#0a0817' }} />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return (
