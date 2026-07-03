@@ -310,7 +310,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     : `linear-gradient(90deg,${PC.accent},${PC.accentMid},#a78bfa)`;
 
   return (
-    <div style={{ maxWidth:780, margin:'0 auto', paddingTop:'clamp(20px,4vw,32px)', paddingBottom:80, paddingLeft:'clamp(16px,3vw,24px)', paddingRight:'clamp(16px,3vw,24px)' }}>
+    <div style={{ maxWidth:780, margin:'0 auto', paddingTop:8, paddingBottom:80, paddingLeft:'clamp(16px,3vw,24px)', paddingRight:'clamp(16px,3vw,24px)' }}>
 
       {/* ── Animated background blobs ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
