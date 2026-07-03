@@ -1622,7 +1622,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             {isFreelancer && (
               <>
                 <Input
-                  label={t("Your skills")} placeholder="e.g. React, Figma, SEO"
+                  label={t("Your skills")} placeholder={t("e.g. React, Figma, SEO")}
                   value={form.skills} onChange={set("skills")} error={errors.skills} required
                 />
                 <div>
