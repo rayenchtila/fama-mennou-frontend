@@ -316,7 +316,7 @@ i18n
           "Retournez la carte et photographiez": "Turn the card over and photograph",
           "Les deux photos sont prêtes. L'admin vérifiera votre CIN après soumission.": "Both photos are ready. The admin will verify your CIN after submission.",
           "Your Skills": "Your Skills",
-          "e.g. React, Figma, SEO": "e.g. Development, Marketing, Design...",
+          "e.g. React, Figma, SEO": "Dev, Marketing, Design...",
           "Short Bio": "Short Bio",
           "Tell clients about yourself...": "Tell clients about yourself...",
           // Home — hero
@@ -1829,7 +1829,7 @@ i18n
           "Retournez la carte et photographiez": "Retournez la carte et photographiez",
           "Les deux photos sont prêtes. L'admin vérifiera votre CIN après soumission.": "Les deux photos sont prêtes. L'admin vérifiera votre CIN après soumission.",
           "Your Skills": "Vos compétences",
-          "e.g. React, Figma, SEO": "ex. Développement, Marketing, Design...",
+          "e.g. React, Figma, SEO": "Dev, Marketing, Design...",
           "Short Bio": "Courte biographie",
           "Tell clients about yourself...": "Parlez de vous aux clients...",
           // Home — hero
@@ -3249,7 +3249,7 @@ i18n
           "Retournez la carte et photographiez": "اقلب البطاقة والتقط صورتها",
           "Les deux photos sont prêtes. L'admin vérifiera votre CIN après soumission.": "كلتا الصورتان جاهزتان. سيتحقق المشرف من بطاقتك بعد الإرسال.",
           "Your Skills": "مهاراتك",
-          "e.g. React, Figma, SEO": "مثال: تطوير، تسويق، تصميم...",
+          "e.g. React, Figma, SEO": "تطوير، تسويق، تصميم...",
           "Short Bio": "نبذة قصيرة",
           "Tell clients about yourself...": "أخبر العملاء عن نفسك...",
           // Home — hero
