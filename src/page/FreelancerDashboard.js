@@ -209,12 +209,14 @@ const PIcBriefcase = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="
 
 function ProfileTab({ user, updateUser, fetchAccounts }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [photo,        setPhoto]        = useState(user.photo || '');
   const [bio,          setBio]          = useState(user.bio || '');
   const [title,        setTitle]        = useState(user.title || '');
   const [portfolioUrl, setPortfolioUrl] = useState(user.portfolio_url || '');
   const [saving,       setSaving]       = useState(false);
   const [saved,        setSaved]        = useState(false);
+  const [profileLive,  setProfileLive]  = useState(false);
   const [portfolioError, setPortfolioError] = useState('');
   const photoRef = useRef();
 
@@ -229,6 +231,8 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     if (!portfolioUrl.trim()) { setPortfolioError(t('fd.err_portfolio')); return; }
     try { const u = new URL(portfolioUrl.trim()); if (!['http:','https:'].includes(u.protocol)) throw new Error(); }
     catch { setPortfolioError(t('fd.err_portfolio_url')); return; }
+    const hasSkills = user.skills && (Array.isArray(user.skills) ? user.skills.length > 0 : String(user.skills).trim().length > 0);
+    if (!hasSkills) { setPortfolioError('Ajoutez d\'abord vos compétences dans l\'onglet Dashboard → Compétences'); return; }
     setPortfolioError('');
     setSaving(true);
     try {
@@ -243,7 +247,8 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
         }),
       }).catch(() => {});
       setSaved(true);
-      setTimeout(() => { setSaved(false); window.location.reload(); }, 2000);
+      setProfileLive(true);
+      setTimeout(() => navigate('/freelancers'), 5000);
     } catch {}
     setSaving(false);
   }
@@ -294,7 +299,8 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     { done: !!avatarSrc,                            label: t('cd.item.photo')     },
     { done: !!(title || user.title || '').trim(),   label: t('fd.item.title') },
     { done: !!(bio   || user.bio   || '').trim(),   label: t('cd.item.bio')          },
-    { done: !!(portfolioUrl || user.portfolio_url), label: t('fd.item.portfolio')           },
+    { done: !!(portfolioUrl || user.portfolio_url), label: t('fd.item.portfolio')    },
+    { done: !!(user.skills && (Array.isArray(user.skills) ? user.skills.length > 0 : String(user.skills).trim().length > 0)), label: t('fd.skills') || 'Compétences' },
   ];
   const completion    = Math.round(completionItems.filter(i => i.done).length / completionItems.length * 100);
   const missing       = completionItems.filter(i => !i.done);
@@ -482,7 +488,20 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
 
             {/* Footer */}
             <div style={{ padding:'20px 30px', background:'rgba(0,0,0,0.22)', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
-              {saved && (
+              {saved && profileLive && (
+                <button onClick={() => navigate('/freelancers')}
+                  style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'13px 16px', marginBottom:16, borderRadius:14, background:'linear-gradient(135deg,rgba(124,108,246,0.15),rgba(16,185,129,0.1))', border:'1px solid rgba(124,108,246,0.4)', cursor:'pointer', textAlign:'left', animation:'fdFadeIn .3s ease' }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,#7c6cf6,#10b981)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <p style={{ fontSize:13, fontWeight:800, color:'#b5aaff', margin:'0 0 2px' }}>🎉 Votre profil est en ligne sur Hire Freelancers !</p>
+                    <p style={{ fontSize:11.5, color:'rgba(16,185,129,0.8)', margin:0 }}>Cliquez ici pour voir votre profil → redirection automatique dans 5s</p>
+                  </div>
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+              )}
+              {saved && !profileLive && (
                 <div style={{ display:'flex', alignItems:'center', gap:12, padding:'13px 16px', marginBottom:16, borderRadius:14, background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.3)', animation:'fdFadeIn .3s ease' }}>
                   <div style={{ width:32, height:32, borderRadius:10, background:'rgba(16,185,129,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:PC.emerald }}><PIcCheck s={15}/></div>
                   <div>
