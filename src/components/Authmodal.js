@@ -43,14 +43,19 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
   const { t } = useTranslation();
   const cameraRef  = useRef();
   const galleryRef = useRef();
+  const [showPicker, setShowPicker] = useState(false);
+
   return (
-    <div className="flex-1">
+    <div className="flex-1" style={{ position: 'relative' }}>
       <p className="text-xs font-semibold mb-1.5" style={{ color: '#a7abc8' }}>{label}</p>
 
-      {/* Preview */}
+      {/* Same original box design */}
       <div
-        className="relative w-full h-24 rounded-xl overflow-hidden mb-2 flex items-center justify-center"
-        style={{ background: 'rgba(255,255,255,0.04)', border: preview ? '1.5px solid rgba(52,211,153,.5)' : '1.5px dashed rgba(255,255,255,.08)' }}
+        onClick={() => setShowPicker(v => !v)}
+        className="relative w-full h-28 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 overflow-hidden flex flex-col items-center justify-center gap-1"
+        style={preview ? { borderColor: 'rgba(52,211,153,.6)' } : { borderColor: showPicker ? 'rgba(124,108,246,.5)' : 'rgba(255,255,255,.1)' }}
+        onMouseEnter={e => { if (!preview) e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+        onMouseLeave={e => { if (!preview && !showPicker) e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; }}
       >
         {preview ? (
           <>
@@ -60,48 +65,61 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
             </div>
           </>
         ) : (
-          <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2} style={{ color: 'rgba(155,140,255,.2)' }}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>
+          <>
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'rgba(255,255,255,.2)' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span className="text-[11px] text-center px-2" style={{ color: '#62668a' }}>{hint}</span>
+          </>
         )}
       </div>
 
-      {/* Two buttons: Camera + Gallery */}
-      <div className="flex gap-1.5">
-        <button type="button" onClick={() => cameraRef.current.click()}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all"
-          style={{ background: 'rgba(124,108,246,0.12)', border: '1px solid rgba(124,108,246,0.25)', color: '#9b8cff', fontSize: 11, fontWeight: 700 }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,108,246,0.22)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(124,108,246,0.12)'}
-        >
-          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
-            <circle cx="12" cy="13" r="4"/>
-          </svg>
-          {t("Camera")}
-        </button>
-        <button type="button" onClick={() => galleryRef.current.click()}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all"
-          style={{ background: 'rgba(62,194,232,0.10)', border: '1px solid rgba(62,194,232,0.22)', color: '#3ec2e8', fontSize: 11, fontWeight: 700 }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(62,194,232,0.20)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(62,194,232,0.10)'}
-        >
-          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <path d="M21 15l-5-5L5 21"/>
-          </svg>
-          {t("Gallery")}
-        </button>
-      </div>
+      {/* Popup with 2 options */}
+      {showPicker && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
+          <div className="absolute left-0 right-0 z-50 rounded-xl overflow-hidden"
+            style={{ top: 'calc(100% + 6px)', background: '#1a1730', border: '1px solid rgba(124,108,246,0.3)', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
+            <button type="button"
+              onClick={() => { setShowPicker(false); cameraRef.current.click(); }}
+              className="w-full flex items-center gap-3 px-4 py-3 transition-all"
+              style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#f4f3fb', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,108,246,0.12)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(124,108,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </span>
+              {t("Take a photo")}
+            </button>
+            <button type="button"
+              onClick={() => { setShowPicker(false); galleryRef.current.click(); }}
+              className="w-full flex items-center gap-3 px-4 py-3 transition-all"
+              style={{ background: 'transparent', border: 'none', color: '#f4f3fb', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(62,194,232,0.10)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(62,194,232,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#3ec2e8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <path d="M21 15l-5-5L5 21"/>
+                </svg>
+              </span>
+              {t("Choose from Gallery")}
+            </button>
+          </div>
+        </>
+      )}
 
-      {/* Camera input — forces real-time camera */}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
-        onChange={e => e.target.files[0] && onFile(e.target.files[0])} />
-      {/* Gallery input — opens photo library */}
+        onChange={e => { if (e.target.files[0]) onFile(e.target.files[0]); }} />
       <input ref={galleryRef} type="file" accept="image/*" className="hidden"
-        onChange={e => e.target.files[0] && onFile(e.target.files[0])} />
+        onChange={e => { if (e.target.files[0]) onFile(e.target.files[0]); }} />
     </div>
   );
 }
