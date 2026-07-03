@@ -2140,7 +2140,7 @@ export default function AdminPage() {
                 <button key={f.id} onClick={() => setFilter(f.id)} className={["px-4 py-1.5 text-xs font-bold rounded-xl transition-all duration-200 flex items-center gap-1.5", filter === f.id ? "bg-indigo-600 text-white shadow" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"].join(" ")}>
                   {f.label}
                   {counts[f.id] > 0 && (
-                    <span className={`text-[10px] font-extrabold rounded-full px-1.5 py-0.5 leading-none ${filter === f.id ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>{counts[f.id]}</span>
+                    <span style={{ fontSize:10, fontWeight:800, borderRadius:99, padding:'2px 7px', lineHeight:1, background:'#ef4444', color:'#fff', boxShadow:'0 0 6px rgba(239,68,68,0.5)' }}>{counts[f.id]}</span>
                   )}
                 </button>
               ))}
