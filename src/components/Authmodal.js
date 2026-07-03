@@ -1428,7 +1428,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
               <div className="grid grid-cols-2 gap-3 auth-grid-2">
                 <Input
                   label={t("Date of birth")} type="date"
-                  placeholder={t("Your date of birth")}
+                  hint={t("ex: 01/01/2000")}
                   value={form.dob} onChange={set("dob")} error={errors.dob} required
                 />
                 <div>
