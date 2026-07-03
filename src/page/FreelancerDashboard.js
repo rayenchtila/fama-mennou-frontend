@@ -214,6 +214,11 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   const [bio,          setBio]          = useState(user.bio || '');
   const [title,        setTitle]        = useState(user.title || '');
   const [portfolioUrl, setPortfolioUrl] = useState(user.portfolio_url || '');
+  const [skillsInput,  setSkillsInput]  = useState(() => {
+    const s = user.skills;
+    if (!s) return '';
+    return Array.isArray(s) ? s.join(', ') : s;
+  });
   const [saving,       setSaving]       = useState(false);
   const [saved,        setSaved]        = useState(false);
   const [profileLive,  setProfileLive]  = useState(false);
@@ -222,6 +227,10 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
 
   useEffect(() => { setBio(user.bio || ''); }, [user.bio]);
   useEffect(() => { setTitle(user.title || ''); }, [user.title]);
+  useEffect(() => {
+    const s = user.skills;
+    setSkillsInput(!s ? '' : Array.isArray(s) ? s.join(', ') : s);
+  }, [user.skills]);
   useEffect(() => { setPortfolioUrl(user.portfolio_url || ''); }, [user.portfolio_url]);
 
   async function handleSave() {
@@ -231,12 +240,11 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     if (!portfolioUrl.trim()) { setPortfolioError(t('fd.err_portfolio')); return; }
     try { const u = new URL(portfolioUrl.trim()); if (!['http:','https:'].includes(u.protocol)) throw new Error(); }
     catch { setPortfolioError(t('fd.err_portfolio_url')); return; }
-    const hasSkills = user.skills && (Array.isArray(user.skills) ? user.skills.length > 0 : String(user.skills).trim().length > 0);
-    if (!hasSkills) { setPortfolioError('Ajoutez d\'abord vos compétences dans l\'onglet Dashboard → Compétences'); return; }
+    if (!skillsInput.trim()) { setPortfolioError('Ajoutez au moins une compétence (ex: Design, Marketing...)'); return; }
     setPortfolioError('');
     setSaving(true);
     try {
-      await updateUser(user.email, { bio, title, portfolio_url: portfolioUrl });
+      await updateUser(user.email, { bio, title, portfolio_url: portfolioUrl, skills: skillsInput.trim() });
       fetch(`${API}/notifications`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -300,7 +308,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     { done: !!(title || user.title || '').trim(),   label: t('fd.item.title') },
     { done: !!(bio   || user.bio   || '').trim(),   label: t('cd.item.bio')          },
     { done: !!(portfolioUrl || user.portfolio_url), label: t('fd.item.portfolio')    },
-    { done: !!(user.skills && (Array.isArray(user.skills) ? user.skills.length > 0 : String(user.skills).trim().length > 0)), label: t('fd.skills') || 'Compétences' },
+    { done: skillsInput.trim().length > 0,                                                                                    label: t('fd.skills') || 'Compétences' },
   ];
   const completion    = Math.round(completionItems.filter(i => i.done).length / completionItems.length * 100);
   const missing       = completionItems.filter(i => !i.done);
@@ -483,6 +491,23 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
                 )}
               </div>
               <p style={{ fontSize:11, color:PC.muted, marginTop:7 }}>{t('fd.portfolio_hint')}</p>
+            </div>
+
+            {/* Skills */}
+            <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+              <PFieldLabel>{t('fd.skills') || 'Compétences'} <span style={{ color:'#f87171', marginLeft:4 }}>*</span></PFieldLabel>
+              <div style={{ position:'relative' }}>
+                <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', display:'flex', pointerEvents:'none', color:PC.muted }}>
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                </div>
+                <input
+                  value={skillsInput}
+                  onChange={e => setSkillsInput(e.target.value)}
+                  placeholder="Design, Marketing, Development..."
+                  style={{ ...PINP, paddingLeft:42 }}
+                />
+              </div>
+              <p style={{ fontSize:11, color:PC.muted, marginTop:7 }}>Séparez vos compétences par des virgules</p>
               {portfolioError && <p style={{ fontSize:12, color:'#f87171', marginTop:6, fontWeight:600 }}>{portfolioError}</p>}
             </div>
 
