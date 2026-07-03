@@ -2245,8 +2245,8 @@ export default function FreelancerDashboard() {
   return (
     <div className="pt-16 min-h-screen" style={{ background: "#0a0817" }}>
 
-      {/* ── Notification bell — fixed top-right ── */}
-      <div className="fixed top-20 right-4 z-50">
+      {/* ── Notification bell — fixed top-right (mobile only) ── */}
+      <div className="fixed top-20 right-4 z-50 md:hidden">
         <div className="relative">
           <button onClick={() => setNotifOpen(p => !p)} className="relative w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
             <svg className="w-4.5 h-4.5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
