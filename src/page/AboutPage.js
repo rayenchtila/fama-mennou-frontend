@@ -62,14 +62,12 @@ export default function AboutPage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {SECTIONS.map(({ title, text, color, icon }) => (
-              <div key={title} style={{ padding: '24px 28px', borderRadius: 20, background: `${color}08`, border: `1px solid ${color}25`, display: 'flex', alignItems: 'flex-start', gap: 18 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: `${color}18`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
-                  {icon}
+              <div key={title} style={{ padding: '24px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <span style={{ color, display: 'flex', alignItems: 'center' }}>{icon}</span>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fbfbff', margin: 0, letterSpacing: '-0.01em' }}>{title}</h2>
                 </div>
-                <div>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fbfbff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>{title}</h2>
-                  <p style={{ fontSize: 14.5, color: '#a7abc8', lineHeight: 1.8, margin: 0 }}>{text}</p>
-                </div>
+                <p style={{ fontSize: 14.5, color: '#a7abc8', lineHeight: 1.8, margin: 0 }}>{text}</p>
               </div>
             ))}
           </div>
