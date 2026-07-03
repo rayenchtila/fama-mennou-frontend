@@ -1556,7 +1556,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,.08)' }} />
                 </div>
                 <p className="text-xs mb-3 text-center" style={{ color: '#a7abc8' }}>
-                  {t("Take a photo or choose from your gallery. Must be sharp and well lit.")}
+                  {t("Take a photo or choose from your gallery. Must be clear and clean.")}
                 </p>
                 <div className="flex gap-3 mb-3">
                   <ImageUploadBox
