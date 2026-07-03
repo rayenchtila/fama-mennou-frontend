@@ -775,6 +775,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const [captchaToken, setCaptchaToken] = useState(null);
   const recaptchaRef = useRef();
 
+  // Terms acceptance
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   // CIN state
   const [cinFrontFile,    setCinFrontFile]    = useState(null);
   const [cinBackFile,     setCinBackFile]     = useState(null);
@@ -821,6 +824,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     setStatusUser(null);
     setPendingApproval(null);
     setCaptchaToken(null);
+    setTermsAccepted(false);
   }, [defaultMode, open]);
 
   function resetCIN() {
@@ -876,6 +880,8 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     }
     if (!IS_DEV && !captchaToken)
       errs.captcha = t("Please complete the CAPTCHA");
+    if (mode === "signup" && !termsAccepted)
+      errs.terms = t("You must accept the Terms of Service");
     return errs;
   }
 
@@ -1645,24 +1651,45 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             </div>
           )}
 
+          {/* Terms checkbox — signup only */}
+          {mode === "signup" && (
+            <div className="mt-4">
+              <label className="flex items-start gap-3 cursor-pointer select-none" onClick={() => { setTermsAccepted(v => !v); setErrors(e => ({ ...e, terms: "" })); }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: 5, border: `2px solid ${termsAccepted ? '#7c6cf6' : 'rgba(255,255,255,0.2)'}`,
+                  background: termsAccepted ? '#7c6cf6' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, marginTop: 1, transition: 'all 0.18s ease',
+                }}>
+                  {termsAccepted && (
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
+                <span className="text-xs leading-relaxed" style={{ color: '#a7abc8' }}>
+                  {t("I accept the")}{" "}
+                  <span style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Terms of Service")}</span>
+                  {" "}{t("and")}{" "}
+                  <span style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Privacy Policy")}</span>
+                </span>
+              </label>
+              {errors.terms && <p className="mt-1.5 text-xs" style={{ color: '#f87171' }}>{errors.terms}</p>}
+            </div>
+          )}
+
           <Button variant="primary" size="lg" fullWidth className="mt-5" loading={loading} onClick={handleSubmit}>
             {loading ? t("Processing…") : mode === "login" ? t("Log in") : t("Create account")}
           </Button>
 
-          <p className="mt-3 text-center text-xs" style={{ color: '#62668a' }}>
-            {t("By continuing you agree to our")}{" "}
-            <span className="cursor-pointer" style={{ color: '#9b8cff' }}
-              onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
-              onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
-              {t("Terms")}
-            </span>
-            {" "}{t("and")}{" "}
-            <span className="cursor-pointer" style={{ color: '#9b8cff' }}
-              onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
-              onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
-              {t("Privacy Policy")}
-            </span>
-          </p>
+          {mode === "login" && (
+            <p className="mt-3 text-center text-xs" style={{ color: '#62668a' }}>
+              {t("By continuing you agree to our")}{" "}
+              <span style={{ color: '#9b8cff' }}>{t("Terms")}</span>
+              {" "}{t("and")}{" "}
+              <span style={{ color: '#9b8cff' }}>{t("Privacy Policy")}</span>
+            </p>
+          )}
         </>
       )}
     </Modal>
