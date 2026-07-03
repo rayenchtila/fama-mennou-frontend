@@ -1369,7 +1369,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
             {/* Last name + First name */}
             {mode === "signup" && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 auth-grid-2">
                 <Input
                   label={t("Last name")} placeholder={t("Your last name")}
                   value={form.lastName} onChange={set("lastName")} error={errors.lastName} required
@@ -1405,7 +1405,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                 }
               />
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 auth-grid-2">
                 <Input
                   label={t("Password")} type="password" placeholder={t("Password")}
                   value={form.password} onChange={set("password")} error={errors.password} required
@@ -1419,7 +1419,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
             {/* Date of birth + Gender — signup only, 2-col grid */}
             {mode === "signup" && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 auth-grid-2">
                 <Input
                   label={t("Date of birth")} type="date"
                   value={form.dob} onChange={set("dob")} error={errors.dob} required

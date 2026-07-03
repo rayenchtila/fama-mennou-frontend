@@ -163,6 +163,13 @@ export default function Modal({
               transform-origin: left center;
             }
           }
+
+          /* Stack 2-col form grids on small phones */
+          @media (max-width: 480px) {
+            .auth-card .auth-grid-2 {
+              grid-template-columns: 1fr !important;
+            }
+          }
         `}</style>
       </div>,
       document.body
