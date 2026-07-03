@@ -41,19 +41,16 @@ function fileToBase64(file) {
 
 function ImageUploadBox({ label, hint, preview, onFile }) {
   const { t } = useTranslation();
-  const inputRef = useRef();
+  const cameraRef  = useRef();
+  const galleryRef = useRef();
   return (
     <div className="flex-1">
       <p className="text-xs font-semibold mb-1.5" style={{ color: '#a7abc8' }}>{label}</p>
+
+      {/* Preview */}
       <div
-        onClick={() => inputRef.current.click()}
-        className="relative w-full h-28 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 overflow-hidden flex flex-col items-center justify-center gap-1"
-        style={preview
-          ? { borderColor: 'rgba(52,211,153,.6)' }
-          : { borderColor: 'rgba(255,255,255,.1)' }
-        }
-        onMouseEnter={e => { if (!preview) e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-        onMouseLeave={e => { if (!preview) e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; }}
+        className="relative w-full h-24 rounded-xl overflow-hidden mb-2 flex items-center justify-center"
+        style={{ background: 'rgba(255,255,255,0.04)', border: preview ? '1.5px solid rgba(52,211,153,.5)' : '1.5px dashed rgba(255,255,255,.08)' }}
       >
         {preview ? (
           <>
@@ -63,33 +60,48 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
             </div>
           </>
         ) : (
-          <>
-            <div className="flex items-center gap-2 mb-1">
-              {/* Camera icon */}
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'rgba(155,140,255,.5)' }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              <span style={{ color: 'rgba(155,140,255,.35)', fontSize: 14, fontWeight: 300 }}>|</span>
-              {/* Gallery icon */}
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'rgba(155,140,255,.5)' }}>
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <circle cx="8.5" cy="8.5" r="1.5"/>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 15l-5-5L5 21"/>
-              </svg>
-            </div>
-            <span className="text-[10px] text-center px-2" style={{ color: '#62668a' }}>{hint}</span>
-            <span className="text-[9px] text-center px-2 mt-0.5" style={{ color: 'rgba(155,140,255,.4)' }}>{t("Camera or Gallery")}</span>
-          </>
+          <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2} style={{ color: 'rgba(155,140,255,.2)' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
         )}
       </div>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={e => e.target.files[0] && onFile(e.target.files[0])}
-      />
+
+      {/* Two buttons: Camera + Gallery */}
+      <div className="flex gap-1.5">
+        <button type="button" onClick={() => cameraRef.current.click()}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all"
+          style={{ background: 'rgba(124,108,246,0.12)', border: '1px solid rgba(124,108,246,0.25)', color: '#9b8cff', fontSize: 11, fontWeight: 700 }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,108,246,0.22)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(124,108,246,0.12)'}
+        >
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          {t("Camera")}
+        </button>
+        <button type="button" onClick={() => galleryRef.current.click()}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all"
+          style={{ background: 'rgba(62,194,232,0.10)', border: '1px solid rgba(62,194,232,0.22)', color: '#3ec2e8', fontSize: 11, fontWeight: 700 }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(62,194,232,0.20)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(62,194,232,0.10)'}
+        >
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          {t("Gallery")}
+        </button>
+      </div>
+
+      {/* Camera input — forces real-time camera */}
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
+        onChange={e => e.target.files[0] && onFile(e.target.files[0])} />
+      {/* Gallery input — opens photo library */}
+      <input ref={galleryRef} type="file" accept="image/*" className="hidden"
+        onChange={e => e.target.files[0] && onFile(e.target.files[0])} />
     </div>
   );
 }
