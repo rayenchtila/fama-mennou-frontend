@@ -560,16 +560,34 @@ export default function Navbar({ onLogin }) {
 
                 {/* Profile */}
                 <div className="relative" ref={profRef}>
+                  {/* Mobile: clean avatar circle */}
+                  <button
+                    className="sm:hidden w-9 h-9 rounded-full flex items-center justify-center overflow-hidden shrink-0 transition-all"
+                    style={{
+                      background: user.photo ? 'transparent' : avatarGradient(user.email),
+                      boxShadow: profOpen
+                        ? '0 0 0 2.5px #7c6cf6, 0 4px 14px rgba(0,0,0,0.35)'
+                        : '0 0 0 2px rgba(255,255,255,0.18), 0 2px 8px rgba(0,0,0,0.3)',
+                    }}
+                    onClick={() => { setProfOpen(v => !v); setNotifOpen(false); setMsgOpen(false); }}
+                  >
+                    {user.photo
+                      ? <img src={cldImg(user.photo)} alt={user.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      : <span style={{ fontSize: 14, fontWeight: 800, color: '#fff', letterSpacing: '0.02em' }}>{getInitials(user.name)}</span>
+                    }
+                  </button>
+
+                  {/* Desktop: card-style with name/role */}
                   <button
                     onClick={() => { setProfOpen(v => !v); setNotifOpen(false); setMsgOpen(false); }}
-                    className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-2xl transition-all"
+                    className="hidden sm:flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-2xl transition-all"
                     style={{ background: profOpen ? bg.btnHovBg : "transparent", border: `1px solid ${profOpen ? bg.headerBd : "transparent"}` }}
                   >
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0"
                       style={{ background: user.photo ? 'transparent' : avatarGradient(user.email) }}>
                       {user.photo ? <img src={cldImg(user.photo)} alt={user.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : getInitials(user.name)}
                     </div>
-                    <div className="hidden sm:block text-left">
+                    <div className="text-left">
                       <p className="text-xs font-bold leading-tight" style={{ color: bg.text1 }}>{user.name}</p>
                       <p className="text-[10px] leading-tight capitalize" style={{ color: bg.text3 }}>{user.role ?? "membre"}</p>
                     </div>
