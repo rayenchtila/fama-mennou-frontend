@@ -11,15 +11,15 @@ export default function Footer() {
   ];
 
   const COMPANY_LINKS = [
-    { key: 'About Us',  to: '/' },
-    { key: 'Blog',      to: '/' },
-    { key: 'Careers',   to: '/' },
+    { key: 'About Us',  to: '/about' },
+    { key: 'Blog',      to: '/blog' },
+    { key: 'Careers',   to: '/careers' },
   ];
 
   const SUPPORT_LINKS = [
-    { key: 'Help Center',       to: '/' },
-    { key: 'Privacy Policy',    to: '/' },
-    { key: 'Terms of Service',  to: '/' },
+    { key: 'Help Center',       to: '/help' },
+    { key: 'Privacy Policy',    to: '/privacy' },
+    { key: 'Terms of Service',  to: '/terms' },
   ];
 
   const linkStyle = {

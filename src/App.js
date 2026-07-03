@@ -21,6 +21,12 @@ import ProfilePage from "./page/ProfilePage";
 import ProjectsPage from "./page/ProjectsPage";
 import MessagesPage from "./page/MessagesPage";
 import SettingsPage from "./page/SettingsPage";
+import AboutPage from "./page/AboutPage";
+import BlogPage from "./page/BlogPage";
+import CareersPage from "./page/CareersPage";
+import HelpPage from "./page/HelpPage";
+import PrivacyPage from "./page/PrivacyPage";
+import TermsPage from "./page/TermsPage";
 import PaymentsPage from "./page/PaymentsPage";
 import ClientDashboard from "./page/ClientDashboard";
 import FreelancerDashboard from "./page/FreelancerDashboard";
@@ -120,7 +126,7 @@ function AppInner() {
 
   const isAdminDashboard = location.pathname === "/admin/dashboard";
   const isUserDashboard  = location.pathname === "/dashboard" || location.pathname === "/messages";
-  const isHome           = location.pathname === "/";
+  const isHome           = ['/', '/about', '/blog', '/careers', '/help', '/privacy', '/terms'].includes(location.pathname);
 
   const [dark, setDark] = useState(() => {
     if (typeof window !== "undefined") {
@@ -349,6 +355,12 @@ function AppInner() {
               path="/settings"
               element={<PrivateRoute onLogin={handleLogin}><SettingsPage /></PrivateRoute>}
             />
+            <Route path="/about"    element={<AboutPage />} />
+            <Route path="/blog"     element={<BlogPage />} />
+            <Route path="/careers"  element={<CareersPage />} />
+            <Route path="/help"     element={<HelpPage />} />
+            <Route path="/privacy"  element={<PrivacyPage />} />
+            <Route path="/terms"    element={<TermsPage />} />
             <Route
               path="/admin/dashboard"
               element={user?.isAdmin ? <AdminPage /> : <Navigate to="/" replace />}
