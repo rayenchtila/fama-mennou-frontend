@@ -6,7 +6,7 @@ const FAQS = [
   { q: "Pourquoi dois-je vérifier mon CIN ?", a: "La vérification CIN garantit la sécurité et l'authenticité de tous les utilisateurs sur la plateforme. L'admin vérifie votre identité sous 24-48h." },
   { q: "Comment contacter un freelancer ?", a: "Allez sur la page 'Find Freelancers', trouvez le profil qui vous intéresse et utilisez le chat pour le contacter directement." },
   { q: "Comment publier un cours ?", a: "Connectez-vous en tant que Freelancer, allez dans votre Dashboard → Courses, et créez un nouveau cours. Il sera soumis à validation avant publication." },
-  { q: "Comment sont calculées les commissions ?", a: "Fama Mennou prend une commission de 5% sur chaque transaction. Vous recevez 95% de chaque paiement." },
+  { q: "Comment sont calculées les commissions ?", a: "Fama Mennou prend une commission de 6% sur chaque transaction. Vous recevez 94% de chaque paiement." },
   { q: "Comment retirer mes gains ?", a: "Allez dans Dashboard → Gains, puis cliquez sur 'Retirer'. Les retraits sont traités sous 2-5 jours ouvrables." },
   { q: "J'ai oublié mon mot de passe, que faire ?", a: "Sur la page de connexion, cliquez sur 'Mot de passe oublié' et suivez les instructions envoyées par email." },
   { q: "Comment signaler un problème ?", a: "Contactez-nous à famamennou.platform@gmail.com — nous répondons sous 24h." },

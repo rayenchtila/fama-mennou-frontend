@@ -27,7 +27,7 @@ const SECTIONS = [
   },
   {
     title: "5. Transactions et paiements",
-    content: "Fama Mennou prélève une commission de 5% sur chaque transaction. Les paiements sont traités de manière sécurisée. Fama Mennou n'est pas responsable des litiges entre freelancers et clients.",
+    content: "Fama Mennou prélève une commission de 6% sur chaque transaction. Les paiements sont traités de manière sécurisée. Fama Mennou n'est pas responsable des litiges entre freelancers et clients.",
     color: '#34d399',
     icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
   },
