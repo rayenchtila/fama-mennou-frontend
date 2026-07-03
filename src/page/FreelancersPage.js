@@ -287,7 +287,7 @@ export default function FreelancersPage() {
   const [completedWith, setCompletedWith] = useState([]);
 
   const isLocal  = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const hasProfile = u => u?.photo && u?.bio && u?.skills && (Array.isArray(u.skills) ? u.skills.length > 0 : String(u.skills).trim().length > 0);
+  const hasProfile = u => u?.photo && u?.bio && u?.portfolio_url && u?.skills && (Array.isArray(u.skills) ? u.skills.length > 0 : String(u.skills).trim().length > 0);
   const approved = (users||[]).filter(u => u?.role === 'freelancer' && (isLocal || u?.cinStatus === 'approved') && hasProfile(u));
 
   const fetchReviews = useCallback(async () => {
