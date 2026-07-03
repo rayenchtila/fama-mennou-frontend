@@ -416,9 +416,9 @@ const AGE_BRACKETS = [
 function StatisticsPanel({ allUsers }) {
   const { t } = useTranslation();
   const all         = allUsers ?? [];
-  const totalUsers  = all.length;
   const clients     = all.filter(u => u.role === "client");
   const freelancers = all.filter(u => u.role === "freelancer");
+  const totalUsers  = clients.length + freelancers.length;
 
   const clientPct     = totalUsers ? Math.round((clients.length     / totalUsers) * 100) : 0;
   const freelancerPct = totalUsers ? Math.round((freelancers.length / totalUsers) * 100) : 0;
