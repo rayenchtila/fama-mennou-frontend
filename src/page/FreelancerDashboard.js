@@ -474,7 +474,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
 
             {/* Portfolio */}
             <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
-              <PFieldLabel>{t('fd.portfolio_label')} <span style={{ color:'#f87171', marginLeft:4 }}>*</span></PFieldLabel>
+              <PFieldLabel>{t('fd.portfolio_label')}</PFieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:PC.muted, pointerEvents:'none', display:'flex' }}><PIcLink s={15}/></div>
                 <input type="url" value={portfolioUrl} onChange={e => setPortfolioUrl(e.target.value)}
@@ -495,7 +495,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
 
             {/* Skills */}
             <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
-              <PFieldLabel>{t('fd.skills') || 'Compétences'} <span style={{ color:'#f87171', marginLeft:4 }}>*</span></PFieldLabel>
+              <PFieldLabel>{t('fd.skills') || 'Compétences'}</PFieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', display:'flex', pointerEvents:'none', color:PC.muted }}>
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
@@ -503,7 +503,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
                 <input
                   value={skillsInput}
                   onChange={e => setSkillsInput(e.target.value)}
-                  placeholder="Design, Marketing, Development..."
+                  placeholder="Design, Marketing..."
                   style={{ ...PINP, paddingLeft:42 }}
                 />
               </div>
