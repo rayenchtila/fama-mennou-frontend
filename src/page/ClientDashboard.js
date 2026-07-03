@@ -362,10 +362,9 @@ export default function ClientDashboard() {
                 </div>
                 <input
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  readOnly
                   placeholder={t('cd.full_name_placeholder')}
-                  style={{ ...INP, paddingLeft:42 }}
-                  onFocus={focusOn} onBlur={focusOff}
+                  style={{ ...INP, paddingLeft:42, opacity:0.6, cursor:'not-allowed' }}
                 />
               </div>
             </div>
