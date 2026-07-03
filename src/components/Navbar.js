@@ -556,10 +556,10 @@ export default function Navbar({ onLogin }) {
                 </button>
 
                 {/* Separator */}
-                <div style={{ width: 1, height: 22, background: bg.headerBd, flexShrink: 0 }} className="hidden lg:block" />
+                <div style={{ width: 1, height: 22, background: bg.headerBd, flexShrink: 0 }} className="hidden sm:block" />
 
-                {/* Profile — desktop only (mobile uses hamburger sidebar) */}
-                <div className="relative hidden lg:block" ref={profRef}>
+                {/* Profile */}
+                <div className="relative" ref={profRef}>
                   <button
                     onClick={() => { setProfOpen(v => !v); setNotifOpen(false); setMsgOpen(false); }}
                     className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-2xl transition-all"
@@ -569,7 +569,7 @@ export default function Navbar({ onLogin }) {
                       style={{ background: user.photo ? 'transparent' : avatarGradient(user.email) }}>
                       {user.photo ? <img src={cldImg(user.photo)} alt={user.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : getInitials(user.name)}
                     </div>
-                    <div className="text-left">
+                    <div className="hidden sm:block text-left">
                       <p className="text-xs font-bold leading-tight" style={{ color: bg.text1 }}>{user.name}</p>
                       <p className="text-[10px] leading-tight capitalize" style={{ color: bg.text3 }}>{user.role ?? "membre"}</p>
                     </div>
