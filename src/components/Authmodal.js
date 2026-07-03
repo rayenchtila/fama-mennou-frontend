@@ -64,11 +64,22 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
           </>
         ) : (
           <>
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'rgba(255,255,255,.2)' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <span className="text-[11px] text-center px-2" style={{ color: '#62668a' }}>{hint}</span>
+            <div className="flex items-center gap-2 mb-1">
+              {/* Camera icon */}
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'rgba(155,140,255,.5)' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span style={{ color: 'rgba(155,140,255,.35)', fontSize: 14, fontWeight: 300 }}>|</span>
+              {/* Gallery icon */}
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'rgba(155,140,255,.5)' }}>
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 15l-5-5L5 21"/>
+              </svg>
+            </div>
+            <span className="text-[10px] text-center px-2" style={{ color: '#62668a' }}>{hint}</span>
+            <span className="text-[9px] text-center px-2 mt-0.5" style={{ color: 'rgba(155,140,255,.4)' }}>{t("Camera or Gallery")}</span>
           </>
         )}
       </div>
@@ -76,7 +87,6 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
         ref={inputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         className="hidden"
         onChange={e => e.target.files[0] && onFile(e.target.files[0])}
       />
@@ -1546,7 +1556,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,.08)' }} />
                 </div>
                 <p className="text-xs mb-3 text-center" style={{ color: '#a7abc8' }}>
-                  {t("Take a clear photo of each side of your CIN. Must be sharp and well lit.")}
+                  {t("Take a photo or choose from your gallery. Must be sharp and well lit.")}
                 </p>
                 <div className="flex gap-3 mb-3">
                   <ImageUploadBox
