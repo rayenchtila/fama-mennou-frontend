@@ -1,5 +1,49 @@
 import SEOHead from '../components/Seohead';
 
+const SECTIONS = [
+  {
+    title: 'Notre mission',
+    text: 'Permettre à chaque professionnel tunisien de montrer son talent, trouver des clients et développer ses compétences — tout en un seul endroit.',
+    color: '#9b8cff',
+    icon: (
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+      </svg>
+    ),
+  },
+  {
+    title: 'Notre vision',
+    text: 'Devenir la référence numéro 1 du freelancing et de la formation en ligne en Tunisie et dans le monde arabe.',
+    color: '#3ec2e8',
+    icon: (
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+    ),
+  },
+  {
+    title: 'Notre équipe',
+    text: 'Une équipe passionnée de développeurs, designers et entrepreneurs basée en Tunisie, dédiée à créer la meilleure expérience pour nos utilisateurs.',
+    color: '#10b981',
+    icon: (
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+    ),
+  },
+  {
+    title: 'Pourquoi Fama Mennou ?',
+    text: '"Fama Mennou" signifie "Il y en a" en arabe tunisien — un clin d\'œil à l\'abondance de talents qui existent en Tunisie et qui méritent d\'être reconnus.',
+    color: '#f59e0b',
+    icon: (
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+      </svg>
+    ),
+  },
+];
+
 export default function AboutPage() {
   return (
     <>
@@ -16,16 +60,16 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            {[
-              { title: 'Notre mission', text: 'Permettre à chaque professionnel tunisien de montrer son talent, trouver des clients et développer ses compétences — tout en un seul endroit.' },
-              { title: 'Notre vision', text: 'Devenir la référence numéro 1 du freelancing et de la formation en ligne en Tunisie et dans le monde arabe.' },
-              { title: 'Notre équipe', text: 'Une équipe passionnée de développeurs, designers et entrepreneurs basée en Tunisie, dédiée à créer la meilleure expérience pour nos utilisateurs.' },
-              { title: 'Pourquoi Fama Mennou ?', text: '"Fama Mennou" signifie "Il y en a" en arabe tunisien — un clin d\'œil à l\'abondance de talents qui existent en Tunisie et qui méritent d\'être reconnus.' },
-            ].map(({ title, text }) => (
-              <div key={title} style={{ padding: '28px 32px', borderRadius: 20, background: 'rgba(124,108,246,0.06)', border: '1px solid rgba(124,108,246,0.15)' }}>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#fbfbff', margin: '0 0 12px', letterSpacing: '-0.01em' }}>{title}</h2>
-                <p style={{ fontSize: 15, color: '#a7abc8', lineHeight: 1.8, margin: 0 }}>{text}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {SECTIONS.map(({ title, text, color, icon }) => (
+              <div key={title} style={{ padding: '24px 28px', borderRadius: 20, background: `${color}08`, border: `1px solid ${color}25`, display: 'flex', alignItems: 'flex-start', gap: 18 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: `${color}18`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
+                  {icon}
+                </div>
+                <div>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fbfbff', margin: '0 0 8px', letterSpacing: '-0.01em' }}>{title}</h2>
+                  <p style={{ fontSize: 14.5, color: '#a7abc8', lineHeight: 1.8, margin: 0 }}>{text}</p>
+                </div>
               </div>
             ))}
           </div>
