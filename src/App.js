@@ -40,11 +40,27 @@ import { HelmetProvider } from "react-helmet-async";
 function ScrollToTop() {
   const { pathname } = useLocation();
   const navType = useNavigationType();
+
+  // Save scroll position when leaving a route
   useEffect(() => {
-    if (navType !== 'POP') {
-      window.scrollTo({ top: 0, behavior: "instant" });
+    return () => {
+      sessionStorage.setItem('scroll:' + pathname, String(window.scrollY));
+    };
+  }, [pathname]);
+
+  // Restore saved position on back/forward, scroll to top on forward navigation
+  useEffect(() => {
+    if (navType === 'POP') {
+      const saved = sessionStorage.getItem('scroll:' + pathname);
+      const t = setTimeout(() => {
+        window.scrollTo({ top: saved ? +saved : 0, behavior: 'instant' });
+      }, 50);
+      return () => clearTimeout(t);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
   }, [pathname, navType]);
+
   return null;
 }
 
