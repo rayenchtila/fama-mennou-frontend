@@ -41,21 +41,30 @@ function ScrollToTop() {
   const { pathname } = useLocation();
   const navType = useNavigationType();
 
-  // Save scroll position when leaving a route
+  // Disable browser native scroll restoration — we handle it ourselves
   useEffect(() => {
-    return () => {
-      sessionStorage.setItem('scroll:' + pathname, String(window.scrollY));
-    };
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  // Continuously save scroll position so we always have the latest value
+  useEffect(() => {
+    const save = () => sessionStorage.setItem('scroll:' + pathname, String(window.scrollY));
+    window.addEventListener('scroll', save, { passive: true });
+    return () => window.removeEventListener('scroll', save);
   }, [pathname]);
 
-  // Restore saved position on back/forward, scroll to top on forward navigation
+  // Restore or reset on navigation
   useEffect(() => {
     if (navType === 'POP') {
       const saved = sessionStorage.getItem('scroll:' + pathname);
-      const t = setTimeout(() => {
-        window.scrollTo({ top: saved ? +saved : 0, behavior: 'instant' });
-      }, 50);
-      return () => clearTimeout(t);
+      // Double rAF: wait for React to paint content before restoring scroll
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: saved ? +saved : 0, behavior: 'instant' });
+        });
+      });
     } else {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
