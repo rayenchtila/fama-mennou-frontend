@@ -130,7 +130,7 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
         {/* Center info */}
         <div style={{ flex:1, minWidth:0 }}>
 
-          <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'4px 8px', marginBottom:3 }}>
+          <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'4px 8px', marginBottom:8 }}>
             <span
               onClick={() => navigate(`/profile/${encodeURIComponent(freelancer.email)}`)}
               style={{ fontSize:17, fontWeight:900, color:'#f9f8ff', letterSpacing:'-0.02em', lineHeight:1.2, cursor:'pointer', textDecoration:'none', transition:'color .15s' }}
@@ -149,22 +149,22 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
           </div>
 
           {freelancer.title && (
-            <p style={{ fontSize:13, fontWeight:700, color:'#9b8cff', margin:'0 0 7px', letterSpacing:'0.01em', textTransform:'uppercase' }}>
+            <p style={{ fontSize:13, fontWeight:700, color:'#9b8cff', margin:'0 0 10px', letterSpacing:'0.01em', textTransform:'uppercase' }}>
               {freelancer.title}
             </p>
           )}
 
           {freelancer.bio && (
-            <p style={{ fontSize:13, color:'#8a8eb0', margin:'0 0 11px', lineHeight:1.65, fontStyle:'italic' }}>
+            <p style={{ fontSize:13, color:'#8a8eb0', margin:'0 0 14px', lineHeight:1.65, fontStyle:'italic' }}>
               {freelancer.bio}
             </p>
           )}
 
           {skillTags.length > 0 && (
-            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:7, marginBottom:16 }}>
               {skillTags.map(s => (
-                <span key={s} style={{ fontSize:11.5, fontWeight:700, color:'#7c6cf6', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:20, padding:'3px 11px' }}>
-                  {s}
+                <span key={s} style={{ fontSize:11.5, fontWeight:700, color:'#7c6cf6', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:20, padding:'4px 12px' }}>
+                  #{s}
                 </span>
               ))}
             </div>
@@ -174,7 +174,7 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
             <a href={/^https?:\/\//.test(freelancer.portfolio_url) ? freelancer.portfolio_url : `https://${freelancer.portfolio_url}`}
               target="_blank" rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
-              style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11.5, fontWeight:700, color:'#6ee7b7', textDecoration:'none', padding:'5px 12px', borderRadius:10, background:'rgba(16,185,129,0.07)', border:'1px solid rgba(16,185,129,0.22)', transition:'all .15s' }}
+              style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11.5, fontWeight:700, color:'#6ee7b7', textDecoration:'none', padding:'5px 12px', borderRadius:10, background:'rgba(16,185,129,0.07)', border:'1px solid rgba(16,185,129,0.22)', transition:'all .15s', marginBottom:4 }}
               onMouseEnter={e => { e.currentTarget.style.background='rgba(16,185,129,0.16)'; e.currentTarget.style.borderColor='rgba(16,185,129,0.42)'; e.currentTarget.style.transform='translateY(-1px)'; }}
               onMouseLeave={e => { e.currentTarget.style.background='rgba(16,185,129,0.07)'; e.currentTarget.style.borderColor='rgba(16,185,129,0.22)'; e.currentTarget.style.transform='translateY(0)'; }}>
               <IcLink /> {t('View portfolio')}

@@ -256,7 +256,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
       }).catch(() => {});
       setSaved(true);
       setProfileLive(true);
-      setTimeout(() => navigate('/freelancers'), 5000);
+      setTimeout(() => { setSaved(false); navigate('/freelancers'); }, 3000);
     } catch {}
     setSaving(false);
   }
@@ -508,36 +508,29 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
                 />
               </div>
               <p style={{ fontSize:11, color:PC.muted, marginTop:7 }}>Séparez vos compétences par des virgules</p>
-              {portfolioError && <p style={{ fontSize:12, color:'#f87171', marginTop:6, fontWeight:600 }}>{portfolioError}</p>}
             </div>
 
             {/* Footer */}
             <div style={{ padding:'20px 30px', background:'rgba(0,0,0,0.22)', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
-              {saved && profileLive && (
-                <button onClick={() => navigate('/freelancers')}
-                  style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'13px 16px', marginBottom:16, borderRadius:14, background:'linear-gradient(135deg,rgba(124,108,246,0.15),rgba(16,185,129,0.1))', border:'1px solid rgba(124,108,246,0.4)', cursor:'pointer', textAlign:'left', animation:'fdFadeIn .3s ease' }}>
-                  <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,#7c6cf6,#10b981)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <p style={{ fontSize:13, fontWeight:800, color:'#b5aaff', margin:'0 0 2px' }}>🎉 Votre profil est en ligne sur Hire Freelancers !</p>
-                    <p style={{ fontSize:11.5, color:'rgba(16,185,129,0.8)', margin:0 }}>Cliquez ici pour voir votre profil → redirection automatique dans 5s</p>
-                  </div>
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
+              {portfolioError && (
+                <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', marginBottom:14, borderRadius:14, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)' }}>
+                  <p style={{ fontSize:13, fontWeight:700, color:'#f87171', margin:0 }}>{portfolioError}</p>
+                </div>
               )}
-              {saved && !profileLive && (
+              {saved && (
                 <div style={{ display:'flex', alignItems:'center', gap:12, padding:'13px 16px', marginBottom:16, borderRadius:14, background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.3)', animation:'fdFadeIn .3s ease' }}>
-                  <div style={{ width:32, height:32, borderRadius:10, background:'rgba(16,185,129,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:PC.emerald }}><PIcCheck s={15}/></div>
+                  <div style={{ width:32, height:32, borderRadius:10, background:'rgba(16,185,129,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:PC.emerald }}>
+                    <PIcCheck s={15}/>
+                  </div>
                   <div>
                     <p style={{ fontSize:13, fontWeight:800, color:PC.emerald, margin:'0 0 1px' }}>{t('cd.profile_saved')}</p>
-                    <p style={{ fontSize:11.5, color:'rgba(16,185,129,0.7)', margin:0 }}>{t('fd.changes_visible')}</p>
+                    <p style={{ fontSize:11.5, color:'rgba(16,185,129,0.7)', margin:0 }}>{t('cd.changes_visible')}</p>
                   </div>
                 </div>
               )}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
                 <p style={{ fontSize:12, color:PC.muted, margin:0, lineHeight:1.6 }}>{t('cd.changes_immediate')}</p>
-                <button onClick={handleSave} disabled={saving} className="fd-save-btn"
+                <button onClick={handleSave} disabled={saving} className="cd-save-btn"
                   style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:10, padding:'14px 34px', borderRadius:16, background:'linear-gradient(135deg,#7c6cf6 0%,#5e4fd4 100%)', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:14, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 rgba(255,255,255,0.16)', transition:'all .2s cubic-bezier(.4,0,.2,1)', letterSpacing:'0.01em', whiteSpace:'nowrap', position:'relative', overflow:'hidden' }}
                   onMouseEnter={e => { if (!saving) { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 16px 44px -6px rgba(124,108,246,0.78), inset 0 1px 0 rgba(255,255,255,0.2)'; } }}
                   onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 rgba(255,255,255,0.16)'; }}>
