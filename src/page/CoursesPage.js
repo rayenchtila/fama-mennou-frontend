@@ -166,6 +166,29 @@ function CourseCard({ course, onClick, onDeleted }) {
   const [deleting, setDeleting]   = useState(false);
   const isOwner = user && course.creator_email && user.email === course.creator_email;
 
+  useEffect(() => {
+    if (confirmDel) {
+      const y = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${y}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+    } else {
+      const top = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      if (top) window.scrollTo(0, -parseInt(top));
+    }
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+    };
+  }, [confirmDel]);
+
   async function handleDelete() {
     setDeleting(true);
     await fetch(`${API}/courses/${course.id}`, { method: 'DELETE' });
@@ -295,15 +318,21 @@ function CourseCard({ course, onClick, onDeleted }) {
                 </div>
               )}
               {confirmDel && (
-                <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+                <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20, overflowY:'auto' }}
                   onClick={e => { e.stopPropagation(); setConfirmDel(false); }}>
-                  <div style={{ background:'#16142e', border:'1px solid rgba(248,113,113,0.3)', borderRadius:18, padding:28, maxWidth:340, width:'100%' }}
+                  <div style={{ background:'#16142e', border:'1px solid rgba(248,113,113,0.3)', borderRadius:20, padding:'28px 24px 24px', maxWidth:360, width:'100%', position:'relative' }}
                     onClick={e => e.stopPropagation()}>
-                    <p style={{ fontWeight:800, fontSize:16, color:'#fbfbff', marginBottom:8 }}>{t('Delete this course?')}</p>
-                    <p style={{ fontSize:13, color:'#a7abc8', marginBottom:22 }}>{t('This action cannot be undone.')}</p>
+                    {/* X close button */}
+                    <button
+                      onClick={() => setConfirmDel(false)}
+                      style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:'#a7abc8', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>
+                      ✕
+                    </button>
+                    <p style={{ fontWeight:800, fontSize:17, color:'#fbfbff', marginBottom:8, paddingRight:32 }}>{t('Delete this course?')}</p>
+                    <p style={{ fontSize:13, color:'#a7abc8', marginBottom:24 }}>{t('This action cannot be undone.')}</p>
                     <div style={{ display:'flex', gap:10 }}>
-                      <button onClick={() => setConfirmDel(false)} style={{ flex:1, padding:'10px 0', borderRadius:12, border:'1px solid rgba(255,255,255,.12)', background:'transparent', color:'#a7abc8', fontWeight:600, cursor:'pointer' }}>{t('Cancel')}</button>
-                      <button onClick={handleDelete} disabled={deleting} style={{ flex:1, padding:'10px 0', borderRadius:12, border:'none', background:'#ef4444', color:'#fff', fontWeight:700, cursor:'pointer', opacity:deleting?0.6:1 }}>{deleting ? t('Deleting…') : t('Delete')}</button>
+                      <button onClick={() => setConfirmDel(false)} style={{ flex:1, padding:'11px 0', borderRadius:12, border:'1px solid rgba(255,255,255,.12)', background:'transparent', color:'#a7abc8', fontWeight:600, cursor:'pointer', fontSize:14 }}>{t('Cancel')}</button>
+                      <button onClick={handleDelete} disabled={deleting} style={{ flex:1, padding:'11px 0', borderRadius:12, border:'none', background:'#ef4444', color:'#fff', fontWeight:700, cursor:'pointer', fontSize:14, opacity:deleting?0.6:1, boxShadow:'0 4px 14px -4px rgba(239,68,68,0.6)' }}>{deleting ? t('Deleting…') : t('Delete')}</button>
                     </div>
                   </div>
                 </div>
