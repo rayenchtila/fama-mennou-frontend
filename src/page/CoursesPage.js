@@ -404,7 +404,7 @@ function CourseCard({ course, onClick, onDeleted }) {
                           {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:12 }}>
                         <div>
                           <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Price')} (TND)</label>
                           <input type="number" min="0" step="0.01" value={editForm.full_price} onChange={e => setEditForm(p => ({ ...p, full_price: e.target.value }))}
