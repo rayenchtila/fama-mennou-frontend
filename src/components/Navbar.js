@@ -362,6 +362,9 @@ export default function Navbar({ onLogin }) {
   const MENU_ITEMS = user?.isAdmin
     ? [
         { icon: <MenuIcon color="#7c6cf6" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, label: t("Dashboard"), to: "/admin/dashboard" },
+        { icon: <MenuIcon color="#9b8cff" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" d2="M12 7a4 4 0 100-8 4 4 0 000 8z"/>, label: t('home.ac.hire.title'), to: "/freelancers" },
+        { icon: <MenuIcon color="#0ea5e9" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, label: t('home.ac.client.title'), to: "/clients" },
+        { icon: <MenuIcon color="#10b981" d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" d2="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>, label: t('Courses'), to: "/courses" },
         { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>, label: t("Sign out"), logout: true },
       ]
     : user?.role === "freelancer"
