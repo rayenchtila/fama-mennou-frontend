@@ -161,13 +161,19 @@ function CourseCard({ course, onClick, onDeleted }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [hov, setHov] = useState(false);
-  const [menuOpen, setMenuOpen]   = useState(false);
+  const [menuOpen, setMenuOpen]     = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
-  const [deleting, setDeleting]   = useState(false);
+  const [deleting, setDeleting]     = useState(false);
+  const [editOpen, setEditOpen]     = useState(false);
+  const [editForm, setEditForm]     = useState({ title: course.title||'', description: course.description||'', category: course.category||'', full_price: course.full_price||'', discount_pct: course.discount_pct||'' });
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError]   = useState('');
+  const EDIT_KEY = `fm_edited_course_${course.id}`;
+  const alreadyEdited = !!localStorage.getItem(EDIT_KEY);
   const isOwner = user && course.creator_email && user.email === course.creator_email;
 
-  useEffect(() => {
-    if (confirmDel) {
+  const lockScroll = (open) => {
+    if (open) {
       const y = window.scrollY;
       document.body.style.position = 'fixed';
       document.body.style.top = `-${y}px`;
@@ -181,13 +187,26 @@ function CourseCard({ course, onClick, onDeleted }) {
       document.body.style.overflow = '';
       if (top) window.scrollTo(0, -parseInt(top));
     }
-    return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      document.body.style.overflow = '';
-    };
-  }, [confirmDel]);
+  };
+
+  useEffect(() => { lockScroll(confirmDel || editOpen); return () => lockScroll(false); }, [confirmDel, editOpen]); // eslint-disable-line
+
+  async function handleEdit() {
+    if (!editForm.title.trim()) { setEditError(t('Title is required')); return; }
+    setEditSaving(true); setEditError('');
+    try {
+      const r = await fetch(`${API}/courses/${course.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: editForm.title.trim(), description: editForm.description.trim(), category: editForm.category, full_price: Number(editForm.full_price)||0, discount_pct: Number(editForm.discount_pct)||0 }),
+      });
+      if (!r.ok) throw new Error();
+      localStorage.setItem(EDIT_KEY, '1');
+      setEditOpen(false);
+      window.location.reload();
+    } catch { setEditError(t('Failed to save. Try again.')); }
+    setEditSaving(false);
+  }
 
   async function handleDelete() {
     setDeleting(true);
@@ -308,7 +327,22 @@ function CourseCard({ course, onClick, onDeleted }) {
                 ⋮
               </button>
               {menuOpen && (
-                <div style={{ position:'absolute', top:32, right:0, background:'#1a1730', border:'1px solid rgba(255,255,255,.12)', borderRadius:10, overflow:'hidden', minWidth:140, boxShadow:'0 8px 24px rgba(0,0,0,.5)', zIndex:50 }}>
+                <div style={{ position:'absolute', top:32, right:0, background:'#1a1730', border:'1px solid rgba(255,255,255,.12)', borderRadius:10, overflow:'hidden', minWidth:170, boxShadow:'0 8px 24px rgba(0,0,0,.5)', zIndex:50 }}>
+                  {/* Edit option */}
+                  <button
+                    onClick={e => { e.stopPropagation(); if (!alreadyEdited) { setMenuOpen(false); setEditOpen(true); } }}
+                    disabled={alreadyEdited}
+                    style={{ width:'100%', padding:'10px 14px', border:'none', background:'transparent', color: alreadyEdited ? '#5d7a76' : '#5eead4', fontSize:13, fontWeight:600, cursor: alreadyEdited ? 'not-allowed' : 'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:8, opacity: alreadyEdited ? 0.6 : 1 }}>
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    <span style={{ flex:1 }}>{alreadyEdited ? t('Already edited') : t('Edit course')}</span>
+                    {alreadyEdited && <span style={{ fontSize:10, background:'rgba(255,255,255,.08)', borderRadius:4, padding:'1px 5px', color:'#7aada8', fontWeight:700 }}>1×</span>}
+                  </button>
+                  {!alreadyEdited && (
+                    <div style={{ padding:'2px 14px 6px', fontSize:10.5, color:'#5d8e89', lineHeight:1.4 }}>
+                      {t('One-time edit only')}
+                    </div>
+                  )}
+                  <div style={{ height:1, background:'rgba(255,255,255,.07)', margin:'0 10px' }} />
                   <button
                     onClick={e => { e.stopPropagation(); setMenuOpen(false); setConfirmDel(true); }}
                     style={{ width:'100%', padding:'10px 14px', border:'none', background:'transparent', color:'#f87171', fontSize:13, fontWeight:600, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:8 }}>
@@ -322,17 +356,111 @@ function CourseCard({ course, onClick, onDeleted }) {
                   onClick={e => { e.stopPropagation(); setConfirmDel(false); }}>
                   <div style={{ background:'#16142e', border:'1px solid rgba(248,113,113,0.3)', borderRadius:20, padding:'28px 24px 24px', maxWidth:360, width:'100%', position:'relative' }}
                     onClick={e => e.stopPropagation()}>
-                    {/* X close button */}
-                    <button
-                      onClick={() => setConfirmDel(false)}
-                      style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:'#a7abc8', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>
-                      ✕
-                    </button>
+                    <button onClick={() => setConfirmDel(false)} style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:'#a7abc8', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>✕</button>
                     <p style={{ fontWeight:800, fontSize:17, color:'#fbfbff', marginBottom:8, paddingRight:32 }}>{t('Delete this course?')}</p>
                     <p style={{ fontSize:13, color:'#a7abc8', marginBottom:24 }}>{t('This action cannot be undone.')}</p>
                     <div style={{ display:'flex', gap:10 }}>
                       <button onClick={() => setConfirmDel(false)} style={{ flex:1, padding:'11px 0', borderRadius:12, border:'1px solid rgba(255,255,255,.12)', background:'transparent', color:'#a7abc8', fontWeight:600, cursor:'pointer', fontSize:14 }}>{t('Cancel')}</button>
                       <button onClick={handleDelete} disabled={deleting} style={{ flex:1, padding:'11px 0', borderRadius:12, border:'none', background:'#ef4444', color:'#fff', fontWeight:700, cursor:'pointer', fontSize:14, opacity:deleting?0.6:1, boxShadow:'0 4px 14px -4px rgba(239,68,68,0.6)' }}>{deleting ? t('Deleting…') : t('Delete')}</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Edit Modal ── */}
+              {editOpen && (
+                <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'16px', overflowY:'auto' }}
+                  onClick={e => { e.stopPropagation(); setEditOpen(false); }}>
+                  <div style={{ background:'#0f1f1c', border:`1px solid rgba(94,234,212,0.22)`, borderRadius:22, padding:'clamp(20px,5vw,30px)', maxWidth:480, width:'100%', position:'relative', boxShadow:'0 24px 64px rgba(0,0,0,0.7)' }}
+                    onClick={e => e.stopPropagation()}>
+
+                    {/* Header */}
+                    <button onClick={() => setEditOpen(false)} style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:'#a7abc8', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>✕</button>
+                    <p style={{ fontWeight:900, fontSize:'clamp(16px,4vw,19px)', color:'#edfaf8', marginBottom:4, paddingRight:36 }}>{t('Edit course')}</p>
+
+                    {/* One-time warning banner */}
+                    <div style={{ display:'flex', alignItems:'center', gap:8, background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:10, padding:'9px 12px', marginBottom:20 }}>
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#fbbf24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      <span style={{ fontSize:12, color:'#fbbf24', fontWeight:600, lineHeight:1.4 }}>{t('You can only edit this course once. This action cannot be repeated.')}</span>
+                    </div>
+
+                    {/* Fields */}
+                    <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+
+                      {/* Title */}
+                      <div>
+                        <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Title')} *</label>
+                        <input
+                          value={editForm.title}
+                          onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
+                          maxLength={120}
+                          style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
+                          onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'}
+                          onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'}
+                        />
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Description')}</label>
+                        <textarea
+                          value={editForm.description}
+                          onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))}
+                          rows={3}
+                          maxLength={800}
+                          style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', resize:'vertical', minHeight:80, transition:'border-color .2s' }}
+                          onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'}
+                          onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'}
+                        />
+                      </div>
+
+                      {/* Category */}
+                      <div>
+                        <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Category')}</label>
+                        <select
+                          value={editForm.category}
+                          onChange={e => setEditForm(p => ({ ...p, category: e.target.value }))}
+                          style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'#0b1a17', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', cursor:'pointer' }}>
+                          {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+
+                      {/* Price + Discount row */}
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                        <div>
+                          <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Price')} (TND)</label>
+                          <input
+                            type="number" min="0" step="0.01"
+                            value={editForm.full_price}
+                            onChange={e => setEditForm(p => ({ ...p, full_price: e.target.value }))}
+                            style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
+                            onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'}
+                            onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Discount')} (%)</label>
+                          <input
+                            type="number" min="0" max="100" step="1"
+                            value={editForm.discount_pct}
+                            onChange={e => setEditForm(p => ({ ...p, discount_pct: e.target.value }))}
+                            style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
+                            onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'}
+                            onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Error */}
+                    {editError && <p style={{ fontSize:12.5, color:'#f87171', marginTop:12, fontWeight:600 }}>{editError}</p>}
+
+                    {/* Actions */}
+                    <div style={{ display:'flex', gap:10, marginTop:20 }}>
+                      <button onClick={() => setEditOpen(false)} style={{ flex:1, padding:'12px 0', borderRadius:12, border:'1px solid rgba(255,255,255,.12)', background:'transparent', color:'#a7abc8', fontWeight:600, cursor:'pointer', fontSize:14 }}>{t('Cancel')}</button>
+                      <button onClick={handleEdit} disabled={editSaving} style={{ flex:2, padding:'12px 0', borderRadius:12, border:'none', background:'linear-gradient(135deg,#14b8a6,#0d9488)', color:'#fff', fontWeight:700, cursor:editSaving?'not-allowed':'pointer', fontSize:14, opacity:editSaving?0.65:1, boxShadow:'0 4px 14px -4px rgba(13,148,136,0.6)', transition:'opacity .2s' }}>
+                        {editSaving ? t('Saving…') : t('Save changes')}
+                      </button>
                     </div>
                   </div>
                 </div>

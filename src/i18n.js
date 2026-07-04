@@ -1247,6 +1247,7 @@ i18n
           // ── CourseDetailPage ──
           "cdp.error": "Error",
           "cdp.network_error": "Network error",
+          "cdp.no_lessons_yet": "This course has no lessons yet. Come back soon!",
           "cdp.enroll_success": "Enrollment successful!",
           "cdp.enroll_failed": "Enrollment failed. Try again.",
           "cdp.request_sent": "Request sent! Redirecting to chat…",
@@ -2665,6 +2666,7 @@ i18n
           // ── CourseDetailPage ──
           "cdp.error": "Erreur",
           "cdp.network_error": "Erreur réseau",
+          "cdp.no_lessons_yet": "Ce cours n'a pas encore de leçons. Reviens bientôt !",
           "cdp.enroll_success": "Inscription réussie !",
           "cdp.enroll_failed": "Inscription échouée. Réessaie.",
           "cdp.request_sent": "Demande envoyée ! Redirection vers le chat…",
@@ -4087,6 +4089,7 @@ i18n
           // ── CourseDetailPage ──
           "cdp.error": "خطأ",
           "cdp.network_error": "خطأ في الشبكة",
+          "cdp.no_lessons_yet": "هذه الدورة لا تحتوي على دروس بعد. عد قريباً!",
           "cdp.enroll_success": "تم التسجيل بنجاح!",
           "cdp.enroll_failed": "فشل التسجيل. حاول مجدداً.",
           "cdp.request_sent": "تم إرسال الطلب! جارٍ التحويل للدردشة…",
