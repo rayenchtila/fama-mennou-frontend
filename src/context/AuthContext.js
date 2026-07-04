@@ -122,9 +122,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetchAccounts();
+    // Non-logged-in users get the public list immediately (no token needed).
+    // Logged-in users get their data via refreshAccessToken().then(fetchAccounts)
+    // which always runs with the correct token — calling fetchAccounts here too
+    // would race and potentially overwrite correct admin data with /users/public data.
+    if (!user) fetchAccounts();
     fetchNotifications();
-  }, [fetchAccounts, fetchNotifications]);
+  }, [fetchAccounts, fetchNotifications]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Poll notifications every 5 min as a background fallback (Socket.io is the primary path)
   useEffect(() => {
@@ -193,7 +197,7 @@ export function AuthProvider({ children }) {
       cinFront:           r.cin_front,
       cinBack:            r.cin_back,
       cinVerified:        r.cin_verified,
-      cinStatus:          r.cin_status ?? "pending",
+      cinStatus:          r.cin_status ?? (r.cin_verified ? "approved" : "pending"),
       cinRejectionReason: r.cin_rejection_reason ?? null,
       cinApprovalReason:  r.cin_approval_reason  ?? null,
       statusSeen:         r.status_seen ?? false,

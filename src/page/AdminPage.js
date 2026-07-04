@@ -1536,9 +1536,11 @@ export default function AdminPage() {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    fetchAccounts();
     fetchNotifications();
-    // Poll every 60s — Supabase realtime is dead on Neon, so we poll instead
+    // fetchAccounts() is intentionally NOT called here: it's already called by
+    // AuthContext after refreshAccessToken() completes, guaranteeing the admin
+    // token is ready before hitting /users. Calling it here (without token) would
+    // race and potentially overwrite correct data with the public /users/public list.
     const pollId = setInterval(() => { fetchAccounts(); fetchNotifications(); }, 60000);
     return () => clearInterval(pollId);
   }, []);
