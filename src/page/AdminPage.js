@@ -5,7 +5,6 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import MessengerChat from "../components/MessengerChat";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
-import { supabase } from "../lib/supabaseClient";
 import { cldImg, cldVideo } from "../utils/cloudinary";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -1539,13 +1538,9 @@ export default function AdminPage() {
   useEffect(() => {
     fetchAccounts();
     fetchNotifications();
-    const channel = supabase
-      .channel('admin-users-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
-        fetchAccounts();
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Poll every 60s — Supabase realtime is dead on Neon, so we poll instead
+    const pollId = setInterval(() => { fetchAccounts(); fetchNotifications(); }, 60000);
+    return () => clearInterval(pollId);
   }, []);
 
   // ── main tab: "cin" | "allusers" | "courses" ──

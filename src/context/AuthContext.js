@@ -81,9 +81,16 @@ export function AuthProvider({ children }) {
   }, [user?.email, refreshAccessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Load users and notifications from backend on mount ──
+  // Admin gets the full list (with cin_status, registered_at, etc.); everyone else gets public fields only.
   const fetchAccounts = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/users/public`);
+      const isAdmin = accessTokenRef.current && (() => {
+        try { return JSON.parse(atob(accessTokenRef.current.split('.')[1])).role === 'admin'; } catch { return false; }
+      })();
+      const url = isAdmin ? `${API}/users` : `${API}/users/public`;
+      const res = isAdmin
+        ? await authFetch(url)
+        : await fetch(url);
       const rows = await res.json();
       const map = {};
       if (Array.isArray(rows)) {
@@ -92,7 +99,7 @@ export function AuthProvider({ children }) {
       setAccounts(map);
       localStorage.setItem("fm_accounts", JSON.stringify(map));
     } catch (e) { console.error("fetchAccounts error:", e); }
-  }, []);
+  }, [authFetch]);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -380,7 +387,7 @@ export function AuthProvider({ children }) {
     if (extra.statusSeen         !== undefined) dbPatch.status_seen          = extra.statusSeen;
 
     try {
-      fetch(`${API}/users/${encodeURIComponent(key)}`, {
+      await authFetch(`${API}/users/${encodeURIComponent(key)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dbPatch),
