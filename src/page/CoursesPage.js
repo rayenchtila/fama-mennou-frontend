@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -351,9 +352,9 @@ function CourseCard({ course, onClick, onDeleted }) {
                   </button>
                 </div>
               )}
-              {confirmDel && (
-                <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20, overflowY:'auto' }}
-                  onClick={e => { e.stopPropagation(); setConfirmDel(false); }}>
+              {confirmDel && createPortal(
+                <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+                  onClick={() => setConfirmDel(false)}>
                   <div style={{ background:'#16142e', border:'1px solid rgba(248,113,113,0.3)', borderRadius:20, padding:'28px 24px 24px', maxWidth:360, width:'100%', position:'relative' }}
                     onClick={e => e.stopPropagation()}>
                     <button onClick={() => setConfirmDel(false)} style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:'#a7abc8', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>✕</button>
@@ -364,98 +365,63 @@ function CourseCard({ course, onClick, onDeleted }) {
                       <button onClick={handleDelete} disabled={deleting} style={{ flex:1, padding:'11px 0', borderRadius:12, border:'none', background:'#ef4444', color:'#fff', fontWeight:700, cursor:'pointer', fontSize:14, opacity:deleting?0.6:1, boxShadow:'0 4px 14px -4px rgba(239,68,68,0.6)' }}>{deleting ? t('Deleting…') : t('Delete')}</button>
                     </div>
                   </div>
-                </div>
+                </div>,
+                document.body
               )}
 
               {/* ── Edit Modal ── */}
-              {editOpen && (
-                <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'16px', overflowY:'auto' }}
-                  onClick={e => { e.stopPropagation(); setEditOpen(false); }}>
-                  <div style={{ background:'#0f1f1c', border:`1px solid rgba(94,234,212,0.22)`, borderRadius:22, padding:'clamp(20px,5vw,30px)', maxWidth:480, width:'100%', position:'relative', boxShadow:'0 24px 64px rgba(0,0,0,0.7)' }}
+              {editOpen && createPortal(
+                <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, overflowY:'auto' }}
+                  onClick={() => setEditOpen(false)}>
+                  <div style={{ background:'#0f1f1c', border:'1px solid rgba(94,234,212,0.22)', borderRadius:22, padding:'clamp(20px,5vw,30px)', maxWidth:480, width:'100%', position:'relative', boxShadow:'0 24px 64px rgba(0,0,0,0.7)', margin:'auto' }}
                     onClick={e => e.stopPropagation()}>
 
-                    {/* Header */}
                     <button onClick={() => setEditOpen(false)} style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:'#a7abc8', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>✕</button>
                     <p style={{ fontWeight:900, fontSize:'clamp(16px,4vw,19px)', color:'#edfaf8', marginBottom:4, paddingRight:36 }}>{t('Edit course')}</p>
 
-                    {/* One-time warning banner */}
                     <div style={{ display:'flex', alignItems:'center', gap:8, background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:10, padding:'9px 12px', marginBottom:20 }}>
                       <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#fbbf24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                       <span style={{ fontSize:12, color:'#fbbf24', fontWeight:600, lineHeight:1.4 }}>{t('You can only edit this course once. This action cannot be repeated.')}</span>
                     </div>
 
-                    {/* Fields */}
                     <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-
-                      {/* Title */}
                       <div>
                         <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Title')} *</label>
-                        <input
-                          value={editForm.title}
-                          onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
-                          maxLength={120}
+                        <input value={editForm.title} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))} maxLength={120}
                           style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
-                          onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'}
-                          onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'}
-                        />
+                          onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'} onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'} />
                       </div>
-
-                      {/* Description */}
                       <div>
                         <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Description')}</label>
-                        <textarea
-                          value={editForm.description}
-                          onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))}
-                          rows={3}
-                          maxLength={800}
+                        <textarea value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} rows={3} maxLength={800}
                           style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', resize:'vertical', minHeight:80, transition:'border-color .2s' }}
-                          onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'}
-                          onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'}
-                        />
+                          onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'} onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'} />
                       </div>
-
-                      {/* Category */}
                       <div>
                         <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Category')}</label>
-                        <select
-                          value={editForm.category}
-                          onChange={e => setEditForm(p => ({ ...p, category: e.target.value }))}
+                        <select value={editForm.category} onChange={e => setEditForm(p => ({ ...p, category: e.target.value }))}
                           style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'#0b1a17', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', cursor:'pointer' }}>
                           {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
-
-                      {/* Price + Discount row */}
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                         <div>
                           <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Price')} (TND)</label>
-                          <input
-                            type="number" min="0" step="0.01"
-                            value={editForm.full_price}
-                            onChange={e => setEditForm(p => ({ ...p, full_price: e.target.value }))}
+                          <input type="number" min="0" step="0.01" value={editForm.full_price} onChange={e => setEditForm(p => ({ ...p, full_price: e.target.value }))}
                             style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
-                            onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'}
-                            onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'}
-                          />
+                            onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'} onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'} />
                         </div>
                         <div>
                           <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Discount')} (%)</label>
-                          <input
-                            type="number" min="0" max="100" step="1"
-                            value={editForm.discount_pct}
-                            onChange={e => setEditForm(p => ({ ...p, discount_pct: e.target.value }))}
+                          <input type="number" min="0" max="100" step="1" value={editForm.discount_pct} onChange={e => setEditForm(p => ({ ...p, discount_pct: e.target.value }))}
                             style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
-                            onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'}
-                            onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'}
-                          />
+                            onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'} onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'} />
                         </div>
                       </div>
                     </div>
 
-                    {/* Error */}
                     {editError && <p style={{ fontSize:12.5, color:'#f87171', marginTop:12, fontWeight:600 }}>{editError}</p>}
 
-                    {/* Actions */}
                     <div style={{ display:'flex', gap:10, marginTop:20 }}>
                       <button onClick={() => setEditOpen(false)} style={{ flex:1, padding:'12px 0', borderRadius:12, border:'1px solid rgba(255,255,255,.12)', background:'transparent', color:'#a7abc8', fontWeight:600, cursor:'pointer', fontSize:14 }}>{t('Cancel')}</button>
                       <button onClick={handleEdit} disabled={editSaving} style={{ flex:2, padding:'12px 0', borderRadius:12, border:'none', background:'linear-gradient(135deg,#14b8a6,#0d9488)', color:'#fff', fontWeight:700, cursor:editSaving?'not-allowed':'pointer', fontSize:14, opacity:editSaving?0.65:1, boxShadow:'0 4px 14px -4px rgba(13,148,136,0.6)', transition:'opacity .2s' }}>
@@ -463,7 +429,8 @@ function CourseCard({ course, onClick, onDeleted }) {
                       </button>
                     </div>
                   </div>
-                </div>
+                </div>,
+                document.body
               )}
             </div>
           )}
