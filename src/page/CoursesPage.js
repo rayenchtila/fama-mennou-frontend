@@ -262,17 +262,30 @@ function CourseCard({ course, onClick, onDeleted }) {
             </span>
           )}
 
-          {/* 3-dot owner menu */}
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      <div style={{ padding:'16px 18px 18px', display:'flex', flexDirection:'column', gap:10, flex:1 }}>
+
+        {/* Title row + 3-dot menu */}
+        <div style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
+          <h3 style={{
+            flex:1, fontSize:15, fontWeight:800, color:C.text, margin:0,
+            lineHeight:1.38, letterSpacing:'-0.01em',
+            display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden',
+          }}>
+            {course.title}
+          </h3>
           {isOwner && (
-            <div style={{ position:'absolute', top:8, right: hasDisc ? 'auto' : 10, left: hasDisc ? 10 : 'auto' }}
-              onClick={e => e.stopPropagation()}>
+            <div style={{ position:'relative', flexShrink:0 }} onClick={e => e.stopPropagation()}>
               <button
                 onClick={e => { e.stopPropagation(); setMenuOpen(v => !v); }}
-                style={{ width:28, height:28, borderRadius:8, border:'none', background:'rgba(0,0,0,0.55)', backdropFilter:'blur(4px)', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:900, letterSpacing:1 }}>
+                style={{ width:28, height:28, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:C.muted, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:900, lineHeight:1 }}>
                 ⋮
               </button>
               {menuOpen && (
-                <div style={{ position:'absolute', top:32, left:0, background:'#1a1730', border:'1px solid rgba(255,255,255,.12)', borderRadius:10, overflow:'hidden', minWidth:130, boxShadow:'0 8px 24px rgba(0,0,0,.5)', zIndex:50 }}>
+                <div style={{ position:'absolute', top:32, right:0, background:'#1a1730', border:'1px solid rgba(255,255,255,.12)', borderRadius:10, overflow:'hidden', minWidth:140, boxShadow:'0 8px 24px rgba(0,0,0,.5)', zIndex:50 }}>
                   <button
                     onClick={e => { e.stopPropagation(); setMenuOpen(false); setConfirmDel(true); }}
                     style={{ width:'100%', padding:'10px 14px', border:'none', background:'transparent', color:'#f87171', fontSize:13, fontWeight:600, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:8 }}>
@@ -281,7 +294,6 @@ function CourseCard({ course, onClick, onDeleted }) {
                   </button>
                 </div>
               )}
-              {/* Confirm delete */}
               {confirmDel && (
                 <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
                   onClick={e => { e.stopPropagation(); setConfirmDel(false); }}>
@@ -299,19 +311,6 @@ function CourseCard({ course, onClick, onDeleted }) {
             </div>
           )}
         </div>
-      </div>
-
-      {/* ── Body ── */}
-      <div style={{ padding:'16px 18px 18px', display:'flex', flexDirection:'column', gap:10, flex:1 }}>
-
-        {/* Title */}
-        <h3 style={{
-          fontSize:15, fontWeight:800, color:C.text, margin:0,
-          lineHeight:1.38, letterSpacing:'-0.01em',
-          display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden',
-        }}>
-          {course.title}
-        </h3>
 
         {/* Instructor */}
         <div style={{ display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}
