@@ -152,6 +152,12 @@ function HeroSection() {
 
   const SEARCH_LABELS = [t('home.search.tab1'), t('home.search.tab2'), t('home.search.tab3')];
   const SEARCH_PLACEHOLDERS = [t('home.search.ph1'), t('home.search.ph2'), t('home.search.ph3')];
+  const TAB_COLORS = [
+    { bg: '#7c6cf6', glow: 'rgba(124,108,246,.7)', shadow: 'rgba(124,108,246,.45)' },
+    { bg: '#0ea5e9', glow: 'rgba(14,165,233,.7)',  shadow: 'rgba(14,165,233,.45)'  },
+    { bg: '#14b8a6', glow: 'rgba(20,184,166,.7)',  shadow: 'rgba(20,184,166,.45)'  },
+  ];
+  const activeColor = TAB_COLORS[typeIdx];
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -229,7 +235,7 @@ function HeroSection() {
           <div style={{ display: 'flex', gap: '5px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '13px', padding: '5px', marginBottom: '12px', maxWidth: '340px', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
             {SEARCH_LABELS.map((label, i) => (
               <button key={label} onClick={() => setTypeIdx(i)}
-                style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, borderRadius: '9px', transition: 'all .15s', background: typeIdx === i ? '#7c6cf6' : 'transparent', color: typeIdx === i ? '#fff' : '#a7abc8', boxShadow: typeIdx === i ? '0 4px 12px -4px rgba(124,108,246,.7)' : 'none' }}>
+                style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, borderRadius: '9px', transition: 'all .2s', background: typeIdx === i ? TAB_COLORS[i].bg : 'transparent', color: typeIdx === i ? '#fff' : '#a7abc8', boxShadow: typeIdx === i ? `0 4px 12px -4px ${TAB_COLORS[i].glow}` : 'none' }}>
                 {label}
               </button>
             ))}
@@ -237,7 +243,7 @@ function HeroSection() {
           {/* Input */}
           <form onSubmit={handleSearch}
             style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#15122c', border: '1px solid rgba(255,255,255,.1)', borderRadius: '14px', padding: '7px 7px 7px 16px', boxShadow: '0 18px 44px -18px rgba(0,0,0,.7)' }}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7e82a0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flex: 'none' }}>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={activeColor.bg} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flex: 'none', transition: 'stroke .2s' }}>
               <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
             </svg>
             <input
@@ -246,7 +252,7 @@ function HeroSection() {
               style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#f4f3fb', fontFamily: 'inherit', fontSize: '15px' }}
             />
             <button type="submit"
-              style={{ padding: '11px 22px', borderRadius: '10px', background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', flex: 'none', boxShadow: '0 6px 16px -5px rgba(124,108,246,.7)' }}>
+              style={{ padding: '11px 22px', borderRadius: '10px', background: activeColor.bg, color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', flex: 'none', boxShadow: `0 6px 16px -5px ${activeColor.glow}`, transition: 'background .2s, box-shadow .2s' }}>
               {t('home.search.btn')}
             </button>
           </form>
