@@ -301,9 +301,9 @@ function HeroSection() {
 function ActionCardsSection() {
   const { t } = useTranslation();
   const cards = [
-    { to: '/freelancers', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, title: t('home.ac.hire.title'), desc: t('home.ac.hire.desc'), cta: t('home.ac.hire.cta') },
-    { to: '/clients',     icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>, title: t('home.ac.client.title'), desc: t('home.ac.client.desc'), cta: t('home.ac.client.cta') },
-    { to: '/courses',     icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, title: t('home.ac.learn.title'), desc: t('home.ac.learn.desc'), cta: t('home.ac.learn.cta') },
+    { to: '/freelancers', color: '#7c6cf6', colorDim: 'rgba(124,108,246,.16)', colorBd: 'rgba(124,108,246,.3)',  colorLight: '#b9aeff', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, title: t('home.ac.hire.title'), desc: t('home.ac.hire.desc'), cta: t('home.ac.hire.cta') },
+    { to: '/clients',     color: '#0ea5e9', colorDim: 'rgba(14,165,233,.16)',  colorBd: 'rgba(14,165,233,.3)',   colorLight: '#38bdf8', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>, title: t('home.ac.client.title'), desc: t('home.ac.client.desc'), cta: t('home.ac.client.cta') },
+    { to: '/courses',     color: '#14b8a6', colorDim: 'rgba(20,184,166,.16)',  colorBd: 'rgba(20,184,166,.3)',   colorLight: '#5eead4', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, title: t('home.ac.learn.title'), desc: t('home.ac.learn.desc'), cta: t('home.ac.learn.cta') },
   ];
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '16px' }}>
@@ -314,16 +314,16 @@ function ActionCardsSection() {
             transition={{ duration: 0.5, delay: i * 0.1 }}>
             <Link to={card.to}
               style={{ ...CARD_STYLE, padding: '26px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: '14px', textDecoration: 'none', transition: 'box-shadow .18s,transform .18s,border-color .18s' }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = card.colorBd; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
-              <span style={{ width: '48px', height: '48px', borderRadius: '13px', background: 'rgba(124,108,246,.16)', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b9aeff' }}>
+              <span style={{ width: '48px', height: '48px', borderRadius: '13px', background: card.colorDim, border: `1px solid ${card.colorBd}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: card.colorLight }}>
                 {card.icon}
               </span>
               <div>
                 <div style={{ fontWeight: 700, fontSize: '18px', color: '#fbfbff', marginBottom: '5px' }}>{card.title}</div>
                 <div style={{ fontSize: '14px', color: '#a7abc8', lineHeight: 1.5 }}>{card.desc}</div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13.5px', fontWeight: 600, color: '#b9aeff', marginTop: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13.5px', fontWeight: 600, color: card.colorLight, marginTop: 'auto' }}>
                 {card.cta} <ChevronRight />
               </div>
             </Link>
