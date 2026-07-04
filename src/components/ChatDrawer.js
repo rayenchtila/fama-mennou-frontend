@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
-import { supabase } from '../lib/supabaseClient';
 import { cldImg } from '../utils/cloudinary';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
@@ -118,13 +117,6 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
 
   useEffect(() => {
     fetchUsers();
-    const channel = supabase
-      .channel('chatdrawer-users-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
-        fetchUsers();
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
   }, [fetchUsers]);
 
   // ── Conversations ──────────────────────────────────────────────────────────
