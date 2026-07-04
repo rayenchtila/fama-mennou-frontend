@@ -1193,7 +1193,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     client:     { bg: '#0ea5e9', glow: 'rgba(14,165,233,.5)',   light: '#38bdf8' },
     freelancer: { bg: '#7c6cf6', glow: 'rgba(124,108,246,.5)', light: '#9b8cff' },
   };
-  const roleColor = ROLE_COLORS[role] || ROLE_COLORS.freelancer;
+  const roleColor = mode === 'login' ? ROLE_COLORS.freelancer : (ROLE_COLORS[role] || ROLE_COLORS.freelancer);
   const roleIdx   = role === 'client' ? 0 : 1;
 
   const loginTitle = (
