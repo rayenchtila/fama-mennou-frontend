@@ -69,7 +69,7 @@ export function AuthProvider({ children }) {
   // but the 7-day httpOnly cookie survives and can re-issue a new access token.
   useEffect(() => {
     if (user) {
-      refreshAccessToken();
+      refreshAccessToken().then(() => fetchAccounts());
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
