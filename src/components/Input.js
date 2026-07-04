@@ -8,6 +8,7 @@ const Input = forwardRef(
       label,
       error,
       hint,
+      hintColor,
       leftIcon,
       rightIcon,
       type = "text",
@@ -123,7 +124,7 @@ const Input = forwardRef(
         )}
 
         {hint && !error && (
-          <p className="text-xs" style={{ color: "#9b8cff", opacity: 0.75 }}>{hint}</p>
+          <p className="text-xs" style={{ color: hintColor || "#9b8cff", opacity: 0.75, transition: 'color 0.25s ease' }}>{hint}</p>
         )}
       </div>
     );
