@@ -83,7 +83,7 @@ export function AuthProvider({ children }) {
   // ── Load users and notifications from backend on mount ──
   const fetchAccounts = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/users`);
+      const res = await fetch(`${API}/users/public`);
       const rows = await res.json();
       const map = {};
       if (Array.isArray(rows)) {

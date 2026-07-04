@@ -101,7 +101,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
   // ── Users map ──────────────────────────────────────────────────────────────
   const fetchUsers = useCallback(async () => {
     try {
-      const data = await fetch(`${API}/users`).then(r => r.json());
+      const data = await fetch(`${API}/users/public`).then(r => r.json());
       if (Array.isArray(data)) {
         const m = {};
         data.forEach(u => { if (u.email) m[u.email.toLowerCase()] = u; });
