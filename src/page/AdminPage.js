@@ -1,7 +1,7 @@
 // src/page/AdminPage.js
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import MessengerChat from "../components/MessengerChat";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
@@ -348,7 +348,7 @@ function AllUsersTable({ allUsers, search }) {
               <Avatar name={u.name} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                  <p className="font-bold text-slate-900 dark:text-white text-sm">{u.name}</p>
+                  <Link to={`/profile/${encodeURIComponent(u.email)}`} className="font-bold text-sm no-underline hover:underline" style={{ color: u.role === 'client' ? '#0ea5e9' : '#9b8cff' }}>{u.name}</Link>
                   {(u.role === "freelancer" || u.role === "client") && <StatusBadge status={status} />}
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${u.role === "client" ? "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800" : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"}`}>
                     {u.role === "client"
