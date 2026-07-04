@@ -68,14 +68,14 @@ export function AuthProvider({ children }) {
   // This handles page refresh — token is in-memory and lost on refresh,
   // but the 7-day httpOnly cookie survives and can re-issue a new access token.
   useEffect(() => {
-    if (user && !user.isAdmin) {
+    if (user) {
       refreshAccessToken();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-refresh every 13 minutes (access token expires at 15 min)
   useEffect(() => {
-    if (!user || user.isAdmin) return;
+    if (!user) return;
     const id = setInterval(refreshAccessToken, 13 * 60 * 1000);
     return () => clearInterval(id);
   }, [user?.email, refreshAccessToken]); // eslint-disable-line react-hooks/exhaustive-deps
