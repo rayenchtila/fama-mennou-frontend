@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { supabase } from '../lib/supabaseClient';
 import { cldImg } from '../utils/cloudinary';
@@ -77,6 +78,7 @@ function ReadTick({ read, online }) {
 
 export default function ChatDrawer({ user, initialEmail, onClose }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [usersMap,       setUsersMap]       = useState({});
   const [conversations,  setConversations]  = useState([]);
   const [selectedChat,   setSelectedChat]   = useState(initialEmail || null);
@@ -89,11 +91,15 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
   const [showList,       setShowList]       = useState(false);
   const [sending,        setSending]        = useState(false);
   const [visible,        setVisible]        = useState(false);
+  const [otherTyping,    setOtherTyping]    = useState(false);
 
-  const msgBoxRef    = useRef();
-  const inputRef     = useRef();
-  const convPollRef  = useRef();
-  const msgPollRef   = useRef();
+  const msgBoxRef        = useRef();
+  const inputRef         = useRef();
+  const convPollRef      = useRef();
+  const msgPollRef       = useRef();
+  const typingTimeoutRef = useRef(null);
+  const typingPollRef    = useRef(null);
+  const isTypingRef      = useRef(false);
 
   // Animate in
   useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
@@ -178,10 +184,66 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
     return () => document.removeEventListener('click', handler);
   }, []);
 
+  // ── Typing indicator ───────────────────────────────────────────────────────
+  const clearTyping = useCallback(() => {
+    if (!isTypingRef.current) return;
+    isTypingRef.current = false;
+    fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ typing_to: null, typing_at: null }),
+    }).catch(() => {});
+  }, [user.email]);
+
+  const handleMsgChange = useCallback((e) => {
+    setNewMsg(e.target.value);
+    if (!selectedChat) return;
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ typing_to: selectedChat, typing_at: new Date().toISOString() }),
+      }).catch(() => {});
+    }
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(clearTyping, 3000);
+  }, [selectedChat, user.email, clearTyping]);
+
+  // Poll other user's typing status every 2.5s while in a chat
+  useEffect(() => {
+    if (!selectedChat) { setOtherTyping(false); return; }
+    const check = async () => {
+      try {
+        const d = await fetch(`${API}/users/${encodeURIComponent(selectedChat)}/typing-status`).then(r => r.json());
+        const typing = d.typing_to === user.email?.toLowerCase()
+          && d.typing_at
+          && (Date.now() - new Date(d.typing_at).getTime() < 5000);
+        setOtherTyping(!!typing);
+      } catch { setOtherTyping(false); }
+    };
+    check();
+    typingPollRef.current = setInterval(check, 2500);
+    return () => { clearInterval(typingPollRef.current); setOtherTyping(false); };
+  }, [selectedChat, user.email]);
+
+  // Clear my typing state when drawer unmounts or chat changes
+  useEffect(() => { return () => { clearTimeout(typingTimeoutRef.current); clearTyping(); }; }, [clearTyping]);
+  useEffect(() => { clearTimeout(typingTimeoutRef.current); clearTyping(); }, [selectedChat, clearTyping]); // eslint-disable-line
+
+  // ── Profile navigation ─────────────────────────────────────────────────────
+  function goToProfile(email) {
+    if (!email) return;
+    handleClose();
+    setTimeout(() => navigate(`/profile/${encodeURIComponent(email)}`), 290);
+  }
+
   // ── Actions ────────────────────────────────────────────────────────────────
   async function sendMsg() {
     const content = newMsg.trim();
     if (!content || !selectedChat || sending) return;
+    clearTimeout(typingTimeoutRef.current);
+    clearTyping();
     setSending(true);
     setNewMsg('');
     try {
@@ -252,13 +314,27 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
                 </svg>
               </button>
-              <Avi user={otherUser || { email: selectedChat }} size="md" online={otherStat.online} />
+              <button onClick={() => goToProfile(selectedChat)} className="rounded-xl shrink-0 hover:opacity-80 transition-opacity">
+                <Avi user={otherUser || { email: selectedChat }} size="md" online={otherStat.online} />
+              </button>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                  {otherUser?.name || selectedChat}
-                </p>
-                <p className={`text-[11px] font-semibold ${otherStat.online ? 'text-emerald-500' : 'text-slate-400'}`}>
-                  {otherStat.text}
+                <button onClick={() => goToProfile(selectedChat)} className="block text-left hover:underline">
+                  <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                    {otherUser?.name || selectedChat}
+                  </p>
+                </button>
+                <p className={`text-[11px] font-semibold ${otherTyping ? 'text-indigo-500' : otherStat.online ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  {otherTyping ? (
+                    <span className="flex items-center gap-1">
+                      {t('chd.typing')}
+                      <span className="flex gap-[3px] items-center">
+                        {[0,1,2].map(i => (
+                          <span key={i} style={{ animationDelay: `${i * 0.18}s` }}
+                            className="w-[3px] h-[3px] rounded-full bg-indigo-500 inline-block animate-bounce" />
+                        ))}
+                      </span>
+                    </span>
+                  ) : otherStat.text}
                 </p>
               </div>
             </>
@@ -335,9 +411,10 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                   <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${isFirst ? 'mt-3' : 'mt-[2px]'}`}>
 
                     {!isMine && (
-                      <div className={`mr-1.5 self-end mb-1 ${!isLast ? 'opacity-0 pointer-events-none' : ''}`}>
+                      <button onClick={() => goToProfile(selectedChat)}
+                        className={`mr-1.5 self-end mb-1 hover:opacity-80 transition-opacity ${!isLast ? 'opacity-0 pointer-events-none' : ''}`}>
                         <Avi user={otherUser || { email: selectedChat }} size="sm" />
-                      </div>
+                      </button>
                     )}
 
                     <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[78%]`}>
@@ -423,11 +500,24 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
               );
             })()}
 
+            {/* Typing indicator bubble */}
+            {otherTyping && (
+              <div className="px-4 pb-1 flex items-center gap-2 shrink-0">
+                <Avi user={otherUser || { email: selectedChat }} size="sm" />
+                <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-bl-md px-3.5 py-2.5 shadow-sm flex items-center gap-[5px]">
+                  {[0,1,2].map(i => (
+                    <span key={i} style={{ animationDelay: `${i * 0.2}s`, width:7, height:7 }}
+                      className="rounded-full bg-slate-400 dark:bg-slate-500 inline-block animate-bounce" />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Input */}
             <div className="px-3 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2 items-end shrink-0">
               <input ref={inputRef}
                 value={newMsg}
-                onChange={e => setNewMsg(e.target.value)}
+                onChange={handleMsgChange}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
                 onClick={() => setOpenMenuId(null)}
                 placeholder={t('chd.message_to', { name: otherUser?.name?.split(' ')[0] || '…' })}
