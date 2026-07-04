@@ -232,10 +232,23 @@ function HeroSection() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
           style={{ maxWidth: '640px', margin: '0 auto', width: '100%' }}>
           {/* Type tabs */}
-          <div style={{ display: 'flex', gap: '5px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '13px', padding: '5px', marginBottom: '12px', maxWidth: '340px', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
+          <div style={{ position: 'relative', display: 'flex', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '13px', padding: '5px', marginBottom: '12px', maxWidth: '340px', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
+            {/* Sliding pill */}
+            <div style={{
+              position: 'absolute',
+              top: '5px', bottom: '5px',
+              left: '5px',
+              width: 'calc((100% - 10px) / 3)',
+              borderRadius: '9px',
+              background: TAB_COLORS[typeIdx].bg,
+              boxShadow: `0 4px 14px -4px ${TAB_COLORS[typeIdx].glow}`,
+              transform: `translateX(calc(${typeIdx} * 100%))`,
+              transition: 'transform 0.35s cubic-bezier(0.34,1.36,0.64,1), background 0.25s ease, box-shadow 0.25s ease',
+              pointerEvents: 'none',
+            }} />
             {SEARCH_LABELS.map((label, i) => (
               <button key={label} onClick={() => setTypeIdx(i)}
-                style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, borderRadius: '9px', transition: 'all .2s', background: typeIdx === i ? TAB_COLORS[i].bg : 'transparent', color: typeIdx === i ? '#fff' : '#a7abc8', boxShadow: typeIdx === i ? `0 4px 12px -4px ${TAB_COLORS[i].glow}` : 'none' }}>
+                style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, borderRadius: '9px', background: 'transparent', position: 'relative', zIndex: 1, transition: 'color 0.2s ease', color: typeIdx === i ? '#fff' : '#a7abc8' }}>
                 {label}
               </button>
             ))}
