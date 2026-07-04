@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { cldImg } from '../utils/cloudinary';
 
@@ -120,7 +121,13 @@ function ImageViewer({ src, onClose }) {
 
 export default function MessengerChat({ currentUser, allUsers = [], initialChat = null }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const senderEmail = currentUser?.isAdmin ? ADMIN_EMAIL : (currentUser?.email || '');
+
+  function goToProfile(email) {
+    if (!email || email === ADMIN_EMAIL) return;
+    navigate(`/profile/${encodeURIComponent(email)}`);
+  }
 
   // mobile: 'list' | 'chat' — single-panel toggle on small screens
   const [mobileSide, setMobileSide] = useState(initialChat ? 'chat' : 'list');
@@ -827,11 +834,21 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               </svg>
             </button>
 
-            <UserAvatar user={otherUser} size="md" online={otherStatus.online} />
+            <button
+              onClick={() => goToProfile(selectedChat)}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: selectedChat !== ADMIN_EMAIL ? 'pointer' : 'default', borderRadius: '50%' }}
+            >
+              <UserAvatar user={otherUser} size="md" online={otherStatus.online} />
+            </button>
             <div className="flex-1 min-w-0">
-              <p className="font-bold truncate text-sm" style={{ color: '#fbfbff', letterSpacing: '-0.01em' }}>
-                {otherUser?.name || selectedChat}
-              </p>
+              <button
+                onClick={() => goToProfile(selectedChat)}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: selectedChat !== ADMIN_EMAIL ? 'pointer' : 'default', textAlign: 'left', maxWidth: '100%' }}
+              >
+                <p className="font-bold truncate text-sm" style={{ color: '#fbfbff', letterSpacing: '-0.01em' }}>
+                  {otherUser?.name || selectedChat}
+                </p>
+              </button>
               <p className="text-xs font-medium flex items-center gap-1.5" style={{ color: otherStatus.online ? '#34d399' : '#62668a' }}>
                 {otherTyping
                   ? <><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#9b8cff', display: 'inline-block' }} className="animate-pulse" /><span style={{ color: '#9b8cff' }}>{t('mgc.typing')}</span></>
@@ -948,7 +965,14 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                         {/* Avatar slot for received messages */}
                         {!isMine && (
                           <div className="w-7 sm:w-8 shrink-0 self-end mb-0.5">
-                            {isLast && <UserAvatar user={groupUser} size="sm" />}
+                            {isLast && (
+                              <button
+                                onClick={() => goToProfile(group.sender)}
+                                style={{ background: 'none', border: 'none', padding: 0, cursor: group.sender !== ADMIN_EMAIL ? 'pointer' : 'default', borderRadius: '50%', display: 'block' }}
+                              >
+                                <UserAvatar user={groupUser} size="sm" />
+                              </button>
+                            )}
                           </div>
                         )}
 
