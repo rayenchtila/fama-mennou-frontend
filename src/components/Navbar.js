@@ -300,6 +300,11 @@ export default function Navbar({ onLogin }) {
   }, [location.pathname]);
 
   useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  useEffect(() => {
     const fn = e => { if (profRef.current && !profRef.current.contains(e.target)) setProfOpen(false); };
     document.addEventListener("mousedown", fn);
     return () => document.removeEventListener("mousedown", fn);
