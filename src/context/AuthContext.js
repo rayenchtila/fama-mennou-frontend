@@ -80,18 +80,20 @@ export function AuthProvider({ children }) {
     return () => clearInterval(id);
   }, [user?.email, refreshAccessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Load users and notifications from backend on mount ──
-  // Admin gets the full list (with cin_status, registered_at, etc.); everyone else gets public fields only.
+  // ── Load users ──
+  // If a valid admin token exists → /users (full data incl. cin_status, registered_at…)
+  // Otherwise → /users/public (safe public fields only)
   const fetchAccounts = useCallback(async () => {
     try {
-      const isAdmin = accessTokenRef.current && (() => {
-        try { return JSON.parse(atob(accessTokenRef.current.split('.')[1])).role === 'admin'; } catch { return false; }
-      })();
-      const url = isAdmin ? `${API}/users` : `${API}/users/public`;
-      const res = isAdmin
-        ? await authFetch(url)
-        : await fetch(url);
-      const rows = await res.json();
+      let rows = null;
+      if (accessTokenRef.current) {
+        const r = await authFetch(`${API}/users`);
+        if (r.ok) rows = await r.json();
+      }
+      if (!rows) {
+        const r = await fetch(`${API}/users/public`);
+        rows = await r.json();
+      }
       const map = {};
       if (Array.isArray(rows)) {
         rows.forEach(r => { if (r?.email) map[r.email.toLowerCase()] = normalizeUser(r); });
