@@ -802,8 +802,11 @@ export default function Navbar({ onLogin }) {
                   <>
                     <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>Admin</p>
                     {[
-                      { label: t("Dashboard"),      to: "/admin/dashboard", icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, color: "#7c6cf6" },
-                      { label: t("msg.page_title"), to: "/messages",        icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
+                      { label: t("Dashboard"),             to: "/admin/dashboard", icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, color: "#7c6cf6" },
+                      { label: t("msg.page_title"),        to: "/messages",        icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
+                      { label: t('home.ac.hire.title'),    to: "/freelancers",     icon: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></>, color: "#9b8cff" },
+                      { label: t('home.ac.client.title'),  to: "/clients",         icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#0ea5e9" },
+                      { label: t('Courses'),               to: "/courses",         icon: <><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></>, color: "#10b981" },
                     ].map(item => {
                       const active = location.pathname === item.to;
                       return (
