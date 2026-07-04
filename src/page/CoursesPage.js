@@ -156,10 +156,23 @@ const IcX = () => (
 /* ══════════════════════════════════════════════════════════════════
    Course Card
    ══════════════════════════════════════════════════════════════════ */
-function CourseCard({ course, onClick }) {
+function CourseCard({ course, onClick, onDeleted }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [hov, setHov] = useState(false);
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [deleting, setDeleting]   = useState(false);
+  const isOwner = user && course.creator_email && user.email === course.creator_email;
+
+  async function handleDelete() {
+    setDeleting(true);
+    await fetch(`${API}/courses/${course.id}`, { method: 'DELETE' });
+    setDeleting(false);
+    setConfirmDel(false);
+    onDeleted?.(course.id);
+  }
   const full       = Number(course.full_price||0);
   const pct        = Number(course.discount_pct||0);
   const final      = pct > 0 ? full*(1-pct/100) : full;
@@ -247,6 +260,43 @@ function CourseCard({ course, onClick }) {
             }}>
               -{pct}%
             </span>
+          )}
+
+          {/* 3-dot owner menu */}
+          {isOwner && (
+            <div style={{ position:'absolute', top:8, right: hasDisc ? 'auto' : 10, left: hasDisc ? 10 : 'auto' }}
+              onClick={e => e.stopPropagation()}>
+              <button
+                onClick={e => { e.stopPropagation(); setMenuOpen(v => !v); }}
+                style={{ width:28, height:28, borderRadius:8, border:'none', background:'rgba(0,0,0,0.55)', backdropFilter:'blur(4px)', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:900, letterSpacing:1 }}>
+                ⋮
+              </button>
+              {menuOpen && (
+                <div style={{ position:'absolute', top:32, left:0, background:'#1a1730', border:'1px solid rgba(255,255,255,.12)', borderRadius:10, overflow:'hidden', minWidth:130, boxShadow:'0 8px 24px rgba(0,0,0,.5)', zIndex:50 }}>
+                  <button
+                    onClick={e => { e.stopPropagation(); setMenuOpen(false); setConfirmDel(true); }}
+                    style={{ width:'100%', padding:'10px 14px', border:'none', background:'transparent', color:'#f87171', fontSize:13, fontWeight:600, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:8 }}>
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                    {t('Delete course')}
+                  </button>
+                </div>
+              )}
+              {/* Confirm delete */}
+              {confirmDel && (
+                <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+                  onClick={e => { e.stopPropagation(); setConfirmDel(false); }}>
+                  <div style={{ background:'#16142e', border:'1px solid rgba(248,113,113,0.3)', borderRadius:18, padding:28, maxWidth:340, width:'100%' }}
+                    onClick={e => e.stopPropagation()}>
+                    <p style={{ fontWeight:800, fontSize:16, color:'#fbfbff', marginBottom:8 }}>{t('Delete this course?')}</p>
+                    <p style={{ fontSize:13, color:'#a7abc8', marginBottom:22 }}>{t('This action cannot be undone.')}</p>
+                    <div style={{ display:'flex', gap:10 }}>
+                      <button onClick={() => setConfirmDel(false)} style={{ flex:1, padding:'10px 0', borderRadius:12, border:'1px solid rgba(255,255,255,.12)', background:'transparent', color:'#a7abc8', fontWeight:600, cursor:'pointer' }}>{t('Cancel')}</button>
+                      <button onClick={handleDelete} disabled={deleting} style={{ flex:1, padding:'10px 0', borderRadius:12, border:'none', background:'#ef4444', color:'#fff', fontWeight:700, cursor:'pointer', opacity:deleting?0.6:1 }}>{deleting ? t('Deleting…') : t('Delete')}</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -669,7 +719,7 @@ export default function CoursesPage() {
           ) : (
             <div className="csp-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:24 }}>
               {courses.map(c => (
-                <CourseCard key={c.id} course={c} onClick={() => navigate(`/courses/${c.id}`)} />
+                <CourseCard key={c.id} course={c} onClick={() => navigate(`/courses/${c.id}`)} onDeleted={id => setCourses(prev => prev.filter(x => x.id !== id))} />
               ))}
             </div>
           )}
