@@ -278,33 +278,9 @@ function AppInner() {
           <Routes location={location}>
             <Route path="/" element={<Home />} />
 
-            <Route
-              path="/freelancers"
-              element={
-                <PrivateRoute onLogin={handleLogin}>
-                  <FreelancersPage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="/clients"
-              element={
-                <PrivateRoute onLogin={handleLogin}>
-                  <ClientsPage />
-                </PrivateRoute>
-              }
-            />
-
-
-            <Route
-              path="/courses"
-              element={
-                <PrivateRoute onLogin={handleLogin}>
-                  <CoursesPage />
-                </PrivateRoute>
-              }
-            />
+            <Route path="/freelancers" element={<FreelancersPage />} />
+            <Route path="/clients"    element={<ClientsPage />} />
+            <Route path="/courses"    element={<CoursesPage />} />
 
             <Route
               path="/courses/:id"
