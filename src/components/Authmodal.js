@@ -1,5 +1,6 @@
 // src/components/AuthModal.jsx
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import Modal from "./Modal";
 import Input from "./Input";
 import Button from "./Button";
@@ -1704,9 +1705,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           {mode === "login" && (
             <p className="mt-3 text-center text-xs" style={{ color: '#62668a' }}>
               {t("By continuing you agree to our")}{" "}
-              <span style={{ color: '#9b8cff' }}>{t("Terms")}</span>
+              <Link to="/terms" style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Terms")}</Link>
               {" "}{t("and")}{" "}
-              <span style={{ color: '#9b8cff' }}>{t("Privacy Policy")}</span>
+              <Link to="/privacy" style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Privacy Policy")}</Link>
             </p>
           )}
         </>
