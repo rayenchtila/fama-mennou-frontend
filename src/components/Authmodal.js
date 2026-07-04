@@ -1705,9 +1705,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           {mode === "login" && (
             <p className="mt-3 text-center text-xs" style={{ color: '#62668a' }}>
               {t("By continuing you agree to our")}{" "}
-              <Link to="/terms" style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Terms")}</Link>
+              <Link to="/terms" onClick={onClose} style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Terms")}</Link>
               {" "}{t("and")}{" "}
-              <Link to="/privacy" style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Privacy Policy")}</Link>
+              <Link to="/privacy" onClick={onClose} style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Privacy Policy")}</Link>
             </p>
           )}
         </>
