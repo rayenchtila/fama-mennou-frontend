@@ -1492,8 +1492,6 @@ function AdminGainsTab({ API }) {
             {commissions.map(c => {
               const info = TYPE_INFO[c.payment_type] || TYPE_INFO.freelancer;
               const dateStr = new Date(c.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' });
-              const fromName = c.payer_name || c.payer_email || '—';
-              const toName   = c.freelancer_name || c.freelancer_email || '—';
               return (
                 <div key={c.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
                   <div className="flex justify-between items-start gap-3">
@@ -1503,8 +1501,8 @@ function AdminGainsTab({ API }) {
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{c.description || info.label}</p>
                         <p className="text-xs text-slate-400 mt-0.5">
                           {c.payment_type === 'freelancer'
-                            ? <>{t('adm.client_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{fromName}</span> → {t('adm.freelance_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{toName}</span></>
-                            : <>{t('adm.buyer_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{fromName}</span></>
+                            ? <>{t('adm.client_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{c.payer_name || '—'}</span>{c.payer_email && <span className="text-slate-400"> ({c.payer_email})</span>} → {t('adm.freelance_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{c.freelancer_name || '—'}</span>{c.freelancer_email && <span className="text-slate-400"> ({c.freelancer_email})</span>}</>
+                            : <>{t('adm.buyer_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{c.payer_name || '—'}</span>{c.payer_email && <span className="text-slate-400"> ({c.payer_email})</span>}</>
                           }
                         </p>
                         <p className="text-xs text-slate-400">{dateStr}</p>
@@ -2288,7 +2286,7 @@ export default function AdminPage() {
                               </span>
                             </div>
 
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || '—'}</span>{course.creator_email && <span className="text-slate-400"> · {course.creator_email}</span>}</p>
 
                             <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
                               <span className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>{course.category}</span>
@@ -2582,7 +2580,7 @@ export default function AdminPage() {
                             {course.status === 'approved' ? t('admin.status.approved') : course.status === 'rejected' ? t('admin.status.rejected') : t('admin.status.pending')}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || course.creator_email}</span></p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{t('cc.by_label')} <span className="font-semibold text-slate-700 dark:text-slate-300">{course.instructor_name || '—'}</span>{course.creator_email && <span className="text-slate-400"> · {course.creator_email}</span>}</p>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">
                             <span className="flex items-center gap-1"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>{t('adm.buyers_count', { count: course.total_buyers ?? 0 })}</span>
@@ -3071,14 +3069,16 @@ export default function AdminPage() {
                       <tr key={p.id} className="border-b border-slate-50 dark:border-slate-800/60 last:border-0">
                         <td className="px-3 py-3 font-semibold text-sm text-slate-700 dark:text-slate-200 whitespace-nowrap">{p.title}</td>
                         <td className="px-3 py-3 whitespace-nowrap">
-                          <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.client_email)}`)} className="text-indigo-500 font-medium text-sm text-left">
-                            {p.client_name || p.client_email}
+                          <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.client_email)}`)} className="text-left">
+                            <p className="text-indigo-500 font-semibold text-sm">{p.client_name || '—'}</p>
+                            <p className="text-slate-400 text-xs">{p.client_email}</p>
                           </button>
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           {p.freelancer_email ? (
-                            <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.freelancer_email)}`)} className="text-indigo-500 font-medium text-sm text-left">
-                              {p.freelancer_name || p.freelancer_email}
+                            <button onClick={() => navigate(`/admin/dashboard?tab=chat&with=${encodeURIComponent(p.freelancer_email)}`)} className="text-left">
+                              <p className="text-indigo-500 font-semibold text-sm">{p.freelancer_name || '—'}</p>
+                              <p className="text-slate-400 text-xs">{p.freelancer_email}</p>
                             </button>
                           ) : <span className="text-slate-400 text-sm">-</span>}
                         </td>
