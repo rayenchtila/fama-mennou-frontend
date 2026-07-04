@@ -1,24 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/png" href="%PUBLIC_URL%/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0a0817" />
-    <meta name="description" content="FamaMennou — Connect Freelancers, Clients & Courses in Tunisia" />
 
-    <!-- GEO signals — Tunisia location -->
+    <!-- Primary SEO -->
+    <title>FamaMennou — Plateforme Freelance & Cours en Tunisie</title>
+    <meta name="description" content="FamaMennou est la première plateforme freelance tunisienne. Embauchez des freelancers vérifiés, trouvez des clients, et apprenez de nouvelles compétences en ligne. Projets, missions, et formations en Tunisie." />
+    <meta name="keywords" content="freelance tunisie, plateforme freelance, travailler en ligne tunisie, missions freelance, cours en ligne tunisie, famamennou, hire freelancers tunisia, clients tunisie" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="FamaMennou" />
+    <link rel="canonical" href="https://famamennou.tn/" />
+
+    <!-- GEO signals — Tunisia -->
     <meta name="geo.region" content="TN" />
     <meta name="geo.placename" content="Tunis, Tunisia" />
     <meta name="geo.position" content="36.8065;10.1815" />
     <meta name="ICBM" content="36.8065, 10.1815" />
-
-    <!-- Language -->
     <meta http-equiv="content-language" content="fr, ar, en" />
-    <meta name="language" content="French, Arabic" />
+
+    <!-- Open Graph (Facebook, LinkedIn, WhatsApp previews) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FamaMennou" />
+    <meta property="og:title" content="FamaMennou — Plateforme Freelance & Cours en Tunisie" />
+    <meta property="og:description" content="Embauchez des freelancers vérifiés, trouvez des clients, et développez vos compétences. La première plateforme freelance tout-en-un en Tunisie." />
+    <meta property="og:url" content="https://famamennou.tn/" />
+    <meta property="og:image" content="https://famamennou.tn/logo.png" />
+    <meta property="og:locale" content="fr_TN" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FamaMennou — Plateforme Freelance & Cours en Tunisie" />
+    <meta name="twitter:description" content="Embauchez des freelancers vérifiés, trouvez des clients, et développez vos compétences. La première plateforme freelance tout-en-un en Tunisie." />
+    <meta name="twitter:image" content="https://famamennou.tn/logo.png" />
+
+    <!-- JSON-LD Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "FamaMennou",
+      "alternateName": "Fama Mennou Platform",
+      "description": "Plateforme freelance tunisienne — embauchez des freelancers vérifiés, trouvez des clients, et apprenez en ligne.",
+      "url": "https://famamennou.tn",
+      "logo": "https://famamennou.tn/logo.png",
+      "foundingLocation": {
+        "@type": "Place",
+        "name": "Tunis, Tunisie"
+      },
+      "areaServed": "TN",
+      "serviceType": ["Freelance marketplace", "Online courses", "Project management"]
+    }
+    </script>
+
+    <!-- JSON-LD Structured Data: WebSite (enables Google sitelinks search box) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "FamaMennou",
+      "url": "https://famamennou.tn",
+      "description": "Première plateforme freelance & cours en ligne en Tunisie",
+      "inLanguage": ["fr", "ar", "en"],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://famamennou.tn/freelancers?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>FamaMennou</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
