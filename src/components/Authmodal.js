@@ -1219,14 +1219,14 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     isClient ? (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
         {t("Join as a client")}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#7c6cf6', flexShrink: 0 }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: roleColor.bg, flexShrink: 0 }}>
           <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
         </svg>
       </span>
     ) : (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
         {t("Join as a freelancer")}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#7c6cf6', flexShrink: 0 }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: roleColor.bg, flexShrink: 0 }}>
           <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
         </svg>
       </span>
