@@ -45,6 +45,7 @@ function StatusBadge({ status }) {
 
 function CINImageModal({ user, onClose }) {
   const { t } = useTranslation();
+  const { authFetch } = useAuth();
   const [side, setSide] = useState("front");
   const [cinData, setCinData] = useState({ cin_front: null, cin_back: null });
   const [cinLoading, setCinLoading] = useState(true);
@@ -52,11 +53,11 @@ function CINImageModal({ user, onClose }) {
 
   React.useEffect(() => {
     setCinLoading(true);
-    fetch(`${API_URL}/users/${encodeURIComponent(user.email)}/cin`)
+    authFetch(`${API_URL}/users/${encodeURIComponent(user.email)}/cin`)
       .then(r => r.json())
       .then(d => { setCinData(d); setCinLoading(false); })
       .catch(() => setCinLoading(false));
-  }, [user.email]);
+  }, [user.email]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const img = side === "front" ? cinData.cin_front : cinData.cin_back;
   return (
