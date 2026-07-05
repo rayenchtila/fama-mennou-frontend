@@ -197,10 +197,10 @@ export default function CourseDetailPage() {
       const msg=type==='free'
         ?`Bonjour Fama Mennou TEAM 👋\n\nJe viens de m'inscrire au cours gratuit suivant.\n\n👤 Nom complet : ${user.name||'N/A'}\n📧 Email : ${user.email}\n🏷️ Type de compte : ${aType}\n\n📚 Cours : ${title} (ID: #${cid})\n\n📅 Date : ${now}`
         :`Je veux acheter ce cours "${title}" du ${now} avec montant ${amt} TND.`;
-      try{await fetch(`${API}/messages`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senderEmail:user.email,receiverEmail:'admin@famamennou.com',content:msg})});}catch{}
-      if(type==='paid'){
-        try{await fetch(`${API}/messages`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senderEmail:'admin@famamennou.com',receiverEmail:user.email,content:`Avec plaisir Mr/Mme ${user.name||''}, merci d'envoyer votre preuve de paiement afin que nous puissions activer l'accès au cours. Merci pour votre confiance.`})});}catch{}
-      }
+      // The canned "admin" auto-reply for paid requests is now sent server-side
+      // by POST /course-requests (see backend) — a client can no longer send a
+      // message that appears to come from admin@famamennou.com.
+      try{await fetch(`${API}/messages`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({receiverEmail:'admin@famamennou.com',content:msg})});}catch{}
     }
     if(isFreeC){
       setBuying(true);setBuyMsg('');
