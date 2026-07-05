@@ -311,6 +311,7 @@ export function AuthProvider({ children }) {
       if (data.accessToken) storeToken(data.accessToken);
       const loggedUser = normalizeUser(data.user);
       setUser(loggedUser);
+      fetchAccounts();
       return { success: true, user: loggedUser };
     } catch {
       return { error: "serverError" };
@@ -331,6 +332,7 @@ export function AuthProvider({ children }) {
       if (data.accessToken) storeToken(data.accessToken);
       const loggedUser = normalizeUser(data.user);
       setUser(loggedUser);
+      fetchAccounts();
       return { success: true, user: loggedUser };
     } catch {
       return { error: "serverError" };
@@ -341,6 +343,7 @@ export function AuthProvider({ children }) {
     if (accessToken) storeToken(accessToken);
     const loggedUser = normalizeUser(rawUser);
     setUser(loggedUser);
+    fetchAccounts();
     return loggedUser;
   }
 
