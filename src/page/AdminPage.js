@@ -315,7 +315,7 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
 
 // ─── ALL USERS TABLE ──────────────────────────────────────────────────────────
 
-function AllUsersTable({ allUsers, search }) {
+function AllUsersTable({ allUsers, search, loading }) {
   const { t } = useTranslation();
   const getStatus = u => u.cinStatus ?? (u.cinVerified ? "approved" : "pending");
 
@@ -326,6 +326,18 @@ function AllUsersTable({ allUsers, search }) {
       u.email?.toLowerCase().includes(search.toLowerCase())
     );
   });
+
+  if (filtered.length === 0 && loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
+        <svg className="w-8 h-8 animate-spin mb-3" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+        <p className="text-sm font-semibold">{t("admin.loading") || "Chargement…"}</p>
+      </div>
+    );
+  }
 
   if (filtered.length === 0) {
     return (
@@ -1450,6 +1462,7 @@ function AdminGainsTab({ API }) {
   const TYPE_INFO = {
     freelancer: { label: t('adm.type_freelance_project'), icon: <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
     course:     { label: t('adm.type_course_sale'),   icon: <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>, color: 'text-sky-600 dark:text-sky-400',     bg: 'bg-sky-50 dark:bg-sky-900/20' },
+    combined:   { label: t('adm.type_combined') || 'Cours + Freelance', icon: <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/20' },
   };
 
   return (
@@ -1500,7 +1513,7 @@ function AdminGainsTab({ API }) {
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{c.description || info.label}</p>
                         <p className="text-xs text-slate-400 mt-0.5">
-                          {c.payment_type === 'freelancer'
+                          {(c.payment_type === 'freelancer' || c.payment_type === 'combined')
                             ? <>{t('adm.client_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{c.payer_name || '—'}</span>{c.payer_email && <span className="text-slate-400"> ({c.payer_email})</span>} → {t('adm.freelance_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{c.freelancer_name || '—'}</span>{c.freelancer_email && <span className="text-slate-400"> ({c.freelancer_email})</span>}</>
                             : <>{t('adm.buyer_label')} <span className="font-semibold text-slate-600 dark:text-slate-300">{c.payer_name || '—'}</span>{c.payer_email && <span className="text-slate-400"> ({c.payer_email})</span>}</>
                           }
@@ -1533,7 +1546,7 @@ function AdminGainsTab({ API }) {
 
 export default function AdminPage() {
   const { t } = useTranslation();
-  const { user, users, updateUser, logout, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchAccounts, fetchNotifications } = useAuth();
+  const { user, users, accountsLoaded, updateUser, logout, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchAccounts, fetchNotifications } = useAuth();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -1690,6 +1703,7 @@ export default function AdminPage() {
 
   const fetchCourses = async () => {
     const CACHE_KEY = 'admin_courses_cache';
+    let hasCachedData = false;
 
     // 1. Show cached data INSTANTLY — zero wait for returning visitors
     try {
@@ -1699,9 +1713,14 @@ export default function AdminPage() {
         if (Array.isArray(data) && data.length > 0) {
           setAllCourses(data);
           setCoursesLoading(false);
+          hasCachedData = true;
         }
       }
     } catch {}
+
+    // No cache to show instantly — surface a real loading state instead of
+    // silently rendering "0 courses" for up to 35s on a fresh device/browser.
+    if (!hasCachedData) setCoursesLoading(true);
 
     // 2. Fetch fresh data — 35s timeout covers Render's 27s cold-start wake-up
     try {
@@ -2123,7 +2142,7 @@ export default function AdminPage() {
                 { label: t("admin.rejected"),   value: counts.rejected, color: "text-rose-600 dark:text-rose-400",       bg: "bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-900" },
               ].map(s => (
                 <div key={s.label} className={`${s.bg} rounded-2xl px-4 py-3 border`}>
-                  <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
+                  <p className={`text-2xl font-extrabold ${s.color}`}>{!accountsLoaded && s.value === 0 ? '…' : s.value}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{s.label}</p>
                 </div>
               ))}
@@ -2176,12 +2195,12 @@ export default function AdminPage() {
                 { label: t("admin.freelancers"), value: (users ?? []).filter(u => u.role === "freelancer").length, color: "text-indigo-600 dark:text-indigo-400",  bg: "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-900" },
               ].map(s => (
                 <div key={s.label} className={`${s.bg} rounded-2xl px-4 py-3 border`}>
-                  <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
+                  <p className={`text-2xl font-extrabold ${s.color}`}>{!accountsLoaded && s.value === 0 ? '…' : s.value}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
-            <AllUsersTable allUsers={users} search={search} />
+            <AllUsersTable allUsers={users} search={search} loading={!accountsLoaded} />
           </>
         )}
 

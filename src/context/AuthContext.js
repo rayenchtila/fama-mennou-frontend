@@ -35,6 +35,12 @@ export function AuthProvider({ children }) {
       return cached ? JSON.parse(cached) : {};
     } catch { return {}; }
   });
+  // True once fetchAccounts has resolved at least once this session, or if a
+  // cached list already exists — lets admin UI distinguish "still loading"
+  // from "genuinely zero users" instead of flashing 0/0/0 on first mount.
+  const [accountsLoaded, setAccountsLoaded] = useState(() => {
+    try { return !!localStorage.getItem("fm_accounts"); } catch { return false; }
+  });
   const [notifications, setNotifications] = useState([]);
 
   // ── Persist logged-in user in localStorage (session only) ──
@@ -101,6 +107,7 @@ export function AuthProvider({ children }) {
       setAccounts(map);
       localStorage.setItem("fm_accounts", JSON.stringify(map));
     } catch (e) { console.error("fetchAccounts error:", e); }
+    finally { setAccountsLoaded(true); }
   }, [authFetch]);
 
   const fetchNotifications = useCallback(async () => {
@@ -499,7 +506,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, accounts, users, register, login, loginWithUserData, logout, updateUser, deleteUser,
+      user, accounts, accountsLoaded, users, register, login, loginWithUserData, logout, updateUser, deleteUser,
       verifyTOTP,
       authFetch,
       refreshAccessToken,
