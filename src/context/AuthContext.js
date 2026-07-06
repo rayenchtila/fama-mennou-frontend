@@ -158,13 +158,16 @@ export function AuthProvider({ children }) {
     if (!user || user.isAdmin) return;
     const account = accounts[user.email?.toLowerCase()];
     if (!account) return;
-    // account.cinStatus can be `undefined` when it came from the public (unauthenticated)
-    // users list, which doesn't carry verification data — never let that clobber the
-    // trustworthy cinStatus we already have (from login or an admin-sourced fetch).
+    // account.cinStatus is a guess derived from cin_verified when it came from the
+    // public (unauthenticated) users list, which doesn't carry real verification data —
+    // never let that clobber the trustworthy cinStatus we already have (from login or
+    // an admin-sourced fetch).
     const patch = {};
-    if (account.cinStatus !== undefined && account.cinStatus !== user.cinStatus) patch.cinStatus = account.cinStatus;
-    if (account.cinRejectionReason !== user.cinRejectionReason) patch.cinRejectionReason = account.cinRejectionReason;
-    if (account.cinApprovalReason !== user.cinApprovalReason) patch.cinApprovalReason = account.cinApprovalReason;
+    if (account._cinTrusted) {
+      if (account.cinStatus !== user.cinStatus) patch.cinStatus = account.cinStatus;
+      if (account.cinRejectionReason !== user.cinRejectionReason) patch.cinRejectionReason = account.cinRejectionReason;
+      if (account.cinApprovalReason !== user.cinApprovalReason) patch.cinApprovalReason = account.cinApprovalReason;
+    }
     if (account.photo !== user.photo) patch.photo = account.photo;
     if (account.skills !== user.skills) patch.skills = account.skills;
     if (account.bio !== user.bio) patch.bio = account.bio;
@@ -206,9 +209,13 @@ export function AuthProvider({ children }) {
       cinFront:           r.cin_front,
       cinBack:            r.cin_back,
       cinVerified:        r.cin_verified,
-      cinStatus:          r.cin_status ?? (trustCin ? (r.cin_verified ? "approved" : "pending") : undefined),
+      cinStatus:          r.cin_status ?? (r.cin_verified ? "approved" : "pending"),
       cinRejectionReason: r.cin_rejection_reason ?? null,
       cinApprovalReason:  r.cin_approval_reason  ?? null,
+      // Public (unauthenticated) listings never include cin_status/rejection/approval
+      // reason — only an admin-sourced fetch or the login response itself can be
+      // trusted for those specific fields.
+      _cinTrusted:        trustCin || r.cin_status !== undefined,
       statusSeen:         r.status_seen ?? false,
       availability:       r.availability ?? 'available',
       company:            r.company      ?? null,
