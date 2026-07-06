@@ -231,7 +231,7 @@ export function AuthProvider({ children }) {
           dob:      userData.dob,
           region:   userData.region,
           gender:   userData.gender ?? null,
-          skills:   userData.skills ?? null,
+          skills:   userData.skills || null,
           bio:      userData.bio    ?? null,
           cin:      userData.cin,
           cinFront: userData.cinFront,

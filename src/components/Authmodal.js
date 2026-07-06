@@ -162,12 +162,6 @@ function VerifyEmailScreen({ email, onVerify, onBack, loading }) {
         error={error}
         required
       />
-      {error && (
-        <div className="mt-3 flex items-center gap-2 p-3 rounded-xl" style={{ background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)' }}>
-          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#fbbf24' }}><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
-          <p className="text-xs font-semibold" style={{ color: '#fbbf24' }}>{error}</p>
-        </div>
-      )}
       <Button variant="primary" size="lg" fullWidth className="mt-4" loading={loading} onClick={() => onVerify(code, setError)}>
         {loading ? t("Verifying…") : t("Verify & Create Account")}
       </Button>
