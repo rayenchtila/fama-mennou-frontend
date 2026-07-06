@@ -330,16 +330,24 @@ export default function AdminCINReview() {
     setApproving(user);
   }
  
-  function handleApproveConfirm(user, reason) {
-    updateUser(user.email, { cinStatus: "approved", cinRejectionReason: null, cinApprovalReason: reason });
+  async function handleApproveConfirm(user, reason) {
     setApproving(null);
+    const result = await updateUser(user.email, { cinStatus: "approved", cinRejectionReason: null, cinApprovalReason: reason });
+    if (result?.error) {
+      alert(`Échec de l'approbation de ${user.name} : ${result.error}. Réessayez.`);
+      return;
+    }
     flash(user.email, "approved");
   }
- 
+
   // ── FIX: reject = update status only, NEVER delete the user ──
-  function handleReject(user, reason) {
-    updateUser(user.email, { cinStatus: "rejected", cinRejectionReason: reason, cinApprovalReason: null });
+  async function handleReject(user, reason) {
     setRejecting(null);
+    const result = await updateUser(user.email, { cinStatus: "rejected", cinRejectionReason: reason, cinApprovalReason: null });
+    if (result?.error) {
+      alert(`Échec du refus de ${user.name} : ${result.error}. Réessayez.`);
+      return;
+    }
     flash(user.email, "rejected");
     // ✅ NO deleteUser call — rejected users stay stored forever
   }

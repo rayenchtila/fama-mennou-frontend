@@ -373,15 +373,11 @@ export function AuthProvider({ children }) {
   async function updateUser(email, patch) {
     const key = email.toLowerCase();
     const account = accounts[key];
-    if (!account) return;
+    if (!account) return { error: "notFound" };
 
     const extra = (patch.cinStatus === "approved" || patch.cinStatus === "rejected")
       ? { statusSeen: false }
       : {};
-
-    // Optimistic update — UI reflects change immediately on first click
-    const updated = { ...account, ...patch, ...extra };
-    setAccounts(prev => ({ ...prev, [key]: updated }));
 
     const dbPatch = {};
     if (patch.cinStatus          !== undefined) dbPatch.cin_status           = patch.cinStatus;
@@ -405,11 +401,27 @@ export function AuthProvider({ children }) {
     if (extra.statusSeen         !== undefined) dbPatch.status_seen          = extra.statusSeen;
 
     try {
-      await authFetch(`${API}/users/${encodeURIComponent(key)}`, {
+      const res = await authFetch(`${API}/users/${encodeURIComponent(key)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dbPatch),
       });
+
+      if (!res.ok) {
+        let message = `HTTP ${res.status}`;
+        try {
+          const errBody = await res.json();
+          message = errBody.message || errBody.error || message;
+        } catch {}
+        console.error("updateUser failed:", message);
+        return { error: message };
+      }
+
+      // Only reflect the change locally once the server has confirmed the save —
+      // an optimistic update here would let a silently-failed save (expired token,
+      // 500, etc.) look like it succeeded with no indication to the caller.
+      const updated = { ...account, ...patch, ...extra };
+      setAccounts(prev => ({ ...prev, [key]: updated }));
 
       if (patch.cinStatus === "approved") {
         addNotification({
@@ -430,8 +442,10 @@ export function AuthProvider({ children }) {
           name:    account.name,
         });
       }
+      return { success: true };
     } catch (e) {
       console.error("updateUser error", e);
+      return { error: e.message || "networkError" };
     }
   }
 
