@@ -92,9 +92,10 @@ export function AuthProvider({ children }) {
   const fetchAccounts = useCallback(async () => {
     try {
       let rows = null;
+      let trustCin = false;
       if (accessTokenRef.current) {
         const r = await authFetch(`${API}/users`);
-        if (r.ok) rows = await r.json();
+        if (r.ok) { rows = await r.json(); trustCin = true; }
       }
       if (!rows) {
         const r = await fetch(`${API}/users/public`);
@@ -102,7 +103,7 @@ export function AuthProvider({ children }) {
       }
       const map = {};
       if (Array.isArray(rows)) {
-        rows.forEach(r => { if (r?.email) map[r.email.toLowerCase()] = normalizeUser(r); });
+        rows.forEach(r => { if (r?.email) map[r.email.toLowerCase()] = normalizeUser(r, trustCin); });
       }
       setAccounts(map);
       localStorage.setItem("fm_accounts", JSON.stringify(map));
@@ -157,22 +158,23 @@ export function AuthProvider({ children }) {
     if (!user || user.isAdmin) return;
     const account = accounts[user.email?.toLowerCase()];
     if (!account) return;
-    if (
-      account.cinStatus !== user.cinStatus ||
-      account.cinRejectionReason !== user.cinRejectionReason ||
-      account.cinApprovalReason !== user.cinApprovalReason ||
-      account.photo !== user.photo ||
-      account.skills !== user.skills ||
-      account.bio !== user.bio ||
-      account.portfolio !== user.portfolio ||
-      account.statusSeen !== user.statusSeen ||
-      account.title !== user.title ||
-      account.portfolio_url !== user.portfolio_url ||
-      account.hourly_rate !== user.hourly_rate ||
-      account.availability !== user.availability
-    ) {
-      setUser({ ...account, isAdmin: false });
-    }
+    // account.cinStatus can be `undefined` when it came from the public (unauthenticated)
+    // users list, which doesn't carry verification data — never let that clobber the
+    // trustworthy cinStatus we already have (from login or an admin-sourced fetch).
+    const patch = {};
+    if (account.cinStatus !== undefined && account.cinStatus !== user.cinStatus) patch.cinStatus = account.cinStatus;
+    if (account.cinRejectionReason !== user.cinRejectionReason) patch.cinRejectionReason = account.cinRejectionReason;
+    if (account.cinApprovalReason !== user.cinApprovalReason) patch.cinApprovalReason = account.cinApprovalReason;
+    if (account.photo !== user.photo) patch.photo = account.photo;
+    if (account.skills !== user.skills) patch.skills = account.skills;
+    if (account.bio !== user.bio) patch.bio = account.bio;
+    if (account.portfolio !== user.portfolio) patch.portfolio = account.portfolio;
+    if (account.statusSeen !== user.statusSeen) patch.statusSeen = account.statusSeen;
+    if (account.title !== user.title) patch.title = account.title;
+    if (account.portfolio_url !== user.portfolio_url) patch.portfolio_url = account.portfolio_url;
+    if (account.hourly_rate !== user.hourly_rate) patch.hourly_rate = account.hourly_rate;
+    if (account.availability !== user.availability) patch.availability = account.availability;
+    if (Object.keys(patch).length > 0) setUser({ ...user, ...patch });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accounts]);
 
@@ -184,7 +186,7 @@ export function AuthProvider({ children }) {
     return val ?? fallback;
   }
 
-  function normalizeUser(r) {
+  function normalizeUser(r, trustCin = true) {
     return {
       email:              r.email,
       password:           r.password,
@@ -204,7 +206,7 @@ export function AuthProvider({ children }) {
       cinFront:           r.cin_front,
       cinBack:            r.cin_back,
       cinVerified:        r.cin_verified,
-      cinStatus:          r.cin_status ?? (r.cin_verified ? "approved" : "pending"),
+      cinStatus:          r.cin_status ?? (trustCin ? (r.cin_verified ? "approved" : "pending") : undefined),
       cinRejectionReason: r.cin_rejection_reason ?? null,
       cinApprovalReason:  r.cin_approval_reason  ?? null,
       statusSeen:         r.status_seen ?? false,
