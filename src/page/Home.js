@@ -1,67 +1,35 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import SEOHead, { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd, FAQJsonLd } from '../components/Seohead';
+import { cldImg } from '../utils/cloudinary';
 
-const FEATURED_FREELANCERS = [
-  {
-    id: 1, name: 'Yassine Khelifi', initials: 'YK',
-    avBg: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', avFg: '#fff',
-    role: 'Full-Stack Developer', rating: '4.9', responds: '1h', rate: '45',
-    skills: ['React', 'Node.js', 'TypeScript'],
-  },
-  {
-    id: 2, name: 'Imen Bouazizi', initials: 'IB',
-    avBg: 'linear-gradient(135deg,#a855f7,#6c8cf6)', avFg: '#fff',
-    role: 'Product & UI/UX Designer', rating: '5.0', responds: '2h', rate: '40',
-    skills: ['Figma', 'Design System', 'Prototyping'],
-  },
-  {
-    id: 3, name: 'Mehdi Trabelsi', initials: 'MT',
-    avBg: 'linear-gradient(135deg,#3ec2e8,#5b5ce0)', avFg: '#fff',
-    role: 'SEO & Growth Marketer', rating: '4.7', responds: '3h', rate: '35',
-    skills: ['SEO', 'Google Ads', 'Analytics'],
-  },
-];
+const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
-const TRENDING_PROJECTS = [
-  {
-    id: 1, client: 'NovaTech Solutions', initials: 'NT',
-    avBg: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', avFg: '#fff',
-    title: 'Full e-commerce platform rebuild',
-    budget: '4 500 TND', duration: '6–8 weeks', proposals: 12,
-    tags: ['React', 'Stripe', 'UX'],
-  },
-  {
-    id: 2, client: 'Atelier Médina', initials: 'AM',
-    avBg: 'linear-gradient(135deg,#a855f7,#6c8cf6)', avFg: '#fff',
-    title: 'Brand identity & visual guidelines',
-    budget: '1 800 TND', duration: '2–3 weeks', proposals: 8,
-    tags: ['Branding', 'Logo', 'Print'],
-  },
-  {
-    id: 3, client: 'Baraka Foods', initials: 'BF',
-    avBg: 'linear-gradient(135deg,#3ec2e8,#5b5ce0)', avFg: '#fff',
-    title: 'Social media management & campaigns',
-    budget: '900 TND', duration: '3 months', proposals: 5,
-    tags: ['Social Media', 'Ads', 'Content'],
-  },
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg,#7c6cf6,#3ec2e8)',
+  'linear-gradient(135deg,#a855f7,#6c8cf6)',
+  'linear-gradient(135deg,#3ec2e8,#5b5ce0)',
 ];
+function pickGradient(seed) {
+  const code = (seed || '').charCodeAt(0) || 0;
+  return AVATAR_GRADIENTS[code % AVATAR_GRADIENTS.length];
+}
+function getInitials(name) {
+  return (name || '').trim().split(/\s+/).map(w => w[0]?.toUpperCase() || '').slice(0, 2).join('') || '?';
+}
 
-const COURSES = [
-  { id: 1, title: 'React from Zero to Expert', instructor: 'Yassine Khelifi', rating: '4.9', students: '1,240', price: '89 TND', cover: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', cat: 'Development' },
-  { id: 2, title: 'UI/UX Design Masterclass', instructor: 'Imen Bouazizi', rating: '5.0', students: '860', price: '75 TND', cover: 'linear-gradient(135deg,#a855f7,#6c8cf6)', cat: 'Design' },
-  { id: 3, title: 'SEO & Growth Marketing', instructor: 'Mehdi Trabelsi', rating: '4.7', students: '540', price: '60 TND', cover: 'linear-gradient(135deg,#5b5ce0,#3ec2e8)', cat: 'Marketing' },
-  { id: 4, title: 'Motion Design with After Effects', instructor: 'Salma Gharbi', rating: '4.8', students: '410', price: '70 TND', cover: 'linear-gradient(135deg,#7c6cf6,#a855f7)', cat: 'Video' },
-];
-
-const TESTIMONIALS = [
-  { quote: 'Found a developer in two days. The quality was outstanding and the whole process felt effortless. Highly recommended.', name: 'Sarra Ben Amor', title: 'Founder', initials: 'SB', avBg: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', avFg: '#fff' },
-  { quote: 'As a freelancer, Fama Mennou keeps my pipeline full. I get 3–4 quality leads every month without any cold outreach.', name: 'Mehdi Trabelsi', title: 'Full-Stack Developer', initials: 'MT', avBg: 'linear-gradient(135deg,#a855f7,#6c8cf6)', avFg: '#fff' },
-  { quote: 'The courses paid for themselves in a month. I went from junior to senior-level projects thanks to the instructors here.', name: 'Anis Mansour', title: 'Designer', initials: 'AM', avBg: 'linear-gradient(135deg,#3ec2e8,#5b5ce0)', avFg: '#fff' },
-];
+const COURSE_GRADIENTS = {
+  Technology: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)',
+  Design: 'linear-gradient(135deg,#a855f7,#6c8cf6)',
+  Marketing: 'linear-gradient(135deg,#5b5ce0,#3ec2e8)',
+  Writing: 'linear-gradient(135deg,#7c6cf6,#a855f7)',
+  'E-commerce': 'linear-gradient(135deg,#3ec2e8,#5b5ce0)',
+  Finance: 'linear-gradient(135deg,#a855f7,#3ec2e8)',
+};
+const DEFAULT_COURSE_GRADIENT = 'linear-gradient(135deg,#7c6cf6,#3ec2e8)';
 
 const SEARCH_TYPES = ['freelancers', 'clients', 'courses'];
 const SEARCH_LABELS = ['Freelancers', 'Clients', 'Courses'];
@@ -384,9 +352,44 @@ function HowItWorksSection() {
   );
 }
 
+// ── Shared: loading skeleton / empty / error card ─────────────────────────────
+function SkeletonCard({ height = 190 }) {
+  return (
+    <div style={{ ...CARD_STYLE, height, animation: 'fmPulse 1.6s ease-in-out infinite' }} />
+  );
+}
+function StateMessage({ text }) {
+  return (
+    <div style={{ ...CARD_STYLE, gridColumn: '1/-1', padding: '40px 24px', textAlign: 'center', color: '#a7abc8', fontSize: '14.5px' }}>
+      {text}
+    </div>
+  );
+}
+
+// ── Data: top freelancers (highest rating, then most completed projects) ─────
+// `rating` and `completedProjects` come pre-aggregated on the user record itself
+// (see AuthContext.normalizeUser) — no per-freelancer fetch needed, and unlike
+// /projects/assigned/:email (auth-only), this works for anonymous visitors too.
+function useTopFreelancers(users, accountsLoaded) {
+  const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  const items = useMemo(() => {
+    const hasProfile = u => u?.photo && u?.bio && u?.portfolio_url && u?.skills && (Array.isArray(u.skills) ? u.skills.length > 0 : String(u.skills).trim().length > 0);
+    const approved = (users || []).filter(u => u?.role === 'freelancer' && (isLocal || u?.cinStatus === 'approved') && hasProfile(u));
+    return [...approved].sort((a, b) => {
+      const ratingDiff = (b.rating || 0) - (a.rating || 0);
+      if (ratingDiff !== 0) return ratingDiff;
+      return (b.completedProjects || 0) - (a.completedProjects || 0);
+    }).slice(0, 3);
+  }, [users, isLocal]);
+
+  return { items, loading: !accountsLoaded, error: false };
+}
+
 // ── Section: Featured Freelancers ─────────────────────────────────────────────
-function FeaturedFreelancersSection() {
+function FeaturedFreelancersSection({ items, loading, error }) {
   const { t } = useTranslation();
+  const empty = !loading && !error && items.length === 0;
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
@@ -402,52 +405,112 @@ function FeaturedFreelancersSection() {
         </Link>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: '18px' }}>
-        {FEATURED_FREELANCERS.map((f, i) => (
-          <motion.div key={f.id}
-            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.45, delay: i * 0.1 }}
-            style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s' }}
-            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '13px', marginBottom: '16px' }}>
-              <span style={{ width: '50px', height: '50px', borderRadius: '50%', background: f.avBg, color: f.avFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', flex: 'none' }}>
-                {f.initials}
-              </span>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontWeight: 700, fontSize: '15.5px', color: '#fbfbff' }}>{f.name.split(' ')[0]}</span>
-                  <ShieldIcon size={15} color="#9b8cff" />
+        {loading && [0, 1, 2].map(i => <SkeletonCard key={i} />)}
+        {!loading && error && <StateMessage text={t('home.ff.error')} />}
+        {empty && <StateMessage text={t('home.ff.empty')} />}
+        {!loading && !error && items.map((f, i) => {
+          const skillsArr = (Array.isArray(f.skills) ? f.skills : String(f.skills || '').split(',')).map(s => String(s).trim()).filter(Boolean).slice(0, 3);
+          const roleLabel = f.title || skillsArr[0] || '';
+          const availDot   = f.availability === 'unavailable' ? '#ef4444' : f.availability === 'busy' ? '#f59e0b' : '#10b981';
+          const availLabel = f.availability === 'unavailable' ? t('Unavailable') : f.availability === 'busy' ? t('Busy') : t('Available');
+          return (
+            <motion.div key={f.email}
+              initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: i * 0.1 }}
+              style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s' }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '13px', marginBottom: '16px' }}>
+                <span style={{ width: '50px', height: '50px', borderRadius: '50%', background: pickGradient(f.email || f.name), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', flex: 'none' }}>
+                  {getInitials(f.name)}
+                </span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontWeight: 700, fontSize: '15.5px', color: '#fbfbff' }}>{f.name?.split(' ')[0]}</span>
+                    <ShieldIcon size={15} color="#9b8cff" />
+                  </div>
+                  {roleLabel && <div style={{ fontSize: '13px', color: '#a7abc8', marginTop: '2px' }}>{roleLabel}</div>}
                 </div>
-                <div style={{ fontSize: '13px', color: '#a7abc8', marginTop: '2px' }}>{f.role}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13.5px', flex: 'none' }}>
+                  {f.rating > 0 ? (
+                    <>
+                      <StarIcon size={14} color="#9b8cff" />
+                      <span style={{ fontWeight: 700, color: '#fbfbff' }}>{f.rating.toFixed(1)}</span>
+                    </>
+                  ) : (
+                    <span style={{ fontWeight: 600, color: '#7e82a0' }}>{t('home.ff.new')}</span>
+                  )}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13.5px', flex: 'none' }}>
-                <StarIcon size={14} color="#9b8cff" />
-                <span style={{ fontWeight: 700, color: '#fbfbff' }}>{f.rating}</span>
+              {/* Skills */}
+              {skillsArr.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+                  {skillsArr.map(s => (
+                    <span key={s} style={{ fontSize: '12px', color: '#c2c5dd', background: 'rgba(255,255,255,.06)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{s}</span>
+                  ))}
+                </div>
+              )}
+              {/* Footer */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 700, color: availDot }}>
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: availDot, boxShadow: `0 0 6px ${availDot}`, flexShrink: 0 }} />
+                  {availLabel}
+                </div>
               </div>
-            </div>
-            {/* Skills */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-              {f.skills.map(s => (
-                <span key={s} style={{ fontSize: '12px', color: '#c2c5dd', background: 'rgba(255,255,255,.06)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{s}</span>
-              ))}
-            </div>
-            {/* Footer */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
-              <div style={{ fontSize: '13px', color: '#7e82a0', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                <ClockIcon /> {t('home.ff.responds', { time: f.responds })}
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
 }
 
+// ── Data: top open projects (most proposals, then lowest budget, then oldest) ─
+function useTopProjects() {
+  const [projects, setProjects]             = useState([]);
+  const [proposalCounts, setProposalCounts] = useState({});
+  const [loading, setLoading]               = useState(true);
+  const [error, setError]                   = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    fetch(`${API}/projects/browse/open`).then(r => r.json()).then(rows => {
+      const open = Array.isArray(rows) ? rows : [];
+      if (cancelled) return;
+      setProjects(open);
+      return Promise.all(open.map(p => fetch(`${API}/proposals/project/${p.id}`).then(r => r.json()).catch(() => [])))
+        .then(counts => {
+          if (cancelled) return;
+          const map = {};
+          open.forEach((p, i) => { map[p.id] = Array.isArray(counts[i]) ? counts[i].length : 0; });
+          setProposalCounts(map);
+        });
+    }).catch(() => { if (!cancelled) { setError(true); setProjects([]); } })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const items = useMemo(() => {
+    return [...projects].sort((a, b) => {
+      const propDiff = (proposalCounts[b.id] || 0) - (proposalCounts[a.id] || 0);
+      if (propDiff !== 0) return propDiff;
+      const budgetDiff = Number(a.budget || 0) - Number(b.budget || 0);
+      if (budgetDiff !== 0) return budgetDiff;
+      return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+    }).slice(0, 3).map(p => ({ ...p, _proposalCount: proposalCounts[p.id] || 0 }));
+  }, [projects, proposalCounts]);
+
+  return { items, loading, error };
+}
+
 // ── Section: Trending Projects ────────────────────────────────────────────────
-function TrendingProjectsSection() {
+function TrendingProjectsSection({ items, loading, error, users }) {
   const { t } = useTranslation();
+  const empty = !loading && !error && items.length === 0;
+  const getClient = email => (users || []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
@@ -463,52 +526,101 @@ function TrendingProjectsSection() {
         </Link>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(330px,1fr))', gap: '18px' }}>
-        {TRENDING_PROJECTS.map((p, i) => (
-          <motion.div key={p.id}
-            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.45, delay: i * 0.1 }}
-            style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s', display: 'flex', flexDirection: 'column', gap: '13px' }}
-            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
-            {/* Client */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ width: '34px', height: '34px', borderRadius: '9px', background: p.avBg, color: p.avFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', flex: 'none' }}>{p.initials}</span>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#c2c5dd' }}>{p.client.split(' ')[0]}</span>
-              <ShieldIcon size={14} color="#9b8cff" />
-            </div>
-            {/* Title */}
-            <div style={{ fontWeight: 700, fontSize: '17px', color: '#fbfbff', letterSpacing: '-.01em', lineHeight: 1.3 }}>{p.title}</div>
-            {/* Budget + duration */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '14px', color: '#fbfbff', fontWeight: 700 }}>{p.budget}</span>
-              <span style={{ fontSize: '13px', color: '#7e82a0', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                <ClockIcon />{p.duration}
-              </span>
-            </div>
-            {/* Tags */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {p.tags.map(t => (
-                <span key={t} style={{ fontSize: '12px', color: '#c2c5dd', background: 'rgba(255,255,255,.06)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{t}</span>
-              ))}
-            </div>
-            {/* Footer */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
-              <span style={{ fontSize: '12.5px', color: '#7e82a0' }}>{t('home.tp.proposals', { count: p.proposals })}</span>
-              <Link to="/clients"
-                style={{ padding: '8px 18px', borderRadius: '9px', background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '13.5px', textDecoration: 'none' }}>
-                {t('home.tp.apply')}
-              </Link>
-            </div>
-          </motion.div>
-        ))}
+        {loading && [0, 1, 2].map(i => <SkeletonCard key={i} height={230} />)}
+        {!loading && error && <StateMessage text={t('home.tp.error')} />}
+        {empty && <StateMessage text={t('home.tp.empty')} />}
+        {!loading && !error && items.map((p, i) => {
+          const client      = getClient(p.client_email);
+          const displayName = client?.company || client?.name || p.client_email?.split('@')[0] || '?';
+          const isVerified  = client?.cinStatus === 'approved' || !client;
+          const tags        = (p.keywords ? p.keywords.split(/\s+/).filter(Boolean) : []).slice(0, 3);
+          return (
+            <motion.div key={p.id}
+              initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: i * 0.1 }}
+              style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s', display: 'flex', flexDirection: 'column', gap: '13px' }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+              {/* Client */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ width: '34px', height: '34px', borderRadius: '9px', background: pickGradient(p.client_email || displayName), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', flex: 'none' }}>{getInitials(displayName)}</span>
+                <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#c2c5dd' }}>{displayName.split(' ')[0]}</span>
+                {isVerified && <ShieldIcon size={14} color="#9b8cff" />}
+              </div>
+              {/* Title */}
+              <div style={{ fontWeight: 700, fontSize: '17px', color: '#fbfbff', letterSpacing: '-.01em', lineHeight: 1.3 }}>{p.title}</div>
+              {/* Budget + duration */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                {p.budget != null && <span style={{ fontSize: '14px', color: '#fbfbff', fontWeight: 700 }}>{Number(p.budget).toLocaleString('fr-TN')} TND</span>}
+                {p.period && (
+                  <span style={{ fontSize: '13px', color: '#7e82a0', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <ClockIcon />{p.period}
+                  </span>
+                )}
+              </div>
+              {/* Tags */}
+              {tags.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {tags.map(tag => (
+                    <span key={tag} style={{ fontSize: '12px', color: '#c2c5dd', background: 'rgba(255,255,255,.06)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{tag}</span>
+                  ))}
+                </div>
+              )}
+              {/* Footer */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
+                <span style={{ fontSize: '12.5px', color: '#7e82a0' }}>{t('home.tp.proposals', { count: p._proposalCount })}</span>
+                <Link to="/clients"
+                  style={{ padding: '8px 18px', borderRadius: '9px', background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '13.5px', textDecoration: 'none' }}>
+                  {t('home.tp.apply')}
+                </Link>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
 }
 
+// ── Data: top courses (most enrolled, then cheapest, then oldest) ────────────
+function useTopCourses() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    fetch(`${API}/courses`).then(r => r.json()).then(rows => {
+      if (!cancelled) setCourses(Array.isArray(rows) ? rows : []);
+    }).catch(() => { if (!cancelled) { setError(true); setCourses([]); } })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const items = useMemo(() => {
+    const priceOf = c => {
+      const full = Number(c.full_price || 0);
+      const pct  = Number(c.discount_pct || 0);
+      return pct > 0 ? full * (1 - pct / 100) : full;
+    };
+    return [...courses].sort((a, b) => {
+      const studentsDiff = Number(b.total_students || 0) - Number(a.total_students || 0);
+      if (studentsDiff !== 0) return studentsDiff;
+      const priceDiff = priceOf(a) - priceOf(b);
+      if (priceDiff !== 0) return priceDiff;
+      return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+    }).slice(0, 3);
+  }, [courses]);
+
+  return { items, loading, error };
+}
+
 // ── Section: Courses Preview ──────────────────────────────────────────────────
-function CoursesPreviewSection() {
+function CoursesPreviewSection({ items, loading, error }) {
   const { t } = useTranslation();
+  const empty = !loading && !error && items.length === 0;
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
@@ -524,68 +636,56 @@ function CoursesPreviewSection() {
         </Link>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: '18px' }}>
-        {COURSES.map((c, i) => (
-          <motion.div key={c.id}
-            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.45, delay: i * 0.08 }}
-            style={{ ...CARD_STYLE, overflow: 'hidden', transition: 'box-shadow .18s,border-color .18s', cursor: 'pointer' }}
-            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
-            {/* Cover */}
-            <div style={{ height: '120px', background: c.cover, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-              <span style={{ position: 'absolute', top: '11px', left: '11px', fontSize: '11px', fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.28)', padding: '3px 9px', borderRadius: '6px' }}>{c.cat}</span>
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: .92 }}>
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-              </svg>
-            </div>
-            {/* Body */}
-            <div style={{ padding: '16px 17px 18px' }}>
-              <div style={{ fontWeight: 700, fontSize: '15px', color: '#fbfbff', lineHeight: 1.35, marginBottom: '7px', minHeight: '40px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{c.title}</div>
-              <div style={{ fontSize: '13px', color: '#a7abc8', marginBottom: '12px' }}>{c.instructor.split(' ')[0]}</div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: '#a7abc8' }}>
-                  <StarIcon size={14} /><strong style={{ color: '#fbfbff' }}>{c.rating}</strong> · {c.students}
+        {loading && [0, 1, 2].map(i => <SkeletonCard key={i} height={230} />)}
+        {!loading && error && <StateMessage text={t('home.cp.error')} />}
+        {empty && <StateMessage text={t('home.cp.empty')} />}
+        {!loading && !error && items.map((c, i) => {
+          const instructor = c.instructor_name || c.creator_email?.split('@')[0] || '';
+          const rating      = Number(c.avg_rating || 0);
+          const students    = Number(c.total_students || 0);
+          const full        = Number(c.full_price || 0);
+          const pct         = Number(c.discount_pct || 0);
+          const final       = pct > 0 ? full * (1 - pct / 100) : full;
+          const isFree      = full === 0;
+          const cover       = COURSE_GRADIENTS[c.category] || DEFAULT_COURSE_GRADIENT;
+          return (
+            <motion.div key={c.id}
+              initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: i * 0.08 }}
+              style={{ ...CARD_STYLE, overflow: 'hidden', transition: 'box-shadow .18s,border-color .18s', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+              {/* Cover */}
+              <div style={{ height: '120px', background: cover, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                {c.thumbnail_url && (
+                  <img src={cldImg(c.thumbnail_url)} alt={c.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                )}
+                {c.category && <span style={{ position: 'absolute', top: '11px', left: '11px', fontSize: '11px', fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.28)', padding: '3px 9px', borderRadius: '6px' }}>{c.category}</span>}
+                {!c.thumbnail_url && (
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: .92 }}>
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                  </svg>
+                )}
+              </div>
+              {/* Body */}
+              <div style={{ padding: '16px 17px 18px' }}>
+                <div style={{ fontWeight: 700, fontSize: '15px', color: '#fbfbff', lineHeight: 1.35, marginBottom: '7px', minHeight: '40px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{c.title}</div>
+                {instructor && <div style={{ fontSize: '13px', color: '#a7abc8', marginBottom: '12px' }}>{instructor.split(' ')[0]}</div>}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: '#a7abc8' }}>
+                    {rating > 0 ? (
+                      <><StarIcon size={14} /><strong style={{ color: '#fbfbff' }}>{rating.toFixed(1)}</strong></>
+                    ) : (
+                      <span style={{ fontWeight: 600 }}>{t('home.ff.new')}</span>
+                    )}
+                    {students > 0 && <> · {students.toLocaleString()}</>}
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#fbfbff', whiteSpace: 'nowrap' }}>{isFree ? t('cc.free') : `${final.toFixed(0)} TND`}</div>
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#fbfbff', whiteSpace: 'nowrap' }}>{c.price}</div>
               </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// ── Section: Testimonials ─────────────────────────────────────────────────────
-function TestimonialsSection() {
-  const { t } = useTranslation();
-  return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '34px' }}>
-        <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 8px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-          {t('home.test.title')}
-        </h2>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '18px' }}>
-        {TESTIMONIALS.map((t, i) => (
-          <motion.div key={t.name}
-            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.45, delay: i * 0.1 }}
-            style={{ ...CARD_STYLE, padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* 5 stars */}
-            <div style={{ display: 'flex', gap: '2px' }}>
-              {[0,1,2,3,4].map(j => <StarIcon key={j} size={15} color="#9b8cff" />)}
-            </div>
-            <p style={{ margin: 0, fontSize: '15px', color: '#dcdef0', lineHeight: 1.6 }}>{t.quote}</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '11px', marginTop: 'auto' }}>
-              <span style={{ width: '38px', height: '38px', borderRadius: '50%', background: t.avBg, color: t.avFg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', flex: 'none' }}>{t.initials}</span>
-              <div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#fbfbff' }}>{t.name.split(' ')[0]}</div>
-                <div style={{ fontSize: '12.5px', color: '#7e82a0' }}>{t.title}</div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
@@ -685,7 +785,10 @@ function CTASection() {
 
 // ── Main Home page ────────────────────────────────────────────────────────────
 export default function Home() {
-  const { user } = useAuth();
+  const { user, users, accountsLoaded } = useAuth();
+  const freelancers = useTopFreelancers(users, accountsLoaded);
+  const projects    = useTopProjects();
+  const courses     = useTopCourses();
 
   if (user?.isAdmin) {
     return <Navigate to="/admin/dashboard" replace />;
@@ -693,6 +796,7 @@ export default function Home() {
 
   return (
     <div style={{ background: 'radial-gradient(960px 540px at 14% -6%,rgba(124,108,246,.22),transparent 60%),radial-gradient(860px 540px at 96% -2%,rgba(58,140,224,.16),transparent 60%),linear-gradient(180deg,#100d28 0%,#0a0817 58%)', minHeight: '100vh', fontFamily: "'Plus Jakarta Sans',-apple-system,sans-serif", color: '#f4f3fb', WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
+      <style>{`@keyframes fmPulse { 0%,100% { opacity:1; } 50% { opacity:.55; } }`}</style>
       <SEOHead
         url="/"
         description="FamaMennou — La plateforme tunisienne de freelance. Trouvez des freelancers, publiez vos projets et suivez des formations en ligne."
@@ -711,10 +815,9 @@ export default function Home() {
       <HeroSection />
       <ActionCardsSection />
       <HowItWorksSection />
-      <FeaturedFreelancersSection />
-      <TrendingProjectsSection />
-      <CoursesPreviewSection />
-      <TestimonialsSection />
+      <FeaturedFreelancersSection {...freelancers} />
+      <TrendingProjectsSection {...projects} users={users} />
+      <CoursesPreviewSection {...courses} />
       <FAQSection />
       <CTASection />
     </div>

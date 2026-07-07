@@ -222,6 +222,8 @@ export function AuthProvider({ children }) {
       registeredAt:       r.registered_at,
       lastSeen:           r.last_seen    ?? null,
       isAdmin:            r.role === 'admin',
+      rating:             Number(r.rating) || 0,
+      completedProjects:  Number(r.completed_projects) || 0,
     };
   }
 
