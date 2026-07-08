@@ -67,22 +67,22 @@ export default function TermsPage() {
   return (
     <>
       <SEOHead title="Conditions d'Utilisation — Fama Mennou" description="Conditions générales d'utilisation de la plateforme Fama Mennou." />
-      <div style={{ minHeight: '100vh', background: '#0a0817', paddingTop: 100, paddingBottom: 80 }}>
+      <div style={{ minHeight: '100vh', background: 'var(--fm-bg)', paddingTop: 100, paddingBottom: 80 }}>
         <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 24px' }}>
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#9b8cff' }}>Légal</span>
-            <h1 style={{ fontSize: 42, fontWeight: 900, color: '#fbfbff', margin: '12px 0 16px', letterSpacing: '-0.02em' }}>Conditions d'Utilisation</h1>
-            <p style={{ fontSize: 14, color: '#62668a' }}>Dernière mise à jour : Juillet 2026</p>
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--fm-primary-light)' }}>Légal</span>
+            <h1 style={{ fontSize: 42, fontWeight: 900, color: 'var(--fm-text-1)', margin: '12px 0 16px', letterSpacing: '-0.02em' }}>Conditions d'Utilisation</h1>
+            <p style={{ fontSize: 14, color: 'var(--fm-text-7)' }}>Dernière mise à jour : Juillet 2026</p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {SECTIONS.map(({ title, content, color, icon }) => (
-              <div key={title} style={{ padding: '24px 28px', borderRadius: 16, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div key={title} style={{ padding: '24px 28px', borderRadius: 16, background: 'var(--fm-surface-hover-soft)', border: '1px solid var(--fm-border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <span style={{ color, display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icon}</span>
-                  <h2 style={{ fontSize: 16, fontWeight: 800, color: '#fbfbff', margin: 0 }}>{title}</h2>
+                  <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--fm-text-1)', margin: 0 }}>{title}</h2>
                 </div>
-                <p style={{ fontSize: 14, color: '#a7abc8', lineHeight: 1.8, margin: 0 }}>{content}</p>
+                <p style={{ fontSize: 14, color: 'var(--fm-text-5)', lineHeight: 1.8, margin: 0 }}>{content}</p>
               </div>
             ))}
           </div>

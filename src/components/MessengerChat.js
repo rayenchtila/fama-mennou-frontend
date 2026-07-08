@@ -58,7 +58,7 @@ function UserAvatar({ user, size = 'md', online }) {
       }
       {online !== undefined && (
         <span className={`absolute bottom-0 right-0 ${dot} rounded-full`}
-          style={{ background: online ? '#10b981' : '#3f3f5e', border: '2px solid #15132e' }} />
+          style={{ background: online ? 'var(--fm-success)' : 'var(--fm-text-7)', border: '2px solid var(--fm-surface-2)' }} />
       )}
     </div>
   );
@@ -68,9 +68,9 @@ function UserAvatar({ user, size = 'md', online }) {
 
 function TypingDots() {
   return (
-    <div className="flex items-center gap-1 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm w-fit" style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.08)' }}>
+    <div className="flex items-center gap-1 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm w-fit" style={{ background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border)' }}>
       {[0, 1, 2].map(i => (
-        <motion.span key={i} className="w-2 h-2 rounded-full block" style={{ background: '#9b8cff' }}
+        <motion.span key={i} className="w-2 h-2 rounded-full block" style={{ background: 'var(--fm-primary-light)' }}
           animate={{ y: [0, -5, 0] }}
           transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15, ease: 'easeInOut' }}
         />
@@ -638,14 +638,14 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   return (
     <div
       className="flex h-full overflow-hidden rounded-none md:rounded-2xl"
-      style={{ background: '#16142e', border: '1px solid rgba(255,255,255,.09)', boxShadow: '0 32px 80px -8px rgba(0,0,0,.7), 0 0 0 1px rgba(124,108,246,.08)' }}
+      style={{ background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', boxShadow: '0 32px 80px -8px var(--fm-shadow), 0 0 0 1px var(--fm-primary-soft)' }}
       onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}
     >
 
       {/* ══ LEFT PANEL: Conversations ══════════════════════════════════════════ */}
       <div
         className={`flex-col w-full md:w-72 md:shrink-0 ${mobileSide === 'chat' ? 'hidden md:flex' : 'flex'}`}
-        style={{ borderRight: '1px solid rgba(255,255,255,.08)', background: '#15132e' }}
+        style={{ borderRight: '1px solid var(--fm-border)', background: 'var(--fm-surface-2)' }}
       >
 
         {/* Header */}
@@ -657,25 +657,25 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                   <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                 </svg>
               </div>
-              <h2 className="text-base font-extrabold tracking-tight" style={{ color: '#fbfbff' }}>{t('msg.page_title')}</h2>
+              <h2 className="text-base font-extrabold tracking-tight" style={{ color: 'var(--fm-text-1)' }}>{t('msg.page_title')}</h2>
             </div>
             {conversations.length > 0 && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(124,108,246,0.15)', border: '1px solid rgba(124,108,246,0.25)', color: '#9b8cff' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'var(--fm-primary-soft)', border: '1px solid var(--fm-primary-border)', color: 'var(--fm-primary-light)' }}>
                 {conversations.length}
               </span>
             )}
           </div>
           {/* Search — also discovers new users to chat with */}
           <div className="relative">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: '#62668a' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: 'var(--fm-text-7)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
             </svg>
             <input value={convSearch} onChange={e => setConvSearch(e.target.value)}
               placeholder={t('mgc.search_conversations')}
               className="w-full pl-9 pr-3 py-2 text-xs rounded-xl outline-none transition-all"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,.08)', color: '#f4f3fb' }}
-              onFocus={e => { e.target.style.borderColor='rgba(124,108,246,0.4)'; e.target.style.background='rgba(124,108,246,0.06)'; }}
-              onBlur={e => { e.target.style.borderColor='rgba(255,255,255,.08)'; e.target.style.background='rgba(255,255,255,0.04)'; }}
+              style={{ background: 'var(--fm-surface-hover-soft)', border: '1px solid var(--fm-border)', color: 'var(--fm-text-2)' }}
+              onFocus={e => { e.target.style.borderColor='var(--fm-primary-soft-strong)'; e.target.style.background='var(--fm-primary-soft)'; }}
+              onBlur={e => { e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-surface-hover-soft)'; }}
             />
           </div>
         </div>
@@ -685,10 +685,10 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
           {/* Existing conversations */}
           {filteredConvs.length === 0 && !convSearch && (
             <div className="flex flex-col items-center justify-center py-16 gap-2">
-              <svg className="w-10 h-10" style={{ color: 'rgba(255,255,255,.15)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-10 h-10" style={{ color: 'var(--fm-border-strong)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
               </svg>
-              <p className="text-sm" style={{ color: '#7e82a0' }}>{t('msg.no_convs')}</p>
+              <p className="text-sm" style={{ color: 'var(--fm-text-6)' }}>{t('msg.no_convs')}</p>
             </div>
           )}
           {filteredConvs.map(conv => {
@@ -700,26 +700,26 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               <button key={conv.other_email} onClick={() => selectChat(conv.other_email)}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors"
                 style={{
-                  background: active ? 'rgba(124,108,246,.18)' : 'transparent',
-                  border: active ? '1px solid rgba(124,108,246,.3)' : '1px solid transparent',
+                  background: active ? 'var(--fm-primary-soft-strong)' : 'transparent',
+                  border: active ? '1px solid var(--fm-primary-border)' : '1px solid transparent',
                 }}
-                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,.04)'; }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--fm-surface-hover)'; }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
               >
                 <UserAvatar user={u} size="md" online={status.online} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-1">
-                    <p className="text-sm truncate font-semibold" style={{ color: unread > 0 ? '#fbfbff' : '#c2c5dd', fontWeight: unread > 0 ? 700 : 600 }}>
+                    <p className="text-sm truncate font-semibold" style={{ color: unread > 0 ? 'var(--fm-text-1)' : 'var(--fm-text-4)', fontWeight: unread > 0 ? 700 : 600 }}>
                       {u?.name || conv.other_email}
                     </p>
-                    <span className="text-[11px] shrink-0 tabular-nums" style={{ color: '#62668a' }}>{fmtConvTime(conv.created_at)}</span>
+                    <span className="text-[11px] shrink-0 tabular-nums" style={{ color: 'var(--fm-text-7)' }}>{fmtConvTime(conv.created_at)}</span>
                   </div>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <p className="text-xs truncate flex-1" style={{ color: unread > 0 ? '#a7abc8' : '#7e82a0', fontWeight: unread > 0 ? 500 : 400 }}>
+                    <p className="text-xs truncate flex-1" style={{ color: unread > 0 ? 'var(--fm-text-5)' : 'var(--fm-text-6)', fontWeight: unread > 0 ? 500 : 400 }}>
                       {conv.sender_email === senderEmail ? t('mgc.you_prefix') : ''}{conv.last_message || <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span>}
                     </p>
                     {unread > 0 && (
-                      <span className="shrink-0 min-w-[18px] h-[18px] text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 leading-none" style={{ background: '#7c6cf6' }}>
+                      <span className="shrink-0 min-w-[18px] h-[18px] text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 leading-none" style={{ background: 'var(--fm-primary)' }}>
                         {unread > 9 ? '9+' : unread}
                       </span>
                     )}
@@ -740,20 +740,20 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             if (newUsers.length === 0) return null;
             return (
               <>
-                <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#62668a' }}>{t('mgc.start_new_chat')}</p>
+                <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--fm-text-7)' }}>{t('mgc.start_new_chat')}</p>
                 {newUsers.map(u => (
                   <button key={u.email} onClick={() => { selectChat(u.email); setConvSearch(''); }}
                     className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors"
-                    style={{ background: selectedChat === u.email ? 'rgba(124,108,246,.18)' : 'transparent' }}
-                    onMouseEnter={e => { if (selectedChat !== u.email) e.currentTarget.style.background = 'rgba(255,255,255,.04)'; }}
+                    style={{ background: selectedChat === u.email ? 'var(--fm-primary-soft-strong)' : 'transparent' }}
+                    onMouseEnter={e => { if (selectedChat !== u.email) e.currentTarget.style.background = 'var(--fm-surface-hover)'; }}
                     onMouseLeave={e => { if (selectedChat !== u.email) e.currentTarget.style.background = 'transparent'; }}
                   >
                     <UserAvatar user={u} size="md" />
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: '#fbfbff' }}>{u.name || u.email}</p>
-                      <p className="text-xs truncate capitalize" style={{ color: '#7e82a0' }}>{u.role || 'user'}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: 'var(--fm-text-1)' }}>{u.name || u.email}</p>
+                      <p className="text-xs truncate capitalize" style={{ color: 'var(--fm-text-6)' }}>{u.role || 'user'}</p>
                     </div>
-                    <svg className="w-4 h-4 ml-auto shrink-0" style={{ color: '#9b8cff' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-4 h-4 ml-auto shrink-0" style={{ color: 'var(--fm-primary-light)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
                   </button>
@@ -768,7 +768,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
       {/* Empty state — only visible when no chat on desktop, or on mobile list side */}
       {!selectedChat && (
-        <div className="flex-1 flex-col items-center justify-center gap-5 hidden md:flex" style={{ background: '#16142e' }}>
+        <div className="flex-1 flex-col items-center justify-center gap-5 hidden md:flex" style={{ background: 'var(--fm-surface)' }}>
           <div style={{ position: 'relative' }}>
             <div style={{ width: 80, height: 80, borderRadius: 24, background: 'linear-gradient(135deg,rgba(124,108,246,.25),rgba(62,194,232,.18))', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 40px -8px rgba(124,108,246,.3)' }}>
               <svg width="36" height="36" style={{ color: '#9b8cff' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -782,8 +782,8 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             </div>
           </div>
           <div className="text-center" style={{ maxWidth: 240 }}>
-            <p className="font-bold text-base" style={{ color: '#fbfbff', letterSpacing: '-0.01em' }}>{t('mgc.your_messages')}</p>
-            <p className="text-xs mt-1.5 leading-relaxed" style={{ color: '#7e82a0' }}>{t('mgc.select_conversation_hint')}</p>
+            <p className="font-bold text-base" style={{ color: 'var(--fm-text-1)', letterSpacing: '-0.01em' }}>{t('mgc.your_messages')}</p>
+            <p className="text-xs mt-1.5 leading-relaxed" style={{ color: 'var(--fm-text-6)' }}>{t('mgc.select_conversation_hint')}</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             {[
@@ -792,7 +792,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               <path key="c" strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,
             ].map((icon, i) => (
               <div key={i} style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(124,108,246,0.08)', border: '1px solid rgba(124,108,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.8}>{icon}</svg>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.8}>{icon}</svg>
               </div>
             ))}
           </div>
@@ -802,31 +802,31 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
       {selectedChat && (
         <div
           className={`flex-1 flex-col min-w-0 relative ${mobileSide === 'list' ? 'hidden md:flex' : 'flex'}`}
-          style={{ background: '#16142e' }}
+          style={{ background: 'var(--fm-surface)' }}
         >
           {/* Drag overlay */}
           {isDragging && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none" style={{ background: 'rgba(124,108,246,.06)', backdropFilter: 'blur(2px)', border: '2px dashed rgba(124,108,246,.5)' }}>
-              <div className="rounded-2xl px-10 py-8 shadow-2xl text-center" style={{ background: 'rgba(21,19,46,.95)', border: '1px solid rgba(124,108,246,.3)', boxShadow: '0 24px 64px -8px rgba(124,108,246,.3)' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(124,108,246,0.2)', border: '1px solid rgba(124,108,246,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none" style={{ background: 'var(--fm-primary-soft)', backdropFilter: 'blur(2px)', border: '2px dashed var(--fm-primary-border)' }}>
+              <div className="rounded-2xl px-10 py-8 shadow-2xl text-center" style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-primary-border)', boxShadow: '0 24px 64px -8px var(--fm-primary-border)' }}>
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--fm-primary-soft-strong)', border: '1px solid var(--fm-primary-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                   </svg>
                 </div>
-                <p className="font-bold text-sm" style={{ color: '#9b8cff' }}>{t('mgc.drop_to_send')}</p>
-                <p className="text-xs mt-1" style={{ color: '#62668a' }}>{t('mgc.release_to_upload')}</p>
+                <p className="font-bold text-sm" style={{ color: 'var(--fm-primary-light)' }}>{t('mgc.drop_to_send')}</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--fm-text-7)' }}>{t('mgc.release_to_upload')}</p>
               </div>
             </div>
           )}
 
           {/* Chat header */}
-          <div className="shrink-0 flex items-center gap-2 px-3 sm:px-4 py-3 z-10" style={{ borderBottom: '1px solid rgba(255,255,255,.08)', background: '#15132e' }}>
+          <div className="shrink-0 flex items-center gap-2 px-3 sm:px-4 py-3 z-10" style={{ borderBottom: '1px solid var(--fm-border)', background: 'var(--fm-surface-2)' }}>
             {/* Back button — mobile only */}
             <button
               onClick={() => setMobileSide('list')}
               className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0"
-              style={{ color: '#7e82a0' }}
-              onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,.06)'; }}
+              style={{ color: 'var(--fm-text-6)' }}
+              onMouseEnter={e => { e.currentTarget.style.background='var(--fm-surface-hover)'; }}
               onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -845,14 +845,14 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 onClick={() => goToProfile(selectedChat)}
                 style={{ background: 'none', border: 'none', padding: 0, cursor: selectedChat !== ADMIN_EMAIL ? 'pointer' : 'default', textAlign: 'left', maxWidth: '100%' }}
               >
-                <p className="font-bold truncate text-sm" style={{ color: '#fbfbff', letterSpacing: '-0.01em' }}>
+                <p className="font-bold truncate text-sm" style={{ color: 'var(--fm-text-1)', letterSpacing: '-0.01em' }}>
                   {otherUser?.name || selectedChat}
                 </p>
               </button>
-              <p className="text-xs font-medium flex items-center gap-1.5" style={{ color: otherStatus.online ? '#34d399' : '#62668a' }}>
+              <p className="text-xs font-medium flex items-center gap-1.5" style={{ color: otherStatus.online ? 'var(--fm-success)' : 'var(--fm-text-7)' }}>
                 {otherTyping
-                  ? <><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#9b8cff', display: 'inline-block' }} className="animate-pulse" /><span style={{ color: '#9b8cff' }}>{t('mgc.typing')}</span></>
-                  : <>{otherStatus.online && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399', display: 'inline-block', flexShrink: 0 }} />}{otherStatus.label}</>
+                  ? <><span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--fm-primary-light)', display: 'inline-block' }} className="animate-pulse" /><span style={{ color: 'var(--fm-primary-light)' }}>{t('mgc.typing')}</span></>
+                  : <>{otherStatus.online && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--fm-success)', display: 'inline-block', flexShrink: 0 }} />}{otherStatus.label}</>
                 }
               </p>
             </div>
@@ -860,12 +860,12 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
           {/* Admin: course payment status (3 buttons) */}
           {currentUser?.isAdmin && userCourseReq && (
-            <div className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 z-10" style={{ borderBottom: '1px solid rgba(255,255,255,.08)', background: 'rgba(255,255,255,.03)' }}>
-              <span className="text-[11px] font-bold truncate max-w-[160px]" style={{ color: '#a7abc8', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <div className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 z-10" style={{ borderBottom: '1px solid var(--fm-border)', background: 'var(--fm-surface-hover-soft)' }}>
+              <span className="text-[11px] font-bold truncate max-w-[160px]" style={{ color: 'var(--fm-text-5)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
                 {userCourseReq.course_title}
               </span>
-              <span className="text-xs font-bold px-2 py-1 rounded-lg" style={{ border: '1px solid rgba(255,255,255,.12)', background: 'rgba(255,255,255,.06)', color: '#c2c5dd' }}>
+              <span className="text-xs font-bold px-2 py-1 rounded-lg" style={{ border: '1px solid var(--fm-border-strong)', background: 'var(--fm-surface-hover)', color: 'var(--fm-text-4)' }}>
                 {Number(reqAmount || 0).toFixed(2)} TND
               </span>
               {[
@@ -876,7 +876,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 const isActive = userCourseReq.payment_status === s.id;
                 return (
                   <button key={s.id} disabled={statusSaving} onClick={() => setPaymentStatus(s.id)}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: `1px solid ${isActive ? s.dot : 'rgba(255,255,255,0.1)'}`, background: isActive ? s.dot + '20' : 'rgba(255,255,255,0.04)', color: isActive ? s.dot : '#7e82a0', cursor: 'pointer', transition: 'all 0.15s' }}>
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: `1px solid ${isActive ? s.dot : 'var(--fm-border)'}`, background: isActive ? s.dot + '20' : 'var(--fm-surface-hover-soft)', color: isActive ? s.dot : 'var(--fm-text-6)', cursor: 'pointer', transition: 'all 0.15s' }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.dot, display: 'inline-block', flexShrink: 0 }} />
                     {s.label}
                   </button>
@@ -893,12 +893,12 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               : userProjects[0];
             if (!proj) return null;
             return (
-              <div className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 z-10" style={{ borderBottom: '1px solid rgba(255,255,255,.08)', background: 'rgba(255,255,255,.03)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#a7abc8', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div className="shrink-0 flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 z-10" style={{ borderBottom: '1px solid var(--fm-border)', background: 'var(--fm-surface-hover-soft)' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: 'var(--fm-text-5)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
                   {proj.title}
                 </span>
-                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,.12)', background: 'rgba(255,255,255,.06)', color: '#c2c5dd' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8, border: '1px solid var(--fm-border-strong)', background: 'var(--fm-surface-hover)', color: 'var(--fm-text-4)' }}>
                   {proj.amount ? `${Number(proj.amount).toFixed(2)} TND` : '— TND'}
                 </span>
                 {[
@@ -910,7 +910,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                   const isActive = proj.payment_status === s.id;
                   return (
                     <button key={s.id} disabled={projSavingId === proj.id} onClick={() => setProjectPaymentStatus(s.id, proj.id)}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: `1px solid ${isActive ? s.dot : 'rgba(255,255,255,0.1)'}`, background: isActive ? s.dot + '20' : 'rgba(255,255,255,0.04)', color: isActive ? s.dot : '#7e82a0', cursor: 'pointer', opacity: projSavingId === proj.id ? 0.5 : 1, transition: 'all 0.15s' }}>
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: `1px solid ${isActive ? s.dot : 'var(--fm-border)'}`, background: isActive ? s.dot + '20' : 'var(--fm-surface-hover-soft)', color: isActive ? s.dot : 'var(--fm-text-6)', cursor: 'pointer', opacity: projSavingId === proj.id ? 0.5 : 1, transition: 'all 0.15s' }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.dot, display: 'inline-block', flexShrink: 0 }} />
                       {s.label}
                     </button>
@@ -929,7 +929,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               userScrolledUp.current = (el.scrollHeight - el.scrollTop - el.clientHeight) > 80;
             }}
             className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 pt-12 pb-4 space-y-1"
-            style={{ background: 'rgba(10,8,23,.6)' }}
+            style={{ background: 'var(--fm-overlay)' }}
           >
             {groups.map((group, gi) => {
               const isMine    = group.sender === senderEmail;
@@ -941,7 +941,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 <div key={gi} className="flex flex-col">
                   {group.showSeparator && (
                     <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
-                      <span style={{ padding: '3px 12px', borderRadius: 20, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#62668a', fontSize: 10, fontWeight: 600, letterSpacing: '0.02em' }}>
+                      <span style={{ padding: '3px 12px', borderRadius: 20, background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border)', color: 'var(--fm-text-7)', fontSize: 10, fontWeight: 600, letterSpacing: '0.02em' }}>
                         {fmtDateSeparator(group.messages[0].created_at)}
                       </span>
                     </div>
@@ -1002,15 +1002,15 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                                 transition={{ duration: 0.12 }}
                                 className={`absolute ${isMine ? 'right-0' : 'left-0'} -top-9 flex items-center gap-0.5 rounded-full shadow-lg px-1.5 py-1 z-30`}
-                                style={{ background: '#15132e', border: '1px solid rgba(255,255,255,.12)' }}
+                                style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border-strong)' }}
                                 onClick={e => e.stopPropagation()}
                               >
                                 {/* Emoji react */}
                                 <button data-emoji-pick
                                   onClick={e => { e.stopPropagation(); setShowEmojiFor(showEmojiFor === m.id ? null : m.id); }}
-                                  style={{ width: 32, height: 32, borderRadius: '50%', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#62668a', transition: 'all 0.15s' }}
-                                  onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.06)'; e.currentTarget.style.color='#f59e0b'; }}
-                                  onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#62668a'; }}>
+                                  style={{ width: 32, height: 32, borderRadius: '50%', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--fm-text-7)', transition: 'all 0.15s' }}
+                                  onMouseEnter={e => { e.currentTarget.style.background='var(--fm-surface-hover)'; e.currentTarget.style.color='var(--fm-warning)'; }}
+                                  onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='var(--fm-text-7)'; }}>
                                   <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
                                     <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
                                   </svg>
@@ -1044,7 +1044,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }}
                                 transition={{ type: 'spring', stiffness: 320, damping: 22 }}
                                 className={`absolute ${isMine ? 'right-0' : 'left-0'} -top-16 flex items-center gap-0.5 rounded-full shadow-2xl px-2 py-1.5 z-40`}
-                                style={{ background: '#15132e', border: '1px solid rgba(255,255,255,.12)' }}
+                                style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border-strong)' }}
                                 style={{ minWidth: 'max-content' }}
                                 onClick={e => e.stopPropagation()}
                               >
@@ -1093,7 +1093,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 className={`${bubbleRound} ${m.attachment_url && !m.content ? 'p-1' : 'px-3 sm:px-3.5 py-2 sm:py-2.5'} shadow-sm text-sm`}
                                 style={isMine
                                   ? { background: 'linear-gradient(135deg,#7c6cf6 0%,#6c8cf6 100%)', color: '#fff', boxShadow: '0 2px 12px -4px rgba(124,108,246,.5)' }
-                                  : { background: 'rgba(255,255,255,.07)', color: '#f4f3fb', border: '1px solid rgba(255,255,255,.08)' }
+                                  : { background: 'var(--fm-surface-hover)', color: 'var(--fm-text-2)', border: '1px solid var(--fm-border)' }
                                 }
                               >
                                 {/* Reply preview */}
@@ -1131,7 +1131,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                   m.flagged ? (
                                     <span className="block">
                                       <span className="break-words leading-relaxed whitespace-pre-wrap blur-sm select-none">{m.content}</span>
-                                      <span className="block mt-1 text-[11px] font-bold" style={{ color: '#f87171', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                      <span className="block mt-1 text-[11px] font-bold" style={{ color: 'var(--fm-danger)', display: 'flex', alignItems: 'center', gap: 4 }}>
                                         <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                                         Pour votre sécurité, la communication hors plateforme est interdite.
                                       </span>
@@ -1144,12 +1144,12 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
                               {/* Time + receipt */}
                               <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                {m.edited_at && <span className="text-[10px] italic" style={{ color: '#62668a' }}>{t('mgc.edited')}</span>}
-                                <span className="text-[10px] tabular-nums" style={{ color: '#62668a' }}>{fmtTime(m.created_at)}</span>
+                                {m.edited_at && <span className="text-[10px] italic" style={{ color: 'var(--fm-text-7)' }}>{t('mgc.edited')}</span>}
+                                <span className="text-[10px] tabular-nums" style={{ color: 'var(--fm-text-7)' }}>{fmtTime(m.created_at)}</span>
                                 {isMine && isLast && (
                                   m.is_read
-                                    ? <svg className="w-4 h-4 shrink-0" style={{ color: '#9b8cff' }} viewBox="0 0 20 10" fill="none"><path d="M1 5l3.5 3.5L12 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 5l3.5 3.5L18 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                    : <svg className="w-3.5 h-3.5 shrink-0" style={{ color: '#62668a' }} viewBox="0 0 14 10" fill="none"><path d="M1 5l3.5 3.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                    ? <svg className="w-4 h-4 shrink-0" style={{ color: 'var(--fm-primary-light)' }} viewBox="0 0 20 10" fill="none"><path d="M1 5l3.5 3.5L12 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 5l3.5 3.5L18 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                    : <svg className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--fm-text-7)' }} viewBox="0 0 14 10" fill="none"><path d="M1 5l3.5 3.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 )}
                               </div>
 
@@ -1208,7 +1208,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             return (
               <div data-menu
                 className="fixed z-[60] rounded-2xl shadow-2xl overflow-hidden min-w-[180px] py-1"
-                style={{ background: '#15132e', border: '1px solid rgba(255,255,255,.12)' }}
+                style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border-strong)' }}
                 style={{ top: menuPos.top, ...(menuPos.left !== undefined ? { left: menuPos.left } : { right: menuPos.right }) }}
                 onClick={e => e.stopPropagation()}
               >
@@ -1216,7 +1216,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                   /* ── Image message menu: Reply + Delete only ── */
                   <>
                     <button onClick={() => { setReplyTo(msg); setOpenMenuId(null); setHoveredMsg(null); setTimeout(() => inputRef.current?.focus(), 50); }}
-                      className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: '#c2c5dd' }} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.06)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: 'var(--fm-text-4)' }} onMouseEnter={e=>e.currentTarget.style.background='var(--fm-surface-hover)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                       <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                       </svg>
@@ -1224,7 +1224,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                     </button>
                     {canDelete && (
                       <button onClick={() => deleteMsg(openMenuId)}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: '#f87171' }} onMouseEnter={e=>e.currentTarget.style.background='rgba(248,113,113,.08)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: 'var(--fm-danger)' }} onMouseEnter={e=>e.currentTarget.style.background='var(--fm-danger-bg)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
@@ -1237,7 +1237,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                   <>
                     {msg.content && (
                       <button onClick={() => copyMsg(msg.content)}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: '#c2c5dd' }} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.06)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: 'var(--fm-text-4)' }} onMouseEnter={e=>e.currentTarget.style.background='var(--fm-surface-hover)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                         <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                         </svg>
@@ -1245,7 +1245,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                       </button>
                     )}
                     <button onClick={() => { setForwardMsg(msg); setFwdSearch(''); setOpenMenuId(null); setHoveredMsg(null); }}
-                      className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: '#c2c5dd' }} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.06)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: 'var(--fm-text-4)' }} onMouseEnter={e=>e.currentTarget.style.background='var(--fm-surface-hover)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                       <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                       </svg>
@@ -1253,7 +1253,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                     </button>
                     {canDelete && (
                       <button onClick={() => deleteMsg(openMenuId)}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: '#f87171' }} onMouseEnter={e=>e.currentTarget.style.background='rgba(248,113,113,.08)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: 'var(--fm-danger)' }} onMouseEnter={e=>e.currentTarget.style.background='var(--fm-danger-bg)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
@@ -1271,20 +1271,20 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
               onClick={() => { setForwardMsg(null); setFwdSearch(''); }}>
               <div className="w-full sm:w-96 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col"
-                style={{ background: '#15132e', border: '1px solid rgba(255,255,255,.1)' }}
+                style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border)' }}
                 onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-                  <span className="font-semibold text-sm" style={{ color: '#fbfbff' }}>{t('mgc.forward_message')}</span>
+                <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: '1px solid var(--fm-border)' }}>
+                  <span className="font-semibold text-sm" style={{ color: 'var(--fm-text-1)' }}>{t('mgc.forward_message')}</span>
                   <button onClick={() => { setForwardMsg(null); setFwdSearch(''); }}
-                    className="w-7 h-7 rounded-full flex items-center justify-center" style={{ color: '#7e82a0' }}>
+                    className="w-7 h-7 rounded-full flex items-center justify-center" style={{ color: 'var(--fm-text-6)' }}>
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                   </button>
                 </div>
                 {/* Preview of what's being forwarded */}
-                <div className="px-4 py-2.5 shrink-0" style={{ background: 'rgba(255,255,255,.03)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+                <div className="px-4 py-2.5 shrink-0" style={{ background: 'var(--fm-surface-hover-soft)', borderBottom: '1px solid var(--fm-border)' }}>
                   {forwardMsg.attachment_url && (
                     <img src={cldImg(forwardMsg.attachment_url)} alt="" className="w-12 h-12 object-cover rounded-lg mb-1"/>
                   )}
@@ -1293,11 +1293,11 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                   )}
                 </div>
                 {/* Search */}
-                <div className="px-4 py-2 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+                <div className="px-4 py-2 shrink-0" style={{ borderBottom: '1px solid var(--fm-border)' }}>
                   <input autoFocus value={fwdSearch} onChange={e => setFwdSearch(e.target.value)}
                     placeholder={t('mgc.search_by_name')}
                     className="w-full rounded-xl px-3 py-2 text-sm outline-none"
-                    style={{ background: '#15122c', border: '1px solid rgba(255,255,255,.1)', color: '#f4f3fb' }}/>
+                    style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border)', color: 'var(--fm-text-2)' }}/>
                 </div>
                 {/* Recipients list */}
                 <div className="overflow-y-auto flex-1">
@@ -1324,7 +1324,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                     return all.map(u => (
                       <button key={u.email} onClick={() => forwardTo(u.email)}
                         className="flex items-center gap-3 w-full px-4 py-3 transition-colors text-left"
-                        onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.05)'}
+                        onMouseEnter={e=>e.currentTarget.style.background='var(--fm-surface-hover)'}
                         onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                         {u.photo
                           ? <img src={cldImg(u.photo)} alt="" className="w-10 h-10 rounded-full object-cover shrink-0"/>
@@ -1334,10 +1334,10 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                             </div>
                         }
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate" style={{ color: '#fbfbff' }}>{u.name}</p>
-                          <p className="text-xs truncate" style={{ color: '#7e82a0' }}>{u.email}</p>
+                          <p className="text-sm font-medium truncate" style={{ color: 'var(--fm-text-1)' }}>{u.name}</p>
+                          <p className="text-xs truncate" style={{ color: 'var(--fm-text-6)' }}>{u.email}</p>
                         </div>
-                        <svg className="w-4 h-4 ml-auto shrink-0" style={{ color: '#9b8cff' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="w-4 h-4 ml-auto shrink-0" style={{ color: 'var(--fm-primary-light)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                       </button>
@@ -1349,12 +1349,12 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
           )}
 
           {/* Input area */}
-          <div className="shrink-0" style={{ borderTop: '1px solid rgba(255,255,255,.07)', background: 'linear-gradient(180deg, #14122a 0%, #15132e 100%)' }}>
+          <div className="shrink-0" style={{ borderTop: '1px solid var(--fm-surface-hover)', background: 'linear-gradient(180deg, var(--fm-bg-3) 0%, var(--fm-surface-2) 100%)' }}>
 
             {/* Chat-lock banner */}
             {lockError && (
               <div className="flex items-center justify-between gap-2 px-3 sm:px-4 pt-2.5 pb-0">
-                <p className="flex-1 text-xs font-bold px-3 py-1.5 rounded-lg" style={{ color: '#f87171', background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <p className="flex-1 text-xs font-bold px-3 py-1.5 rounded-lg" style={{ color: 'var(--fm-danger)', background: 'var(--fm-danger-bg)', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                   {lockError}
                 </p>
@@ -1370,17 +1370,17 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             {/* Reply banner */}
             {replyTo && (
               <div className="flex items-center gap-2 px-3 sm:px-4 pt-2.5 pb-0">
-                <div style={{ flex: 1, paddingLeft: 10, borderLeft: '3px solid #9b8cff', background: 'rgba(124,108,246,0.08)', paddingRight: 10, paddingTop: 6, paddingBottom: 6, borderRadius: 8, minWidth: 0 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9b8cff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ flex: 1, paddingLeft: 10, borderLeft: '3px solid var(--fm-primary-light)', background: 'var(--fm-primary-soft)', paddingRight: 10, paddingTop: 6, paddingBottom: 6, borderRadius: 8, minWidth: 0 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--fm-primary-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {resolveUser(replyTo.sender_email)?.name || replyTo.sender_email}
                   </p>
-                  <p style={{ fontSize: 11, color: '#7e82a0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{ fontSize: 11, color: 'var(--fm-text-6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {replyTo.attachment_url && !replyTo.content ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span> : replyTo.content}
                   </p>
                 </div>
                 <button onClick={() => setReplyTo(null)}
-                  style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#62668a', cursor: 'pointer', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.06)'}
+                  style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fm-text-7)', cursor: 'pointer', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.background='var(--fm-surface-hover)'}
                   onMouseLeave={e => e.currentTarget.style.background='transparent'}>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -1417,31 +1417,31 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               <div data-attach style={{ position:'relative' }}>
                 <button onClick={() => setShowAttachMenu(v => !v)}
                   className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center transition-all mb-0.5"
-                  style={{ color: showAttachMenu ? '#9b8cff' : '#62668a', background: showAttachMenu ? 'rgba(124,108,246,0.10)' : 'rgba(255,255,255,0.04)', border: showAttachMenu ? '1px solid rgba(124,108,246,0.35)' : '1px solid rgba(255,255,255,0.07)' }}
-                  onMouseEnter={e => { if (!showAttachMenu) { e.currentTarget.style.color='#9b8cff'; e.currentTarget.style.borderColor='rgba(124,108,246,0.3)'; e.currentTarget.style.background='rgba(124,108,246,0.08)'; }}}
-                  onMouseLeave={e => { if (!showAttachMenu) { e.currentTarget.style.color='#62668a'; e.currentTarget.style.borderColor='rgba(255,255,255,0.07)'; e.currentTarget.style.background='rgba(255,255,255,0.04)'; }}}>
+                  style={{ color: showAttachMenu ? 'var(--fm-primary-light)' : 'var(--fm-text-7)', background: showAttachMenu ? 'var(--fm-primary-soft)' : 'var(--fm-surface-hover-soft)', border: showAttachMenu ? '1px solid var(--fm-primary-border)' : '1px solid var(--fm-border)' }}
+                  onMouseEnter={e => { if (!showAttachMenu) { e.currentTarget.style.color='var(--fm-primary-light)'; e.currentTarget.style.borderColor='var(--fm-primary-border)'; e.currentTarget.style.background='var(--fm-primary-soft)'; }}}
+                  onMouseLeave={e => { if (!showAttachMenu) { e.currentTarget.style.color='var(--fm-text-7)'; e.currentTarget.style.borderColor='var(--fm-border)'; e.currentTarget.style.background='var(--fm-surface-hover-soft)'; }}}>
                   <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
                   </svg>
                 </button>
                 {showAttachMenu && (
-                  <div style={{ position:'absolute', bottom:'calc(100% + 8px)', left:0, background:'#1a1b2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:14, padding:'6px', display:'flex', flexDirection:'column', gap:4, minWidth:190, boxShadow:'0 8px 32px rgba(0,0,0,0.5)', zIndex:50 }}>
+                  <div style={{ position:'absolute', bottom:'calc(100% + 8px)', left:0, background:'var(--fm-surface)', border:'1px solid var(--fm-border)', borderRadius:14, padding:'6px', display:'flex', flexDirection:'column', gap:4, minWidth:190, boxShadow:'0 8px 32px var(--fm-shadow)', zIndex:50 }}>
                     <button
                       onClick={() => { setShowAttachMenu(false); fileRef.current?.click(); }}
-                      style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:10, background:'none', border:'none', color:'#c2c5dd', fontSize:13, fontWeight:600, cursor:'pointer', transition:'background .15s', textAlign:'left', width:'100%' }}
-                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
+                      style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:10, background:'none', border:'none', color:'var(--fm-text-4)', fontSize:13, fontWeight:600, cursor:'pointer', transition:'background .15s', textAlign:'left', width:'100%' }}
+                      onMouseEnter={e=>e.currentTarget.style.background='var(--fm-surface-hover)'}
                       onMouseLeave={e=>e.currentTarget.style.background='none'}>
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" style={{ color:'#9b8cff', flexShrink:0 }}>
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" style={{ color:'var(--fm-primary-light)', flexShrink:0 }}>
                         <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                       </svg>
                       Choisir depuis la galerie
                     </button>
                     <button
                       onClick={() => { setShowAttachMenu(false); const c = document.createElement('input'); c.type='file'; c.accept='image/*'; c.capture='environment'; c.onchange=handleFileSelect; c.click(); }}
-                      style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:10, background:'none', border:'none', color:'#c2c5dd', fontSize:13, fontWeight:600, cursor:'pointer', transition:'background .15s', textAlign:'left', width:'100%' }}
-                      onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}
+                      style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:10, background:'none', border:'none', color:'var(--fm-text-4)', fontSize:13, fontWeight:600, cursor:'pointer', transition:'background .15s', textAlign:'left', width:'100%' }}
+                      onMouseEnter={e=>e.currentTarget.style.background='var(--fm-surface-hover)'}
                       onMouseLeave={e=>e.currentTarget.style.background='none'}>
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" style={{ color:'#3ec2e8', flexShrink:0 }}>
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" style={{ color:'var(--fm-cyan)', flexShrink:0 }}>
                         <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>
                       </svg>
                       Prendre une photo
@@ -1456,9 +1456,9 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
                 placeholder={t('mgc.write_message')}
                 className="flex-1 rounded-2xl px-3.5 sm:px-4 py-2.5 text-sm outline-none resize-none overflow-y-auto leading-relaxed transition-all"
-                style={{ minHeight: 40, maxHeight: 100, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,.09)', color: '#f4f3fb' }}
-                onFocus={e => { e.target.style.borderColor='rgba(124,108,246,0.4)'; e.target.style.background='rgba(124,108,246,0.05)'; e.target.style.boxShadow='0 0 0 3px rgba(124,108,246,0.08)'; }}
-                onBlur={e => { e.target.style.borderColor='rgba(255,255,255,.09)'; e.target.style.background='rgba(255,255,255,0.04)'; e.target.style.boxShadow='none'; }}
+                style={{ minHeight: 40, maxHeight: 100, background: 'var(--fm-surface-hover-soft)', border: '1px solid var(--fm-border)', color: 'var(--fm-text-2)' }}
+                onFocus={e => { e.target.style.borderColor='var(--fm-primary-soft-strong)'; e.target.style.background='var(--fm-primary-soft)'; e.target.style.boxShadow='0 0 0 3px var(--fm-primary-soft)'; }}
+                onBlur={e => { e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-surface-hover-soft)'; e.target.style.boxShadow='none'; }}
               />
 
               {/* Send */}
@@ -1466,7 +1466,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center mb-0.5 transition-all"
                 style={newMsg.trim() || stagedFile
                   ? { background: 'linear-gradient(135deg,#7c6cf6,#6c8cf6)', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.7)', transform: 'scale(1)' }
-                  : { background: 'rgba(255,255,255,.05)', color: '#3a3f62', cursor: 'not-allowed', border: '1px solid rgba(255,255,255,0.07)' }
+                  : { background: 'var(--fm-surface-hover)', color: 'var(--fm-text-7)', cursor: 'not-allowed', border: '1px solid var(--fm-border)' }
                 }
                 onMouseEnter={e => { if (newMsg.trim() || stagedFile) { e.currentTarget.style.transform='scale(1.06)'; e.currentTarget.style.boxShadow='0 6px 20px -4px rgba(124,108,246,.8)'; } }}
                 onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow=newMsg.trim()||stagedFile?'0 4px 16px -4px rgba(124,108,246,.7)':'none'; }}

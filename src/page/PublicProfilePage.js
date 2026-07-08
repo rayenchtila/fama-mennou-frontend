@@ -9,9 +9,9 @@ const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender
 
 /* ── Design tokens ───────────────────────────────────────────────── */
 const C = {
-  bg:         '#070b14',
-  card:       'rgba(255,255,255,0.028)',
-  border:     'rgba(255,255,255,0.07)',
+  bg:         'var(--fm-bg)',
+  card:       'var(--fm-surface)',
+  border:     'var(--fm-border)',
   accent:     '#7c6cf6',
   accentMid:  '#9b8cff',
   accentDim:  'rgba(124,108,246,0.1)',
@@ -28,9 +28,9 @@ const C = {
   sky:        '#0ea5e9',
   skyDim:     'rgba(14,165,233,0.1)',
   skyBord:    'rgba(14,165,233,0.28)',
-  text:       '#f4f3fb',
-  sub:        '#a7abc8',
-  muted:      '#62668a',
+  text:       'var(--fm-text-2)',
+  sub:        'var(--fm-text-5)',
+  muted:      'var(--fm-text-7)',
 };
 
 /* ── Helpers ─────────────────────────────────────────────────────── */

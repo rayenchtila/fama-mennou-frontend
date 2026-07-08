@@ -1,8 +1,113 @@
 @import './input.css';
 
-:root[data-theme="dark"]  { --body-bg: #0a0817; --body-color: #f4f3fb; }
-:root[data-theme="light"] { --body-bg: #f8fafc; --body-color: #0f172a; }
-:root { --body-bg: #0a0817; --body-color: #f4f3fb; }
+/* ============================================================
+   Fama Mennou design tokens — single source of truth for theme
+   colors. Components should read these via var(--fm-*) instead
+   of hardcoding hex. Dark values match the original pre-light-
+   mode palette 1:1 (zero visual change in dark mode); light
+   values are the new light-theme equivalents.
+   ============================================================ */
+:root[data-theme="dark"] {
+  --fm-bg: #0a0817;
+  --fm-bg-2: #0c0a1e;
+  --fm-bg-3: #100d28;
+  --fm-surface: #16142e;
+  --fm-surface-2: #15122c;
+  --fm-surface-hover: rgba(255,255,255,0.06);
+  --fm-surface-hover-soft: rgba(255,255,255,0.03);
+  --fm-border: rgba(255,255,255,0.08);
+  --fm-border-soft: rgba(255,255,255,0.05);
+  --fm-border-strong: rgba(255,255,255,0.14);
+
+  --fm-text-1: #fbfbff;
+  --fm-text-2: #f4f3fb;
+  --fm-text-3: #dcdef0;
+  --fm-text-4: #c2c5dd;
+  --fm-text-5: #a7abc8;
+  --fm-text-6: #7e82a0;
+  --fm-text-7: #62668a;
+  --fm-text-inverse: #0f172a;
+
+  --fm-primary: #7c6cf6;
+  --fm-primary-light: #9b8cff;
+  --fm-primary-dark: #6a5cf0;
+  --fm-primary-soft: rgba(124,108,246,0.12);
+  --fm-primary-soft-strong: rgba(124,108,246,0.20);
+  --fm-primary-border: rgba(124,108,246,0.30);
+  --fm-blue: #6c8cf6;
+  --fm-cyan: #3ec2e8;
+  --fm-purple: #a855f7;
+
+  --fm-success: #34d399;
+  --fm-success-bg: rgba(16,185,129,0.12);
+  --fm-warning: #fbbf24;
+  --fm-warning-bg: rgba(245,158,11,0.12);
+  --fm-danger: #f87171;
+  --fm-danger-bg: rgba(248,113,113,0.12);
+  --fm-info: #38bdf8;
+  --fm-info-bg: rgba(14,165,233,0.12);
+
+  --fm-overlay: rgba(6,4,18,0.72);
+  --fm-shadow: rgba(0,0,0,0.45);
+  --fm-scrollbar-track: #0a0817;
+  --fm-scrollbar-thumb: #2a2750;
+  --fm-scrollbar-thumb-hover: #3a3568;
+  --fm-logo-blend: screen;
+
+  --body-bg: #0a0817;
+  --body-color: #f4f3fb;
+}
+
+:root[data-theme="light"] {
+  --fm-bg: #f8fafc;
+  --fm-bg-2: #f1f5f9;
+  --fm-bg-3: #eef2f9;
+  --fm-surface: #ffffff;
+  --fm-surface-2: #f8fafc;
+  --fm-surface-hover: #f1f5f9;
+  --fm-surface-hover-soft: #f8fafc;
+  --fm-border: #e2e8f0;
+  --fm-border-soft: #edf1f7;
+  --fm-border-strong: #cbd5e1;
+
+  --fm-text-1: #0f172a;
+  --fm-text-2: #1e293b;
+  --fm-text-3: #334155;
+  --fm-text-4: #475569;
+  --fm-text-5: #64748b;
+  --fm-text-6: #94a3b8;
+  --fm-text-7: #cbd5e1;
+  --fm-text-inverse: #fbfbff;
+
+  --fm-primary: #7c6cf6;
+  --fm-primary-light: #6d5cf0;
+  --fm-primary-dark: #5b4bd6;
+  --fm-primary-soft: rgba(124,108,246,0.08);
+  --fm-primary-soft-strong: rgba(124,108,246,0.14);
+  --fm-primary-border: rgba(124,108,246,0.25);
+  --fm-blue: #4f6fd8;
+  --fm-cyan: #0891b2;
+  --fm-purple: #9333ea;
+
+  --fm-success: #059669;
+  --fm-success-bg: #ecfdf5;
+  --fm-warning: #b45309;
+  --fm-warning-bg: #fffbeb;
+  --fm-danger: #dc2626;
+  --fm-danger-bg: #fef2f2;
+  --fm-info: #0284c7;
+  --fm-info-bg: #f0f9ff;
+
+  --fm-overlay: rgba(15,23,42,0.45);
+  --fm-shadow: rgba(15,23,42,0.12);
+  --fm-scrollbar-track: #f1f5f9;
+  --fm-scrollbar-thumb: #cbd5e1;
+  --fm-scrollbar-thumb-hover: #94a3b8;
+  --fm-logo-blend: normal;
+
+  --body-bg: #f8fafc;
+  --body-color: #0f172a;
+}
 
 /* Suppress ALL browser-native password reveal / credential icons */
 input[type="password"]::-ms-reveal,
@@ -84,6 +189,96 @@ body { overflow-x: hidden; background: var(--body-bg); color: var(--body-color);
 .dark .text-rose-500    { color: #f87171 !important; }
 .dark .text-rose-400    { color: #f87171 !important; }
 .dark .text-rose-600    { color: #f87171 !important; }
+
+/* ── Extended non-prefixed overrides — covers admin/dashboard/card
+   components that were built with a light-mode-first raw Tailwind
+   palette (bg-white, text-slate-900, etc.) and never got a dark
+   equivalent. Same "always dark under .dark" pattern as above. ── */
+.dark .bg-white         { background-color: var(--fm-surface) !important; }
+.dark .bg-slate-50      { background-color: var(--fm-surface-hover-soft) !important; }
+.dark .bg-slate-200     { background-color: var(--fm-border-strong) !important; }
+.dark .bg-slate-300     { background-color: rgba(255,255,255,0.14) !important; }
+.dark .bg-slate-400     { background-color: rgba(255,255,255,0.20) !important; }
+.dark .bg-slate-500     { background-color: rgba(255,255,255,0.28) !important; }
+.dark .border-slate-300 { border-color: var(--fm-border-strong) !important; }
+.dark .border-slate-600 { border-color: rgba(255,255,255,0.16) !important; }
+.dark .border-slate-200\/80 { border-color: rgba(255,255,255,0.08) !important; }
+.dark .from-slate-100   { --tw-gradient-from: var(--fm-surface-hover-soft) var(--tw-gradient-from-position) !important; }
+.dark .to-slate-200     { --tw-gradient-to: var(--fm-border-strong) var(--tw-gradient-to-position) !important; }
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--fm-border-soft) !important; }
+.dark .placeholder-slate-400::placeholder { color: var(--fm-text-7) !important; }
+
+.dark .text-slate-900   { color: var(--fm-text-1) !important; }
+.dark .text-slate-800   { color: var(--fm-text-2) !important; }
+.dark .text-slate-700   { color: var(--fm-text-3) !important; }
+.dark .text-slate-600   { color: var(--fm-text-4) !important; }
+.dark .text-slate-100   { color: var(--fm-text-2) !important; }
+.dark .text-slate-200   { color: var(--fm-text-3) !important; }
+
+.dark .bg-indigo-50     { background-color: var(--fm-primary-soft) !important; }
+.dark .bg-indigo-50\/50 { background-color: var(--fm-primary-soft) !important; }
+.dark .bg-indigo-50\/60 { background-color: var(--fm-primary-soft) !important; }
+.dark .bg-indigo-100    { background-color: var(--fm-primary-soft-strong) !important; }
+.dark .bg-violet-100    { background-color: var(--fm-primary-soft-strong) !important; }
+.dark .border-indigo-50 { border-color: var(--fm-primary-soft) !important; }
+.dark .border-indigo-100 { border-color: var(--fm-primary-soft-strong) !important; }
+.dark .border-indigo-200 { border-color: var(--fm-primary-border) !important; }
+.dark .border-indigo-300 { border-color: var(--fm-primary-border) !important; }
+.dark .border-indigo-400 { border-color: var(--fm-primary-light) !important; }
+.dark .border-indigo-400\/50 { border-color: rgba(155,140,255,0.5) !important; }
+.dark .text-indigo-300  { color: var(--fm-primary-light) !important; }
+.dark .ring-indigo-300  { --tw-ring-color: var(--fm-primary-border) !important; }
+.dark .ring-indigo-400  { --tw-ring-color: var(--fm-primary-light) !important; }
+.dark .ring-indigo-400\/30 { --tw-ring-color: rgba(155,140,255,0.3) !important; }
+.dark .ring-indigo-500  { --tw-ring-color: var(--fm-primary) !important; }
+
+.dark .bg-emerald-50    { background-color: var(--fm-success-bg) !important; }
+.dark .border-emerald-100 { border-color: rgba(16,185,129,0.20) !important; }
+.dark .border-emerald-200 { border-color: rgba(16,185,129,0.25) !important; }
+.dark .border-emerald-300 { border-color: rgba(16,185,129,0.30) !important; }
+.dark .border-emerald-400 { border-color: rgba(16,185,129,0.40) !important; }
+.dark .border-emerald-500 { border-color: var(--fm-success) !important; }
+.dark .text-emerald-400 { color: var(--fm-success) !important; }
+.dark .text-emerald-500 { color: var(--fm-success) !important; }
+.dark .text-emerald-700 { color: #6ee7b7 !important; }
+.dark .ring-emerald-400\/30 { --tw-ring-color: rgba(52,211,153,0.3) !important; }
+
+.dark .bg-amber-50      { background-color: var(--fm-warning-bg) !important; }
+.dark .border-amber-100 { border-color: rgba(245,158,11,0.20) !important; }
+.dark .border-amber-200 { border-color: rgba(245,158,11,0.25) !important; }
+.dark .border-amber-800 { border-color: rgba(245,158,11,0.35) !important; }
+.dark .border-amber-900 { border-color: rgba(245,158,11,0.30) !important; }
+.dark .text-amber-500   { color: var(--fm-warning) !important; }
+.dark .text-amber-700   { color: #fcd34d !important; }
+
+.dark .bg-rose-50       { background-color: var(--fm-danger-bg) !important; }
+.dark .bg-rose-200      { background-color: rgba(248,113,113,0.22) !important; }
+.dark .border-rose-100  { border-color: rgba(248,113,113,0.20) !important; }
+.dark .border-rose-200  { border-color: rgba(248,113,113,0.25) !important; }
+.dark .border-rose-300  { border-color: rgba(248,113,113,0.30) !important; }
+.dark .border-rose-400  { border-color: rgba(248,113,113,0.40) !important; }
+.dark .border-rose-500  { border-color: var(--fm-danger) !important; }
+.dark .text-rose-700    { color: #fca5a5 !important; }
+.dark .ring-rose-400\/30 { --tw-ring-color: rgba(248,113,113,0.3) !important; }
+.dark .ring-rose-500    { --tw-ring-color: var(--fm-danger) !important; }
+.dark .text-red-500     { color: var(--fm-danger) !important; }
+
+.dark .bg-pink-50       { background-color: rgba(236,72,153,0.12) !important; }
+.dark .border-pink-100  { border-color: rgba(236,72,153,0.20) !important; }
+.dark .border-pink-900  { border-color: rgba(236,72,153,0.30) !important; }
+.dark .text-pink-400    { color: #f472b6 !important; }
+.dark .text-pink-500    { color: #f472b6 !important; }
+.dark .text-pink-600    { color: #f472b6 !important; }
+
+.dark .bg-sky-50        { background-color: var(--fm-info-bg) !important; }
+.dark .border-sky-50    { border-color: rgba(56,189,248,0.15) !important; }
+.dark .border-sky-100   { border-color: rgba(56,189,248,0.20) !important; }
+.dark .border-sky-200   { border-color: rgba(56,189,248,0.25) !important; }
+.dark .border-sky-800   { border-color: rgba(56,189,248,0.35) !important; }
+.dark .border-sky-900   { border-color: rgba(56,189,248,0.30) !important; }
+.dark .text-sky-300     { color: #7dd3fc !important; }
+.dark .text-sky-500     { color: var(--fm-info) !important; }
+.dark .text-sky-700     { color: #7dd3fc !important; }
 
 /* ── RTL global support for Arabic ─────────────────────────────── */
 html[dir="rtl"] body { direction: rtl; }
@@ -293,12 +488,12 @@ button, a, [role="button"] { min-height: 36px; }
   .fm-search-wrap { max-width: calc(100vw - 32px) !important; }
 }
 
-::selection { background: #7c6cf6; color: #fff; }
+::selection { background: var(--fm-primary); color: #fff; }
 ::-webkit-scrollbar { width: 11px; height: 11px; }
-::-webkit-scrollbar-track { background: #0a0817; }
-::-webkit-scrollbar-thumb { background: #2a2750; border-radius: 8px; border: 3px solid #0a0817; }
-::-webkit-scrollbar-thumb:hover { background: #3a3568; }
-input::placeholder { color: #6f7392; }
+::-webkit-scrollbar-track { background: var(--fm-scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--fm-scrollbar-thumb); border-radius: 8px; border: 3px solid var(--fm-scrollbar-track); }
+::-webkit-scrollbar-thumb:hover { background: var(--fm-scrollbar-thumb-hover); }
+input::placeholder { color: var(--fm-text-6); }
 
 /* ── Fama Mennou CSS custom properties ───────────────────────── */
 :root {

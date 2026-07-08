@@ -5,24 +5,24 @@ import { useAuth } from '../context/AuthContext';
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
 const C = {
-  bg:'#070b14', card:'rgba(255,255,255,0.028)', cardHov:'rgba(255,255,255,0.05)',
-  border:'rgba(255,255,255,0.07)', borderAcc:'rgba(124,108,246,0.45)',
-  surface:'#0d1220',
-  accent:'#7c6cf6', accentMid:'#9b8cff', accentDim:'rgba(124,108,246,0.1)',
+  bg:'var(--fm-bg)', card:'var(--fm-surface-hover-soft)', cardHov:'var(--fm-border-soft)',
+  border:'var(--fm-border)', borderAcc:'rgba(124,108,246,0.45)',
+  surface:'var(--fm-surface)',
+  accent:'var(--fm-primary)', accentMid:'var(--fm-primary-light)', accentDim:'rgba(124,108,246,0.1)',
   emerald:'#10b981', emeraldDim:'rgba(16,185,129,0.1)', emeraldBord:'rgba(16,185,129,0.28)',
   amber:'#f59e0b', amberDim:'rgba(245,158,11,0.1)', amberBord:'rgba(245,158,11,0.28)',
-  rose:'#f87171', roseDim:'rgba(248,113,113,0.1)', roseBord:'rgba(248,113,113,0.28)',
-  text:'#f4f3fb', sub:'#a7abc8', muted:'#62668a',
+  rose:'var(--fm-danger)', roseDim:'var(--fm-danger-bg)', roseBord:'rgba(248,113,113,0.28)',
+  text:'var(--fm-text-2)', sub:'var(--fm-text-5)', muted:'var(--fm-text-7)',
 };
 
 const INP = {
   width:'100%', boxSizing:'border-box', padding:'13px 16px', borderRadius:14,
-  background:'rgba(255,255,255,0.04)', border:`1.5px solid ${C.border}`,
+  background:'var(--fm-surface-hover-soft)', border:`1.5px solid ${C.border}`,
   color:C.text, fontSize:14, outline:'none', fontFamily:'inherit',
   transition:'border-color .2s, background .2s, box-shadow .2s',
 };
 const focusOn  = e => { e.target.style.borderColor='rgba(124,108,246,0.5)'; e.target.style.background='rgba(124,108,246,0.06)'; e.target.style.boxShadow='0 0 0 3px rgba(124,108,246,0.1)'; };
-const focusOff = e => { e.target.style.borderColor=C.border; e.target.style.background='rgba(255,255,255,0.04)'; e.target.style.boxShadow='none'; };
+const focusOff = e => { e.target.style.borderColor=C.border; e.target.style.background='var(--fm-surface-hover-soft)'; e.target.style.boxShadow='none'; };
 
 const IcShield  = ({s=16}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
 const IcKey     = ({s=16}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>;
@@ -146,7 +146,7 @@ export default function SettingsPage() {
           <p style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>{t('sp.my_account')}</p>
           <h1 style={{ fontSize:38, fontWeight:900, color:C.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1.1 }}>
             {t('sp.my')}{' '}
-            <span style={{ background:'linear-gradient(120deg,#c4baff 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+            <span style={{ background:'linear-gradient(120deg,var(--fm-text-1) 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
               {t('sp.settings')}
             </span>
           </h1>
@@ -185,9 +185,9 @@ export default function SettingsPage() {
                   <button
                     type="button" tabIndex={-1}
                     onClick={() => setShow(v => !v)}
-                    style={{ position:'absolute', top:'50%', right:12, transform:'translateY(-50%)', zIndex:10, width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color: show ? '#9b8cff' : '#8a8eb8', transition:'color .18s, background .18s', outline:'none' }}
-                    onMouseEnter={e => { e.currentTarget.style.color='#9b8cff'; e.currentTarget.style.background='rgba(124,108,246,0.12)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = show ? '#9b8cff' : '#8a8eb8'; e.currentTarget.style.background='transparent'; }}
+                    style={{ position:'absolute', top:'50%', right:12, transform:'translateY(-50%)', zIndex:10, width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color: show ? 'var(--fm-primary-light)' : 'var(--fm-text-6)', transition:'color .18s, background .18s', outline:'none' }}
+                    onMouseEnter={e => { e.currentTarget.style.color='var(--fm-primary-light)'; e.currentTarget.style.background='var(--fm-primary-soft)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = show ? 'var(--fm-primary-light)' : 'var(--fm-text-6)'; e.currentTarget.style.background='transparent'; }}
                   >
                     {show
                       ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -230,13 +230,13 @@ export default function SettingsPage() {
 
       {/* Logout modal */}
       {logoutModal && (
-        <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:24, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(6px)' }}
+        <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:24, background:'var(--fm-overlay)', backdropFilter:'blur(6px)' }}
           onClick={()=>setLogoutModal(false)}>
-          <div style={{ width:'100%', maxWidth:380, background:'#0d1120', border:`1px solid ${C.border}`, borderRadius:24, boxShadow:'0 24px 64px rgba(0,0,0,0.8)', overflow:'hidden' }}
+          <div style={{ width:'100%', maxWidth:380, background:'var(--fm-surface)', border:`1px solid ${C.border}`, borderRadius:24, boxShadow:'0 24px 64px rgba(0,0,0,0.8)', overflow:'hidden' }}
             onClick={e=>e.stopPropagation()}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'22px 24px 0' }}>
               <div style={{ width:48, height:48, borderRadius:16, background:C.roseDim, border:`1px solid ${C.roseBord}`, display:'flex', alignItems:'center', justifyContent:'center', color:C.rose }}><IcLogout s={22}/></div>
-              <button onClick={()=>setLogoutModal(false)} style={{ width:32, height:32, borderRadius:'50%', background:'rgba(255,255,255,0.06)', border:'none', cursor:'pointer', color:C.sub, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <button onClick={()=>setLogoutModal(false)} style={{ width:32, height:32, borderRadius:'50%', background:'var(--fm-surface-hover)', border:'none', cursor:'pointer', color:C.sub, display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
@@ -246,7 +246,7 @@ export default function SettingsPage() {
               <div style={{ display:'flex', gap:12 }}>
                 <button onClick={()=>setLogoutModal(false)}
                   style={{ flex:1, padding:'12px', borderRadius:13, border:`1px solid ${C.border}`, background:'none', color:C.sub, fontWeight:700, fontSize:13, cursor:'pointer', transition:'background .15s' }}
-                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='var(--fm-surface-hover-soft)';}}
                   onMouseLeave={e=>{e.currentTarget.style.background='none';}}>
                   {t('sp.cancel')}
                 </button>
@@ -263,8 +263,8 @@ export default function SettingsPage() {
       <style>{`
         @keyframes spBlob1 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(50px,-40px)scale(1.08)} }
         @keyframes spBlob2 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(-40px,35px)scale(1.06)} }
-        select option { background:#0d1220; }
-        input::placeholder { color:#3a3d5c; }
+        select option { background:var(--fm-surface); }
+        input::placeholder { color:var(--fm-text-7); }
       `}</style>
     </div>
   );

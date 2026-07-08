@@ -59,25 +59,25 @@ function PrivateRoute({ children, onLogin }) {
   // Allow /messages for everyone — pending users must still be able to chat with admin
   if (!user.isAdmin && user.cinStatus === "pending" && location.pathname !== '/messages') {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0817' }}>
-        <div className="rounded-2xl p-8 max-w-md w-full text-center" style={{ background: '#16142e', border: '1px solid rgba(255,255,255,.08)' }}>
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(245,158,11,.12)' }}>
-            <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color: '#f59e0b' }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--fm-bg)' }}>
+        <div className="rounded-2xl p-8 max-w-md w-full text-center" style={{ background: 'var(--fm-surface)', border: '1px solid var(--fm-border)' }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--fm-warning-bg)' }}>
+            <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color: 'var(--fm-warning)' }}>
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
           </div>
-          <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>Compte en attente</h2>
-          <p className="text-sm mb-6" style={{ color: '#a7abc8' }}>
+          <h2 className="text-xl font-extrabold mb-2" style={{ color: 'var(--fm-text-1)' }}>Compte en attente</h2>
+          <p className="text-sm mb-6" style={{ color: 'var(--fm-text-5)' }}>
             Votre compte est en cours de vérification par l'administrateur.<br />
             Vous serez notifié dès que votre compte sera approuvé.
           </p>
           <button
             onClick={logout}
             className="text-xs transition-colors"
-            style={{ color: '#62668a' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
-            onMouseLeave={e => e.currentTarget.style.color = '#62668a'}
+            style={{ color: 'var(--fm-text-7)' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--fm-danger)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--fm-text-7)'}
           >
             Se déconnecter
           </button>
@@ -88,15 +88,15 @@ function PrivateRoute({ children, onLogin }) {
 
   if (!user.isAdmin && user.cinStatus === "rejected") {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0817' }}>
-        <div className="rounded-2xl p-8 max-w-md w-full text-center" style={{ background: '#16142e', border: '1px solid rgba(248,113,113,.25)' }}>
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(248,113,113,.12)' }}>
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#f87171' }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--fm-bg)' }}>
+        <div className="rounded-2xl p-8 max-w-md w-full text-center" style={{ background: 'var(--fm-surface)', border: '1px solid rgba(248,113,113,.25)' }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--fm-danger-bg)' }}>
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--fm-danger)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>Compte refusé</h2>
-          <p className="text-sm mb-3" style={{ color: '#a7abc8' }}>
+          <h2 className="text-xl font-extrabold mb-2" style={{ color: 'var(--fm-text-1)' }}>Compte refusé</h2>
+          <p className="text-sm mb-3" style={{ color: 'var(--fm-text-5)' }}>
             Votre demande de vérification a été refusée par l'administrateur.
           </p>
           {user.cinRejectionReason && (
@@ -107,9 +107,9 @@ function PrivateRoute({ children, onLogin }) {
           <button
             onClick={logout}
             className="text-xs transition-colors"
-            style={{ color: '#62668a' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
-            onMouseLeave={e => e.currentTarget.style.color = '#62668a'}
+            style={{ color: 'var(--fm-text-7)' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--fm-danger)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--fm-text-7)'}
           >
             Se déconnecter
           </button>
@@ -131,37 +131,10 @@ function AppInner() {
   const isUserDashboard  = location.pathname === "/dashboard" || location.pathname === "/messages";
   const isHome           = ['/', '/about', '/blog', '/careers', '/help', '/privacy', '/terms'].includes(location.pathname);
 
-  const [dark, setDark] = useState(() => {
-    if (typeof window !== "undefined") {
-      return (
-        localStorage.getItem("theme") === "dark" ||
-        (!localStorage.getItem("theme") &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches)
-      );
-    }
-    return false;
-  });
-
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [authForced, setAuthForced] = useState(false);
   const [language, setLanguage] = useState(() => localStorage.getItem("language") || "en");
-
-  useEffect(() => {
-    const root = document.documentElement;
-
-    if (dark) {
-      root.classList.add("dark");
-      root.style.colorScheme = "dark";
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.remove("dark");
-      root.style.colorScheme = "light";
-      localStorage.setItem("theme", "light");
-    }
-  }, [dark]);
-
-  const toggleDark = () => setDark(prev => !prev);
 
   // Global Enter-key handler — makes every focused interactive element respond to Enter
   useEffect(() => {
@@ -260,8 +233,6 @@ function AppInner() {
       <PostClientModal />
 
       <Navbar
-        dark={dark}
-        toggleDark={toggleDark}
         onLogin={handleLogin}
         language={language}
         onLanguageChange={handleLanguageChange}

@@ -87,12 +87,12 @@ function PeriodSelect({ value, onChange, maxDays }) {
   return (
     <div style={{ position:'relative' }}>
       <button type="button" onClick={()=>setOpen(o=>!o)} onBlur={()=>setTimeout(()=>setOpen(false),150)}
-        style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(255,255,255,0.05)', border:`1px solid ${open?C.accentBord:'rgba(255,255,255,0.1)'}`, borderRadius:12, color:value?'#f4f3fb':'#6b7280', padding:'10px 13px', fontSize:13, cursor:'pointer', fontFamily:'inherit', textAlign:'left', transition:'border-color .2s', boxSizing:'border-box' }}>
+        style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:'var(--fm-border-soft)', border:`1px solid ${open?C.accentBord:'var(--fm-border)'}`, borderRadius:12, color:value?'var(--fm-text-2)':'var(--fm-text-6)', padding:'10px 13px', fontSize:13, cursor:'pointer', fontFamily:'inherit', textAlign:'left', transition:'border-color .2s', boxSizing:'border-box' }}>
         <span>{value || t('prp.period_select')}</span>
-        <div style={{ transform:open?'rotate(180deg)':'none', transition:'transform .2s', color:'#6b7280', flexShrink:0, marginLeft:8 }}><IcChev /></div>
+        <div style={{ transform:open?'rotate(180deg)':'none', transition:'transform .2s', color:'var(--fm-text-6)', flexShrink:0, marginLeft:8 }}><IcChev /></div>
       </button>
       {open && (
-        <div style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, zIndex:600, background:'#111827', border:`1px solid ${C.accentBord}`, borderRadius:14, boxShadow:'0 16px 48px -8px rgba(0,0,0,0.85)', overflow:'hidden' }}>
+        <div style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, zIndex:600, background:'var(--fm-surface)', border:`1px solid ${C.accentBord}`, borderRadius:14, boxShadow:'0 16px 48px -8px var(--fm-shadow)', overflow:'hidden' }}>
           {PERIOD_OPTIONS.map(o => {
             const tooLong = maxDays !== undefined && (PERIOD_DAYS[o] || 0) > maxDays;
             return (
@@ -100,14 +100,14 @@ function PeriodSelect({ value, onChange, maxDays }) {
                 onMouseDown={()=>{ if (!tooLong) { onChange(o); setOpen(false); } }}
                 style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', textAlign:'left', padding:'11px 14px',
                   background: value===o ? C.accentDim : 'transparent',
-                  color: tooLong ? '#374151' : value===o ? C.accent : '#c2c5dd',
+                  color: tooLong ? 'var(--fm-text-7)' : value===o ? C.accent : 'var(--fm-text-4)',
                   border:'none', cursor: tooLong ? 'not-allowed' : 'pointer', fontSize:13,
                   fontFamily:'inherit', fontWeight: value===o ? 700 : 400,
                   opacity: tooLong ? 0.55 : 1, transition:'background .12s' }}
-                onMouseEnter={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='rgba(255,255,255,0.06)';}}
+                onMouseEnter={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='var(--fm-surface-hover)';}}
                 onMouseLeave={e=>{if(!tooLong && value!==o) e.currentTarget.style.background='transparent';}}>
                 <span>{o}</span>
-                {tooLong && <span style={{ fontSize:10, fontWeight:700, color:'#f87171', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.2)', borderRadius:6, padding:'1px 7px', flexShrink:0, marginLeft:8 }}>{t('prp.too_long')}</span>}
+                {tooLong && <span style={{ fontSize:10, fontWeight:700, color:'var(--fm-danger)', background:'var(--fm-danger-bg)', border:'1px solid var(--fm-danger-bg)', borderRadius:6, padding:'1px 7px', flexShrink:0, marginLeft:8 }}>{t('prp.too_long')}</span>}
               </button>
             );
           })}
@@ -149,25 +149,25 @@ function ApplyModal({ project, user, onClose, onDone }) {
     finally { setLoading(false); }
   }
 
-  const F = { width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, color:'#f4f3fb', padding:'10px 13px', fontSize:13, outline:'none', fontFamily:'inherit', transition:'border-color .2s' };
+  const F = { width:'100%', boxSizing:'border-box', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:12, color:'var(--fm-text-2)', padding:'10px 13px', fontSize:13, outline:'none', fontFamily:'inherit', transition:'border-color .2s' };
   const onFoc = e => { e.target.style.borderColor = C.accentBord; };
-  const onBlr = e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; };
+  const onBlr = e => { e.target.style.borderColor = 'var(--fm-border)'; };
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(7px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', backdropFilter:'blur(7px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ width:'100%', maxWidth:480, background:'#111827', border:`1px solid ${C.accentBord}`, borderRadius:24, padding:'28px 28px 24px', boxShadow:`0 28px 80px -12px rgba(0,0,0,0.8), ${C.accentGlow}` }}>
+      <div style={{ width:'100%', maxWidth:480, background:'var(--fm-surface)', border:`1px solid ${C.accentBord}`, borderRadius:24, padding:'28px 28px 24px', boxShadow:`0 28px 80px -12px var(--fm-shadow), ${C.accentGlow}` }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:22 }}>
           <div>
             <p style={{ fontSize:10, fontWeight:700, color:C.accent, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>{t('clp.apply_to_project')}</p>
-            <h3 style={{ fontSize:17, fontWeight:900, color:'#f9f8ff', margin:0, lineHeight:1.3 }}>{project.title}</h3>
+            <h3 style={{ fontSize:17, fontWeight:900, color:'var(--fm-text-1)', margin:0, lineHeight:1.3 }}>{project.title}</h3>
           </div>
-          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#6b7280', display:'flex' }}><IcX /></button>
+          <button onClick={onClose} style={{ background:'var(--fm-surface-hover)', border:'1px solid var(--fm-border)', borderRadius:10, padding:6, cursor:'pointer', color:'var(--fm-text-6)', display:'flex' }}><IcX /></button>
         </div>
         <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
           <div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-              <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{t('prp.delivery_period')} <span style={{color:'#f87171'}}>*</span></p>
+              <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-6)', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>{t('prp.delivery_period')} <span style={{color:'var(--fm-danger)'}}>*</span></p>
               {clientMaxDays !== undefined && (
                 <span style={{ fontSize:10, fontWeight:700, color:'#f59e0b', background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.22)', borderRadius:6, padding:'2px 8px' }}>
                   {t('prp.max', { period: project.period })}
@@ -177,15 +177,15 @@ function ApplyModal({ project, user, onClose, onDone }) {
             <PeriodSelect value={period} onChange={setPeriod} maxDays={clientMaxDays}/>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.portfolio_link')} <span style={{color:'#f87171'}}>*</span></p>
+            <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-6)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.portfolio_link')} <span style={{color:'var(--fm-danger)'}}>*</span></p>
             <input type="url" value={portfolio} onChange={e=>setPortfolio(e.target.value)} placeholder="https://monportfolio.com" style={F} onFocus={onFoc} onBlur={onBlr}/>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.cover_letter')}</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-6)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.cover_letter')}</p>
             <textarea value={letter} onChange={e=>setLetter(e.target.value)} rows={4} placeholder={t('clp.cover_letter_placeholder')}
               style={{...F, resize:'none', lineHeight:1.6}} onFocus={onFoc} onBlur={onBlr}/>
           </div>
-          {err && <p style={{ fontSize:12, color:'#f87171', margin:0 }}>{err}</p>}
+          {err && <p style={{ fontSize:12, color:'var(--fm-danger)', margin:0 }}>{err}</p>}
           <button type="submit" disabled={loading}
             style={{ padding:'12px', borderRadius:13, background:`linear-gradient(135deg,${C.accent},#0284c7)`, border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:C.accentGlow }}>
             {loading ? t('prp.sending') : t('clp.send_application_arrow')}
@@ -223,36 +223,36 @@ function ReviewModal({ client, user, onClose, onDone }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(7px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', backdropFilter:'blur(7px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ width:'100%', maxWidth:440, background:'#111827', border:`1px solid ${C.amberBord}`, borderRadius:24, padding:'28px', boxShadow:'0 28px 80px -12px rgba(0,0,0,0.8)' }}>
+      <div style={{ width:'100%', maxWidth:440, background:'var(--fm-surface)', border:`1px solid ${C.amberBord}`, borderRadius:24, padding:'28px', boxShadow:'0 28px 80px -12px var(--fm-shadow)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
           <div>
             <p style={{ fontSize:10, fontWeight:700, color:C.amber, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>{t('Leave a review')}</p>
-            <h3 style={{ fontSize:16, fontWeight:900, color:'#f9f8ff', margin:0 }}>{client.name || client.email}</h3>
+            <h3 style={{ fontSize:16, fontWeight:900, color:'var(--fm-text-1)', margin:0 }}>{client.name || client.email}</h3>
           </div>
-          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:6, cursor:'pointer', color:'#6b7280', display:'flex' }}><IcX /></button>
+          <button onClick={onClose} style={{ background:'var(--fm-surface-hover)', border:'1px solid var(--fm-border)', borderRadius:10, padding:6, cursor:'pointer', color:'var(--fm-text-6)', display:'flex' }}><IcX /></button>
         </div>
         <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
           {/* Stars */}
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>{t('clp.rating')}</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-6)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>{t('clp.rating')}</p>
             <div style={{ display:'flex', gap:8 }}>
               {[1,2,3,4,5].map(i => (
                 <button key={i} type="button" onClick={()=>setStars(i)} onMouseEnter={()=>setHovered(i)} onMouseLeave={()=>setHovered(0)}
-                  style={{ background:'none', border:'none', cursor:'pointer', padding:4, color: i<=(hovered||stars) ? C.amber : 'rgba(255,255,255,0.15)', transition:'color .15s', display:'flex', alignItems:'center' }}>
+                  style={{ background:'none', border:'none', cursor:'pointer', padding:4, color: i<=(hovered||stars) ? C.amber : 'var(--fm-border-strong)', transition:'color .15s', display:'flex', alignItems:'center' }}>
                   <svg width={26} height={26} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:6 }}>{t('clp.comment')}</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-6)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:6 }}>{t('clp.comment')}</p>
             <textarea value={comment} onChange={e=>setComment(e.target.value)} rows={4} placeholder={t('clp.review_placeholder')}
-              style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, color:'#f4f3fb', padding:'10px 13px', fontSize:13, outline:'none', resize:'none', fontFamily:'inherit', lineHeight:1.6 }}
-              onFocus={e=>{e.target.style.borderColor=C.amberBord;}} onBlur={e=>{e.target.style.borderColor='rgba(255,255,255,0.1)';}} />
+              style={{ width:'100%', boxSizing:'border-box', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:12, color:'var(--fm-text-2)', padding:'10px 13px', fontSize:13, outline:'none', resize:'none', fontFamily:'inherit', lineHeight:1.6 }}
+              onFocus={e=>{e.target.style.borderColor=C.amberBord;}} onBlur={e=>{e.target.style.borderColor='var(--fm-border)';}} />
           </div>
-          {err && <p style={{ fontSize:12, color:'#f87171', margin:0 }}>{err}</p>}
+          {err && <p style={{ fontSize:12, color:'var(--fm-danger)', margin:0 }}>{err}</p>}
           <button type="submit" disabled={loading}
             style={{ padding:'12px', borderRadius:13, background:`linear-gradient(135deg,${C.amber},#d97706)`, border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:'0 6px 20px -4px rgba(245,158,11,0.4)' }}>
             {loading ? t('prp.sending') : t('clp.send_review_arrow')}
@@ -281,9 +281,9 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
   const isTaken     = project.status && project.status !== 'open';
 
   return (
-    <div className="cp-card" style={{ background:'rgba(255,255,255,0.024)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:24, padding:'26px 30px', transition:'all .28s cubic-bezier(.4,0,.2,1)' }}
+    <div className="cp-card" style={{ background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border)', borderRadius:24, padding:'26px 30px', transition:'all .28s cubic-bezier(.4,0,.2,1)' }}
       onMouseEnter={e=>{e.currentTarget.style.borderColor=C.accentBord;e.currentTarget.style.background='rgba(14,165,233,0.04)';e.currentTarget.style.boxShadow=`0 16px 48px -12px rgba(14,165,233,0.18), 0 0 0 1px ${C.accentBord}`;e.currentTarget.style.transform='translateY(-2px)';}}
-      onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.07)';e.currentTarget.style.background='rgba(255,255,255,0.024)';e.currentTarget.style.boxShadow='none';e.currentTarget.style.transform='translateY(0)';}}>
+      onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--fm-border)';e.currentTarget.style.background='var(--fm-surface-hover-soft)';e.currentTarget.style.boxShadow='none';e.currentTarget.style.transform='translateY(0)';}}>
 
       {/* Top: avatar + client info + posted time */}
       <div className="cp-card-top" style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, justifyContent:'space-between' }}>
@@ -297,14 +297,14 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
           )}
           <div style={{ minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', marginBottom:2 }}>
-              <span onClick={() => navigate(`/profile/${encodeURIComponent(project.client_email)}`)} style={{ fontSize:14, fontWeight:800, color:'#f4f3fb', lineHeight:1.2, cursor:'pointer', transition:'color .15s' }} onMouseEnter={e=>e.currentTarget.style.color='#c4baff'} onMouseLeave={e=>e.currentTarget.style.color='#f4f3fb'}>{displayName}</span>
+              <span onClick={() => navigate(`/profile/${encodeURIComponent(project.client_email)}`)} style={{ fontSize:14, fontWeight:800, color:'var(--fm-text-2)', lineHeight:1.2, cursor:'pointer', transition:'color .15s' }} onMouseEnter={e=>e.currentTarget.style.color='var(--fm-primary-light)'} onMouseLeave={e=>e.currentTarget.style.color='var(--fm-text-2)'}>{displayName}</span>
               {isVerified && (
                 <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, padding:'2px 7px', borderRadius:20 }}>
                   <IcVerified /> {t('Verified')}
                 </span>
               )}
               {region && (
-                <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:11, color:'#6b7280', fontWeight:500 }}>
+                <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:11, color:'var(--fm-text-6)', fontWeight:500 }}>
                   <IcPin /> {region}
                 </span>
               )}
@@ -313,13 +313,13 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
               <div style={{ display:'flex', alignItems:'center', gap:4 }}>
                 <IcStar style={{ color:C.amber }} />
                 <span style={{ fontSize:11, fontWeight:700, color:C.amber }}>{avgRating.toFixed(1)}</span>
-                <span style={{ fontSize:11, color:'#6b7280' }}>({myReviews.length})</span>
+                <span style={{ fontSize:11, color:'var(--fm-text-6)' }}>({myReviews.length})</span>
               </div>
             )}
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
-          <span style={{ fontSize:11, color:'#4b5563', fontWeight:500, whiteSpace:'nowrap' }}>{t('clp.posted', { time: timeAgo(project.created_at) })}</span>
+          <span style={{ fontSize:11, color:'var(--fm-text-7)', fontWeight:500, whiteSpace:'nowrap' }}>{t('clp.posted', { time: timeAgo(project.created_at) })}</span>
           {isTaken && (
             <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, color:C.amber, background:C.amberDim, border:`1px solid ${C.amberBord}`, padding:'2px 8px', borderRadius:20 }}>
               <svg width={9} height={9} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -333,11 +333,11 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
       </div>
 
       {/* Title */}
-      <h3 style={{ fontSize:20, fontWeight:900, color:'#f9f8ff', margin:'0 0 8px', letterSpacing:'-0.025em', lineHeight:1.2 }}>{project.title}</h3>
+      <h3 style={{ fontSize:20, fontWeight:900, color:'var(--fm-text-1)', margin:'0 0 8px', letterSpacing:'-0.025em', lineHeight:1.2 }}>{project.title}</h3>
 
       {/* Description */}
       {project.description && (
-        <p style={{ fontSize:13, color:'#9ca3af', margin:'0 0 16px', lineHeight:1.7 }}>
+        <p style={{ fontSize:13, color:'var(--fm-text-5)', margin:'0 0 16px', lineHeight:1.7 }}>
           {project.description.length > 130 ? project.description.slice(0,128)+'…' : project.description}
         </p>
       )}
@@ -350,17 +350,17 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
           </span>
         )}
         {project.period && (
-          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#6b7280', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'4px 11px' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'var(--fm-text-6)', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border)', borderRadius:9, padding:'4px 11px' }}>
             <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.duration')}</span>{project.period}
           </span>
         )}
         {project.experience && (
-          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#6b7280', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'4px 11px' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'var(--fm-text-6)', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border)', borderRadius:9, padding:'4px 11px' }}>
             <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.experience')}</span>{project.experience}
           </span>
         )}
         {proposalCount > 0 && (
-          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'#6b7280', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'4px 11px' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'var(--fm-text-6)', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border)', borderRadius:9, padding:'4px 11px' }}>
             <span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.applications')}</span>{proposalCount}
           </span>
         )}
@@ -378,7 +378,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
       )}
 
       {/* Divider */}
-      <div style={{ height:1, background:'rgba(255,255,255,0.055)', marginBottom:16 }} />
+      <div style={{ height:1, background:'var(--fm-border-soft)', marginBottom:16 }} />
 
       {/* Actions */}
       <div className="cp-card-actions" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
@@ -399,9 +399,9 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
         <div className="cp-btn-group" style={{ display:'flex', gap:8 }}>
           {isFreelancer && !isOwn && (
             <button onClick={()=>navigate(`/messages?with=${encodeURIComponent(project.client_email)}`)}
-              style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
+              style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 15px', borderRadius:12, background:'none', border:'1px solid var(--fm-border-strong)', color:'var(--fm-text-5)', fontSize:12, fontWeight:700, cursor:'pointer', transition:'all .2s' }}
               onMouseEnter={e=>{e.currentTarget.style.borderColor=C.accentBord;e.currentTarget.style.color=C.accent;}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.12)';e.currentTarget.style.color='#9ca3af';}}>
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--fm-border-strong)';e.currentTarget.style.color='var(--fm-text-5)';}}>
               <IcMsg /> {t('Message')}
             </button>
           )}
@@ -522,7 +522,7 @@ export default function ClientsPage() {
   const totalRegions = new Set(projects.map(p => getClient(p.client_email)?.region).filter(Boolean)).size;
 
   return (
-    <div style={{ minHeight:'100vh', background:'#070b14', fontFamily:"'Plus Jakarta Sans', 'Inter', sans-serif", paddingBottom:80, position:'relative' }}>
+    <div style={{ minHeight:'100vh', background:'var(--fm-bg)', fontFamily:"'Plus Jakarta Sans', 'Inter', sans-serif", paddingBottom:80, position:'relative' }}>
       <SEOHead
         title="Clients & Projets en Tunisie"
         url="/clients"
@@ -541,31 +541,31 @@ export default function ClientsPage() {
       <div style={{ position:'relative', zIndex:1 }}>
 
       {/* ── HERO HEADER ── */}
-      <div style={{ background:'radial-gradient(ellipse 1100px 520px at 50% -10%, rgba(14,165,233,0.15), transparent 65%), radial-gradient(ellipse 700px 380px at 88% -6%, rgba(99,102,241,0.12), transparent 65%)', paddingBottom:56, borderBottom:'1px solid rgba(255,255,255,0.055)', textAlign:'center' }}>
+      <div style={{ background:'radial-gradient(ellipse 1100px 520px at 50% -10%, rgba(14,165,233,0.15), transparent 65%), radial-gradient(ellipse 700px 380px at 88% -6%, rgba(99,102,241,0.12), transparent 65%)', paddingBottom:56, borderBottom:'1px solid var(--fm-border-soft)', textAlign:'center' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,4vw,24px) 0' }}>
 
           {/* Headline */}
-          <h1 style={{ fontSize:'clamp(32px,8vw,54px)', fontWeight:900, color:'#f4f3fb', margin:'0 0 16px', letterSpacing:'-0.04em', lineHeight:1.07 }}>
+          <h1 style={{ fontSize:'clamp(32px,8vw,54px)', fontWeight:900, color:'var(--fm-text-2)', margin:'0 0 16px', letterSpacing:'-0.04em', lineHeight:1.07 }}>
             {t('clp.hero_title_1')}{' '}
             <span style={{ background:`linear-gradient(120deg,#7dd3fc 0%,${C.accent} 42%,#0369a1 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
               {t('clp.hero_title_2')}
             </span>
           </h1>
 
-          <p style={{ fontSize:'clamp(14px,2vw,16px)', color:'#6b7280', margin:'0 auto 38px', lineHeight:1.7, letterSpacing:'0.01em', maxWidth:480 }}>
+          <p style={{ fontSize:'clamp(14px,2vw,16px)', color:'var(--fm-text-6)', margin:'0 auto 38px', lineHeight:1.7, letterSpacing:'0.01em', maxWidth:480 }}>
             {t('clp.hero_subtitle')}
           </p>
 
           {/* Search bar */}
           <div className="fm-search-wrap" style={{ position:'relative', maxWidth:560, margin:'0 auto 44px' }}>
-            <div style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', color:'#6b7280', pointerEvents:'none' }}>
+            <div style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', color:'var(--fm-text-6)', pointerEvents:'none' }}>
               <IcSearch />
             </div>
             <input ref={searchRef} type="text" value={search} onChange={e=>setSearch(e.target.value)}
               placeholder={t('Search clients...')}
               className="fm-search-input"
-              style={{ width:'100%', boxSizing:'border-box', padding:'15px 130px 15px 48px', borderRadius:16, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#f4f3fb', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s, background .2s' }}
-              onFocus={e=>{e.target.style.borderColor=C.accentBord; e.target.style.background=C.accentDim;}} onBlur={e=>{e.target.style.borderColor='rgba(255,255,255,0.1)'; e.target.style.background='rgba(255,255,255,0.05)';}} />
+              style={{ width:'100%', boxSizing:'border-box', padding:'15px 130px 15px 48px', borderRadius:16, background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', color:'var(--fm-text-2)', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s, background .2s' }}
+              onFocus={e=>{e.target.style.borderColor=C.accentBord; e.target.style.background=C.accentDim;}} onBlur={e=>{e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-border-soft)';}} />
             <button
               style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', padding:'9px 24px', borderRadius:12, background:`linear-gradient(135deg,${C.accent},#0284c7)`, border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:C.accentGlow, transition:'opacity .15s' }}
               onMouseEnter={e=>{e.currentTarget.style.opacity='0.88';}} onMouseLeave={e=>{e.currentTarget.style.opacity='1';}}>
@@ -573,7 +573,7 @@ export default function ClientsPage() {
             </button>
             {search && (
               <button onClick={()=>{setSearch('');searchRef.current?.focus();}}
-                style={{ position:'absolute', right:110, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'#6b7280', cursor:'pointer', padding:4, display:'flex' }}>
+                style={{ position:'absolute', right:110, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--fm-text-6)', cursor:'pointer', padding:4, display:'flex' }}>
                 <IcX />
               </button>
             )}
@@ -588,10 +588,10 @@ export default function ClientsPage() {
               { n: Object.values(proposals).reduce((s,v)=>s+v,0), label:t('clp.stat_proposals_sent') },
             ].map((s,i) => (
               <div key={i} className="cp-stat-item" style={{ display:'flex', alignItems:'center' }}>
-                {i > 0 && <span className="cp-stat-sep" style={{ width:1, height:36, background:'rgba(255,255,255,0.08)', margin:'0 clamp(12px,3vw,32px)' }} />}
+                {i > 0 && <span className="cp-stat-sep" style={{ width:1, height:36, background:'var(--fm-border)', margin:'0 clamp(12px,3vw,32px)' }} />}
                 <div style={{ textAlign:'center' }}>
                   <div style={{ fontSize:28, fontWeight:900, color:C.accent, lineHeight:1.1, letterSpacing:'-0.03em' }}>{s.n}</div>
-                  <div style={{ fontSize:11, color:'#6b7280', fontWeight:600, marginTop:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{s.label}</div>
+                  <div style={{ fontSize:11, color:'var(--fm-text-6)', fontWeight:600, marginTop:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{s.label}</div>
                 </div>
               </div>
             ))}
@@ -600,7 +600,7 @@ export default function ClientsPage() {
       </div>
 
       {/* ── FILTERS ── */}
-      <div style={{ position:'sticky', top:64, zIndex:20, background:'rgba(7,11,20,0.94)', backdropFilter:'blur(18px)', borderBottom:'1px solid rgba(255,255,255,0.07)', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+      <div style={{ position:'sticky', top:64, zIndex:20, background:'var(--fm-bg)', backdropFilter:'blur(18px)', borderBottom:'1px solid var(--fm-border)', borderTop:'1px solid var(--fm-surface-hover-soft)' }}>
         <div className="cp-filter-inner" style={{ maxWidth:1100, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:58, gap:0 }}>
 
           {/* Scrollable category pills */}
@@ -611,10 +611,10 @@ export default function ClientsPage() {
                 <button key={cat} onClick={()=>setCategory(cat)}
                   style={{ flexShrink:0, display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', transition:'all .2s',
                     background: active ? C.accentDim : 'transparent',
-                    border:     active ? `1px solid ${C.accent}` : '1px solid rgba(255,255,255,0.09)',
-                    color:      active ? C.accent : '#6b7280' }}
-                  onMouseEnter={e=>{ if(!active){e.currentTarget.style.borderColor='rgba(255,255,255,0.18)';e.currentTarget.style.color='#9ca3af';}}}
-                  onMouseLeave={e=>{ if(!active){e.currentTarget.style.borderColor='rgba(255,255,255,0.09)';e.currentTarget.style.color='#6b7280';}}}>
+                    border:     active ? `1px solid ${C.accent}` : '1px solid var(--fm-border)',
+                    color:      active ? C.accent : 'var(--fm-text-6)' }}
+                  onMouseEnter={e=>{ if(!active){e.currentTarget.style.borderColor='var(--fm-border-strong)';e.currentTarget.style.color='var(--fm-text-5)';}}}
+                  onMouseLeave={e=>{ if(!active){e.currentTarget.style.borderColor='var(--fm-border)';e.currentTarget.style.color='var(--fm-text-6)';}}}>
                   <span style={{ display:'flex', alignItems:'center' }}>{CAT_SVG[cat]}</span>
                   {t(cat)}
                 </button>
@@ -623,20 +623,20 @@ export default function ClientsPage() {
           </div>
 
           {/* Separator + count + sort */}
-          <div className="cp-filter-right" style={{ flexShrink:0, display:'flex', alignItems:'center', gap:14, borderLeft:'1px solid rgba(255,255,255,0.08)', paddingLeft:16, marginLeft:8 }}>
+          <div className="cp-filter-right" style={{ flexShrink:0, display:'flex', alignItems:'center', gap:14, borderLeft:'1px solid var(--fm-border)', paddingLeft:16, marginLeft:8 }}>
             <span style={{ fontSize:12, whiteSpace:'nowrap' }}>
               <strong style={{ color:C.accent, fontWeight:700 }}>{filtered.length}</strong>
-              <span style={{ color:'#4b5563' }}> {t('clp.projects_count', { count: filtered.length })}</span>
+              <span style={{ color:'var(--fm-text-7)' }}> {t('clp.projects_count', { count: filtered.length })}</span>
             </span>
             <div style={{ position:'relative' }}>
               <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
-                style={{ padding:'7px 30px 7px 12px', borderRadius:10, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:12, outline:'none', cursor:'pointer', appearance:'none', fontFamily:'inherit' }}>
+                style={{ padding:'7px 30px 7px 12px', borderRadius:10, background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', color:'var(--fm-text-5)', fontSize:12, outline:'none', cursor:'pointer', appearance:'none', fontFamily:'inherit' }}>
                 <option value="newest">{t('Newest')}</option>
                 <option value="oldest">{t('clp.sort_oldest')}</option>
                 <option value="budget">{t('clp.sort_budget')}</option>
                 <option value="proposals">{t('clp.sort_proposals')}</option>
               </select>
-              <div style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:'#6b7280' }}><IcChev /></div>
+              <div style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:'var(--fm-text-6)' }}><IcChev /></div>
             </div>
           </div>
         </div>
@@ -645,17 +645,17 @@ export default function ClientsPage() {
       {/* ── PROJECT CARDS ── */}
       <div style={{ maxWidth:1100, margin:'0 auto', padding:'24px clamp(16px,3vw,24px) 0', display:'flex', flexDirection:'column', gap:14 }}>
         {loading ? (
-          <div style={{ textAlign:'center', padding:'70px 0', color:'#4b5563', fontSize:14 }}>
+          <div style={{ textAlign:'center', padding:'70px 0', color:'var(--fm-text-7)', fontSize:14 }}>
             <div style={{ width:32, height:32, border:`2px solid ${C.accentBord}`, borderTopColor:C.accent, borderRadius:'50%', margin:'0 auto 16px', animation:'spin 0.8s linear infinite' }} />
             {t('clp.loading_projects')}
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'70px 20px', background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.065)', borderRadius:22 }}>
+          <div style={{ textAlign:'center', padding:'70px 20px', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border-soft)', borderRadius:22 }}>
             <div style={{ width:60, height:60, borderRadius:18, background:C.accentDim, border:`1px solid ${C.accentBord}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px' }}>
               <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke={C.accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
             </div>
-            <p style={{ fontSize:16, fontWeight:800, color:'#e5e7eb', margin:'0 0 7px' }}>{t('clp.no_projects_found')}</p>
-            <p style={{ fontSize:13, color:'#6b7280', margin:'0 0 18px' }}>{search ? t('clp.try_different_search') : t('clp.no_open_projects')}</p>
+            <p style={{ fontSize:16, fontWeight:800, color:'var(--fm-text-3)', margin:'0 0 7px' }}>{t('clp.no_projects_found')}</p>
+            <p style={{ fontSize:13, color:'var(--fm-text-6)', margin:'0 0 18px' }}>{search ? t('clp.try_different_search') : t('clp.no_open_projects')}</p>
             {search && (
               <button onClick={()=>setSearch('')}
                 style={{ fontSize:13, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, borderRadius:10, padding:'8px 18px', cursor:'pointer' }}>
@@ -682,7 +682,7 @@ export default function ClientsPage() {
         )}
 
         {filtered.length > 0 && (
-          <p style={{ textAlign:'center', fontSize:13, color:'#374151', padding:'12px 0 4px' }}>
+          <p style={{ textAlign:'center', fontSize:13, color:'var(--fm-text-7)', padding:'12px 0 4px' }}>
             {t('clp.projects_shown', { count: filtered.length })}
           </p>
         )}

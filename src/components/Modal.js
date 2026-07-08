@@ -50,7 +50,7 @@ export default function Modal({
     return createPortal(
       <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto overflow-x-hidden animate-[modalUp_0.25s_cubic-bezier(0.34,1.56,0.64,1)]"
         style={{
-          background: '#0a0817',
+          background: 'var(--fm-bg)',
           backgroundImage: 'radial-gradient(ellipse 75% 65% at 100% 0%, rgba(104,76,226,0.5) 0%, rgba(60,130,240,0.18) 42%, transparent 68%)'
         }}>
 
@@ -58,9 +58,9 @@ export default function Modal({
         <div className="flex-1 flex flex-col justify-center items-center px-4 py-8">
           <div className="auth-card w-full max-w-md rounded-2xl"
             style={{
-              background: '#120f2b',
-              border: '1px solid rgba(255,255,255,0.09)',
-              boxShadow: '0 25px 70px rgba(0,0,0,0.55), 0 0 60px rgba(104,76,226,0.07)'
+              background: 'var(--fm-surface-2)',
+              border: '1px solid var(--fm-border)',
+              boxShadow: '0 25px 70px var(--fm-shadow), 0 0 60px rgba(104,76,226,0.07)'
             }}>
             <div className="p-7 sm:p-8">
 
@@ -73,7 +73,7 @@ export default function Modal({
                         <h2
                           key={String(title)}
                           className="text-2xl sm:text-3xl font-bold leading-tight animate-[authTitleIn_0.35s_cubic-bezier(0.22,1,0.36,1)_both]"
-                          style={{ color: '#fbfbff' }}
+                          style={{ color: 'var(--fm-text-1)' }}
                         >
                           {title}
                         </h2>
@@ -82,7 +82,7 @@ export default function Modal({
                         <p
                           key={subtitle}
                           className="mt-1.5 text-sm animate-[authSubIn_0.35s_cubic-bezier(0.22,1,0.36,1)_0.05s_both]"
-                          style={{ color: '#a7abc8' }}
+                          style={{ color: 'var(--fm-text-5)' }}
                         >
                           {subtitle}
                         </p>
@@ -92,9 +92,9 @@ export default function Modal({
                       <button
                         onClick={onClose}
                         className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all"
-                        style={{ background: 'rgba(255,255,255,.08)', color: '#a7abc8' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.14)'; e.currentTarget.style.color = '#fbfbff'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.08)'; e.currentTarget.style.color = '#a7abc8'; }}
+                        style={{ background: 'var(--fm-border)', color: 'var(--fm-text-5)' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--fm-border-strong)'; e.currentTarget.style.color = 'var(--fm-text-1)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--fm-border)'; e.currentTarget.style.color = 'var(--fm-text-5)'; }}
                         aria-label={t("Close")}
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -111,7 +111,7 @@ export default function Modal({
 
               {/* Footer */}
               {footer && (
-                <div className="pt-4 mt-2 border-t" style={{ borderColor: 'rgba(255,255,255,.07)' }}>
+                <div className="pt-4 mt-2 border-t" style={{ borderColor: 'var(--fm-border)' }}>
                   {footer}
                 </div>
               )}
@@ -185,7 +185,10 @@ export default function Modal({
       }}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease]" />
+      <div
+        className="absolute inset-0 backdrop-blur-sm animate-[fadeIn_0.2s_ease]"
+        style={{ background: 'var(--fm-overlay)' }}
+      />
 
       {/* Panel */}
       <div
@@ -199,7 +202,7 @@ export default function Modal({
         ]
           .filter(Boolean)
           .join(" ")}
-        style={{ "--tw-shadow": "0 25px 60px -12px rgb(0 0 0 / 0.4)" }}
+        style={{ "--tw-shadow": "0 25px 60px -12px var(--fm-shadow)" }}
       >
         {/* Header */}
         {(title || closable) && (

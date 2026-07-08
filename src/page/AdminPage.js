@@ -360,7 +360,7 @@ function AllUsersTable({ allUsers, search, loading }) {
               <Avatar name={u.name} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                  <Link to={`/profile/${encodeURIComponent(u.email)}`} className="font-bold text-sm no-underline hover:underline" style={{ color: u.role === 'client' ? '#0ea5e9' : '#9b8cff' }}>{u.name}</Link>
+                  <Link to={`/profile/${encodeURIComponent(u.email)}`} className="font-bold text-sm no-underline hover:underline" style={{ color: u.role === 'client' ? 'var(--fm-info)' : 'var(--fm-primary-light)' }}>{u.name}</Link>
                   {(u.role === "freelancer" || u.role === "client") && <StatusBadge status={status} />}
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${u.role === "client" ? "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800" : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"}`}>
                     {u.role === "client"
@@ -1142,9 +1142,9 @@ function AdminChatPanel({ allUsers }) {
                 className="w-24 text-xs px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
               />
               {[
-                { id: 'en_attente', label: <span className="flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="#f59e0b"><circle cx="4" cy="4" r="4"/></svg>{t('admin.pending')}</span>, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
-                { id: 'en_cours',   label: <span className="flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="#0ea5e9"><circle cx="4" cy="4" r="4"/></svg>{t('fd.status.in_progress')}</span>,   active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
-                { id: 'termine',    label: <span className="flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="#10b981"><circle cx="4" cy="4" r="4"/></svg>{t('fd.status.completed')}</span>,    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
+                { id: 'en_attente', label: <span className="flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="var(--fm-warning)"><circle cx="4" cy="4" r="4"/></svg>{t('admin.pending')}</span>, active: 'bg-amber-500 border-amber-500 text-white',     idle: 'hover:border-amber-400' },
+                { id: 'en_cours',   label: <span className="flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="var(--fm-info)"><circle cx="4" cy="4" r="4"/></svg>{t('fd.status.in_progress')}</span>,   active: 'bg-sky-500 border-sky-500 text-white',         idle: 'hover:border-sky-400' },
+                { id: 'termine',    label: <span className="flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="var(--fm-success)"><circle cx="4" cy="4" r="4"/></svg>{t('fd.status.completed')}</span>,    active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'hover:border-emerald-400' },
               ].map(s => {
                 const active = userCourseReq.payment_status === s.id;
                 return (
@@ -2410,7 +2410,7 @@ export default function AdminPage() {
                                     <div className="flex-1 min-w-0">
                                       <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{lesson.title}</p>
                                       <div className="flex items-center gap-3 mt-0.5">
-                                        {lesson.duration_min > 0 && <span className="flex items-center gap-1 text-[10px] text-slate-400"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#f59e0b" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{lesson.duration_min} min</span>}
+                                        {lesson.duration_min > 0 && <span className="flex items-center gap-1 text-[10px] text-slate-400"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="var(--fm-warning)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{lesson.duration_min} min</span>}
                                         {lesson.is_free_preview && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{t('fd.free_preview')}</span>}
                                         {Number(lesson.price) > 0 && <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">{Number(lesson.price).toFixed(2)} TND</span>}
                                       </div>
@@ -2881,7 +2881,7 @@ export default function AdminPage() {
       {/* ══ DEMANDES D'ACCÈS AUX COURS TAB ══ */}
       {/* ── Revoke Access Confirmation Modal ── */}
       {revokeConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(0,0,0,0.6)' }}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(6px)', backgroundColor: 'var(--fm-overlay)' }}>
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700">
 
             {/* X close button */}
@@ -3146,7 +3146,7 @@ export default function AdminPage() {
       {logoutConfirm && (
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.55)' }}
+          style={{ backdropFilter: 'blur(4px)', backgroundColor: 'var(--fm-overlay)' }}
         >
           <div
             className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl w-full max-w-sm overflow-hidden"

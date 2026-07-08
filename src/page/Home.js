@@ -74,7 +74,7 @@ const FAQ_ITEMS = [
 ];
 
 // ── Star icon ────────────────────────────────────────────────────────────────
-function StarIcon({ size = 14, color = '#9b8cff' }) {
+function StarIcon({ size = 14, color = 'var(--fm-primary-light)' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
       <path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"/>
@@ -83,7 +83,7 @@ function StarIcon({ size = 14, color = '#9b8cff' }) {
 }
 
 // ── Shield icon ──────────────────────────────────────────────────────────────
-function ShieldIcon({ size = 15, color = '#9b8cff' }) {
+function ShieldIcon({ size = 15, color = 'var(--fm-primary-light)' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
       <path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"/>
@@ -101,7 +101,7 @@ function ChevronRight({ size = 15 }) {
 }
 
 // ── Clock icon ───────────────────────────────────────────────────────────────
-function ClockIcon({ size = 13, color = '#7e82a0' }) {
+function ClockIcon({ size = 13, color = 'var(--fm-text-6)' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
@@ -109,7 +109,7 @@ function ClockIcon({ size = 13, color = '#7e82a0' }) {
   );
 }
 
-const CARD_STYLE = { background: '#16142e', border: '1px solid rgba(255,255,255,.08)', borderRadius: '16px' };
+const CARD_STYLE = { background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', borderRadius: '16px' };
 
 // ── Section: Hero ─────────────────────────────────────────────────────────────
 function HeroSection() {
@@ -174,16 +174,16 @@ function HeroSection() {
             animation: 'badgePulse 3s ease-in-out infinite',
             backdropFilter: 'blur(8px)',
           }}>
-          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'linear-gradient(135deg,#9b8cff,#3ec2e8)', boxShadow: '0 0 10px #9b8cff', flexShrink:0, animation:'dotPulse 2s ease-in-out infinite' }} />
+          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'linear-gradient(135deg,var(--fm-primary-light),var(--fm-cyan))', boxShadow: '0 0 10px var(--fm-primary-light)', flexShrink:0, animation:'dotPulse 2s ease-in-out infinite' }} />
           <span className="premium-badge-text">{t('home.badge')}</span>
         </motion.span>
 
         {/* H1 */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-          style={{ fontWeight: 800, fontSize: 'clamp(34px,5.4vw,56px)', lineHeight: 1.06, letterSpacing: '-.03em', margin: '0 0 18px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          style={{ fontWeight: 800, fontSize: 'clamp(34px,5.4vw,56px)', lineHeight: 1.06, letterSpacing: '-.03em', margin: '0 0 18px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
           {t('home.hero.title1')}<br />
-          <span style={{ background: 'linear-gradient(110deg,#9b8cff,#6c8cf6 60%,#3ec2e8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+          <span style={{ background: 'linear-gradient(110deg,var(--fm-primary-light),var(--fm-blue) 60%,var(--fm-cyan))', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
             {t('home.hero.title2')}
           </span>
         </motion.h1>
@@ -191,7 +191,7 @@ function HeroSection() {
         {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
-          style={{ fontSize: 'clamp(16px,2vw,19px)', color: '#a7abc8', maxWidth: '520px', margin: '0 auto 34px', lineHeight: 1.55 }}>
+          style={{ fontSize: 'clamp(16px,2vw,19px)', color: 'var(--fm-text-5)', maxWidth: '520px', margin: '0 auto 34px', lineHeight: 1.55 }}>
           {t('home.hero.subtitle')}
         </motion.p>
 
@@ -200,7 +200,7 @@ function HeroSection() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
           style={{ maxWidth: '640px', margin: '0 auto', width: '100%' }}>
           {/* Type tabs */}
-          <div style={{ position: 'relative', display: 'flex', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '13px', padding: '5px', marginBottom: '12px', maxWidth: '340px', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
+          <div style={{ position: 'relative', display: 'flex', background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border)', borderRadius: '13px', padding: '5px', marginBottom: '12px', maxWidth: '340px', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
             {/* Sliding pill */}
             <div style={{
               position: 'absolute',
@@ -216,21 +216,21 @@ function HeroSection() {
             }} />
             {SEARCH_LABELS.map((label, i) => (
               <button key={label} onClick={() => setTypeIdx(i)}
-                style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, borderRadius: '9px', background: 'transparent', position: 'relative', zIndex: 1, transition: 'color 0.2s ease', color: typeIdx === i ? '#fff' : '#a7abc8' }}>
+                style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, borderRadius: '9px', background: 'transparent', position: 'relative', zIndex: 1, transition: 'color 0.2s ease', color: typeIdx === i ? '#fff' : 'var(--fm-text-5)' }}>
                 {label}
               </button>
             ))}
           </div>
           {/* Input */}
           <form onSubmit={handleSearch}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#15122c', border: '1px solid rgba(255,255,255,.1)', borderRadius: '14px', padding: '7px 7px 7px 16px', boxShadow: '0 18px 44px -18px rgba(0,0,0,.7)' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border)', borderRadius: '14px', padding: '7px 7px 7px 16px', boxShadow: '0 18px 44px -18px rgba(0,0,0,.7)' }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={activeColor.bg} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flex: 'none', transition: 'stroke .2s' }}>
               <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
             </svg>
             <input
               value={query} onChange={e => setQuery(e.target.value)}
               placeholder={SEARCH_PLACEHOLDERS[typeIdx]}
-              style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#f4f3fb', fontFamily: 'inherit', fontSize: '15px' }}
+              style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: 'var(--fm-text-2)', fontFamily: 'inherit', fontSize: '15px' }}
             />
             <button type="submit"
               style={{ padding: '11px 22px', borderRadius: '10px', background: activeColor.bg, color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', flex: 'none', boxShadow: `0 6px 16px -5px ${activeColor.glow}`, transition: 'background .2s, box-shadow .2s' }}>
@@ -244,17 +244,17 @@ function HeroSection() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}
           style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '26px' }}>
           <Link to="/freelancers"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: '#7c6cf6', color: '#fff', border: 'none', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', boxShadow: '0 8px 22px -8px rgba(124,108,246,.7)', textDecoration: 'none' }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'var(--fm-primary)', color: '#fff', border: 'none', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', boxShadow: '0 8px 22px -8px rgba(124,108,246,.7)', textDecoration: 'none' }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             {t('home.cta.hire_fl')}
           </Link>
           <Link to="/clients"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'rgba(255,255,255,.06)', color: '#e7e8f4', border: '1px solid rgba(255,255,255,.16)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'var(--fm-surface-hover)', color: 'var(--fm-text-3)', border: '1px solid var(--fm-border-strong)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
             {t('home.cta.find_cl')}
           </Link>
           <Link to="/courses"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'rgba(255,255,255,.06)', color: '#e7e8f4', border: '1px solid rgba(255,255,255,.16)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'var(--fm-surface-hover)', color: 'var(--fm-text-3)', border: '1px solid var(--fm-border-strong)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
             {t('home.cta.learn')}
           </Link>
@@ -283,13 +283,13 @@ function ActionCardsSection() {
             <Link to={card.to}
               style={{ ...CARD_STYLE, padding: '26px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: '14px', textDecoration: 'none', transition: 'box-shadow .18s,transform .18s,border-color .18s' }}
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = card.colorBd; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
               <span style={{ width: '48px', height: '48px', borderRadius: '13px', background: card.colorDim, border: `1px solid ${card.colorBd}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: card.colorLight }}>
                 {card.icon}
               </span>
               <div>
-                <div style={{ fontWeight: 700, fontSize: '18px', color: '#fbfbff', marginBottom: '5px' }}>{card.title}</div>
-                <div style={{ fontSize: '14px', color: '#a7abc8', lineHeight: 1.5 }}>{card.desc}</div>
+                <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--fm-text-1)', marginBottom: '5px' }}>{card.title}</div>
+                <div style={{ fontSize: '14px', color: 'var(--fm-text-5)', lineHeight: 1.5 }}>{card.desc}</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13.5px', fontWeight: 600, color: card.colorLight, marginTop: 'auto' }}>
                 {card.cta} <ChevronRight />
@@ -325,10 +325,10 @@ function HowItWorksSection() {
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-        <h2 style={{ fontWeight: 800, fontSize: 'clamp(24px,3.4vw,32px)', letterSpacing: '-.025em', margin: '0 0 8px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+        <h2 style={{ fontWeight: 800, fontSize: 'clamp(24px,3.4vw,32px)', letterSpacing: '-.025em', margin: '0 0 8px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
           {t('home.hiw.title')}
         </h2>
-        <p style={{ fontSize: '16px', color: '#a7abc8', margin: 0 }}>{t('home.hiw.sub')}</p>
+        <p style={{ fontSize: '16px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.hiw.sub')}</p>
       </div>
       <style>{`@media(max-width:680px){.hiw-arrow{display:none!important}}`}</style>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -338,11 +338,11 @@ function HowItWorksSection() {
               initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.12 }}
               style={{ flex: 1, minWidth: '200px', maxWidth: '260px', textAlign: 'center', padding: '8px' }}>
-              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: '#7c6cf6', color: '#fff', fontWeight: 700, fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 18px -6px rgba(124,108,246,.7)' }}>
+              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: 'var(--fm-primary)', color: '#fff', fontWeight: 700, fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 18px -6px rgba(124,108,246,.7)' }}>
                 {step.num}
               </div>
-              <div style={{ fontWeight: 700, fontSize: '17px', color: '#fbfbff', marginBottom: '6px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{step.title}</div>
-              <div style={{ fontSize: '14px', color: '#a7abc8', lineHeight: 1.55, maxWidth: '280px', margin: '0 auto' }}>{step.desc}</div>
+              <div style={{ fontWeight: 700, fontSize: '17px', color: 'var(--fm-text-1)', marginBottom: '6px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{step.title}</div>
+              <div style={{ fontSize: '14px', color: 'var(--fm-text-5)', lineHeight: 1.55, maxWidth: '280px', margin: '0 auto' }}>{step.desc}</div>
             </motion.div>
             {i < steps.length - 1 && <StepArrow />}
           </React.Fragment>
@@ -360,7 +360,7 @@ function SkeletonCard({ height = 190 }) {
 }
 function StateMessage({ text }) {
   return (
-    <div style={{ ...CARD_STYLE, gridColumn: '1/-1', padding: '40px 24px', textAlign: 'center', color: '#a7abc8', fontSize: '14.5px' }}>
+    <div style={{ ...CARD_STYLE, gridColumn: '1/-1', padding: '40px 24px', textAlign: 'center', color: 'var(--fm-text-5)', fontSize: '14.5px' }}>
       {text}
     </div>
   );
@@ -394,13 +394,13 @@ function FeaturedFreelancersSection({ items, loading, error }) {
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
         <div>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
             {t('home.ff.title')}
           </h2>
-          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>{t('home.ff.sub')}</p>
+          <p style={{ fontSize: '15px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.ff.sub')}</p>
         </div>
         <Link to="/freelancers"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.14)', color: '#c2c5dd', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border-strong)', color: 'var(--fm-text-4)', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
           {t('home.ff.view_all')} <ChevronRight />
         </Link>
       </div>
@@ -411,7 +411,7 @@ function FeaturedFreelancersSection({ items, loading, error }) {
         {!loading && !error && items.map((f, i) => {
           const skillsArr = (Array.isArray(f.skills) ? f.skills : String(f.skills || '').split(',')).map(s => String(s).trim()).filter(Boolean).slice(0, 3);
           const roleLabel = f.title || skillsArr[0] || '';
-          const availDot   = f.availability === 'unavailable' ? '#ef4444' : f.availability === 'busy' ? '#f59e0b' : '#10b981';
+          const availDot   = f.availability === 'unavailable' ? 'var(--fm-danger)' : f.availability === 'busy' ? 'var(--fm-warning)' : 'var(--fm-success)';
           const availLabel = f.availability === 'unavailable' ? t('Unavailable') : f.availability === 'busy' ? t('Busy') : t('Available');
           return (
             <motion.div key={f.email}
@@ -419,7 +419,7 @@ function FeaturedFreelancersSection({ items, loading, error }) {
               transition={{ duration: 0.45, delay: i * 0.1 }}
               style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s' }}
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '13px', marginBottom: '16px' }}>
                 <span style={{ width: '50px', height: '50px', borderRadius: '50%', background: pickGradient(f.email || f.name), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', flex: 'none' }}>
@@ -427,19 +427,19 @@ function FeaturedFreelancersSection({ items, loading, error }) {
                 </span>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '15.5px', color: '#fbfbff' }}>{f.name?.split(' ')[0]}</span>
-                    <ShieldIcon size={15} color="#9b8cff" />
+                    <span style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--fm-text-1)' }}>{f.name?.split(' ')[0]}</span>
+                    <ShieldIcon size={15} color="var(--fm-primary-light)" />
                   </div>
-                  {roleLabel && <div style={{ fontSize: '13px', color: '#a7abc8', marginTop: '2px' }}>{roleLabel}</div>}
+                  {roleLabel && <div style={{ fontSize: '13px', color: 'var(--fm-text-5)', marginTop: '2px' }}>{roleLabel}</div>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13.5px', flex: 'none' }}>
                   {f.rating > 0 ? (
                     <>
-                      <StarIcon size={14} color="#9b8cff" />
-                      <span style={{ fontWeight: 700, color: '#fbfbff' }}>{f.rating.toFixed(1)}</span>
+                      <StarIcon size={14} color="var(--fm-primary-light)" />
+                      <span style={{ fontWeight: 700, color: 'var(--fm-text-1)' }}>{f.rating.toFixed(1)}</span>
                     </>
                   ) : (
-                    <span style={{ fontWeight: 600, color: '#7e82a0' }}>{t('home.ff.new')}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--fm-text-6)' }}>{t('home.ff.new')}</span>
                   )}
                 </div>
               </div>
@@ -447,12 +447,12 @@ function FeaturedFreelancersSection({ items, loading, error }) {
               {skillsArr.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                   {skillsArr.map(s => (
-                    <span key={s} style={{ fontSize: '12px', color: '#c2c5dd', background: 'rgba(255,255,255,.06)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{s}</span>
+                    <span key={s} style={{ fontSize: '12px', color: 'var(--fm-text-4)', background: 'var(--fm-surface-hover)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{s}</span>
                   ))}
                 </div>
               )}
               {/* Footer */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '15px', borderTop: '1px solid var(--fm-border)' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 700, color: availDot }}>
                   <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: availDot, boxShadow: `0 0 6px ${availDot}`, flexShrink: 0 }} />
                   {availLabel}
@@ -515,13 +515,13 @@ function TrendingProjectsSection({ items, loading, error, users }) {
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
         <div>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
             {t('home.tp.title')}
           </h2>
-          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>{t('home.tp.sub')}</p>
+          <p style={{ fontSize: '15px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.tp.sub')}</p>
         </div>
         <Link to="/clients"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.14)', color: '#c2c5dd', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border-strong)', color: 'var(--fm-text-4)', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
           {t('home.tp.view_all')} <ChevronRight />
         </Link>
       </div>
@@ -540,20 +540,20 @@ function TrendingProjectsSection({ items, loading, error, users }) {
               transition={{ duration: 0.45, delay: i * 0.1 }}
               style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s', display: 'flex', flexDirection: 'column', gap: '13px' }}
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
               {/* Client */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ width: '34px', height: '34px', borderRadius: '9px', background: pickGradient(p.client_email || displayName), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', flex: 'none' }}>{getInitials(displayName)}</span>
-                <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#c2c5dd' }}>{displayName.split(' ')[0]}</span>
-                {isVerified && <ShieldIcon size={14} color="#9b8cff" />}
+                <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--fm-text-4)' }}>{displayName.split(' ')[0]}</span>
+                {isVerified && <ShieldIcon size={14} color="var(--fm-primary-light)" />}
               </div>
               {/* Title */}
-              <div style={{ fontWeight: 700, fontSize: '17px', color: '#fbfbff', letterSpacing: '-.01em', lineHeight: 1.3 }}>{p.title}</div>
+              <div style={{ fontWeight: 700, fontSize: '17px', color: 'var(--fm-text-1)', letterSpacing: '-.01em', lineHeight: 1.3 }}>{p.title}</div>
               {/* Budget + duration */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                {p.budget != null && <span style={{ fontSize: '14px', color: '#fbfbff', fontWeight: 700 }}>{Number(p.budget).toLocaleString('fr-TN')} TND</span>}
+                {p.budget != null && <span style={{ fontSize: '14px', color: 'var(--fm-text-1)', fontWeight: 700 }}>{Number(p.budget).toLocaleString('fr-TN')} TND</span>}
                 {p.period && (
-                  <span style={{ fontSize: '13px', color: '#7e82a0', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ fontSize: '13px', color: 'var(--fm-text-6)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                     <ClockIcon />{p.period}
                   </span>
                 )}
@@ -562,15 +562,15 @@ function TrendingProjectsSection({ items, loading, error, users }) {
               {tags.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {tags.map(tag => (
-                    <span key={tag} style={{ fontSize: '12px', color: '#c2c5dd', background: 'rgba(255,255,255,.06)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{tag}</span>
+                    <span key={tag} style={{ fontSize: '12px', color: 'var(--fm-text-4)', background: 'var(--fm-surface-hover)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{tag}</span>
                   ))}
                 </div>
               )}
               {/* Footer */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
-                <span style={{ fontSize: '12.5px', color: '#7e82a0' }}>{t('home.tp.proposals', { count: p._proposalCount })}</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '14px', borderTop: '1px solid var(--fm-border)' }}>
+                <span style={{ fontSize: '12.5px', color: 'var(--fm-text-6)' }}>{t('home.tp.proposals', { count: p._proposalCount })}</span>
                 <Link to="/clients"
-                  style={{ padding: '8px 18px', borderRadius: '9px', background: '#7c6cf6', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '13.5px', textDecoration: 'none' }}>
+                  style={{ padding: '8px 18px', borderRadius: '9px', background: 'var(--fm-primary)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '13.5px', textDecoration: 'none' }}>
                   {t('home.tp.apply')}
                 </Link>
               </div>
@@ -625,13 +625,13 @@ function CoursesPreviewSection({ items, loading, error }) {
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
         <div>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
             {t('home.cp.title')}
           </h2>
-          <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>{t('home.cp.sub')}</p>
+          <p style={{ fontSize: '15px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.cp.sub')}</p>
         </div>
         <Link to="/courses"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.14)', color: '#c2c5dd', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border-strong)', color: 'var(--fm-text-4)', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
           {t('home.cp.view_all')} <ChevronRight />
         </Link>
       </div>
@@ -654,7 +654,7 @@ function CoursesPreviewSection({ items, loading, error }) {
               transition={{ duration: 0.45, delay: i * 0.08 }}
               style={{ ...CARD_STYLE, overflow: 'hidden', transition: 'box-shadow .18s,border-color .18s', cursor: 'pointer' }}
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}>
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
               {/* Cover */}
               <div style={{ height: '120px', background: cover, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                 {c.thumbnail_url && (
@@ -669,18 +669,18 @@ function CoursesPreviewSection({ items, loading, error }) {
               </div>
               {/* Body */}
               <div style={{ padding: '16px 17px 18px' }}>
-                <div style={{ fontWeight: 700, fontSize: '15px', color: '#fbfbff', lineHeight: 1.35, marginBottom: '7px', minHeight: '40px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{c.title}</div>
-                {instructor && <div style={{ fontSize: '13px', color: '#a7abc8', marginBottom: '12px' }}>{instructor.split(' ')[0]}</div>}
+                <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--fm-text-1)', lineHeight: 1.35, marginBottom: '7px', minHeight: '40px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{c.title}</div>
+                {instructor && <div style={{ fontSize: '13px', color: 'var(--fm-text-5)', marginBottom: '12px' }}>{instructor.split(' ')[0]}</div>}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: '#a7abc8' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: 'var(--fm-text-5)' }}>
                     {rating > 0 ? (
-                      <><StarIcon size={14} /><strong style={{ color: '#fbfbff' }}>{rating.toFixed(1)}</strong></>
+                      <><StarIcon size={14} /><strong style={{ color: 'var(--fm-text-1)' }}>{rating.toFixed(1)}</strong></>
                     ) : (
                       <span style={{ fontWeight: 600 }}>{t('home.ff.new')}</span>
                     )}
                     {students > 0 && <> · {students.toLocaleString()}</>}
                   </div>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#fbfbff', whiteSpace: 'nowrap' }}>{isFree ? t('cc.free') : `${final.toFixed(0)} TND`}</div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--fm-text-1)', whiteSpace: 'nowrap' }}>{isFree ? t('cc.free') : `${final.toFixed(0)} TND`}</div>
                 </div>
               </div>
             </motion.div>
@@ -717,10 +717,10 @@ function FAQSection() {
   return (
     <section className="fm-section" style={{ maxWidth: '760px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ textAlign: 'center', marginBottom: '34px' }}>
-        <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 8px', color: '#fbfbff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+        <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 8px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
           {t('home.faq.title')}
         </h2>
-        <p style={{ fontSize: '15px', color: '#a7abc8', margin: 0 }}>{t('home.faq.sub')}</p>
+        <p style={{ fontSize: '15px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.faq.sub')}</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {faqItems.map((q, i) => {
@@ -729,16 +729,16 @@ function FAQSection() {
             <motion.div key={q.question}
               initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              style={{ background: '#16142e', border: `1px solid ${isOpen ? 'rgba(124,108,246,.4)' : 'rgba(255,255,255,.08)'}`, borderRadius: '14px', overflow: 'hidden', transition: 'border-color .18s' }}>
+              style={{ background: 'var(--fm-surface)', border: `1px solid ${isOpen ? 'rgba(124,108,246,.4)' : 'var(--fm-border)'}`, borderRadius: '14px', overflow: 'hidden', transition: 'border-color .18s' }}>
               <button onClick={() => toggle(i)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: '18px 20px' }}>
-                <span style={{ fontWeight: 700, fontSize: '15.5px', color: '#fbfbff' }}>{q.question}</span>
+                <span style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--fm-text-1)' }}>{q.question}</span>
                 <span style={{ width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(124,108,246,.16)', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b9aeff', flex: 'none' }}>
                   <ChevronDown size={14} rotated={isOpen} />
                 </span>
               </button>
               {isOpen && (
-                <div style={{ padding: '0 20px 19px', fontSize: '14.5px', color: '#a7abc8', lineHeight: 1.6 }}>
+                <div style={{ padding: '0 20px 19px', fontSize: '14.5px', color: 'var(--fm-text-5)', lineHeight: 1.6 }}>
                   {q.answer}
                 </div>
               )}
@@ -795,7 +795,7 @@ export default function Home() {
   }
 
   return (
-    <div style={{ background: 'radial-gradient(960px 540px at 14% -6%,rgba(124,108,246,.22),transparent 60%),radial-gradient(860px 540px at 96% -2%,rgba(58,140,224,.16),transparent 60%),linear-gradient(180deg,#100d28 0%,#0a0817 58%)', minHeight: '100vh', fontFamily: "'Plus Jakarta Sans',-apple-system,sans-serif", color: '#f4f3fb', WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
+    <div style={{ background: 'radial-gradient(960px 540px at 14% -6%,rgba(124,108,246,.22),transparent 60%),radial-gradient(860px 540px at 96% -2%,rgba(58,140,224,.16),transparent 60%),linear-gradient(180deg,var(--fm-bg-3) 0%,var(--fm-bg) 58%)', minHeight: '100vh', fontFamily: "'Plus Jakarta Sans',-apple-system,sans-serif", color: 'var(--fm-text-2)', WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
       <style>{`@keyframes fmPulse { 0%,100% { opacity:1; } 50% { opacity:.55; } }`}</style>
       <SEOHead
         url="/"

@@ -6,15 +6,15 @@ import { cldImg } from '../utils/cloudinary';
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
 const C = {
-  bg:'#070b14', card:'rgba(255,255,255,0.028)', cardHov:'rgba(255,255,255,0.05)',
-  border:'rgba(255,255,255,0.07)', borderAcc:'rgba(124,108,246,0.45)',
-  surface:'#0d1220',
-  accent:'#7c6cf6', accentMid:'#9b8cff', accentDim:'rgba(124,108,246,0.1)',
+  bg:'var(--fm-bg)', card:'var(--fm-surface-hover-soft)', cardHov:'var(--fm-border-soft)',
+  border:'var(--fm-border)', borderAcc:'rgba(124,108,246,0.45)',
+  surface:'var(--fm-surface)',
+  accent:'var(--fm-primary)', accentMid:'var(--fm-primary-light)', accentDim:'rgba(124,108,246,0.1)',
   emerald:'#10b981', emeraldDim:'rgba(16,185,129,0.1)', emeraldBord:'rgba(16,185,129,0.28)',
   sky:'#0ea5e9', skyDim:'rgba(14,165,233,0.1)', skyBord:'rgba(14,165,233,0.28)',
   amber:'#f59e0b', amberDim:'rgba(245,158,11,0.1)', amberBord:'rgba(245,158,11,0.25)',
-  rose:'#f87171', roseDim:'rgba(248,113,113,0.1)', roseBord:'rgba(248,113,113,0.28)',
-  text:'#f4f3fb', sub:'#a7abc8', muted:'#62668a',
+  rose:'#f87171', roseDim:'var(--fm-danger-bg)', roseBord:'rgba(248,113,113,0.28)',
+  text:'var(--fm-text-2)', sub:'var(--fm-text-5)', muted:'var(--fm-text-7)',
 };
 
 const TUNISIAN_REGIONS = [
@@ -29,12 +29,12 @@ const getInitials = n => (n||'').trim().split(/\s+/).map(w=>w[0]?.toUpperCase()|
 
 const INP = {
   width:'100%', boxSizing:'border-box', padding:'13px 16px', borderRadius:14,
-  background:'rgba(255,255,255,0.04)', border:`1.5px solid ${C.border}`,
+  background:'var(--fm-surface-hover-soft)', border:`1.5px solid ${C.border}`,
   color:C.text, fontSize:14, outline:'none', fontFamily:'inherit',
   transition:'border-color .2s, background .2s, box-shadow .2s',
 };
 const focusOn  = e => { e.target.style.borderColor='rgba(124,108,246,0.55)'; e.target.style.background='rgba(124,108,246,0.07)'; e.target.style.boxShadow='0 0 0 3px rgba(124,108,246,0.12), inset 3px 0 0 rgba(124,108,246,0.55)'; };
-const focusOff = e => { e.target.style.borderColor=C.border; e.target.style.background='rgba(255,255,255,0.04)'; e.target.style.boxShadow='none'; };
+const focusOff = e => { e.target.style.borderColor=C.border; e.target.style.background='var(--fm-surface-hover-soft)'; e.target.style.boxShadow='none'; };
 
 /* ── Icons ── */
 const IcCamera      = ({s=14}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
@@ -151,16 +151,16 @@ export default function ClientDashboard() {
             ════════════════════════════════════════════ */}
         <div style={{
           borderRadius:28, marginBottom:18, position:'relative', overflow:'hidden',
-          background:'linear-gradient(140deg,rgba(124,108,246,0.1) 0%,rgba(10,13,26,0.98) 50%,rgba(7,11,20,1) 100%)',
+          background:'linear-gradient(140deg,rgba(124,108,246,0.1) 0%,var(--fm-surface) 50%,var(--fm-bg) 100%)',
           border:'1px solid rgba(124,108,246,0.2)',
-          boxShadow:`0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.07)`,
+          boxShadow:`0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)`,
         }}>
 
           {/* Decorative: radial glow + dot grid */}
           <div style={{ position:'absolute', inset:0, pointerEvents:'none',
             background:`radial-gradient(ellipse 600px 320px at -8% -30%, ${tint}1c, transparent 65%), radial-gradient(ellipse 400px 280px at 108% 115%, rgba(168,85,247,0.09), transparent 65%)` }}/>
           <div style={{ position:'absolute', inset:0, pointerEvents:'none',
-            backgroundImage:'radial-gradient(rgba(255,255,255,0.028) 1px, transparent 1px)',
+            backgroundImage:'radial-gradient(var(--fm-surface-hover-soft) 1px, transparent 1px)',
             backgroundSize:'28px 28px',
             WebkitMaskImage:'radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%)',
             maskImage:'radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%)' }}/>
@@ -174,7 +174,7 @@ export default function ClientDashboard() {
               </div>
               <h1 style={{ fontSize:30, fontWeight:900, color:C.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
                 {greeting},{' '}
-                <span style={{ background:`linear-gradient(110deg,#c4baff 0%,${tint} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+                <span style={{ background:`linear-gradient(110deg,var(--fm-text-1) 0%,${tint} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
                   {firstName}
                 </span>
               </h1>
@@ -236,7 +236,7 @@ export default function ClientDashboard() {
                 <span style={{ fontSize:13, color:C.muted, fontWeight:500 }}>{user.email}</span>
               </div>
               {region ? (
-                <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12.5, color:C.sub, fontWeight:600, background:'rgba(255,255,255,0.05)', border:`1px solid ${C.border}`, borderRadius:10, padding:'5px 12px' }}>
+                <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12.5, color:C.sub, fontWeight:600, background:'var(--fm-surface-hover)', border:`1px solid ${C.border}`, borderRadius:10, padding:'5px 12px' }}>
                   <IcPin s={11}/> {region}
                 </span>
               ) : (
@@ -246,7 +246,7 @@ export default function ClientDashboard() {
           </div>
 
           {/* ── Profile completion bar ── */}
-          <div style={{ position:'relative', margin:'24px 0 0', padding:'20px 32px 26px', borderTop:`1px solid rgba(255,255,255,0.06)` }}>
+          <div style={{ position:'relative', margin:'24px 0 0', padding:'20px 32px 26px', borderTop:`1px solid var(--fm-border-soft)` }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <div style={{ display:'flex', alignItems:'center', gap:7 }}>
                 <IcSpark s={12} style={{ color: isComplete ? C.emerald : C.accentMid }}/>
@@ -260,7 +260,7 @@ export default function ClientDashboard() {
             </div>
 
             {/* Progress track */}
-            <div style={{ height:5, borderRadius:10, background:'rgba(255,255,255,0.07)', overflow:'hidden', marginBottom:10 }}>
+            <div style={{ height:5, borderRadius:10, background:'var(--fm-surface-hover)', overflow:'hidden', marginBottom:10 }}>
               <div style={{
                 height:'100%', width:`${completion}%`, borderRadius:10,
                 background: progressColor,
@@ -273,8 +273,8 @@ export default function ClientDashboard() {
             {missing.length > 0 && (
               <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:4 }}>
                 {missing.map(item => (
-                  <span key={item.label} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, color:C.muted, background:'rgba(255,255,255,0.04)', border:`1px solid ${C.border}`, borderRadius:20, padding:'3px 10px', fontWeight:500 }}>
-                    <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.18)', display:'inline-block', flexShrink:0 }}/>
+                  <span key={item.label} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, color:C.muted, background:'var(--fm-surface-hover-soft)', border:`1px solid ${C.border}`, borderRadius:20, padding:'3px 10px', fontWeight:500 }}>
+                    <span style={{ width:4, height:4, borderRadius:'50%', background:'var(--fm-border-strong)', display:'inline-block', flexShrink:0 }}/>
                     {item.label}
                   </span>
                 ))}
@@ -310,9 +310,9 @@ export default function ClientDashboard() {
             ════════════════════════════════════════════ */}
         <div style={{
           borderRadius:26, overflow:'hidden', position:'relative',
-          background:'linear-gradient(155deg,rgba(124,108,246,0.08) 0%,rgba(10,13,26,0.97) 38%,rgba(7,11,20,1) 100%)',
+          background:'linear-gradient(155deg,rgba(124,108,246,0.08) 0%,var(--fm-surface) 38%,var(--fm-bg) 100%)',
           border:'1px solid rgba(124,108,246,0.22)',
-          boxShadow:'0 24px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.08)',
+          boxShadow:'0 24px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)',
         }}>
 
           {/* Top gradient accent line */}
@@ -323,7 +323,7 @@ export default function ClientDashboard() {
 
           {/* ── Card header ── */}
           <div style={{
-            padding:'22px 30px 20px', borderBottom:'1px solid rgba(255,255,255,0.06)',
+            padding:'22px 30px 20px', borderBottom:'1px solid var(--fm-border-soft)',
             display:'flex', alignItems:'center', gap:14, position:'relative',
           }}>
             <div style={{
@@ -338,10 +338,10 @@ export default function ClientDashboard() {
             <div style={{ flex:1 }}>
               <p style={{
                 fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em',
-                background:'linear-gradient(90deg,#f4f3fb 0%,#c4baff 100%)',
+                background:'linear-gradient(90deg,var(--fm-text-1) 0%,var(--fm-primary-light) 100%)',
                 WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
               }}>{t('cd.profile_info')}</p>
-              <p style={{ fontSize:12, color:'#62668a', margin:0 }}>{t('cd.visible_clients')}</p>
+              <p style={{ fontSize:12, color:'var(--fm-text-7)', margin:0 }}>{t('cd.visible_clients')}</p>
             </div>
             <span style={{
               padding:'5px 13px', borderRadius:20, flexShrink:0,
@@ -354,7 +354,7 @@ export default function ClientDashboard() {
           <form onSubmit={handleSave} style={{ display:'flex', flexDirection:'column' }}>
 
             {/* Nom complet */}
-            <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ padding:'22px 30px', borderBottom:'1px solid var(--fm-border-soft)' }}>
               <FieldLabel>{t('cd.full_name')}</FieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:C.muted, pointerEvents:'none', display:'flex' }}>
@@ -370,7 +370,7 @@ export default function ClientDashboard() {
             </div>
 
             {/* Région */}
-            <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ padding:'22px 30px', borderBottom:'1px solid var(--fm-border-soft)' }}>
               <FieldLabel>{t('cd.region')}</FieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:C.muted, pointerEvents:'none', display:'flex' }}>
@@ -391,7 +391,7 @@ export default function ClientDashboard() {
             </div>
 
             {/* Biographie */}
-            <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ padding:'22px 30px', borderBottom:'1px solid var(--fm-border-soft)' }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
                 <FieldLabel>{t('cd.bio')} <span style={{ fontWeight:500, textTransform:'none', letterSpacing:0, opacity:0.55 }}>{t('cd.optional')}</span></FieldLabel>
                 <span style={{ fontSize:11, fontWeight:600, color: bio.length > 260 ? C.amber : C.muted, transition:'color .2s' }}>{bio.length}/300</span>
@@ -408,12 +408,12 @@ export default function ClientDashboard() {
             </div>
 
             {/* ── Footer: save action ── */}
-            <div style={{ padding:'20px 30px', background:'rgba(0,0,0,0.22)', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ padding:'20px 30px', background:'var(--fm-bg-2)', borderTop:'1px solid var(--fm-border-soft)' }}>
 
               {/* Error banner */}
               {saveError && (
                 <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', marginBottom:14, borderRadius:14, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)' }}>
-                  <p style={{ fontSize:13, fontWeight:700, color:'#f87171', margin:0 }}>{saveError}</p>
+                  <p style={{ fontSize:13, fontWeight:700, color:'var(--fm-danger)', margin:0 }}>{saveError}</p>
                 </div>
               )}
 
@@ -477,8 +477,8 @@ export default function ClientDashboard() {
         @keyframes cdFadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
         @keyframes cdShimmer { 0%{transform:translateX(-140%)} 100%{transform:translateX(340%)} }
         .cd-save-btn::after { content:''; position:absolute; inset:0; width:45%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.13),transparent); animation:cdShimmer 2.8s ease-in-out infinite; pointer-events:none; }
-        select option { background:#0d1220; color:#a7abc8; }
-        input::placeholder, textarea::placeholder { color:#3a3d5c; }
+        select option { background:var(--fm-surface); color:var(--fm-text-5); }
+        input::placeholder, textarea::placeholder { color:var(--fm-text-7); }
         ::-webkit-scrollbar { width:5px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:rgba(124,108,246,0.3); border-radius:10px; }

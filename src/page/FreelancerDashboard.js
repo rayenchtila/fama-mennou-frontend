@@ -50,20 +50,20 @@ function Avi({ user, size = 'md' }) {
 
 function StatCard({ icon, label, value, sub, color = "#7c6cf6", loading }) {
   return (
-    <div style={{ background: "#16142e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "18px 20px", position: "relative", overflow: "hidden", transition: "border-color 0.2s" }}
+    <div style={{ background: "var(--fm-surface)", border: "1px solid var(--fm-border)", borderRadius: 16, padding: "18px 20px", position: "relative", overflow: "hidden", transition: "border-color 0.2s" }}
       onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(124,108,246,0.3)"}
-      onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}>
+      onMouseLeave={e => e.currentTarget.style.borderColor = "var(--fm-border)"}>
       <div style={{ width: 36, height: 36, borderRadius: 10, background: color + "18", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
           {icon}
         </svg>
       </div>
       {loading
-        ? <div style={{ height: 28, width: 64, background: "rgba(255,255,255,0.06)", borderRadius: 8, marginBottom: 4 }} />
-        : <p style={{ fontSize: 26, fontWeight: 800, color: "#f4f3fb", letterSpacing: "-0.02em" }}>{value}</p>
+        ? <div style={{ height: 28, width: 64, background: "var(--fm-surface-hover)", borderRadius: 8, marginBottom: 4 }} />
+        : <p style={{ fontSize: 26, fontWeight: 800, color: "var(--fm-text-2)", letterSpacing: "-0.02em" }}>{value}</p>
       }
-      <p style={{ fontSize: 11, fontWeight: 600, color: "#62668a", marginTop: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
-      {sub && <p style={{ fontSize: 10, color: "#62668a", marginTop: 2 }}>{sub}</p>}
+      <p style={{ fontSize: 11, fontWeight: 600, color: "var(--fm-text-7)", marginTop: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
+      {sub && <p style={{ fontSize: 10, color: "var(--fm-text-7)", marginTop: 2 }}>{sub}</p>}
     </div>
   );
 }
@@ -73,7 +73,7 @@ function SectionHeader({ icon, title, action, onAction }) {
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {icon && <span style={{ display: "flex", alignItems: "center", color: "#9b8cff", opacity: 0.8 }}>{icon}</span>}
-        <h2 style={{ fontSize: 13, fontWeight: 700, color: "#f4f3fb" }}>{title}</h2>
+        <h2 style={{ fontSize: 13, fontWeight: 700, color: "var(--fm-text-2)" }}>{title}</h2>
       </div>
       {action && (
         <button onClick={onAction} style={{ fontSize: 11, fontWeight: 600, color: "#9b8cff", background: "none", border: "none", cursor: "pointer", padding: 0 }}
@@ -108,7 +108,7 @@ function Empty({ icon, text, action, onAction }) {
       <div style={{ width:44, height:44, borderRadius:14, background:"rgba(124,108,246,0.08)", border:"1px solid rgba(124,108,246,0.15)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4, color:"#9b8cff" }}>
         {icon}
       </div>
-      <p style={{ fontSize:12, fontWeight:600, color:"#62668a" }}>{text}</p>
+      <p style={{ fontSize:12, fontWeight:600, color:"var(--fm-text-7)" }}>{text}</p>
       {action && (
         <button onClick={onAction}
           style={{ marginTop:8, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, background:"rgba(124,108,246,0.1)", border:"1px solid rgba(124,108,246,0.2)", color:"#9b8cff", cursor:"pointer", transition:"all 0.15s" }}
@@ -620,10 +620,10 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={<><path d="M13 10V3L4 14h7v7l9-11h-7z"/></>}                                                                                   color="#7c6cf6" label={t('fd.stat.active_missions')}   value={activeMissions}    sub={t('fd.stat.of_total', { count: missions.length })}                  loading={loading} />
-        <StatCard icon={<><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></>}                                        color="#10b981" label={t('fd.stat.completed_missions')} value={completedMissions} sub={completedMissions > 0 ? t('fd.well_done') : t('fd.none_f')} loading={loading} />
-        <StatCard icon={<><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>}                                               color="#3ec2e8" label={t('fd.stat.unread_messages')}   value={unread}            sub={unread > 0 ? t('fd.to_review') : t('fd.all_read')}           loading={loading} />
-        <StatCard icon={<><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 6v6l4 2"/></>}                                             color="#f59e0b" label={t('fd.stat.total_earnings')}       value="—"                 sub={t('fd.coming_soon')}                               loading={false}   />
+        <StatCard icon={<><path d="M13 10V3L4 14h7v7l9-11h-7z"/></>}                                                                                   color="var(--fm-primary)" label={t('fd.stat.active_missions')}   value={activeMissions}    sub={t('fd.stat.of_total', { count: missions.length })}                  loading={loading} />
+        <StatCard icon={<><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></>}                                        color="var(--fm-success)" label={t('fd.stat.completed_missions')} value={completedMissions} sub={completedMissions > 0 ? t('fd.well_done') : t('fd.none_f')} loading={loading} />
+        <StatCard icon={<><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>}                                               color="var(--fm-cyan)" label={t('fd.stat.unread_messages')}   value={unread}            sub={unread > 0 ? t('fd.to_review') : t('fd.all_read')}           loading={loading} />
+        <StatCard icon={<><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 6v6l4 2"/></>}                                             color="var(--fm-warning)" label={t('fd.stat.total_earnings')}       value="—"                 sub={t('fd.coming_soon')}                               loading={false}   />
       </div>
 
       {/* Missions + Messages */}
@@ -810,8 +810,8 @@ function FindProjectsTab({ user, navigate }) {
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
-        <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 18, fontWeight: 800, color: '#f4f3fb' }}>
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 18, fontWeight: 800, color: 'var(--fm-text-2)' }}>
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           Projets
         </h2>
         <button
@@ -885,12 +885,12 @@ function FindProjectsTab({ user, navigate }) {
       {loading ? (
         <div className="text-center py-8 text-sm text-slate-400">Chargement…</div>
       ) : projects.length === 0 ? (
-        <div style={{ background: '#16142e', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)', padding: '48px 24px', textAlign: 'center' }}>
+        <div style={{ background: 'var(--fm-surface)', borderRadius: 16, border: '1px solid var(--fm-border)', padding: '48px 24px', textAlign: 'center' }}>
           <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(124,108,246,0.1)', border: '1px solid rgba(124,108,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           </div>
-          <p style={{ fontSize: 14, fontWeight: 800, color: '#f4f3fb', marginBottom: 6 }}>Aucune offre pour l'instant</p>
-          <p style={{ fontSize: 12, color: '#62668a' }}>Publiez votre première offre de service en cliquant sur + Nouveau projet.</p>
+          <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--fm-text-2)', marginBottom: 6 }}>Aucune offre pour l'instant</p>
+          <p style={{ fontSize: 12, color: 'var(--fm-text-7)' }}>Publiez votre première offre de service en cliquant sur + Nouveau projet.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -1000,9 +1000,9 @@ function MissionsTab({ user, users, navigate }) {
     <div className="space-y-6">
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
-        <StatCard icon={<><path d="M13 10V3L4 14h7v7l9-11h-7z"/></>}                                          color="#f59e0b" label="En cours"  value={missions.filter(m => m.status === 'in_progress').length} loading={loading} />
-        <StatCard icon={<><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></>} color="#10b981" label="Terminées" value={missions.filter(m => m.status === 'completed').length}   loading={loading} />
-        <StatCard icon={<><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></>} color="#7c6cf6" label="Total" value={missions.length} loading={loading} />
+        <StatCard icon={<><path d="M13 10V3L4 14h7v7l9-11h-7z"/></>}                                          color="var(--fm-warning)" label="En cours"  value={missions.filter(m => m.status === 'in_progress').length} loading={loading} />
+        <StatCard icon={<><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></>} color="var(--fm-success)" label="Terminées" value={missions.filter(m => m.status === 'completed').length}   loading={loading} />
+        <StatCard icon={<><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></>} color="var(--fm-primary)" label="Total" value={missions.length} loading={loading} />
       </div>
 
       {/* List */}
@@ -1083,7 +1083,7 @@ function MissionsTab({ user, users, navigate }) {
                   return (
                     <div key={pr.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                       <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(124,108,246,0.1)', border: '1px solid rgba(124,108,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{pr.project_title}</p>
@@ -1183,7 +1183,7 @@ function GainsTab({ user }) {
           { label: 'Transactions',     value: incoming.length,                          svgPath: "M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6", color: "#f59e0b", bg: "rgba(245,158,11,0.08)" },
           { label: 'Total gagné',      value: `${totalEarned.toFixed(2)} ${currency}`, svgPath: "M23 6l-9.5 9.5-5-5L1 18", svgPath2: "M17 6h6v6",          color: "#7c6cf6", bg: "rgba(124,108,246,0.08)" },
         ].map(item => (
-          <div key={item.label} style={{ background: "#16142e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px", display: "flex", alignItems: "center", gap: 14 }}>
+          <div key={item.label} style={{ background: "var(--fm-surface)", border: "1px solid var(--fm-border)", borderRadius: 16, padding: "20px", display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 40, height: 40, borderRadius: 12, background: item.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={item.color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
                 <path d={item.svgPath}/>{item.svgPath2 && <path d={item.svgPath2}/>}
@@ -1191,7 +1191,7 @@ function GainsTab({ user }) {
             </div>
             <div>
               <p style={{ fontSize: 22, fontWeight: 800, color: item.color, letterSpacing: "-0.02em" }}>{item.value}</p>
-              <p style={{ fontSize: 10, fontWeight: 600, color: "#62668a", marginTop: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.label}</p>
+              <p style={{ fontSize: 10, fontWeight: 600, color: "var(--fm-text-7)", marginTop: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.label}</p>
             </div>
           </div>
         ))}
@@ -1217,7 +1217,7 @@ function GainsTab({ user }) {
                     {allDone.map(item => (
                       <div key={item._key} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
                         <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--fm-success)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.title}</p>
@@ -1609,8 +1609,8 @@ function CoursesTab({ user }) {
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#f4f3fb' }}>
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: 'var(--fm-text-2)' }}>
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
             Mes Cours
           </h2>
           <button onClick={() => setShowCreate(true)}
@@ -1625,7 +1625,7 @@ function CoursesTab({ user }) {
         ) : courses.length === 0 ? (
           <div className="text-center py-12 px-4">
             <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(124,108,246,0.1)', border: '1px solid rgba(124,108,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
             </div>
             <p className="text-sm font-bold text-slate-900 dark:text-white mb-1">Aucun cours pour l'instant</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Créez votre premier cours et commencez à gagner</p>
@@ -1640,7 +1640,7 @@ function CoursesTab({ user }) {
                 {/* Top row: thumbnail + info */}
                 <div className="flex items-start gap-3">
                   <div style={{ width: 48, height: 48, borderRadius: 12, overflow: 'hidden', background: 'rgba(124,108,246,0.1)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {course.thumbnail_url ? <img src={cldImg(course.thumbnail_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>}
+                    {course.thumbnail_url ? <img src={cldImg(course.thumbnail_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight break-words">{course.title}</p>
@@ -1664,7 +1664,7 @@ function CoursesTab({ user }) {
                       <span className="text-[10px] text-slate-500 dark:text-slate-400">{course.total_students} étudiants</span>
                       <span className="text-[10px] text-slate-400">·</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: '#f59e0b' }}>
-                        <svg width="9" height="9" fill="#f59e0b" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        <svg width="9" height="9" fill="var(--fm-warning)" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                         {Number(course.avg_rating).toFixed(1)}
                       </span>
                     </div>
@@ -1810,8 +1810,8 @@ function CoursesTab({ user }) {
               <div className="flex items-center gap-2">
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: createdCourse ? 'rgba(16,185,129,0.12)' : 'rgba(124,108,246,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {createdCourse
-                    ? <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    : <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                    ? <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-success)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    : <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
                   }
                 </div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">{createdCourse ? 'Cours créé' : 'Créer un cours'}</h3>
@@ -2261,7 +2261,7 @@ export default function FreelancerDashboard() {
   const unreadCount = userNotifs.filter(n => !n.read).length;
 
   return (
-    <div className="pt-16 min-h-screen" style={{ background: "#0a0817" }}>
+    <div className="pt-16 min-h-screen" style={{ background: "var(--fm-bg)" }}>
 
       {/* ── Notification bell — fixed top-right (mobile only) ── */}
       <div className="fixed top-20 right-4 z-50 md:hidden">
@@ -2324,7 +2324,7 @@ export default function FreelancerDashboard() {
 
       {/* ── Logout modal ── */}
       {logoutConfirm && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(4px)', backgroundColor: 'var(--fm-overlay)' }}>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden">
             <div className="flex items-center justify-between px-6 pt-6 pb-0">
               <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

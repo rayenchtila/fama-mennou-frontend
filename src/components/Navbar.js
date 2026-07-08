@@ -115,12 +115,12 @@ function NotifPanel({ notifications, onMarkRead, onMarkAll, onClose, dark }) {
               <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: n.kind?.startsWith("proposal_accepted") ? "rgba(16,185,129,0.15)" : n.kind?.startsWith("proposal_rejected") ? "rgba(239,68,68,0.15)" : "rgba(124,108,246,0.15)" }}>
                 {n.kind?.startsWith("proposal_accepted")
-                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--fm-success)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>
                   : n.kind?.startsWith("proposal_rejected")
                   ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                   : n.kind?.startsWith("new_proposal")
-                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                  : <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  : <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 }
               </div>
               <div className="flex-1 min-w-0">
@@ -231,7 +231,7 @@ function MessagesPanel({ conversations, senderEmail, onClose, onChatOpen, dark }
 }
 
 function LogoMark({ style }) {
-  return <img src="/logo.png" alt="Fama Mennou" style={{ mixBlendMode: "screen", ...style }} />;
+  return <img src="/logo.png" alt="Fama Mennou" style={{ mixBlendMode: "var(--fm-logo-blend)", ...style }} />;
 }
 
 // ── Navbar ────────────────────────────────────────────────────────────────────
@@ -384,27 +384,27 @@ export default function Navbar({ onLogin }) {
 
   const MENU_ITEMS = user?.isAdmin
     ? [
-        { icon: <MenuIcon color="#7c6cf6" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, label: t("Dashboard"), to: "/admin/dashboard" },
-        { icon: <MenuIcon color="#9b8cff" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" d2="M12 7a4 4 0 100-8 4 4 0 000 8z"/>, label: t('home.ac.hire.title'), to: "/freelancers" },
-        { icon: <MenuIcon color="#0ea5e9" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, label: t('home.ac.client.title'), to: "/clients" },
-        { icon: <MenuIcon color="#10b981" d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" d2="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>, label: t('Courses'), to: "/courses" },
-        { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>, label: t("Sign out"), logout: true },
+        { icon: <MenuIcon color="var(--fm-primary)" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, label: t("Dashboard"), to: "/admin/dashboard" },
+        { icon: <MenuIcon color="var(--fm-primary-light)" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" d2="M12 7a4 4 0 100-8 4 4 0 000 8z"/>, label: t('home.ac.hire.title'), to: "/freelancers" },
+        { icon: <MenuIcon color="var(--fm-info)" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, label: t('home.ac.client.title'), to: "/clients" },
+        { icon: <MenuIcon color="var(--fm-success)" d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" d2="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>, label: t('Courses'), to: "/courses" },
+        { icon: <MenuIcon color="var(--fm-danger)" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>, label: t("Sign out"), logout: true },
       ]
     : user?.role === "freelancer"
       ? [
-          { icon: <MenuIcon color="#7c6cf6" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: t("My Profile"),  to: "/dashboard?tab=profile" },
-          { icon: <MenuIcon color="#10b981" d="M23 6l-9.5 9.5-5-5L1 18" d2="M17 6h6v6"/>,                                        label: t("nav.gains"),   to: "/dashboard?tab=gains" },
-          { icon: <MenuIcon color="#3ec2e8" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: t("msg.page_title"), to: "/messages" },
+          { icon: <MenuIcon color="var(--fm-primary)" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: t("My Profile"),  to: "/dashboard?tab=profile" },
+          { icon: <MenuIcon color="var(--fm-success)" d="M23 6l-9.5 9.5-5-5L1 18" d2="M17 6h6v6"/>,                                        label: t("nav.gains"),   to: "/dashboard?tab=gains" },
+          { icon: <MenuIcon color="var(--fm-cyan)" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: t("msg.page_title"), to: "/messages" },
           { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: t("Settings"), to: "/dashboard?tab=settings" },
-          { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: t("Sign out"),  logout: true },
+          { icon: <MenuIcon color="var(--fm-danger)" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: t("Sign out"),  logout: true },
         ]
       : [
-          { icon: <MenuIcon color="#7c6cf6" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: t("My Profile"),   to: "/dashboard"  },
-          { icon: <MenuIcon color="#f59e0b" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>,         label: t("My Projects"),  to: "/projects"   },
-          { icon: <MenuIcon color="#10b981" d="M1 4h22v16H1z" d2="M1 10h22"/>,                                                     label: t("nav.payments"), to: "/payments"   },
-          { icon: <MenuIcon color="#3ec2e8" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: t("msg.page_title"), to: "/messages" },
+          { icon: <MenuIcon color="var(--fm-primary)" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: t("My Profile"),   to: "/dashboard"  },
+          { icon: <MenuIcon color="var(--fm-warning)" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>,         label: t("My Projects"),  to: "/projects"   },
+          { icon: <MenuIcon color="var(--fm-success)" d="M1 4h22v16H1z" d2="M1 10h22"/>,                                                     label: t("nav.payments"), to: "/payments"   },
+          { icon: <MenuIcon color="var(--fm-cyan)" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: t("msg.page_title"), to: "/messages" },
           { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: t("Settings"),     to: "/settings"   },
-          { icon: <MenuIcon color="#f87171" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: t("Sign out"),     logout: true      },
+          { icon: <MenuIcon color="var(--fm-danger)" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: t("Sign out"),     logout: true      },
         ];
 
   return (
@@ -528,7 +528,7 @@ export default function Navbar({ onLogin }) {
                             onMouseLeave={e => e.currentTarget.style.background = i18n.language === l.code ? 'rgba(124,108,246,0.12)' : 'transparent'}>
                             <span style={{ fontSize:13, fontWeight:600, color: i18n.language === l.code ? '#9b8cff' : bg.text2 }}>{l.label}</span>
                             {i18n.language === l.code && (
-                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                             )}
                           </button>
                         ))}
@@ -658,6 +658,26 @@ export default function Navbar({ onLogin }) {
               </>
             ) : (
               <div className="hidden sm:flex items-center" style={{ gap: 10 }}>
+                {/* Dark / Light toggle — visible when logged out too */}
+                <button
+                  onClick={toggleTheme}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl transition-all"
+                  style={{ color: bg.iconClr, background: 'transparent' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = bg.iconClr; }}
+                  title={darkMode ? 'Switch to Light mode' : 'Switch to Dark mode'}
+                >
+                  {darkMode ? (
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="5"/>
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                  ) : (
+                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                  )}
+                </button>
                 <button
                   onClick={() => onLogin?.("login")}
                   style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14.5, fontWeight: 600, whiteSpace: "nowrap", color: bg.navClr, padding: "8px 8px" }}
@@ -734,11 +754,30 @@ export default function Navbar({ onLogin }) {
                     Fama<span style={{ color: "#9b8cff" }}>&nbsp;Mennou</span>
                   </span>
                 </Link>
-                <button onClick={() => setMenuOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-xl"
-                  style={{ background: bg.btnHovBg, color: bg.iconClr }}>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={toggleTheme}
+                    className="w-8 h-8 flex items-center justify-center rounded-xl"
+                    style={{ background: bg.btnHovBg, color: bg.iconClr }}
+                    title={darkMode ? 'Switch to Light mode' : 'Switch to Dark mode'}
+                  >
+                    {darkMode ? (
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                      </svg>
+                    ) : (
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                      </svg>
+                    )}
+                  </button>
+                  <button onClick={() => setMenuOpen(false)}
+                    className="w-8 h-8 flex items-center justify-center rounded-xl"
+                    style={{ background: bg.btnHovBg, color: bg.iconClr }}>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
               </div>
 
               {/* User info strip */}

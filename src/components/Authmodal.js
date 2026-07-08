@@ -48,15 +48,15 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
 
   return (
     <div className="flex-1" style={{ position: 'relative' }}>
-      <p className="text-xs font-semibold mb-1.5" style={{ color: '#a7abc8' }}>{label}</p>
+      <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--fm-text-5)' }}>{label}</p>
 
       {/* Same original box design */}
       <div
         onClick={() => setShowPicker(v => !v)}
         className="relative w-full h-28 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 overflow-hidden flex flex-col items-center justify-center gap-1"
-        style={preview ? { borderColor: 'rgba(52,211,153,.6)' } : { borderColor: showPicker ? 'rgba(124,108,246,.5)' : 'rgba(255,255,255,.1)' }}
+        style={preview ? { borderColor: 'color-mix(in srgb, var(--fm-success) 60%, transparent)' } : { borderColor: showPicker ? 'rgba(124,108,246,.5)' : 'var(--fm-border)' }}
         onMouseEnter={e => { if (!preview) e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-        onMouseLeave={e => { if (!preview && !showPicker) e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; }}
+        onMouseLeave={e => { if (!preview && !showPicker) e.currentTarget.style.borderColor = 'var(--fm-border)'; }}
       >
         {preview ? (
           <>
@@ -67,11 +67,11 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
           </>
         ) : (
           <>
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'rgba(255,255,255,.2)' }}>
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'var(--fm-border-strong)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            <span className="text-[11px] text-center px-2" style={{ color: '#62668a' }}>{hint}</span>
+            <span className="text-[11px] text-center px-2" style={{ color: 'var(--fm-text-7)' }}>{hint}</span>
           </>
         )}
       </div>
@@ -81,16 +81,16 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
           <div className="absolute left-0 right-0 z-50 rounded-xl overflow-hidden"
-            style={{ top: 'calc(100% + 6px)', background: '#1a1730', border: '1px solid rgba(124,108,246,0.3)', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
+            style={{ top: 'calc(100% + 6px)', background: 'var(--fm-surface)', border: '1px solid var(--fm-primary-border)', boxShadow: '0 12px 40px var(--fm-shadow)' }}>
             <button type="button"
               onClick={() => { setShowPicker(false); cameraRef.current.click(); }}
               className="w-full flex items-center gap-3 px-4 py-3 transition-all"
-              style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#f4f3fb', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,108,246,0.12)'}
+              style={{ background: 'transparent', border: 'none', borderBottom: '1px solid var(--fm-surface-hover)', color: 'var(--fm-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--fm-primary-soft)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <span style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(124,108,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#9b8cff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <span style={{ width: 32, height: 32, borderRadius: 9, background: 'var(--fm-primary-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
                   <circle cx="12" cy="13" r="4"/>
                 </svg>
@@ -100,12 +100,12 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
             <button type="button"
               onClick={() => { setShowPicker(false); galleryRef.current.click(); }}
               className="w-full flex items-center gap-3 px-4 py-3 transition-all"
-              style={{ background: 'transparent', border: 'none', color: '#f4f3fb', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(62,194,232,0.10)'}
+              style={{ background: 'transparent', border: 'none', color: 'var(--fm-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'color-mix(in srgb, var(--fm-cyan) 10%, transparent)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <span style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(62,194,232,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#3ec2e8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <span style={{ width: 32, height: 32, borderRadius: 9, background: 'color-mix(in srgb, var(--fm-cyan) 12%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="var(--fm-cyan)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"/>
                   <circle cx="8.5" cy="8.5" r="1.5"/>
                   <path d="M21 15l-5-5L5 21"/>
@@ -137,22 +137,22 @@ function VerifyEmailScreen({ email, onVerify, onBack, loading }) {
     <div className="flex flex-col py-4 px-2">
       <button onClick={onBack}
         className="flex items-center gap-1.5 text-xs mb-6 w-fit transition-colors"
-        style={{ color: '#a7abc8' }}
-        onMouseEnter={e => (e.currentTarget.style.color = '#fbfbff')}
-        onMouseLeave={e => (e.currentTarget.style.color = '#a7abc8')}
+        style={{ color: 'var(--fm-text-5)' }}
+        onMouseEnter={e => (e.currentTarget.style.color = 'var(--fm-text-1)')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'var(--fm-text-5)')}
       >
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
         {t("Back")}
       </button>
-      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(124,108,246,.12)' }}>
-        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: '#7c6cf6' }}>
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto" style={{ background: 'var(--fm-primary-soft)' }}>
+        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: 'var(--fm-primary)' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: '#fbfbff' }}>{t("Check your email")}</h2>
-      <p className="text-xs text-center mb-6" style={{ color: '#a7abc8' }}>
+      <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: 'var(--fm-text-1)' }}>{t("Check your email")}</h2>
+      <p className="text-xs text-center mb-6" style={{ color: 'var(--fm-text-5)' }}>
         {t("We sent a 6-digit code to")}{" "}
-        <span className="font-semibold" style={{ color: '#fbfbff' }}>{email}</span>
+        <span className="font-semibold" style={{ color: 'var(--fm-text-1)' }}>{email}</span>
       </p>
       <Input
         label={t("Verification code")}
@@ -271,18 +271,18 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
   if (resendDone) return (
     <div className="flex flex-col items-center py-10 px-2 text-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(124,108,246,.12)' }}>
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#7c6cf6' }}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'var(--fm-primary-soft)' }}>
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--fm-primary)' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("auth.code_resent_title")}</h2>
-      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>{t("auth.code_resent_msg")}</p>
-      <p className="text-sm font-bold mb-6" style={{ color: '#fbfbff' }}>{email}</p>
-      <p className="text-xs mb-6" style={{ color: '#62668a' }}>{t("auth.code_resent_hint")}</p>
+      <h2 className="text-lg font-extrabold mb-2" style={{ color: 'var(--fm-text-1)' }}>{t("auth.code_resent_title")}</h2>
+      <p className="text-sm mb-1" style={{ color: 'var(--fm-text-5)' }}>{t("auth.code_resent_msg")}</p>
+      <p className="text-sm font-bold mb-6" style={{ color: 'var(--fm-text-1)' }}>{email}</p>
+      <p className="text-xs mb-6" style={{ color: 'var(--fm-text-7)' }}>{t("auth.code_resent_hint")}</p>
       <button onClick={() => setResendDone(false)}
         className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        style={{ background: '#7c6cf6' }}>
+        style={{ background: 'var(--fm-primary)' }}>
         {t("auth.enter_code")}
       </button>
     </div>
@@ -290,17 +290,17 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
   if (resetDone) return (
     <div className="flex flex-col items-center py-10 px-2 text-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(52,211,153,.12)' }}>
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#34d399' }}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'var(--fm-success-bg)' }}>
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--fm-success)' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("auth.pw_reset_title")}</h2>
-      <p className="text-sm mb-1" style={{ color: '#a7abc8' }}>{resetDualRole ? t("auth.pw_reset_msg_dual") : t("auth.pw_reset_msg")}</p>
-      <p className="text-xs mb-6" style={{ color: '#62668a' }}>{resetDualRole ? t("auth.pw_reset_hint_dual") : t("auth.pw_reset_hint")}</p>
+      <h2 className="text-lg font-extrabold mb-2" style={{ color: 'var(--fm-text-1)' }}>{t("auth.pw_reset_title")}</h2>
+      <p className="text-sm mb-1" style={{ color: 'var(--fm-text-5)' }}>{resetDualRole ? t("auth.pw_reset_msg_dual") : t("auth.pw_reset_msg")}</p>
+      <p className="text-xs mb-6" style={{ color: 'var(--fm-text-7)' }}>{resetDualRole ? t("auth.pw_reset_hint_dual") : t("auth.pw_reset_hint")}</p>
       <button onClick={() => onSent(email, resetDualRole)}
         className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        style={{ background: '#7c6cf6' }}>
+        style={{ background: 'var(--fm-primary)' }}>
         {t("auth.sign_in_arrow")}
       </button>
     </div>
@@ -310,9 +310,9 @@ function ForgotPasswordScreen({ onBack, onSent }) {
     <div className="flex flex-col py-4 px-2">
       <button onClick={step === 2 ? goBackToStep1 : onBack}
         className="flex items-center gap-1.5 text-xs mb-6 w-fit transition-colors"
-        style={{ color: '#a7abc8' }}
-        onMouseEnter={e => (e.currentTarget.style.color = '#fbfbff')}
-        onMouseLeave={e => (e.currentTarget.style.color = '#a7abc8')}
+        style={{ color: 'var(--fm-text-5)' }}
+        onMouseEnter={e => (e.currentTarget.style.color = 'var(--fm-text-1)')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'var(--fm-text-5)')}
       >
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
         {step === 2 ? t("Back") : t("Back to login")}
@@ -324,29 +324,29 @@ function ForgotPasswordScreen({ onBack, onSent }) {
           <div key={s} className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300"
               style={step >= s
-                ? { background: '#7c6cf6', color: '#fff' }
-                : { background: 'rgba(255,255,255,.08)', color: '#62668a' }
+                ? { background: 'var(--fm-primary)', color: '#fff' }
+                : { background: 'var(--fm-border)', color: 'var(--fm-text-7)' }
               }>{s}</div>
             {s < 2 && <div className="w-10 h-0.5 rounded transition-all duration-500"
-              style={{ background: step >= 2 ? '#7c6cf6' : 'rgba(255,255,255,.08)' }} />}
+              style={{ background: step >= 2 ? 'var(--fm-primary)' : 'var(--fm-border)' }} />}
           </div>
         ))}
       </div>
 
-      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(124,108,246,.12)' }}>
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto" style={{ background: 'var(--fm-primary-soft)' }}>
         {step === 1
-          ? <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: '#7c6cf6' }}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-          : <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: '#7c6cf6' }}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          ? <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: 'var(--fm-primary)' }}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          : <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: 'var(--fm-primary)' }}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
         }
       </div>
 
-      <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: '#fbfbff' }}>
+      <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: 'var(--fm-text-1)' }}>
         {step === 1 ? t("Forgot your password?") : t("Verify your identity 🔐")}
       </h2>
-      <p className="text-xs text-center mb-6" style={{ color: '#a7abc8' }}>
+      <p className="text-xs text-center mb-6" style={{ color: 'var(--fm-text-5)' }}>
         {step === 1
           ? t("reset.subtitle")
-          : <>{t("We sent a 6-digit code to")} <span className="font-semibold" style={{ color: '#fbfbff' }}>{email}</span></>
+          : <>{t("We sent a 6-digit code to")} <span className="font-semibold" style={{ color: 'var(--fm-text-1)' }}>{email}</span></>
         }
       </p>
 
@@ -399,9 +399,9 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       )}
 
       {error && (
-        <div className="mt-3 flex items-center gap-2 p-3 rounded-xl" style={{ background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)' }}>
-          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#fbbf24' }}><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
-          <p className="text-xs font-semibold" style={{ color: '#fbbf24' }}>{error}</p>
+        <div className="mt-3 flex items-center gap-2 p-3 rounded-xl" style={{ background: 'var(--fm-warning-bg)', border: '1px solid color-mix(in srgb, var(--fm-warning) 20%, transparent)' }}>
+          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--fm-warning)' }}><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/></svg>
+          <p className="text-xs font-semibold" style={{ color: 'var(--fm-warning)' }}>{error}</p>
         </div>
       )}
 
@@ -416,9 +416,9 @@ function ForgotPasswordScreen({ onBack, onSent }) {
         <div className="mt-3 text-center">
           <button onClick={handleResend} disabled={loading}
             className="text-xs transition-colors disabled:opacity-40"
-            style={{ color: '#9b8cff' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#b9aeff')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#9b8cff')}
+            style={{ color: 'var(--fm-primary-light)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--fm-primary-light)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--fm-primary-light)')}
           >
             {t("Renvoyer le code")}
           </button>
@@ -433,20 +433,20 @@ function PasswordFoundScreen({ email, dualRole, onBack }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center py-6 px-2 text-center">
-      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(52,211,153,.12)' }}>
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: '#34d399' }}>
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'var(--fm-success-bg)' }}>
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} style={{ color: 'var(--fm-success)' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
       </div>
-      <h2 className="text-lg font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("reset.success_title")}</h2>
-      <p className="text-xs mb-1" style={{ color: '#a7abc8' }}>
-        <span className="font-bold" style={{ color: '#fbfbff' }}>{email}</span>
+      <h2 className="text-lg font-extrabold mb-2" style={{ color: 'var(--fm-text-1)' }}>{t("reset.success_title")}</h2>
+      <p className="text-xs mb-1" style={{ color: 'var(--fm-text-5)' }}>
+        <span className="font-bold" style={{ color: 'var(--fm-text-1)' }}>{email}</span>
       </p>
-      <p className="text-sm mt-3 mb-6 max-w-xs leading-relaxed" style={{ color: '#a7abc8' }}>
+      <p className="text-sm mt-3 mb-6 max-w-xs leading-relaxed" style={{ color: 'var(--fm-text-5)' }}>
         {dualRole ? t("reset.success_msg_dual") : t("reset.success_msg")}
       </p>
       <button onClick={onBack} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        style={{ background: '#7c6cf6' }}>
+        style={{ background: 'var(--fm-primary)' }}>
         {t("Back to login")}
       </button>
     </div>
@@ -459,21 +459,21 @@ function PendingVerificationScreen({ userName, onClose }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 px-2 text-center">
       <div className="relative mb-6">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(245,158,11,.12)' }}>
-          <svg className="w-10 h-10 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: '#f59e0b' }}>
+        <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'var(--fm-warning-bg)' }}>
+          <svg className="w-10 h-10 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'var(--fm-warning)' }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#f59e0b' }}>
+        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'var(--fm-warning)' }}>
           <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
           </svg>
         </span>
       </div>
-      <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("Account created successfully!")}</h2>
-      <p className="text-sm font-semibold mb-4" style={{ color: '#f59e0b' }}>{t("Under review…")}</p>
-      <p className="text-sm max-w-xs mb-6 leading-relaxed" style={{ color: '#a7abc8' }}>
-        {t("Hello")} <span className="font-bold" style={{ color: '#fbfbff' }}>{userName}</span>{t(", your file has been submitted. Our team will review your information and CIN shortly.")}
+      <h2 className="text-xl font-extrabold mb-2" style={{ color: 'var(--fm-text-1)' }}>{t("Account created successfully!")}</h2>
+      <p className="text-sm font-semibold mb-4" style={{ color: 'var(--fm-warning)' }}>{t("Under review…")}</p>
+      <p className="text-sm max-w-xs mb-6 leading-relaxed" style={{ color: 'var(--fm-text-5)' }}>
+        {t("Hello")} <span className="font-bold" style={{ color: 'var(--fm-text-1)' }}>{userName}</span>{t(", your file has been submitted. Our team will review your information and CIN shortly.")}
       </p>
       <div className="w-full max-w-xs space-y-2 mb-7">
         {[
@@ -483,10 +483,10 @@ function PendingVerificationScreen({ userName, onClose }) {
         ].map((step, i) => (
           <div key={i} className="flex items-center gap-3 p-3 rounded-xl text-sm"
             style={step.done
-              ? { background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)', color: '#34d399' }
+              ? { background: 'var(--fm-success-bg)', border: '1px solid color-mix(in srgb, var(--fm-success) 20%, transparent)', color: 'var(--fm-success)' }
               : step.active
-              ? { background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)', color: '#fbbf24' }
-              : { background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', color: '#62668a' }
+              ? { background: 'var(--fm-warning-bg)', border: '1px solid color-mix(in srgb, var(--fm-warning) 20%, transparent)', color: 'var(--fm-warning)' }
+              : { background: 'var(--fm-surface-hover-soft)', border: '1px solid var(--fm-border)', color: 'var(--fm-text-7)' }
             }
           >
             <span className="text-base">{step.icon}</span>
@@ -500,11 +500,11 @@ function PendingVerificationScreen({ userName, onClose }) {
           </div>
         ))}
       </div>
-      <p className="text-xs mb-5" style={{ color: '#62668a' }}>
+      <p className="text-xs mb-5" style={{ color: 'var(--fm-text-7)' }}>
         {t("You will be notified once your account is approved or rejected.")}
       </p>
       <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        style={{ background: '#7c6cf6' }}>
+        style={{ background: 'var(--fm-primary)' }}>
         {t("Close")}
       </button>
     </div>
@@ -520,30 +520,30 @@ function CINStatusScreen({ user, onClose, onLogout }) {
     return (
       <div className="flex flex-col items-center justify-center py-8 px-2 text-center">
         <div className="relative mb-6">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(52,211,153,.12)' }}>
-            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: '#34d399' }}>
+          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'var(--fm-success-bg)' }}>
+            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'var(--fm-success)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </div>
-          <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#34d399' }}>
+          <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'var(--fm-success)' }}>
             <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
             </svg>
           </span>
         </div>
-        <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("Account approved! 🎉")}</h2>
-        <p className="text-sm font-semibold mb-4" style={{ color: '#34d399' }}>{t("Your verification has been accepted")}</p>
+        <h2 className="text-xl font-extrabold mb-2" style={{ color: 'var(--fm-text-1)' }}>{t("Account approved! 🎉")}</h2>
+        <p className="text-sm font-semibold mb-4" style={{ color: 'var(--fm-success)' }}>{t("Your verification has been accepted")}</p>
         {user.cinApprovalReason && (
-          <div className="w-full max-w-xs p-3.5 rounded-xl mb-5 text-left" style={{ background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)' }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#34d399' }}>{t("Admin message")}</p>
-            <p className="text-sm font-medium" style={{ color: '#6ee7b7' }}>{user.cinApprovalReason}</p>
+          <div className="w-full max-w-xs p-3.5 rounded-xl mb-5 text-left" style={{ background: 'var(--fm-success-bg)', border: '1px solid color-mix(in srgb, var(--fm-success) 20%, transparent)' }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--fm-success)' }}>{t("Admin message")}</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--fm-success)' }}>{user.cinApprovalReason}</p>
           </div>
         )}
-        <p className="text-sm max-w-xs mb-7 leading-relaxed" style={{ color: '#a7abc8' }}>
-          {t("Welcome to the platform,")} <span className="font-bold" style={{ color: '#fbfbff' }}>{user.name}</span>{t("! Your account is now fully active.")}
+        <p className="text-sm max-w-xs mb-7 leading-relaxed" style={{ color: 'var(--fm-text-5)' }}>
+          {t("Welcome to the platform,")} <span className="font-bold" style={{ color: 'var(--fm-text-1)' }}>{user.name}</span>{t("! Your account is now fully active.")}
         </p>
         <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: '#34d399' }}>
+          style={{ background: 'var(--fm-success)' }}>
           {t("Access my account →")}
         </button>
       </div>
@@ -553,30 +553,30 @@ function CINStatusScreen({ user, onClose, onLogout }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 px-2 text-center">
       <div className="relative mb-6">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(248,113,113,.12)' }}>
-          <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: '#f87171' }}>
+        <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'var(--fm-danger-bg)' }}>
+          <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'var(--fm-danger)' }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#f87171' }}>
+        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'var(--fm-danger)' }}>
           <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
           </svg>
         </span>
       </div>
-      <h2 className="text-xl font-extrabold mb-2" style={{ color: '#fbfbff' }}>{t("Account rejected")}</h2>
-      <p className="text-sm font-semibold mb-4" style={{ color: '#f87171' }}>{t("Your verification was not accepted")}</p>
+      <h2 className="text-xl font-extrabold mb-2" style={{ color: 'var(--fm-text-1)' }}>{t("Account rejected")}</h2>
+      <p className="text-sm font-semibold mb-4" style={{ color: 'var(--fm-danger)' }}>{t("Your verification was not accepted")}</p>
       {user.cinRejectionReason && (
-        <div className="w-full max-w-xs p-3.5 rounded-xl mb-5 text-left" style={{ background: 'rgba(248,113,113,.1)', border: '1px solid rgba(248,113,113,.2)' }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#f87171' }}>{t("Rejection reason")}</p>
-          <p className="text-sm font-medium" style={{ color: '#fca5a5' }}>{user.cinRejectionReason}</p>
+        <div className="w-full max-w-xs p-3.5 rounded-xl mb-5 text-left" style={{ background: 'var(--fm-danger-bg)', border: '1px solid color-mix(in srgb, var(--fm-danger) 20%, transparent)' }}>
+          <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--fm-danger)' }}>{t("Rejection reason")}</p>
+          <p className="text-sm font-medium" style={{ color: 'var(--fm-danger)' }}>{user.cinRejectionReason}</p>
         </div>
       )}
-      <p className="text-sm max-w-xs mb-7 leading-relaxed" style={{ color: '#a7abc8' }}>
+      <p className="text-sm max-w-xs mb-7 leading-relaxed" style={{ color: 'var(--fm-text-5)' }}>
         {t("If you believe this is an error, please contact us or create a new account with correct information.")}
       </p>
       <button onClick={onLogout} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        style={{ background: '#f87171' }}>
+        style={{ background: 'var(--fm-danger)' }}>
         {t("Close")}
       </button>
     </div>
@@ -612,17 +612,17 @@ function DeviceApprovalScreen({ attemptId, device, onApproved, onBack }) {
     return () => clearInterval(id);
   }, [attemptId, status, onApproved]);
 
-  const iconBg   = status === 'rejected' || status === 'expired' ? 'rgba(248,113,113,.12)' : 'rgba(124,108,246,.12)';
-  const iconColor = status === 'rejected' || status === 'expired' ? '#f87171' : '#7c6cf6';
+  const iconBg   = status === 'rejected' || status === 'expired' ? 'var(--fm-danger-bg)' : 'var(--fm-primary-soft)';
+  const iconColor = status === 'rejected' || status === 'expired' ? 'var(--fm-danger)' : 'var(--fm-primary)';
 
   return (
     <div className="flex flex-col py-4 px-2">
       {status === 'waiting' && (
         <button onClick={onBack}
           className="flex items-center gap-1.5 text-xs mb-6 w-fit transition-colors"
-          style={{ color: '#a7abc8' }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#fbfbff')}
-          onMouseLeave={e => (e.currentTarget.style.color = '#a7abc8')}
+          style={{ color: 'var(--fm-text-5)' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--fm-text-1)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--fm-text-5)')}
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
           {t("Back")}
@@ -643,22 +643,22 @@ function DeviceApprovalScreen({ attemptId, device, onApproved, onBack }) {
       </div>
 
       {status === 'waiting' && (<>
-        <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: '#fbfbff' }}>{t("device.check_email")}</h2>
-        <p className="text-xs text-center mb-5" style={{ color: '#a7abc8' }}>
-          <Trans i18nKey="device.security_sent" components={{ b: <strong style={{ color: '#fbfbff' }} /> }} />
+        <h2 className="text-lg font-extrabold text-center mb-1" style={{ color: 'var(--fm-text-1)' }}>{t("device.check_email")}</h2>
+        <p className="text-xs text-center mb-5" style={{ color: 'var(--fm-text-5)' }}>
+          <Trans i18nKey="device.security_sent" components={{ b: <strong style={{ color: 'var(--fm-text-1)' }} /> }} />
         </p>
 
         {/* Device info card */}
         {device && (
-          <div className="rounded-xl p-4 mb-5 space-y-2" style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
+          <div className="rounded-xl p-4 mb-5 space-y-2" style={{ background: 'var(--fm-surface-hover-soft)', border: '1px solid var(--fm-border)' }}>
             {[
               [t("device.browser"), `${device.browser} · ${device.deviceType}`],
               ['OS', device.os],
               [t("device.ip"), device.ip || t("device.unknown")],
             ].map(([label, val]) => (
               <div key={label} className="flex justify-between items-center">
-                <span className="text-xs" style={{ color: '#62668a' }}>{label}</span>
-                <span className="text-xs font-semibold" style={{ color: '#f4f3fb' }}>{val}</span>
+                <span className="text-xs" style={{ color: 'var(--fm-text-7)' }}>{label}</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--fm-text-2)' }}>{val}</span>
               </div>
             ))}
           </div>
@@ -666,43 +666,43 @@ function DeviceApprovalScreen({ attemptId, device, onApproved, onBack }) {
 
         {/* Spinner */}
         <div className="flex items-center justify-center gap-2 mb-5">
-          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color: '#7c6cf6' }}>
+          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color: 'var(--fm-primary)' }}>
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
           </svg>
-          <span className="text-xs font-semibold" style={{ color: '#a7abc8' }}>
+          <span className="text-xs font-semibold" style={{ color: 'var(--fm-text-5)' }}>
             {t("device.waiting_approval")}{dots}
           </span>
         </div>
 
-        <p className="text-xs text-center" style={{ color: '#4a4e6e' }}>
+        <p className="text-xs text-center" style={{ color: 'var(--fm-text-7)' }}>
           <Trans i18nKey="device.link_expires" components={{ b: <strong /> }} />
         </p>
       </>)}
 
       {status === 'rejected' && (<>
-        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: '#fbfbff' }}>{t("device.login_refused")}</h2>
-        <p className="text-sm text-center mb-6" style={{ color: '#f87171' }}>
+        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: 'var(--fm-text-1)' }}>{t("device.login_refused")}</h2>
+        <p className="text-sm text-center mb-6" style={{ color: 'var(--fm-danger)' }}>
           {t("device.attempt_rejected")}
         </p>
-        <p className="text-xs text-center mb-6" style={{ color: '#62668a' }}>
+        <p className="text-xs text-center mb-6" style={{ color: 'var(--fm-text-7)' }}>
           {t("device.retry_approve")}
         </p>
         <button onClick={onBack}
           className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: '#7c6cf6' }}>
+          style={{ background: 'var(--fm-primary)' }}>
           {t("Back to login")}
         </button>
       </>)}
 
       {(status === 'expired' || status === 'error') && (<>
-        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: '#fbfbff' }}>{t("device.link_expired")}</h2>
-        <p className="text-sm text-center mb-6" style={{ color: '#a7abc8' }}>
+        <h2 className="text-lg font-extrabold text-center mb-2" style={{ color: 'var(--fm-text-1)' }}>{t("device.link_expired")}</h2>
+        <p className="text-sm text-center mb-6" style={{ color: 'var(--fm-text-5)' }}>
           {t("device.link_expired_msg")}
         </p>
         <button onClick={onBack}
           className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: '#7c6cf6' }}>
+          style={{ background: 'var(--fm-primary)' }}>
           {t("device.retry")}
         </button>
       </>)}
@@ -738,14 +738,14 @@ function TOTPScreen({ pendingToken, onSuccess, onBack, verifyTOTP, loginWithUser
       <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 6 }}>
         {t("Two-Factor Authentication")}
       </h3>
-      <p style={{ fontSize: 14, color: "#94a3b8", marginBottom: 20 }}>
+      <p style={{ fontSize: 14, color: "var(--fm-text-5)", marginBottom: 20 }}>
         {t("Enter the 6-digit code from your authenticator app.")}
       </p>
       <input
         style={{
           width: "100%", padding: "14px", borderRadius: 12, fontSize: 24,
-          letterSpacing: 10, textAlign: "center", border: "1px solid rgba(255,255,255,0.12)",
-          background: "rgba(255,255,255,0.06)", color: "inherit", outline: "none",
+          letterSpacing: 10, textAlign: "center", border: "1px solid var(--fm-border-strong)",
+          background: "var(--fm-surface-hover)", color: "inherit", outline: "none",
           boxSizing: "border-box",
         }}
         type="text"
@@ -757,7 +757,7 @@ function TOTPScreen({ pendingToken, onSuccess, onBack, verifyTOTP, loginWithUser
         onKeyDown={e => e.key === "Enter" && handleVerify()}
         autoFocus
       />
-      {error && <p style={{ color: "#f87171", fontSize: 13, marginTop: 8 }}>{error}</p>}
+      {error && <p style={{ color: "var(--fm-danger)", fontSize: 13, marginTop: 8 }}>{error}</p>}
       <button
         onClick={handleVerify}
         disabled={busy || code.length !== 6}
@@ -773,7 +773,7 @@ function TOTPScreen({ pendingToken, onSuccess, onBack, verifyTOTP, loginWithUser
       </button>
       <button
         onClick={onBack}
-        style={{ background: "none", border: "none", color: "#94a3b8", marginTop: 12, cursor: "pointer", fontSize: 13 }}
+        style={{ background: "none", border: "none", color: "var(--fm-text-5)", marginTop: 12, cursor: "pointer", fontSize: 13 }}
       >
         ← {t("Back")}
       </button>
@@ -1186,7 +1186,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const isFreelancer = role === "freelancer" && mode === "signup";
   const ROLE_COLORS  = {
     client:     { bg: '#0ea5e9', glow: 'rgba(14,165,233,.5)',   light: '#38bdf8' },
-    freelancer: { bg: '#7c6cf6', glow: 'rgba(124,108,246,.5)', light: '#9b8cff' },
+    freelancer: { bg: 'var(--fm-primary)', glow: 'rgba(124,108,246,.5)', light: 'var(--fm-primary-light)' },
   };
   const roleColor = mode === 'login' ? ROLE_COLORS.freelancer : (ROLE_COLORS[role] || ROLE_COLORS.freelancer);
   const roleIdx   = role === 'client' ? 0 : 1;
@@ -1194,7 +1194,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const loginTitle = (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
       {t("Welcome back")}
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#7c6cf6', flexShrink: 0 }}>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--fm-primary)', flexShrink: 0 }}>
         <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
         <polyline points="10 17 15 12 10 7"/>
         <line x1="15" y1="12" x2="3" y2="12"/>
@@ -1253,7 +1253,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       {/* ── ROLE SELECT SCREEN ── */}
       {screen === "roleSelect" && roleSelectData && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '24px 0' }}>
-          <p style={{ color: '#a7abc8', fontSize: '14px', textAlign: 'center', marginBottom: '8px' }}>
+          <p style={{ color: 'var(--fm-text-5)', fontSize: '14px', textAlign: 'center', marginBottom: '8px' }}>
             {t("This email has multiple accounts. Choose which one to log into:")}
           </p>
           {roleSelectData.roles.map(r => (
@@ -1274,7 +1274,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           ))}
           <button
             onClick={() => setScreen("form")}
-            style={{ background: 'none', border: 'none', color: '#7c6cf6', cursor: 'pointer', fontSize: '13px', marginTop: '4px' }}
+            style={{ background: 'none', border: 'none', color: 'var(--fm-primary)', cursor: 'pointer', fontSize: '13px', marginTop: '4px' }}
           >
             {t("Back")}
           </button>
@@ -1364,15 +1364,15 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       {screen === "form" && (
         <>
           {/* Tab switcher */}
-          <div className="flex gap-1 p-1 rounded-2xl mb-5" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)' }}>
+          <div className="flex gap-1 p-1 rounded-2xl mb-5" style={{ background: 'var(--fm-border-soft)', border: '1px solid var(--fm-border)' }}>
             {[{ id: "login", label: t("Log in") }, { id: "signup", label: t("Sign up") }].map(m => (
               <button
                 key={m.id}
                 onClick={() => { setMode(m.id); setErrors({}); setCaptchaToken(null); recaptchaRef.current?.reset(); }}
                 className="flex-1 py-2 text-sm font-semibold rounded-xl transition-all duration-200"
                 style={mode === m.id
-                  ? { background: '#7c6cf6', color: '#fff' }
-                  : { background: 'transparent', color: '#a7abc8' }
+                  ? { background: 'var(--fm-primary)', color: '#fff' }
+                  : { background: 'transparent', color: 'var(--fm-text-5)' }
                 }
               >
                 {m.label}
@@ -1383,10 +1383,10 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           {/* Role toggle */}
           {mode === "signup" && (
             <div className="mb-5">
-              <p className="text-xs font-semibold uppercase tracking-widest text-center mb-3" style={{ color: '#62668a' }}>
+              <p className="text-xs font-semibold uppercase tracking-widest text-center mb-3" style={{ color: 'var(--fm-text-7)' }}>
                 {t("auth.joining_as")}
               </p>
-              <div style={{ position: 'relative', display: 'flex', width: '100%', borderRadius: '13px', padding: '4px', gap: '4px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)' }}>
+              <div style={{ position: 'relative', display: 'flex', width: '100%', borderRadius: '13px', padding: '4px', gap: '4px', background: 'var(--fm-border-soft)', border: '1px solid var(--fm-border)' }}>
                 {/* Sliding pill */}
                 <div style={{
                   position: 'absolute', top: '4px', bottom: '4px', left: '4px',
@@ -1402,7 +1402,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   <button
                     key={r.id}
                     onClick={() => { setRole(r.id); setErrors({}); }}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 12px', borderRadius: '9px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, position: 'relative', zIndex: 1, background: 'transparent', transition: 'color 0.2s ease', color: role === r.id ? '#fff' : '#a7abc8' }}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 12px', borderRadius: '9px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, position: 'relative', zIndex: 1, background: 'transparent', transition: 'color 0.2s ease', color: role === r.id ? '#fff' : 'var(--fm-text-5)' }}
                   >
                     {r.icon}
                     {r.label}
@@ -1477,8 +1477,8 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   value={form.dob} onChange={set("dob")} error={errors.dob} required
                 />
                 <div>
-                  <label className="block text-sm mb-1.5" style={{ color: '#dcdef0', fontWeight: 700 }}>
-                    {t("Gender")} <span style={{ color: '#f87171' }}>*</span>
+                  <label className="block text-sm mb-1.5" style={{ color: 'var(--fm-text-3)', fontWeight: 700 }}>
+                    {t("Gender")} <span style={{ color: 'var(--fm-danger)' }}>*</span>
                   </label>
                   <div className="flex gap-2">
                     {/* Male — blue when selected */}
@@ -1488,7 +1488,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                       className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
                       style={form.gender === 'male'
                         ? { background: 'rgba(14,165,233,0.18)', color: '#38bdf8', border: '2px solid rgba(14,165,233,0.55)', boxShadow: '0 0 12px rgba(14,165,233,0.2)' }
-                        : { background: 'transparent', border: '2px solid rgba(255,255,255,.1)', color: '#a7abc8' }
+                        : { background: 'transparent', border: '2px solid var(--fm-border)', color: 'var(--fm-text-5)' }
                       }
                     >
                       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -1503,7 +1503,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                       className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
                       style={form.gender === 'female'
                         ? { background: 'rgba(244,114,182,0.18)', color: '#f472b6', border: '2px solid rgba(244,114,182,0.55)', boxShadow: '0 0 12px rgba(244,114,182,0.2)' }
-                        : { background: 'transparent', border: '2px solid rgba(255,255,255,.1)', color: '#a7abc8' }
+                        : { background: 'transparent', border: '2px solid var(--fm-border)', color: 'var(--fm-text-5)' }
                       }
                     >
                       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -1512,7 +1512,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                       {t("Female")}
                     </button>
                   </div>
-                  {errors.gender && <p className="mt-1 text-xs" style={{ color: '#f87171' }}>{errors.gender}</p>}
+                  {errors.gender && <p className="mt-1 text-xs" style={{ color: 'var(--fm-danger)' }}>{errors.gender}</p>}
                 </div>
               </div>
             )}
@@ -1521,30 +1521,30 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             {/* Region — freelancer signup only */}
             {isFreelancer && (
               <div>
-                <label className="block text-sm mb-1.5" style={{ color: '#dcdef0', fontWeight: 700 }}>
-                  {t("Region")} <span style={{ color: '#f87171' }}>*</span>
+                <label className="block text-sm mb-1.5" style={{ color: 'var(--fm-text-3)', fontWeight: 700 }}>
+                  {t("Region")} <span style={{ color: 'var(--fm-danger)' }}>*</span>
                 </label>
                 <div className="relative">
                   <select
                     value={form.region}
                     onChange={e => { setForm(f => ({ ...f, region: e.target.value })); setErrors(err => ({ ...err, region: "" })); }}
-                    className="w-full appearance-none rounded-xl px-3 py-2.5 text-sm pr-9 focus:outline-none focus:ring-2 focus:ring-[rgba(124,108,246,0.25)] transition-colors duration-200"
+                    className="w-full appearance-none rounded-xl px-3 py-2.5 text-sm pr-9 focus:outline-none focus:ring-2 focus:ring-[var(--fm-primary-border)] transition-colors duration-200"
                     style={{
-                      background: '#15122c',
-                      border: errors.region ? '1px solid rgba(248,113,113,.6)' : '1px solid rgba(255,255,255,.12)',
-                      color: form.region ? '#f4f3fb' : '#62668a',
+                      background: 'var(--fm-surface-2)',
+                      border: errors.region ? '1px solid color-mix(in srgb, var(--fm-danger) 60%, transparent)' : '1px solid var(--fm-border-strong)',
+                      color: form.region ? 'var(--fm-text-2)' : 'var(--fm-text-7)',
                     }}
                   >
-                    <option value="" style={{ background: '#15122c' }}>{t("Select your governorate")}</option>
+                    <option value="" style={{ background: 'var(--fm-surface-2)' }}>{t("Select your governorate")}</option>
                     {TUNISIAN_REGIONS.map(r => (
-                      <option key={r} value={r} style={{ background: '#15122c' }}>{r}</option>
+                      <option key={r} value={r} style={{ background: 'var(--fm-surface-2)' }}>{r}</option>
                     ))}
                   </select>
-                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#62668a' }}>
+                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--fm-text-7)' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
                   </svg>
                 </div>
-                {errors.region && <p className="mt-1 text-xs" style={{ color: '#f87171' }}>{errors.region}</p>}
+                {errors.region && <p className="mt-1 text-xs" style={{ color: 'var(--fm-danger)' }}>{errors.region}</p>}
               </div>
             )}
 
@@ -1552,13 +1552,13 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             {mode === "signup" && (
               <div className="mt-1">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,.08)' }} />
-                  <span className="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style={{ color: '#62668a' }}>
+                  <div className="flex-1 h-px" style={{ background: 'var(--fm-border)' }} />
+                  <span className="text-xs font-bold uppercase tracking-widest whitespace-nowrap" style={{ color: 'var(--fm-text-7)' }}>
                     {t("auth.cin_section")}
                   </span>
-                  <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,.08)' }} />
+                  <div className="flex-1 h-px" style={{ background: 'var(--fm-border)' }} />
                 </div>
-                <p className="text-xs mb-3 text-center" style={{ color: '#a7abc8' }}>
+                <p className="text-xs mb-3 text-center" style={{ color: 'var(--fm-text-5)' }}>
                   {t("Take a photo or choose from your gallery. Must be clear and clean.")}
                 </p>
                 <div className="flex gap-3 mb-3">
@@ -1576,17 +1576,17 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   />
                 </div>
                 {cinFrontFile && cinBackFile && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: 'rgba(52,211,153,.1)', border: '1px solid rgba(52,211,153,.2)' }}>
-                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#34d399' }}>
+                  <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: 'var(--fm-success-bg)', border: '1px solid color-mix(in srgb, var(--fm-success) 20%, transparent)' }}>
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--fm-success)' }}>
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                     </svg>
-                    <p className="text-xs font-semibold" style={{ color: '#34d399' }}>
+                    <p className="text-xs font-semibold" style={{ color: 'var(--fm-success)' }}>
                       {t("Both photos are ready. Admin will verify your CIN after submission.")}
                     </p>
                   </div>
                 )}
                 {errors.cin && (
-                  <p className="mt-1.5 text-xs" style={{ color: '#f87171' }}>{errors.cin}</p>
+                  <p className="mt-1.5 text-xs" style={{ color: 'var(--fm-danger)' }}>{errors.cin}</p>
                 )}
               </div>
             )}
@@ -1599,7 +1599,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   value={form.skills} onChange={set("skills")} error={errors.skills} required
                 />
                 <div>
-                  <label className="block text-sm mb-1.5" style={{ color: '#dcdef0', fontWeight: 700 }}>
+                  <label className="block text-sm mb-1.5" style={{ color: 'var(--fm-text-3)', fontWeight: 700 }}>
                     {t("Short bio")}
                   </label>
                   <textarea
@@ -1607,11 +1607,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                     placeholder={t("Tell clients about yourself...")}
                     value={form.bio}
                     onChange={set("bio")}
-                    className="w-full rounded-xl border px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[rgba(124,108,246,0.25)] focus:border-[#7c6cf6] transition-all duration-200 placeholder-[#4a4e6a]"
+                    className="w-full rounded-xl border px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--fm-primary-border)] focus:border-[var(--fm-primary)] transition-all duration-200 placeholder-[var(--fm-text-7)]"
                     style={{
-                      background: '#15122c',
-                      border: '1px solid rgba(255,255,255,.12)',
-                      color: '#f4f3fb',
+                      background: 'var(--fm-surface-2)',
+                      border: '1px solid var(--fm-border-strong)',
+                      color: 'var(--fm-text-2)',
                     }}
                   />
                 </div>
@@ -1626,9 +1626,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
               <button
                 onClick={() => setScreen("forgot")}
                 className="text-xs transition-colors"
-                style={{ color: '#9b8cff' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#b9aeff')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#9b8cff')}
+                style={{ color: 'var(--fm-primary-light)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--fm-primary-light)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--fm-primary-light)')}
               >
                 {t("Forgot password?")}
               </button>
@@ -1647,17 +1647,17 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   theme="dark"
                 />
               </div>
-              {errors.captcha && <p className="mt-1.5 text-xs" style={{ color: '#f87171' }}>{errors.captcha}</p>}
+              {errors.captcha && <p className="mt-1.5 text-xs" style={{ color: 'var(--fm-danger)' }}>{errors.captcha}</p>}
             </div>
           )}
 
           {unverifiedEmail && mode === "login" && (
             <div className="mt-3 text-center">
               {resendVerifDone
-                ? <p className="text-xs" style={{ color: '#34d399' }}>{t("auth.verif_sent")}</p>
+                ? <p className="text-xs" style={{ color: 'var(--fm-success)' }}>{t("auth.verif_sent")}</p>
                 : <button onClick={handleResendVerification} disabled={resendVerifLoading}
                     className="text-xs underline transition-colors disabled:opacity-40"
-                    style={{ color: '#9b8cff' }}>
+                    style={{ color: 'var(--fm-primary-light)' }}>
                     {resendVerifLoading ? t("auth.verif_sending") : t("auth.verif_resend")}
                   </button>
               }
@@ -1669,7 +1669,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             <div className="mt-4">
               <label className="flex items-start gap-3 cursor-pointer select-none" onClick={() => { setTermsAccepted(v => !v); setErrors(e => ({ ...e, terms: "" })); }}>
                 <div style={{
-                  width: 18, height: 18, borderRadius: 5, border: `2px solid ${termsAccepted ? roleColor.bg : 'rgba(255,255,255,0.2)'}`,
+                  width: 18, height: 18, borderRadius: 5, border: `2px solid ${termsAccepted ? roleColor.bg : 'var(--fm-border-strong)'}`,
                   background: termsAccepted ? roleColor.bg : 'transparent', transition: 'background 0.25s ease, border-color 0.25s ease',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0, marginTop: 1, transition: 'all 0.18s ease',
@@ -1680,14 +1680,14 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                     </svg>
                   )}
                 </div>
-                <span className="text-xs leading-relaxed" style={{ color: '#a7abc8' }}>
+                <span className="text-xs leading-relaxed" style={{ color: 'var(--fm-text-5)' }}>
                   {t("I accept the")}{" "}
                   <span style={{ color: roleColor.light, textDecoration: 'underline', transition: 'color 0.25s ease' }}>{t("Terms of Service")}</span>
                   {" "}{t("and")}{" "}
                   <span style={{ color: roleColor.light, textDecoration: 'underline', transition: 'color 0.25s ease' }}>{t("Privacy Policy")}</span>
                 </span>
               </label>
-              {errors.terms && <p className="mt-1.5 text-xs" style={{ color: '#f87171' }}>{errors.terms}</p>}
+              {errors.terms && <p className="mt-1.5 text-xs" style={{ color: 'var(--fm-danger)' }}>{errors.terms}</p>}
             </div>
           )}
 
@@ -1697,11 +1697,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           </Button>
 
           {mode === "login" && (
-            <p className="mt-3 text-center text-xs" style={{ color: '#62668a' }}>
+            <p className="mt-3 text-center text-xs" style={{ color: 'var(--fm-text-7)' }}>
               {t("By continuing you agree to our")}{" "}
-              <Link to="/terms" onClick={onClose} style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Terms")}</Link>
+              <Link to="/terms" onClick={onClose} style={{ color: 'var(--fm-primary-light)', textDecoration: 'underline' }}>{t("Terms")}</Link>
               {" "}{t("and")}{" "}
-              <Link to="/privacy" onClick={onClose} style={{ color: '#9b8cff', textDecoration: 'underline' }}>{t("Privacy Policy")}</Link>
+              <Link to="/privacy" onClick={onClose} style={{ color: 'var(--fm-primary-light)', textDecoration: 'underline' }}>{t("Privacy Policy")}</Link>
             </p>
           )}
         </>

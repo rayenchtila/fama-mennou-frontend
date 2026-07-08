@@ -48,26 +48,26 @@ export default function AboutPage() {
   return (
     <>
       <SEOHead title="About Us — Fama Mennou" description="Learn about Fama Mennou, the all-in-one platform connecting freelancers, clients, and learners in Tunisia and beyond." />
-      <div style={{ minHeight: '100vh', background: '#0a0817', paddingTop: 100, paddingBottom: 80 }}>
+      <div style={{ minHeight: '100vh', background: 'var(--fm-bg)', paddingTop: 100, paddingBottom: 80 }}>
         <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#9b8cff' }}>À propos</span>
-            <h1 style={{ fontSize: 42, fontWeight: 900, color: '#fbfbff', margin: '12px 0 16px', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--fm-primary-light)' }}>À propos</span>
+            <h1 style={{ fontSize: 42, fontWeight: 900, color: 'var(--fm-text-1)', margin: '12px 0 16px', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
               Qui sommes-nous ?
             </h1>
-            <p style={{ fontSize: 17, color: '#a7abc8', lineHeight: 1.8, maxWidth: 600, margin: '0 auto' }}>
+            <p style={{ fontSize: 17, color: 'var(--fm-text-5)', lineHeight: 1.8, maxWidth: 600, margin: '0 auto' }}>
               Fama Mennou est une plateforme tout-en-un qui connecte les professionnels, les clients et les apprenants en Tunisie et dans le monde entier.
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {SECTIONS.map(({ title, text, color, icon }) => (
-              <div key={title} style={{ padding: '24px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div key={title} style={{ padding: '24px 28px', borderRadius: 20, background: 'var(--fm-surface-hover-soft)', border: '1px solid var(--fm-border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <span style={{ color, display: 'flex', alignItems: 'center' }}>{icon}</span>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fbfbff', margin: 0, letterSpacing: '-0.01em' }}>{title}</h2>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--fm-text-1)', margin: 0, letterSpacing: '-0.01em' }}>{title}</h2>
                 </div>
-                <p style={{ fontSize: 14.5, color: '#a7abc8', lineHeight: 1.8, margin: 0 }}>{text}</p>
+                <p style={{ fontSize: 14.5, color: 'var(--fm-text-5)', lineHeight: 1.8, margin: 0 }}>{text}</p>
               </div>
             ))}
           </div>

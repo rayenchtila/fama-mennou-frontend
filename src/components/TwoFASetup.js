@@ -15,13 +15,11 @@ export default function TwoFASetup({ onDone }) {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const isDark = document.documentElement.classList.contains("dark");
-  const bg    = isDark ? "#1e1b2e" : "#f8f6ff";
-  const card  = isDark ? "#2a2540" : "#ffffff";
-  const border = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const text  = isDark ? "#f4f3fb" : "#1e1b2e";
-  const sub   = isDark ? "#a7abc8" : "#6b7280";
-  const inp   = isDark ? "#13102a" : "#f1f5f9";
+  const card  = "var(--fm-surface)";
+  const border = "var(--fm-border)";
+  const text  = "var(--fm-text-2)";
+  const sub   = "var(--fm-text-5)";
+  const inp   = "var(--fm-bg-2)";
 
   async function setup() {
     setBusy(true); setError(null);

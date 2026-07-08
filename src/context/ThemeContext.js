@@ -12,9 +12,7 @@ function applyTheme(isDark) {
   const root = document.documentElement;
   root.setAttribute('data-theme', isDark ? 'dark' : 'light');
   root.classList.toggle('dark', isDark);
-  // Smooth body background transition
-  document.body.style.transition = 'background-color 0.25s ease';
-  document.body.style.backgroundColor = isDark ? '#0a0817' : '#f8fafc';
+  root.style.colorScheme = isDark ? 'dark' : 'light';
 }
 
 export function ThemeProvider({ children }) {

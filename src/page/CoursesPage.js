@@ -14,20 +14,20 @@ const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender
    All colors verified readable on #040d0b bg
    ───────────────────────────────────────────── */
 const C = {
-  bg:       '#040d0b',
+  bg:       'var(--fm-bg)',
   accent:   '#0d9488',     // teal-600  — primary CTA / active states
   accentMid:'#14b8a6',     // teal-500  — lighter teal for gradients
   accentBr: '#5eead4',     // teal-300  — bright highlight, badge text
   teal:     '#0f766e',     // teal-700  — dark teal
   emerald:  '#10b981',     // emerald-500
-  card:     'rgba(13,148,136,0.04)',   // teal-tinted glass card
-  cardHov:  'rgba(13,148,136,0.09)',   // stronger on hover
-  border:   'rgba(255,255,255,0.08)',  // subtle dividers
+  card:     'var(--fm-surface-hover-soft)',   // card surface (theme-reactive)
+  cardHov:  'var(--fm-surface-hover)',        // stronger on hover
+  border:   'var(--fm-border)',  // subtle dividers
   borderAcc:'rgba(13,148,136,0.38)',   // teal-tinted border
-  text:     '#edfaf8',     // near-white, soft teal tint
-  sub:      '#a8c9c5',     // subtitles / descriptions (4.8:1 contrast)
-  muted:    '#7aada8',     // secondary text (4.1:1 contrast)
-  dim:      '#5d8e89',     // very secondary / meta (3.5:1 — OK for large/bold)
+  text:     'var(--fm-text-1)',     // near-white, soft teal tint
+  sub:      'var(--fm-text-4)',     // subtitles / descriptions
+  muted:    'var(--fm-text-5)',     // secondary text
+  dim:      'var(--fm-text-7)',     // very secondary / meta
 };
 
 const CATEGORIES = ['All', 'Technology', 'Design', 'Marketing', 'Writing', 'E-commerce', 'Finance'];
@@ -133,7 +133,7 @@ const IcPlay = () => (
   </svg>
 );
 const IcStar = ({ on }) => (
-  <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style={{ color: on ? '#f59e0b' : 'rgba(255,255,255,0.13)' }}>
+  <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style={{ color: on ? '#f59e0b' : 'var(--fm-border-strong)' }}>
     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
   </svg>
 );
@@ -241,7 +241,7 @@ function CourseCard({ course, onClick, onDeleted }) {
         border:      `1px solid ${hov ? C.borderAcc : C.border}`,
         background:  hov ? C.cardHov : C.card,
         transform:   hov ? 'translateY(-4px)' : 'translateY(0)',
-        boxShadow:   hov ? `0 20px 48px -12px rgba(0,0,0,0.6), 0 0 0 1px ${C.borderAcc}` : 'none',
+        boxShadow:   hov ? `0 20px 48px -12px var(--fm-shadow), 0 0 0 1px ${C.borderAcc}` : 'none',
         transition:  'all .25s cubic-bezier(.4,0,.2,1)',
       }}>
 
@@ -324,44 +324,44 @@ function CourseCard({ course, onClick, onDeleted }) {
             <div style={{ position:'relative', flexShrink:0 }} onClick={e => e.stopPropagation()}>
               <button
                 onClick={e => { e.stopPropagation(); setMenuOpen(v => !v); }}
-                style={{ width:28, height:28, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:C.muted, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:900, lineHeight:1 }}>
+                style={{ width:28, height:28, borderRadius:8, border:'1px solid var(--fm-border)', background:'var(--fm-surface-hover)', color:C.muted, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:900, lineHeight:1 }}>
                 ⋮
               </button>
               {menuOpen && (
-                <div style={{ position:'absolute', top:32, right:0, background:'#1a1730', border:'1px solid rgba(255,255,255,.12)', borderRadius:10, overflow:'hidden', minWidth:170, boxShadow:'0 8px 24px rgba(0,0,0,.5)', zIndex:50 }}>
+                <div style={{ position:'absolute', top:32, right:0, background:'var(--fm-surface)', border:'1px solid var(--fm-border-strong)', borderRadius:10, overflow:'hidden', minWidth:170, boxShadow:'0 8px 24px var(--fm-shadow)', zIndex:50 }}>
                   {/* Edit option */}
                   <button
                     onClick={e => { e.stopPropagation(); if (!alreadyEdited) { setMenuOpen(false); setEditOpen(true); } }}
                     disabled={alreadyEdited}
-                    style={{ width:'100%', padding:'10px 14px', border:'none', background:'transparent', color: alreadyEdited ? '#5d7a76' : '#5eead4', fontSize:13, fontWeight:600, cursor: alreadyEdited ? 'not-allowed' : 'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:8, opacity: alreadyEdited ? 0.6 : 1 }}>
+                    style={{ width:'100%', padding:'10px 14px', border:'none', background:'transparent', color: alreadyEdited ? 'var(--fm-text-7)' : '#5eead4', fontSize:13, fontWeight:600, cursor: alreadyEdited ? 'not-allowed' : 'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:8, opacity: alreadyEdited ? 0.6 : 1 }}>
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     <span style={{ flex:1 }}>{alreadyEdited ? t('Already edited') : t('Edit course')}</span>
-                    {alreadyEdited && <span style={{ fontSize:10, background:'rgba(255,255,255,.08)', borderRadius:4, padding:'1px 5px', color:'#7aada8', fontWeight:700 }}>1×</span>}
+                    {alreadyEdited && <span style={{ fontSize:10, background:'var(--fm-border)', borderRadius:4, padding:'1px 5px', color:'var(--fm-text-5)', fontWeight:700 }}>1×</span>}
                   </button>
                   {!alreadyEdited && (
-                    <div style={{ padding:'2px 14px 6px', fontSize:10.5, color:'#5d8e89', lineHeight:1.4 }}>
+                    <div style={{ padding:'2px 14px 6px', fontSize:10.5, color:'var(--fm-text-7)', lineHeight:1.4 }}>
                       {t('One-time edit only')}
                     </div>
                   )}
-                  <div style={{ height:1, background:'rgba(255,255,255,.07)', margin:'0 10px' }} />
+                  <div style={{ height:1, background:'var(--fm-border)', margin:'0 10px' }} />
                   <button
                     onClick={e => { e.stopPropagation(); setMenuOpen(false); setConfirmDel(true); }}
-                    style={{ width:'100%', padding:'10px 14px', border:'none', background:'transparent', color:'#f87171', fontSize:13, fontWeight:600, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:8 }}>
+                    style={{ width:'100%', padding:'10px 14px', border:'none', background:'transparent', color:'var(--fm-danger)', fontSize:13, fontWeight:600, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:8 }}>
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                     {t('Delete course')}
                   </button>
                 </div>
               )}
               {confirmDel && createPortal(
-                <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.65)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+                <div style={{ position:'fixed', inset:0, zIndex:9999, background:'var(--fm-overlay)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
                   onClick={() => setConfirmDel(false)}>
-                  <div style={{ background:'#16142e', border:'1px solid rgba(248,113,113,0.3)', borderRadius:20, padding:'28px 24px 24px', maxWidth:360, width:'100%', position:'relative' }}
+                  <div style={{ background:'var(--fm-surface)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:20, padding:'28px 24px 24px', maxWidth:360, width:'100%', position:'relative' }}
                     onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setConfirmDel(false)} style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:'#a7abc8', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>✕</button>
-                    <p style={{ fontWeight:800, fontSize:17, color:'#fbfbff', marginBottom:8, paddingRight:32 }}>{t('Delete this course?')}</p>
-                    <p style={{ fontSize:13, color:'#a7abc8', marginBottom:24 }}>{t('This action cannot be undone.')}</p>
+                    <button onClick={() => setConfirmDel(false)} style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid var(--fm-border)', background:'var(--fm-surface-hover)', color:'var(--fm-text-5)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>✕</button>
+                    <p style={{ fontWeight:800, fontSize:17, color:'var(--fm-text-1)', marginBottom:8, paddingRight:32 }}>{t('Delete this course?')}</p>
+                    <p style={{ fontSize:13, color:'var(--fm-text-5)', marginBottom:24 }}>{t('This action cannot be undone.')}</p>
                     <div style={{ display:'flex', gap:10 }}>
-                      <button onClick={() => setConfirmDel(false)} style={{ flex:1, padding:'11px 0', borderRadius:12, border:'1px solid rgba(255,255,255,.12)', background:'transparent', color:'#a7abc8', fontWeight:600, cursor:'pointer', fontSize:14 }}>{t('Cancel')}</button>
+                      <button onClick={() => setConfirmDel(false)} style={{ flex:1, padding:'11px 0', borderRadius:12, border:'1px solid var(--fm-border-strong)', background:'transparent', color:'var(--fm-text-5)', fontWeight:600, cursor:'pointer', fontSize:14 }}>{t('Cancel')}</button>
                       <button onClick={handleDelete} disabled={deleting} style={{ flex:1, padding:'11px 0', borderRadius:12, border:'none', background:'#ef4444', color:'#fff', fontWeight:700, cursor:'pointer', fontSize:14, opacity:deleting?0.6:1, boxShadow:'0 4px 14px -4px rgba(239,68,68,0.6)' }}>{deleting ? t('Deleting…') : t('Delete')}</button>
                     </div>
                   </div>
@@ -371,59 +371,59 @@ function CourseCard({ course, onClick, onDeleted }) {
 
               {/* ── Edit Modal ── */}
               {editOpen && createPortal(
-                <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, overflowY:'auto' }}
+                <div style={{ position:'fixed', inset:0, zIndex:9999, background:'var(--fm-overlay)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, overflowY:'auto' }}
                   onClick={() => setEditOpen(false)}>
-                  <div style={{ background:'#0f1f1c', border:'1px solid rgba(94,234,212,0.22)', borderRadius:22, padding:'clamp(20px,5vw,30px)', maxWidth:480, width:'100%', position:'relative', boxShadow:'0 24px 64px rgba(0,0,0,0.7)', margin:'auto' }}
+                  <div style={{ background:'var(--fm-surface)', border:'1px solid rgba(94,234,212,0.22)', borderRadius:22, padding:'clamp(20px,5vw,30px)', maxWidth:480, width:'100%', position:'relative', boxShadow:'0 24px 64px var(--fm-shadow)', margin:'auto' }}
                     onClick={e => e.stopPropagation()}>
 
-                    <button onClick={() => setEditOpen(false)} style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.06)', color:'#a7abc8', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>✕</button>
-                    <p style={{ fontWeight:900, fontSize:'clamp(16px,4vw,19px)', color:'#edfaf8', marginBottom:4, paddingRight:36 }}>{t('Edit course')}</p>
+                    <button onClick={() => setEditOpen(false)} style={{ position:'absolute', top:14, right:14, width:30, height:30, borderRadius:8, border:'1px solid var(--fm-border)', background:'var(--fm-surface-hover)', color:'var(--fm-text-5)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, lineHeight:1 }}>✕</button>
+                    <p style={{ fontWeight:900, fontSize:'clamp(16px,4vw,19px)', color:'var(--fm-text-1)', marginBottom:4, paddingRight:36 }}>{t('Edit course')}</p>
 
                     <div style={{ display:'flex', alignItems:'center', gap:8, background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:10, padding:'9px 12px', marginBottom:20 }}>
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#fbbf24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="var(--fm-warning)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                       <span style={{ fontSize:12, color:'#fbbf24', fontWeight:600, lineHeight:1.4 }}>{t('You can only edit this course once. This action cannot be repeated.')}</span>
                     </div>
 
                     <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
                       <div>
-                        <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Title')} *</label>
+                        <label style={{ fontSize:11.5, fontWeight:700, color:'var(--fm-text-5)', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Title')} *</label>
                         <input value={editForm.title} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))} maxLength={120}
-                          style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
+                          style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'var(--fm-border-soft)', color:'var(--fm-text-1)', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
                           onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'} onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'} />
                       </div>
                       <div>
-                        <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Description')}</label>
+                        <label style={{ fontSize:11.5, fontWeight:700, color:'var(--fm-text-5)', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Description')}</label>
                         <textarea value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} rows={3} maxLength={800}
-                          style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', resize:'vertical', minHeight:80, transition:'border-color .2s' }}
+                          style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'var(--fm-border-soft)', color:'var(--fm-text-1)', fontSize:14, outline:'none', fontFamily:'inherit', resize:'vertical', minHeight:80, transition:'border-color .2s' }}
                           onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'} onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'} />
                       </div>
                       <div>
-                        <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Category')}</label>
+                        <label style={{ fontSize:11.5, fontWeight:700, color:'var(--fm-text-5)', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Category')}</label>
                         <select value={editForm.category} onChange={e => setEditForm(p => ({ ...p, category: e.target.value }))}
-                          style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'#0b1a17', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', cursor:'pointer' }}>
+                          style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'var(--fm-surface)', color:'var(--fm-text-1)', fontSize:14, outline:'none', fontFamily:'inherit', cursor:'pointer' }}>
                           {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
                       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:12 }}>
                         <div>
-                          <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Price')} (TND)</label>
+                          <label style={{ fontSize:11.5, fontWeight:700, color:'var(--fm-text-5)', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Price')} (TND)</label>
                           <input type="number" min="0" step="0.01" value={editForm.full_price} onChange={e => setEditForm(p => ({ ...p, full_price: e.target.value }))}
-                            style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
+                            style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'var(--fm-border-soft)', color:'var(--fm-text-1)', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
                             onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'} onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'} />
                         </div>
                         <div>
-                          <label style={{ fontSize:11.5, fontWeight:700, color:'#7aada8', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Discount')} (%)</label>
+                          <label style={{ fontSize:11.5, fontWeight:700, color:'var(--fm-text-5)', letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:6 }}>{t('Discount')} (%)</label>
                           <input type="number" min="0" max="100" step="1" value={editForm.discount_pct} onChange={e => setEditForm(p => ({ ...p, discount_pct: e.target.value }))}
-                            style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'rgba(255,255,255,0.04)', color:'#edfaf8', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
+                            style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:11, border:'1px solid rgba(94,234,212,0.2)', background:'var(--fm-border-soft)', color:'var(--fm-text-1)', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s' }}
                             onFocus={e => e.target.style.borderColor='rgba(94,234,212,0.45)'} onBlur={e => e.target.style.borderColor='rgba(94,234,212,0.2)'} />
                         </div>
                       </div>
                     </div>
 
-                    {editError && <p style={{ fontSize:12.5, color:'#f87171', marginTop:12, fontWeight:600 }}>{editError}</p>}
+                    {editError && <p style={{ fontSize:12.5, color:'var(--fm-danger)', marginTop:12, fontWeight:600 }}>{editError}</p>}
 
                     <div style={{ display:'flex', gap:10, marginTop:20 }}>
-                      <button onClick={() => setEditOpen(false)} style={{ flex:1, padding:'12px 0', borderRadius:12, border:'1px solid rgba(255,255,255,.12)', background:'transparent', color:'#a7abc8', fontWeight:600, cursor:'pointer', fontSize:14 }}>{t('Cancel')}</button>
+                      <button onClick={() => setEditOpen(false)} style={{ flex:1, padding:'12px 0', borderRadius:12, border:'1px solid var(--fm-border-strong)', background:'transparent', color:'var(--fm-text-5)', fontWeight:600, cursor:'pointer', fontSize:14 }}>{t('Cancel')}</button>
                       <button onClick={handleEdit} disabled={editSaving} style={{ flex:2, padding:'12px 0', borderRadius:12, border:'none', background:'linear-gradient(135deg,#14b8a6,#0d9488)', color:'#fff', fontWeight:700, cursor:editSaving?'not-allowed':'pointer', fontSize:14, opacity:editSaving?0.65:1, boxShadow:'0 4px 14px -4px rgba(13,148,136,0.6)', transition:'opacity .2s' }}>
                         {editSaving ? t('Saving…') : t('Save changes')}
                       </button>
@@ -463,7 +463,7 @@ function CourseCard({ course, onClick, onDeleted }) {
               ({fmtNum(course.review_count||0)})
             </span>
           </div>
-          <span style={{ width:1, height:10, background:'rgba(255,255,255,0.1)', flexShrink:0 }} />
+          <span style={{ width:1, height:10, background:'var(--fm-border)', flexShrink:0 }} />
           <div style={{ display:'flex', alignItems:'center', gap:4, color:C.muted }}>
             <IcUsers />
             <span style={{ fontSize:11 }}>{students}</span>
@@ -475,7 +475,7 @@ function CourseCard({ course, onClick, onDeleted }) {
         </div>
 
         {/* Separator */}
-        <div style={{ height:1, background:'rgba(255,255,255,0.06)' }} />
+        <div style={{ height:1, background:'var(--fm-surface-hover)' }} />
 
         {/* Price + Enroll row */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
@@ -483,7 +483,7 @@ function CourseCard({ course, onClick, onDeleted }) {
             <span style={{ fontSize:17, fontWeight:900, color:C.accentBr }}>{t('cc.free')}</span>
           ) : hasDisc ? (
             <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
-              <span style={{ fontSize:17, fontWeight:900, color:'#f87171' }}>{final.toFixed(0)} TND</span>
+              <span style={{ fontSize:17, fontWeight:900, color:'var(--fm-danger)' }}>{final.toFixed(0)} TND</span>
               <span style={{ fontSize:12, color:C.dim, textDecoration:'line-through' }}>{full.toFixed(0)}</span>
             </div>
           ) : (
@@ -510,13 +510,13 @@ function CourseCard({ course, onClick, onDeleted }) {
 function SkeletonCard() {
   return (
     <div style={{ borderRadius:20, overflow:'hidden', background:C.card, border:`1px solid ${C.border}` }}>
-      <div style={{ paddingTop:'56.25%', background:'rgba(13,148,136,0.05)', position:'relative' }}>
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', animation:'cpShimmer 1.6s infinite' }} />
+      <div style={{ paddingTop:'56.25%', background:'var(--fm-surface-hover-soft)', position:'relative' }}>
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,transparent,var(--fm-border-soft),transparent)', animation:'cpShimmer 1.6s infinite' }} />
       </div>
       <div style={{ padding:'16px 18px', display:'flex', flexDirection:'column', gap:12 }}>
         {[72, 44, 58].map((w, i) => (
-          <div key={i} style={{ height: i===0 ? 16 : 12, width:`${w}%`, borderRadius:6, background:'rgba(255,255,255,0.05)', position:'relative', overflow:'hidden' }}>
-            <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)', animation:'cpShimmer 1.6s infinite' }} />
+          <div key={i} style={{ height: i===0 ? 16 : 12, width:`${w}%`, borderRadius:6, background:'var(--fm-border-soft)', position:'relative', overflow:'hidden' }}>
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,transparent,var(--fm-border-soft),transparent)', animation:'cpShimmer 1.6s infinite' }} />
           </div>
         ))}
       </div>
@@ -639,14 +639,14 @@ export default function CoursesPage() {
                 style={{
                   width:'100%', boxSizing:'border-box',
                   padding:'14px 44px', borderRadius:14,
-                  background:'rgba(255,255,255,0.05)',
+                  background:'var(--fm-border-soft)',
                   border:`1px solid ${C.border}`,
                   color:C.text, fontSize:14, outline:'none',
                   fontFamily:'inherit', textAlign:'center',
                   transition:'border-color .2s, background .2s',
                 }}
                 onFocus={e => { e.target.style.borderColor='rgba(94,234,212,0.4)'; e.target.style.background='rgba(13,148,136,0.06)'; e.target.style.textAlign='left'; }}
-                onBlur={e  => { e.target.style.borderColor=C.border; e.target.style.background='rgba(255,255,255,0.05)'; if (!search) e.target.style.textAlign='center'; }}
+                onBlur={e  => { e.target.style.borderColor=C.border; e.target.style.background='var(--fm-border-soft)'; if (!search) e.target.style.textAlign='center'; }}
               />
               {search && (
                 <button
@@ -686,7 +686,7 @@ export default function CoursesPage() {
                 { n: instructors,           label: t('csp.stat_instructors')  },
               ].map((s, i) => (
                 <div key={i} className="csp-stat-item" style={{ display:'flex', alignItems:'center' }}>
-                  {i > 0 && <span className="csp-stat-sep" style={{ width:1, height:32, background:'rgba(255,255,255,0.09)', margin:'0 clamp(12px,3vw,28px)' }} />}
+                  {i > 0 && <span className="csp-stat-sep" style={{ width:1, height:32, background:'var(--fm-border)', margin:'0 clamp(12px,3vw,28px)' }} />}
                   <div style={{ textAlign:'center' }}>
                     <div style={{ fontSize:30, fontWeight:900, color:C.accentBr, lineHeight:1.1, letterSpacing:'-0.03em' }}>
                       {s.n}
@@ -705,8 +705,8 @@ export default function CoursesPage() {
         {/* ══ STICKY FILTER BAR ══ */}
         <div style={{
           position:'sticky', top:64, zIndex:20,
-          background:'rgba(4,13,11,0.96)', backdropFilter:'blur(20px)',
-          borderBottom:`1px solid ${C.border}`, borderTop:'1px solid rgba(255,255,255,0.04)',
+          background:'var(--fm-bg)', backdropFilter:'blur(20px)',
+          borderBottom:`1px solid ${C.border}`, borderTop:'1px solid var(--fm-border-soft)',
         }}>
           <div className="csp-filter-inner" style={{ maxWidth:1240, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:60, gap:0 }}>
 
@@ -721,11 +721,11 @@ export default function CoursesPage() {
                       padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight: active ? 700 : 500,
                       cursor:'pointer', whiteSpace:'nowrap', transition:'all .2s',
                       background: active ? 'rgba(13,148,136,0.18)' : 'transparent',
-                      border:     active ? '1px solid rgba(94,234,212,0.35)' : `1px solid rgba(255,255,255,0.07)`,
+                      border:     active ? '1px solid rgba(94,234,212,0.35)' : `1px solid var(--fm-border)`,
                       color:      active ? C.accentBr : C.muted,
                     }}
                     onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor='rgba(13,148,136,0.25)'; e.currentTarget.style.color=C.sub; } }}
-                    onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor='rgba(255,255,255,0.07)'; e.currentTarget.style.color=C.muted; } }}>
+                    onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor='var(--fm-border)'; e.currentTarget.style.color=C.muted; } }}>
                     <span style={{ display:'flex', alignItems:'center', color:'inherit' }}>
                       {CAT_ICONS[cat]}
                     </span>
@@ -739,7 +739,7 @@ export default function CoursesPage() {
             <div className="csp-filter-right" style={{ flexShrink:0, display:'flex', alignItems:'center', gap:10, borderLeft:`1px solid ${C.border}`, paddingLeft:16, marginLeft:8 }}>
 
               {/* All / Free / Paid toggle */}
-              <div style={{ display:'flex', gap:3, background:'rgba(255,255,255,0.04)', borderRadius:20, padding:3 }}>
+              <div style={{ display:'flex', gap:3, background:'var(--fm-border-soft)', borderRadius:20, padding:3 }}>
                 {[['all',t('All')],['free',t('cc.free')],['paid',t('csp.paid')]].map(([v,l]) => (
                   <button key={v} onClick={() => setPriceFilter(v)}
                     style={{
@@ -765,7 +765,7 @@ export default function CoursesPage() {
                   value={sort} onChange={e => setSort(e.target.value)}
                   style={{
                     padding:'6px 28px 6px 11px', borderRadius:10,
-                    background:'rgba(255,255,255,0.05)', border:`1px solid ${C.border}`,
+                    background:'var(--fm-border-soft)', border:`1px solid ${C.border}`,
                     color:C.sub, fontSize:11.5, outline:'none', cursor:'pointer',
                     appearance:'none', fontFamily:'inherit',
                   }}>
@@ -807,7 +807,7 @@ export default function CoursesPage() {
           ) : courses.length === 0 ? (
             <div style={{
               textAlign:'center', padding:'80px 20px',
-              background:'rgba(13,148,136,0.03)',
+              background:'var(--fm-surface-hover-soft)',
               border:`1px solid ${C.border}`, borderRadius:24,
             }}>
               <div style={{
@@ -852,20 +852,20 @@ export default function CoursesPage() {
       {/* ══ Type chooser modal ══ */}
       {showTypeModal && (
         <div
-          style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:20, background:'rgba(4,13,11,0.88)', backdropFilter:'blur(8px)' }}
+          style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:20, background:'var(--fm-overlay)', backdropFilter:'blur(8px)' }}
           onClick={() => { setShowTypeModal(false); setSelectedType('free'); }}>
           <div
-            style={{ width:'100%', maxWidth:340, background:'#0b1f1c', border:`1px solid ${C.border}`, borderRadius:24, padding:28, boxShadow:'0 24px 64px rgba(0,0,0,0.7)' }}
+            style={{ width:'100%', maxWidth:340, background:'var(--fm-surface)', border:`1px solid ${C.border}`, borderRadius:24, padding:28, boxShadow:'0 24px 64px var(--fm-shadow)' }}
             onClick={e => e.stopPropagation()}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
               <p style={{ fontSize:17, fontWeight:900, color:C.text, margin:0 }}>{t('csp.course_type')}</p>
               <button
                 onClick={() => { setShowTypeModal(false); setSelectedType('free'); }}
-                style={{ width:32, height:32, borderRadius:10, background:'rgba(255,255,255,0.06)', border:'none', color:C.muted, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                style={{ width:32, height:32, borderRadius:10, background:'var(--fm-surface-hover)', border:'none', color:C.muted, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <IcX />
               </button>
             </div>
-            <div style={{ display:'flex', padding:4, borderRadius:16, background:'rgba(255,255,255,0.04)', marginBottom:22 }}>
+            <div style={{ display:'flex', padding:4, borderRadius:16, background:'var(--fm-border-soft)', marginBottom:22 }}>
               {[['free',t('cc.free'),'#5eead4'],['paid',t('csp.paid'),'#fbbf24']].map(([v,l,col]) => (
                 <button key={v} onClick={() => setSelectedType(v)}
                   style={{
@@ -873,7 +873,7 @@ export default function CoursesPage() {
                     fontSize:13, fontWeight:700, cursor:'pointer', border:'none', transition:'all .2s',
                     background: selectedType===v ? C.bg        : 'transparent',
                     color:      selectedType===v ? col          : C.muted,
-                    boxShadow:  selectedType===v ? '0 2px 10px rgba(0,0,0,0.5)' : 'none',
+                    boxShadow:  selectedType===v ? '0 2px 10px var(--fm-shadow)' : 'none',
                   }}>
                   {l}
                 </button>
@@ -929,8 +929,8 @@ export default function CoursesPage() {
         @keyframes cpBlob4  { 0%,100%{transform:translate(0,0) scale(1)} 45%{transform:translate(-32px,-28px) scale(1.07)} }
         @keyframes cpPulse  { 0%,100%{opacity:1} 50%{opacity:0.35} }
         @keyframes cpShimmer{ 0%{transform:translateX(-200%)} 100%{transform:translateX(200%)} }
-        input::placeholder  { color: #5d8e89; }
-        select option       { background: #0b1f1c; color: #a8c9c5; }
+        input::placeholder  { color: var(--fm-text-7); }
+        select option       { background: var(--fm-surface); color: var(--fm-text-4); }
       `}</style>
     </div>
   );
