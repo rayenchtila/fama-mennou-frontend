@@ -4386,8 +4386,8 @@ i18n
         }
       }
     },
-    lng: localStorage.getItem('language') || 'en',
-    fallbackLng: 'en',
+    lng: localStorage.getItem('language') || 'fr',
+    fallbackLng: 'fr',
     interpolation: { escapeValue: false }
   });
 

@@ -358,9 +358,9 @@ export default function Navbar({ onLogin }) {
   };
 
   const LANGS = [
-    { code:'fr', label:'Français',  short:'FR' },
-    { code:'en', label:'English',   short:'EN' },
-    { code:'ar', label:'العربية',   short:'AR' },
+    { code:'fr', label:'Français',  short:'FR', flag:'🇫🇷' },
+    { code:'en', label:'English',   short:'EN', flag:'🇬🇧' },
+    { code:'ar', label:'العربية',   short:'AR', flag:'🇹🇳' },
   ];
   const activeLang = LANGS.find(l => l.code === i18n.language) || LANGS[0];
 
@@ -507,10 +507,7 @@ export default function Navbar({ onLogin }) {
                     onMouseEnter={e => { if (!langOpen) { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}}
                     onMouseLeave={e => { if (!langOpen) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}}
                   >
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                    </svg>
+                    <span style={{ fontSize: 15, lineHeight: 1 }}>{activeLang.flag}</span>
                     {activeLang.short}
                     <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ transform: langOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform .2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
                   </button>
@@ -519,16 +516,17 @@ export default function Navbar({ onLogin }) {
                     {langOpen && (
                       <motion.div
                         initial={{ opacity:0, scale:.95, y:6 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:6 }} transition={{ duration:.13 }}
-                        style={{ position:'absolute', right:0, marginTop:8, width:148, borderRadius:14, background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow:'0 16px 48px rgba(0,0,0,.25)', overflow:'hidden', zIndex:60 }}>
+                        style={{ position:'absolute', right:0, marginTop:8, width:168, borderRadius:14, background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow:'0 16px 48px rgba(0,0,0,.25)', overflow:'hidden', zIndex:60 }}>
                         {LANGS.map(l => (
                           <button key={l.code}
                             onClick={() => { i18n.changeLanguage(l.code); setLangOpen(false); }}
-                            style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', background: i18n.language === l.code ? 'rgba(124,108,246,0.12)' : 'transparent', border:'none', cursor:'pointer', fontFamily:'inherit', transition:'background .15s' }}
+                            style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background: i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : 'transparent', border:'none', cursor:'pointer', fontFamily:'inherit', transition:'background .15s' }}
                             onMouseEnter={e => e.currentTarget.style.background = bg.rowHov}
-                            onMouseLeave={e => e.currentTarget.style.background = i18n.language === l.code ? 'rgba(124,108,246,0.12)' : 'transparent'}>
-                            <span style={{ fontSize:13, fontWeight:600, color: i18n.language === l.code ? '#9b8cff' : bg.text2 }}>{l.label}</span>
+                            onMouseLeave={e => e.currentTarget.style.background = i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : 'transparent'}>
+                            <span style={{ fontSize: 17, lineHeight: 1, flexShrink: 0 }}>{l.flag}</span>
+                            <span style={{ fontSize:13, fontWeight:600, color: i18n.language === l.code ? 'var(--fm-primary-light)' : bg.text2, flex: 1 }}>{l.label}</span>
                             {i18n.language === l.code && (
-                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2.5} style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                             )}
                           </button>
                         ))}
@@ -678,6 +676,49 @@ export default function Navbar({ onLogin }) {
                     </svg>
                   )}
                 </button>
+
+                {/* Language selector — visible when logged out too */}
+                <div className="relative" ref={langRef}>
+                  <button
+                    onClick={() => setLangOpen(v => !v)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all"
+                    style={{
+                      color: langOpen ? bg.iconHov : bg.iconClr,
+                      background: langOpen ? bg.btnHovBg : "transparent",
+                      border: `1px solid ${langOpen ? bg.headerBd : "transparent"}`,
+                      fontSize: 11, fontWeight: 700, letterSpacing: '.03em', cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { if (!langOpen) { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}}
+                    onMouseLeave={e => { if (!langOpen) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}}
+                  >
+                    <span style={{ fontSize: 15, lineHeight: 1 }}>{activeLang.flag}</span>
+                    {activeLang.short}
+                    <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ transform: langOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform .2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+
+                  <AnimatePresence>
+                    {langOpen && (
+                      <motion.div
+                        initial={{ opacity:0, scale:.95, y:6 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:6 }} transition={{ duration:.13 }}
+                        style={{ position:'absolute', right:0, marginTop:8, width:168, borderRadius:14, background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow:'0 16px 48px rgba(0,0,0,.25)', overflow:'hidden', zIndex:60 }}>
+                        {LANGS.map(l => (
+                          <button key={l.code}
+                            onClick={() => { i18n.changeLanguage(l.code); setLangOpen(false); }}
+                            style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background: i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : 'transparent', border:'none', cursor:'pointer', fontFamily:'inherit', transition:'background .15s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = bg.rowHov}
+                            onMouseLeave={e => e.currentTarget.style.background = i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : 'transparent'}>
+                            <span style={{ fontSize: 17, lineHeight: 1, flexShrink: 0 }}>{l.flag}</span>
+                            <span style={{ fontSize:13, fontWeight:600, color: i18n.language === l.code ? 'var(--fm-primary-light)' : bg.text2, flex: 1 }}>{l.label}</span>
+                            {i18n.language === l.code && (
+                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2.5} style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            )}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 <button
                   onClick={() => onLogin?.("login")}
                   style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14.5, fontWeight: 600, whiteSpace: "nowrap", color: bg.navClr, padding: "8px 8px" }}
@@ -799,6 +840,23 @@ export default function Navbar({ onLogin }) {
                   </span>
                 </div>
               )}
+
+              {/* Language switcher — mobile has no other way to reach this */}
+              <div className="flex items-center gap-2 px-4 py-3 shrink-0" style={{ borderBottom: `1px solid ${bg.mobileBd}` }}>
+                {LANGS.map(l => (
+                  <button key={l.code}
+                    onClick={() => i18n.changeLanguage(l.code)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
+                    style={{
+                      background: i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : bg.btnHovBg,
+                      color: i18n.language === l.code ? 'var(--fm-primary-light)' : bg.navClr,
+                      border: `1px solid ${i18n.language === l.code ? 'var(--fm-primary-border)' : 'transparent'}`,
+                    }}>
+                    <span style={{ fontSize: 15, lineHeight: 1 }}>{l.flag}</span>
+                    {l.short}
+                  </button>
+                ))}
+              </div>
 
               {/* Nav links */}
               <nav className="flex flex-col px-3 py-3 gap-0.5 flex-1">

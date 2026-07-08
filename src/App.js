@@ -31,7 +31,6 @@ import PaymentsPage from "./page/PaymentsPage";
 import ClientDashboard from "./page/ClientDashboard";
 import FreelancerDashboard from "./page/FreelancerDashboard";
 import PublicProfilePage from "./page/PublicProfilePage";
-import { useTranslation } from "react-i18next";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -122,7 +121,6 @@ function PrivateRoute({ children, onLogin }) {
 }
 
 function AppInner() {
-  const { i18n } = useTranslation();
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -134,7 +132,6 @@ function AppInner() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [authForced, setAuthForced] = useState(false);
-  const [language, setLanguage] = useState(() => localStorage.getItem("language") || "en");
 
   // Global Enter-key handler — makes every focused interactive element respond to Enter
   useEffect(() => {
@@ -166,12 +163,6 @@ function AppInner() {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
-
-  const handleLanguageChange = (lang) => {
-    setLanguage(lang);
-    i18n.changeLanguage(lang);
-    localStorage.setItem("language", lang);
-  };
 
   const handleLogin = (mode, forced = false) => {
     setAuthMode(mode);
@@ -234,8 +225,6 @@ function AppInner() {
 
       <Navbar
         onLogin={handleLogin}
-        language={language}
-        onLanguageChange={handleLanguageChange}
       />
 
       <AnimatePresence mode="wait">
