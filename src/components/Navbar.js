@@ -537,10 +537,10 @@ export default function Navbar({ onLogin }) {
                   </AnimatePresence>
                 </div>
 
-                {/* Messages — chat (3rd) */}
+                {/* Messages — chat (3rd) — hidden on mobile, already reachable via the hamburger menu's Messages link */}
                 <button
                   onClick={() => { setNotifOpen(false); setProfOpen(false); setMsgOpen(v => !v); }}
-                  className="relative w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
+                  className="relative hidden sm:flex w-9 h-9 items-center justify-center rounded-xl transition-colors"
                   style={{ color: bg.iconClr, background: "transparent" }}
                   onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
                   onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}
@@ -565,7 +565,7 @@ export default function Navbar({ onLogin }) {
                     });
                     setMsgOpen(false); setProfOpen(false);
                   }}
-                  className="relative w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
+                  className="relative shrink-0 w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
                   style={{ color: bg.iconClr, background: "transparent" }}
                   onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
                   onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}
@@ -585,10 +585,10 @@ export default function Navbar({ onLogin }) {
                 <div style={{ width: 1, height: 22, background: bg.headerBd, flexShrink: 0 }} className="hidden sm:block" />
 
                 {/* Profile */}
-                <div className="relative" ref={profRef}>
+                <div className="relative shrink-0" ref={profRef}>
                   <button
                     onClick={() => { setProfOpen(v => !v); setNotifOpen(false); setMsgOpen(false); }}
-                    className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-2xl transition-all"
+                    className="flex items-center gap-2 pl-1 pr-1 sm:pr-2.5 py-1 rounded-2xl transition-all"
                     style={{ background: profOpen ? bg.btnHovBg : "transparent", border: `1px solid ${profOpen ? bg.headerBd : "transparent"}` }}
                   >
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0"
@@ -599,7 +599,7 @@ export default function Navbar({ onLogin }) {
                       <p className="text-xs font-bold leading-tight" style={{ color: bg.text1 }}>{user.name}</p>
                       <p className="text-[10px] leading-tight capitalize" style={{ color: bg.text3 }}>{user.role ?? "membre"}</p>
                     </div>
-                    <svg className={`w-3 h-3 transition-transform ${profOpen ? "rotate-180" : ""}`} style={{ color: bg.text3 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <svg className={`hidden sm:block w-3 h-3 transition-transform ${profOpen ? "rotate-180" : ""}`} style={{ color: bg.text3 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
                     </svg>
                   </button>
@@ -700,7 +700,7 @@ export default function Navbar({ onLogin }) {
             {/* Hamburger — mobile only */}
             <button
               onClick={() => setMenuOpen(v => !v)}
-              className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
+              className="lg:hidden shrink-0 w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
               style={{ background: bg.btnHovBg, border: `1px solid ${bg.headerBd}`, color: bg.iconClr }}
             >
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>

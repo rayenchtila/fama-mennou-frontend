@@ -109,6 +109,25 @@
   --body-color: #0f172a;
 }
 
+/* ── Premium theme-switch transition ────────────────────────────
+   Applied only for ~600ms right when the user toggles theme (see
+   ThemeContext.js), not permanently — so hover/interaction states
+   elsewhere stay snappy and this never fights their own transitions.
+   !important wins for that window only. */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition:
+    background-color .5s cubic-bezier(0.4, 0, 0.2, 1),
+    color .5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color .5s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow .5s cubic-bezier(0.4, 0, 0.2, 1),
+    fill .5s cubic-bezier(0.4, 0, 0.2, 1),
+    stroke .5s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity .5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
 /* Suppress ALL browser-native password reveal / credential icons */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear { display: none !important; }

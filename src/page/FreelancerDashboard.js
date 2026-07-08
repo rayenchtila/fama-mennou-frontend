@@ -48,10 +48,10 @@ function Avi({ user, size = 'md' }) {
   );
 }
 
-function StatCard({ icon, label, value, sub, color = "#7c6cf6", loading }) {
+function StatCard({ icon, label, value, sub, color = "var(--fm-primary)", loading }) {
   return (
     <div style={{ background: "var(--fm-surface)", border: "1px solid var(--fm-border)", borderRadius: 16, padding: "18px 20px", position: "relative", overflow: "hidden", transition: "border-color 0.2s" }}
-      onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(124,108,246,0.3)"}
+      onMouseEnter={e => e.currentTarget.style.borderColor = "var(--fm-primary-border)"}
       onMouseLeave={e => e.currentTarget.style.borderColor = "var(--fm-border)"}>
       <div style={{ width: 36, height: 36, borderRadius: 10, background: color + "18", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
@@ -72,13 +72,13 @@ function SectionHeader({ icon, title, action, onAction }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {icon && <span style={{ display: "flex", alignItems: "center", color: "#9b8cff", opacity: 0.8 }}>{icon}</span>}
+        {icon && <span style={{ display: "flex", alignItems: "center", color: "var(--fm-primary-light)", opacity: 0.8 }}>{icon}</span>}
         <h2 style={{ fontSize: 13, fontWeight: 700, color: "var(--fm-text-2)" }}>{title}</h2>
       </div>
       {action && (
-        <button onClick={onAction} style={{ fontSize: 11, fontWeight: 600, color: "#9b8cff", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-          onMouseEnter={e => e.currentTarget.style.color = "#b5aaff"}
-          onMouseLeave={e => e.currentTarget.style.color = "#9b8cff"}>
+        <button onClick={onAction} style={{ fontSize: 11, fontWeight: 600, color: "var(--fm-primary-light)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          onMouseEnter={e => e.currentTarget.style.color = "var(--fm-primary)"}
+          onMouseLeave={e => e.currentTarget.style.color = "var(--fm-primary-light)"}>
           {action} →
         </button>
       )}
@@ -89,11 +89,11 @@ function SectionHeader({ icon, title, action, onAction }) {
 function StatusPill({ status }) {
   const { t } = useTranslation();
   const map = {
-    open:        { label: t('fd.status.open'),   dot: '#3ec2e8' },
-    in_progress: { label: t('fd.status.in_progress'), dot: '#f59e0b' },
-    completed:   { label: t('fd.status.completed'),  dot: '#10b981' },
+    open:        { label: t('fd.status.open'),   dot: 'var(--fm-cyan)' },
+    in_progress: { label: t('fd.status.in_progress'), dot: 'var(--fm-warning)' },
+    completed:   { label: t('fd.status.completed'),  dot: 'var(--fm-success)' },
   };
-  const s = map[status] || { label: status, dot: '#62668a' };
+  const s = map[status] || { label: status, dot: 'var(--fm-text-7)' };
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: s.dot + '18', color: s.dot, whiteSpace: 'nowrap' }}>
       <span style={{ width: 5, height: 5, borderRadius: '50%', background: s.dot, display: 'inline-block' }} />
@@ -105,14 +105,14 @@ function StatusPill({ status }) {
 function Empty({ icon, text, action, onAction }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 16px", textAlign:"center", gap:8 }}>
-      <div style={{ width:44, height:44, borderRadius:14, background:"rgba(124,108,246,0.08)", border:"1px solid rgba(124,108,246,0.15)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4, color:"#9b8cff" }}>
+      <div style={{ width:44, height:44, borderRadius:14, background:"var(--fm-primary-soft)", border:"1px solid var(--fm-primary-soft-strong)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4, color: "var(--fm-primary-light)" }}>
         {icon}
       </div>
       <p style={{ fontSize:12, fontWeight:600, color:"var(--fm-text-7)" }}>{text}</p>
       {action && (
         <button onClick={onAction}
-          style={{ marginTop:8, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, background:"rgba(124,108,246,0.1)", border:"1px solid rgba(124,108,246,0.2)", color:"#9b8cff", cursor:"pointer", transition:"all 0.15s" }}
-          onMouseEnter={e=>e.currentTarget.style.background="rgba(124,108,246,0.18)"}
+          style={{ marginTop:8, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, background:"var(--fm-primary-soft)", border:"1px solid var(--fm-primary-soft-strong)", color: "var(--fm-primary-light)", cursor:"pointer", transition:"all 0.15s" }}
+          onMouseEnter={e=>e.currentTarget.style.background="var(--fm-primary-soft-strong)"}
           onMouseLeave={e=>e.currentTarget.style.background="rgba(124,108,246,0.10)"}>
           {action}
         </button>
@@ -154,9 +154,9 @@ function InputField({ label, type = 'text', ...props }) {
             type="button"
             tabIndex={-1}
             onClick={() => setShowPw(v => !v)}
-            style={{ position:'absolute', top:'50%', right:10, transform:'translateY(-50%)', zIndex:10, width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color: showPw ? '#7c6cf6' : '#8a8eb8', transition:'color .18s, background .18s', outline:'none' }}
-            onMouseEnter={e => { e.currentTarget.style.color='#7c6cf6'; e.currentTarget.style.background='rgba(124,108,246,0.1)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = showPw ? '#7c6cf6' : '#8a8eb8'; e.currentTarget.style.background='transparent'; }}
+            style={{ position:'absolute', top:'50%', right:10, transform:'translateY(-50%)', zIndex:10, width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color: showPw ? 'var(--fm-primary)' : 'var(--fm-text-6)', transition:'color .18s, background .18s', outline:'none' }}
+            onMouseEnter={e => { e.currentTarget.style.color='var(--fm-primary)'; e.currentTarget.style.background='var(--fm-primary-soft)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = showPw ? 'var(--fm-primary)' : 'var(--fm-text-6)'; e.currentTarget.style.background='transparent'; }}
           >
             {showPw
               ? <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -172,21 +172,21 @@ function InputField({ label, type = 'text', ...props }) {
 // ── ProfileTab: design tokens & helpers ──────────────────────────────────────
 
 const PC = {
-  bg:'#070b14', border:'rgba(255,255,255,0.07)',
-  accent:'#7c6cf6', accentMid:'#9b8cff', accentDim:'rgba(124,108,246,0.1)',
-  emerald:'#10b981', emeraldDim:'rgba(16,185,129,0.1)', emeraldBord:'rgba(16,185,129,0.28)',
-  amber:'#f59e0b', amberDim:'rgba(245,158,11,0.1)', amberBord:'rgba(245,158,11,0.25)',
-  rose:'#f87171', roseDim:'rgba(248,113,113,0.1)', roseBord:'rgba(248,113,113,0.28)',
-  text:'#f4f3fb', sub:'#a7abc8', muted:'#62668a',
+  bg:'var(--fm-bg)', border:'var(--fm-border)',
+  accent:'var(--fm-primary)', accentMid:'var(--fm-primary-light)', accentDim:'var(--fm-primary-soft)',
+  emerald:'var(--fm-success)', emeraldDim:'var(--fm-success-bg)', emeraldBord:'rgba(16,185,129,0.28)',
+  amber:'var(--fm-warning)', amberDim:'var(--fm-warning-bg)', amberBord:'rgba(245,158,11,0.25)',
+  rose:'var(--fm-danger)', roseDim:'var(--fm-danger-bg)', roseBord:'rgba(248,113,113,0.28)',
+  text:'var(--fm-text-2)', sub:'var(--fm-text-5)', muted:'var(--fm-text-7)',
 };
-const getTint_P = s => { const p=['#7c6cf6','#a855f7','#3b82f6','#0ea5e9','#10b981','#f59e0b','#f43f5e']; return p[((s||'').charCodeAt(0)||0)%p.length]; };
+const getTint_P = s => { const p=['var(--fm-primary)','#a855f7','#3b82f6','#0ea5e9','var(--fm-success)','var(--fm-warning)','#f43f5e']; return p[((s||'').charCodeAt(0)||0)%p.length]; };
 const getInits_P = n => (n||'').trim().split(/\s+/).map(w=>w[0]?.toUpperCase()||'').slice(0,2).join('');
-const PINP = { width:'100%', boxSizing:'border-box', padding:'13px 16px', borderRadius:14, background:'rgba(255,255,255,0.04)', border:'1.5px solid rgba(255,255,255,0.07)', color:'#f4f3fb', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s, background .2s, box-shadow .2s' };
-const focusOn_P  = e => { e.target.style.borderColor='rgba(124,108,246,0.55)'; e.target.style.background='rgba(124,108,246,0.07)'; e.target.style.boxShadow='0 0 0 3px rgba(124,108,246,0.12), inset 3px 0 0 rgba(124,108,246,0.55)'; };
-const focusOff_P = e => { e.target.style.borderColor='rgba(255,255,255,0.07)'; e.target.style.background='rgba(255,255,255,0.04)'; e.target.style.boxShadow='none'; };
+const PINP = { width:'100%', boxSizing:'border-box', padding:'13px 16px', borderRadius:14, background:'var(--fm-border-soft)', border:'1.5px solid var(--fm-border)', color:'var(--fm-text-2)', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s, background .2s, box-shadow .2s' };
+const focusOn_P  = e => { e.target.style.borderColor='rgba(124,108,246,0.55)'; e.target.style.background='var(--fm-primary-soft)'; e.target.style.boxShadow='0 0 0 3px var(--fm-primary-soft-strong), inset 3px 0 0 rgba(124,108,246,0.55)'; };
+const focusOff_P = e => { e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-border-soft)'; e.target.style.boxShadow='none'; };
 function PFieldLabel({ children }) {
   return (
-    <p style={{ fontSize:10, fontWeight:800, margin:'0 0 10px', display:'flex', alignItems:'center', gap:7, textTransform:'uppercase', letterSpacing:'0.1em', color:'rgba(155,140,255,0.8)' }}>
+    <p style={{ fontSize:10, fontWeight:800, margin:'0 0 10px', display:'flex', alignItems:'center', gap:7, textTransform:'uppercase', letterSpacing:'0.1em', color:'var(--fm-primary-light)' }}>
       <span style={{ width:2.5, height:12, borderRadius:2, background:'linear-gradient(to bottom,#7c6cf6,#a78bfa)', display:'inline-block', flexShrink:0 }}/>
       {children}
     </p>
@@ -323,31 +323,31 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
       {/* ── Animated background blobs ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
         <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:`radial-gradient(circle,${tintP}14,transparent 68%)`, top:'-280px', left:'-180px', animation:'fdBlob1 22s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:600, height:600, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.09),transparent 68%)', top:'20%', right:'-200px', animation:'fdBlob2 28s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:600, height:600, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.12),transparent 68%)', top:'20%', right:'-200px', animation:'fdBlob2 28s ease-in-out infinite' }}/>
         <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(14,165,233,0.07),transparent 68%)', bottom:'-60px', left:'35%', animation:'fdBlob3 32s ease-in-out infinite' }}/>
       </div>
 
       <div style={{ position:'relative', zIndex:1 }}>
 
         {/* ════ HERO CARD ════ */}
-        <div style={{ borderRadius:28, marginBottom:18, position:'relative', overflow:'hidden', background:'linear-gradient(140deg,rgba(124,108,246,0.1) 0%,rgba(10,13,26,0.98) 50%,rgba(7,11,20,1) 100%)', border:'1px solid rgba(124,108,246,0.2)', boxShadow:'0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.07)' }}>
-          <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:`radial-gradient(ellipse 600px 320px at -8% -30%,${tintP}1c,transparent 65%),radial-gradient(ellipse 400px 280px at 108% 115%,rgba(168,85,247,0.09),transparent 65%)` }}/>
-          <div style={{ position:'absolute', inset:0, pointerEvents:'none', backgroundImage:'radial-gradient(rgba(255,255,255,0.028) 1px,transparent 1px)', backgroundSize:'28px 28px', WebkitMaskImage:'radial-gradient(ellipse 70% 60% at 50% 0%,black 40%,transparent 100%)', maskImage:'radial-gradient(ellipse 70% 60% at 50% 0%,black 40%,transparent 100%)' }}/>
+        <div style={{ borderRadius:28, marginBottom:18, position:'relative', overflow:'hidden', background:'linear-gradient(140deg,var(--fm-primary-soft) 0%,var(--fm-surface) 50%,var(--fm-bg) 100%)', border:'1px solid var(--fm-primary-soft-strong)', boxShadow:'0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)' }}>
+          <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:`radial-gradient(ellipse 600px 320px at -8% -30%,${tintP}1c,transparent 65%),radial-gradient(ellipse 400px 280px at 108% 115%,rgba(168,85,247,0.12),transparent 65%)` }}/>
+          <div style={{ position:'absolute', inset:0, pointerEvents:'none', backgroundImage:'radial-gradient(var(--fm-surface-hover-soft) 1px,transparent 1px)', backgroundSize:'28px 28px', WebkitMaskImage:'radial-gradient(ellipse 70% 60% at 50% 0%,black 40%,transparent 100%)', maskImage:'radial-gradient(ellipse 70% 60% at 50% 0%,black 40%,transparent 100%)' }}/>
 
           {/* Top bar */}
           <div style={{ position:'relative', padding:'28px clamp(18px,4vw,32px) 0', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
                 <div style={{ width:6, height:6, borderRadius:'50%', background:tintP, boxShadow:`0 0 8px ${tintP}` }}/>
-                <p style={{ fontSize:10.5, fontWeight:700, color:'rgba(155,140,255,0.65)', textTransform:'uppercase', letterSpacing:'0.12em', margin:0 }}>{t('dash.my_account')}</p>
+                <p style={{ fontSize:10.5, fontWeight:700, color:'var(--fm-primary-light)', textTransform:'uppercase', letterSpacing:'0.12em', margin:0 }}>{t('dash.my_account')}</p>
               </div>
               <h1 style={{ fontSize:30, fontWeight:900, color:PC.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
                 {greeting},{' '}
-                <span style={{ background:`linear-gradient(110deg,#c4baff 0%,${tintP} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{firstName}</span>
+                <span style={{ background:`linear-gradient(110deg,var(--fm-primary-light) 0%,${tintP} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{firstName}</span>
               </h1>
             </div>
             <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:7, flexShrink:0 }}>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:PC.accentDim, border:'1px solid rgba(124,108,246,0.3)', color:PC.accentMid, fontSize:10.5, fontWeight:800, letterSpacing:'0.07em', textTransform:'uppercase' }}>
+              <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:PC.accentDim, border:'1px solid var(--fm-primary-border)', color:PC.accentMid, fontSize:10.5, fontWeight:800, letterSpacing:'0.07em', textTransform:'uppercase' }}>
                 <PIcUser s={10}/> {t('dash.role.freelancer')}
               </span>
               <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:statusDim, border:`1px solid ${statusBord}`, color:statusColor, fontSize:10.5, fontWeight:700 }}>
@@ -364,7 +364,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
                   ? <img src={avatarSrc.startsWith('data:') ? avatarSrc : cldImg(avatarSrc)} alt={user.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none'; }}/>
                   : initsP}
               </div>
-              <button onClick={() => photoRef.current?.click()} style={{ position:'absolute', bottom:-5, right:-5, width:34, height:34, borderRadius:12, background:`linear-gradient(135deg,${PC.accent},#6254d4)`, border:'2.5px solid #0a0817', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#fff', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.75)', transition:'all .18s cubic-bezier(.4,0,.2,1)' }}
+              <button onClick={() => photoRef.current?.click()} style={{ position:'absolute', bottom:-5, right:-5, width:34, height:34, borderRadius:12, background:`linear-gradient(135deg,${PC.accent},#6254d4)`, border:'2.5px solid var(--fm-bg)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#fff', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.75)', transition:'all .18s cubic-bezier(.4,0,.2,1)' }}
                 onMouseEnter={e => { e.currentTarget.style.transform='scale(1.12)'; e.currentTarget.style.boxShadow='0 6px 22px -4px rgba(124,108,246,0.9)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow='0 4px 16px -4px rgba(124,108,246,0.75)'; }}>
                 <PIcCamera s={14}/>
@@ -382,12 +382,12 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                 {user.region && (
-                  <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12.5, color:PC.sub, fontWeight:600, background:'rgba(255,255,255,0.05)', border:`1px solid ${PC.border}`, borderRadius:10, padding:'5px 12px' }}>
+                  <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12.5, color:PC.sub, fontWeight:600, background:'var(--fm-border-soft)', border:`1px solid ${PC.border}`, borderRadius:10, padding:'5px 12px' }}>
                     <PIcPin s={11}/> {user.region}
                   </span>
                 )}
                 {skillTags.slice(0, 3).map(s => (
-                  <span key={s} style={{ display:'inline-flex', alignItems:'center', fontSize:11.5, fontWeight:700, color:PC.accentMid, background:PC.accentDim, border:'1px solid rgba(124,108,246,0.2)', borderRadius:20, padding:'4px 11px' }}>{s}</span>
+                  <span key={s} style={{ display:'inline-flex', alignItems:'center', fontSize:11.5, fontWeight:700, color:PC.accentMid, background:PC.accentDim, border:'1px solid var(--fm-primary-soft-strong)', borderRadius:20, padding:'4px 11px' }}>{s}</span>
                 ))}
                 {skillTags.length > 3 && <span style={{ fontSize:11.5, color:PC.muted, padding:'4px 8px' }}>+{skillTags.length - 3}</span>}
               </div>
@@ -395,7 +395,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
           </div>
 
           {/* Completion bar */}
-          <div style={{ position:'relative', margin:'24px 0 0', padding:'20px clamp(18px,4vw,32px) 26px', borderTop:'1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ position:'relative', margin:'24px 0 0', padding:'20px clamp(18px,4vw,32px) 26px', borderTop:'1px solid var(--fm-surface-hover)' }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <div style={{ display:'flex', alignItems:'center', gap:7 }}>
                 <PIcSpark s={12}/>
@@ -403,14 +403,14 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
               </div>
               <span style={{ fontSize:13, fontWeight:900, color: isComplete ? PC.emerald : PC.accentMid, letterSpacing:'-0.02em' }}>{completion}%</span>
             </div>
-            <div style={{ height:5, borderRadius:10, background:'rgba(255,255,255,0.07)', overflow:'hidden', marginBottom:10 }}>
+            <div style={{ height:5, borderRadius:10, background:'var(--fm-border)', overflow:'hidden', marginBottom:10 }}>
               <div style={{ height:'100%', width:`${completion}%`, borderRadius:10, background:progressColor, transition:'width .7s cubic-bezier(.4,0,.2,1)', boxShadow: isComplete ? '0 0 14px rgba(16,185,129,0.5)' : '0 0 14px rgba(124,108,246,0.45)' }}/>
             </div>
             {missing.length > 0 && (
               <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:4 }}>
                 {missing.map(item => (
-                  <span key={item.label} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, color:PC.muted, background:'rgba(255,255,255,0.04)', border:`1px solid ${PC.border}`, borderRadius:20, padding:'3px 10px', fontWeight:500 }}>
-                    <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.18)', display:'inline-block', flexShrink:0 }}/>{item.label}
+                  <span key={item.label} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, color:PC.muted, background:'var(--fm-border-soft)', border:`1px solid ${PC.border}`, borderRadius:20, padding:'3px 10px', fontWeight:500 }}>
+                    <span style={{ width:4, height:4, borderRadius:'50%', background:'var(--fm-border-strong)', display:'inline-block', flexShrink:0 }}/>{item.label}
                   </span>
                 ))}
               </div>
@@ -430,26 +430,26 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
         </div>
 
         {/* ════ EDIT FORM CARD ════ */}
-        <div style={{ borderRadius:26, overflow:'hidden', position:'relative', background:'linear-gradient(155deg,rgba(124,108,246,0.08) 0%,rgba(10,13,26,0.97) 38%,rgba(7,11,20,1) 100%)', border:'1px solid rgba(124,108,246,0.22)', boxShadow:'0 24px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
+        <div style={{ borderRadius:26, overflow:'hidden', position:'relative', background:'linear-gradient(155deg,var(--fm-primary-soft) 0%,var(--fm-surface) 38%,var(--fm-bg) 100%)', border:'1px solid var(--fm-primary-border)', boxShadow:'0 24px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)' }}>
           <div style={{ height:2.5, background:'linear-gradient(90deg,#7c6cf6 0%,#a78bfa 55%,#6366f1 100%)' }}/>
-          <div style={{ position:'absolute', width:360, height:230, top:-90, left:-70, borderRadius:'50%', background:'radial-gradient(circle,rgba(124,108,246,0.1),transparent 70%)', pointerEvents:'none' }}/>
+          <div style={{ position:'absolute', width:360, height:230, top:-90, left:-70, borderRadius:'50%', background:'radial-gradient(circle,var(--fm-primary-soft),transparent 70%)', pointerEvents:'none' }}/>
 
           {/* Card header */}
-          <div style={{ padding:'22px 30px 20px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', gap:14, position:'relative' }}>
-            <div style={{ width:44, height:44, borderRadius:15, flexShrink:0, background:'linear-gradient(135deg,rgba(124,108,246,0.3),rgba(124,108,246,0.08))', border:'1px solid rgba(124,108,246,0.35)', display:'flex', alignItems:'center', justifyContent:'center', color:'#9b8cff', boxShadow:'0 4px 20px -6px rgba(124,108,246,0.55)' }}>
+          <div style={{ padding:'22px 30px 20px', borderBottom:'1px solid var(--fm-surface-hover)', display:'flex', alignItems:'center', gap:14, position:'relative' }}>
+            <div style={{ width:44, height:44, borderRadius:15, flexShrink:0, background:'linear-gradient(135deg,var(--fm-primary-border),var(--fm-primary-soft))', border:'1px solid rgba(124,108,246,0.35)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fm-primary-light)', boxShadow:'0 4px 20px -6px rgba(124,108,246,0.55)' }}>
               <PIcEdit s={19}/>
             </div>
             <div style={{ flex:1 }}>
-              <p style={{ fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em', background:'linear-gradient(90deg,#f4f3fb 0%,#c4baff 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{t('fd.profile_info')}</p>
-              <p style={{ fontSize:12, color:'#62668a', margin:0 }}>{t('fd.visible_clients')}</p>
+              <p style={{ fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em', background:'linear-gradient(90deg,var(--fm-text-1) 0%,var(--fm-primary-light) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{t('fd.profile_info')}</p>
+              <p style={{ fontSize:12, color:'var(--fm-text-7)', margin:0 }}>{t('fd.visible_clients')}</p>
             </div>
-            <span style={{ padding:'5px 13px', borderRadius:20, flexShrink:0, background:'rgba(124,108,246,0.1)', border:'1px solid rgba(124,108,246,0.22)', color:'rgba(155,140,255,0.85)', fontSize:10, fontWeight:800, letterSpacing:'0.09em', textTransform:'uppercase' }}>{t('cd.edit')}</span>
+            <span style={{ padding:'5px 13px', borderRadius:20, flexShrink:0, background:'var(--fm-primary-soft)', border:'1px solid var(--fm-primary-border)', color:'var(--fm-primary-light)', fontSize:10, fontWeight:800, letterSpacing:'0.09em', textTransform:'uppercase' }}>{t('cd.edit')}</span>
           </div>
 
           <div style={{ display:'flex', flexDirection:'column' }}>
 
             {/* Titre professionnel */}
-            <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ padding:'22px 30px', borderBottom:'1px solid var(--fm-border-soft)' }}>
               <PFieldLabel>{t('fd.title')}</PFieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:PC.muted, pointerEvents:'none', display:'flex' }}><PIcBriefcase s={15}/></div>
@@ -461,7 +461,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             </div>
 
             {/* Biographie */}
-            <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ padding:'22px 30px', borderBottom:'1px solid var(--fm-border-soft)' }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
                 <PFieldLabel>{t('fd.bio')}</PFieldLabel>
                 <span style={{ fontSize:11, fontWeight:600, color: bio.length > 260 ? PC.amber : PC.muted, transition:'color .2s' }}>{bio.length}/300</span>
@@ -473,7 +473,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             </div>
 
             {/* Portfolio */}
-            <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ padding:'22px 30px', borderBottom:'1px solid var(--fm-border-soft)' }}>
               <PFieldLabel>{t('fd.portfolio_label')}</PFieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:PC.muted, pointerEvents:'none', display:'flex' }}><PIcLink s={15}/></div>
@@ -483,9 +483,9 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
                   onFocus={focusOn_P} onBlur={focusOff_P}/>
                 {portfolioUrl && /^https?:\/\//.test(portfolioUrl) && (
                   <a href={portfolioUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title={t('fd.portfolio_open')}
-                    style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', display:'flex', alignItems:'center', justifyContent:'center', width:28, height:28, borderRadius:8, background:'rgba(124,108,246,0.15)', border:'1px solid rgba(124,108,246,0.25)', color:'#9b8cff', textDecoration:'none', transition:'all .15s', flexShrink:0 }}
-                    onMouseEnter={e => { e.currentTarget.style.background='rgba(124,108,246,0.28)'; e.currentTarget.style.color='#c4baff'; e.currentTarget.style.borderColor='rgba(124,108,246,0.45)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background='rgba(124,108,246,0.15)'; e.currentTarget.style.color='#9b8cff'; e.currentTarget.style.borderColor='rgba(124,108,246,0.25)'; }}>
+                    style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', display:'flex', alignItems:'center', justifyContent:'center', width:28, height:28, borderRadius:8, background:'var(--fm-primary-soft-strong)', border:'1px solid var(--fm-primary-border)', color:'var(--fm-primary-light)', textDecoration:'none', transition:'all .15s', flexShrink:0 }}
+                    onMouseEnter={e => { e.currentTarget.style.background='rgba(124,108,246,0.28)'; e.currentTarget.style.color='var(--fm-primary-light)'; e.currentTarget.style.borderColor='rgba(124,108,246,0.45)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background='var(--fm-primary-soft-strong)'; e.currentTarget.style.color='var(--fm-primary-light)'; e.currentTarget.style.borderColor='var(--fm-primary-border)'; }}>
                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                   </a>
                 )}
@@ -494,7 +494,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             </div>
 
             {/* Skills */}
-            <div style={{ padding:'22px 30px', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ padding:'22px 30px', borderBottom:'1px solid var(--fm-border-soft)' }}>
               <PFieldLabel>{t('fd.skills') || 'Compétences'}</PFieldLabel>
               <div style={{ position:'relative' }}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', display:'flex', pointerEvents:'none', color:PC.muted }}>
@@ -511,14 +511,14 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             </div>
 
             {/* Footer */}
-            <div style={{ padding:'20px 30px', background:'rgba(0,0,0,0.22)', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ padding:'20px 30px', background:'var(--fm-surface-hover-soft)', borderTop:'1px solid var(--fm-border-soft)' }}>
               {portfolioError && (
-                <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', marginBottom:14, borderRadius:14, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)' }}>
-                  <p style={{ fontSize:13, fontWeight:700, color:'#f87171', margin:0 }}>{portfolioError}</p>
+                <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', marginBottom:14, borderRadius:14, background:'var(--fm-danger-bg)', border:'1px solid rgba(248,113,113,0.3)' }}>
+                  <p style={{ fontSize:13, fontWeight:700, color:'var(--fm-danger)', margin:0 }}>{portfolioError}</p>
                 </div>
               )}
               {saved && (
-                <div style={{ display:'flex', alignItems:'center', gap:12, padding:'13px 16px', marginBottom:16, borderRadius:14, background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.3)', animation:'fdFadeIn .3s ease' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12, padding:'13px 16px', marginBottom:16, borderRadius:14, background:'var(--fm-success-bg)', border:'1px solid rgba(16,185,129,0.3)', animation:'fdFadeIn .3s ease' }}>
                   <div style={{ width:32, height:32, borderRadius:10, background:'rgba(16,185,129,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:PC.emerald }}>
                     <PIcCheck s={15}/>
                   </div>
@@ -531,9 +531,9 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
                 <p style={{ fontSize:12, color:PC.muted, margin:0, lineHeight:1.6 }}>{t('cd.changes_immediate')}</p>
                 <button onClick={handleSave} disabled={saving} className="cd-save-btn"
-                  style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:10, padding:'14px 34px', borderRadius:16, background:'linear-gradient(135deg,#7c6cf6 0%,#5e4fd4 100%)', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:14, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 rgba(255,255,255,0.16)', transition:'all .2s cubic-bezier(.4,0,.2,1)', letterSpacing:'0.01em', whiteSpace:'nowrap', position:'relative', overflow:'hidden' }}
-                  onMouseEnter={e => { if (!saving) { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 16px 44px -6px rgba(124,108,246,0.78), inset 0 1px 0 rgba(255,255,255,0.2)'; } }}
-                  onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 rgba(255,255,255,0.16)'; }}>
+                  style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:10, padding:'14px 34px', borderRadius:16, background:'linear-gradient(135deg,#7c6cf6 0%,#5e4fd4 100%)', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:14, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 var(--fm-border-strong)', transition:'all .2s cubic-bezier(.4,0,.2,1)', letterSpacing:'0.01em', whiteSpace:'nowrap', position:'relative', overflow:'hidden' }}
+                  onMouseEnter={e => { if (!saving) { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 16px 44px -6px rgba(124,108,246,0.78), inset 0 1px 0 var(--fm-border-strong)'; } }}
+                  onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 var(--fm-border-strong)'; }}>
                   {saved ? <><PIcCheck s={15}/> {t('cd.saved')}</> : saving ? t('cd.saving') : <><PIcEdit s={14}/> {t('cd.save_profile')}</>}
                 </button>
               </div>
@@ -548,8 +548,8 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
         @keyframes fdBlob3 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(40px,40px)scale(1.11)} }
         @keyframes fdFadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
         @keyframes fdShimmer { 0%{transform:translateX(-140%)} 100%{transform:translateX(340%)} }
-        .fd-save-btn::after { content:''; position:absolute; inset:0; width:45%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.13),transparent); animation:fdShimmer 2.8s ease-in-out infinite; pointer-events:none; }
-        input::placeholder, textarea::placeholder { color:#3a3d5c; }
+        .fd-save-btn::after { content:''; position:absolute; inset:0; width:45%; height:100%; background:linear-gradient(90deg,transparent,var(--fm-border-strong),transparent); animation:fdShimmer 2.8s ease-in-out infinite; pointer-events:none; }
+        input::placeholder, textarea::placeholder { color:var(--fm-text-7); }
       `}</style>
     </div>
   );
@@ -607,7 +607,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: 'rgba(124,108,246,0.12)', border: '1px solid rgba(124,108,246,0.25)', color: '#9b8cff' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: 'var(--fm-primary-soft-strong)', border: '1px solid var(--fm-primary-border)', color: 'var(--fm-primary-light)' }}>
               <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               {t('dash.role.freelancer')}
             </span>
@@ -639,8 +639,8 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
                 <div className="space-y-2">
                   {recentMissions.map(p => (
                     <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: p.status === 'completed' ? 'rgba(16,185,129,0.1)' : p.status === 'in_progress' ? 'rgba(62,194,232,0.1)' : 'rgba(124,108,246,0.1)', border: `1px solid ${p.status === 'completed' ? 'rgba(16,185,129,0.2)' : p.status === 'in_progress' ? 'rgba(62,194,232,0.2)' : 'rgba(124,108,246,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={p.status === 'completed' ? '#10b981' : p.status === 'in_progress' ? '#3ec2e8' : '#9b8cff'} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: p.status === 'completed' ? 'var(--fm-success-bg)' : p.status === 'in_progress' ? 'var(--fm-info-bg)' : 'var(--fm-primary-soft)', border: `1px solid ${p.status === 'completed' ? 'rgba(16,185,129,0.2)' : p.status === 'in_progress' ? 'var(--fm-info-bg)' : 'var(--fm-primary-soft-strong)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={p.status === 'completed' ? 'var(--fm-success)' : p.status === 'in_progress' ? 'var(--fm-cyan)' : 'var(--fm-primary-light)'} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                           {p.status === 'completed' ? <polyline points="20 6 9 17 4 12"/> : p.status === 'in_progress' ? <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></> : <><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></>}
                         </svg>
                       </div>
@@ -737,9 +737,9 @@ const EXPERIENCE_OPTIONS_FL = ['Débutant (0-1 an)', '1-2 ans', '3-5 ans', '5-10
 const PERIOD_OPTIONS_FL     = ['De 1 à 3 jours', 'De 4 à 7 jours', 'De 1 à 2 semaines', 'De 2 à 4 semaines', 'De 1 à 3 mois', 'Plus de 3 mois'];
 const EXPERIENCE_KEY_FL     = { 'Débutant (0-1 an)': 'fd.exp.beginner', '1-2 ans': 'fd.exp.1_2', '3-5 ans': 'fd.exp.3_5', '5-10 ans': 'fd.exp.5_10', '10+ ans': 'fd.exp.10plus' };
 const STATUS_LABELS_FL      = {
-  open:        { key: 'fd.status.open',        dot: '#10b981', cls: 'bg-emerald-500/10 text-emerald-400' },
-  in_progress: { key: 'fd.status.in_progress', dot: '#3ec2e8', cls: 'bg-sky-500/10 text-sky-400' },
-  completed:   { key: 'fd.status.completed',   dot: '#9b8cff', cls: 'bg-slate-700 text-slate-300' },
+  open:        { key: 'fd.status.open',        dot: 'var(--fm-success)', cls: 'bg-emerald-500/10 text-emerald-400' },
+  in_progress: { key: 'fd.status.in_progress', dot: 'var(--fm-cyan)', cls: 'bg-sky-500/10 text-sky-400' },
+  completed:   { key: 'fd.status.completed',   dot: 'var(--fm-primary-light)', cls: 'bg-slate-700 text-slate-300' },
 };
 
 function FindProjectsTab({ user, navigate }) {
@@ -886,7 +886,7 @@ function FindProjectsTab({ user, navigate }) {
         <div className="text-center py-8 text-sm text-slate-400">Chargement…</div>
       ) : projects.length === 0 ? (
         <div style={{ background: 'var(--fm-surface)', borderRadius: 16, border: '1px solid var(--fm-border)', padding: '48px 24px', textAlign: 'center' }}>
-          <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(124,108,246,0.1)', border: '1px solid rgba(124,108,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <div style={{ width: 52, height: 52, borderRadius: 16, background: 'var(--fm-primary-soft)', border: '1px solid var(--fm-primary-soft-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           </div>
           <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--fm-text-2)', marginBottom: 6 }}>Aucune offre pour l'instant</p>
@@ -951,9 +951,9 @@ function FindProjectsTab({ user, navigate }) {
 // ── TAB: Mes Missions ─────────────────────────────────────────────────────────
 
 const PROPOSAL_STATUS = {
-  pending:  { label: 'En attente', dot: '#f59e0b', cls: 'bg-amber-500/10 text-amber-400' },
-  accepted: { label: 'Acceptée',   dot: '#10b981', cls: 'bg-emerald-500/10 text-emerald-400' },
-  rejected: { label: 'Refusée',    dot: '#f87171', cls: 'bg-rose-500/10 text-rose-400' },
+  pending:  { label: 'En attente', dot: 'var(--fm-warning)', cls: 'bg-amber-500/10 text-amber-400' },
+  accepted: { label: 'Acceptée',   dot: 'var(--fm-success)', cls: 'bg-emerald-500/10 text-emerald-400' },
+  rejected: { label: 'Refusée',    dot: 'var(--fm-danger)', cls: 'bg-rose-500/10 text-rose-400' },
 };
 
 function MissionsTab({ user, users, navigate }) {
@@ -1029,8 +1029,8 @@ function MissionsTab({ user, users, navigate }) {
                   const client = getUser(p.client_email || p.user_email);
                   return (
                     <div key={p.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                      <div style={{ width: 40, height: 40, borderRadius: 12, background: p.status === 'completed' ? 'rgba(16,185,129,0.1)' : p.status === 'in_progress' ? 'rgba(62,194,232,0.1)' : 'rgba(124,108,246,0.1)', border: `1px solid ${p.status === 'completed' ? 'rgba(16,185,129,0.2)' : p.status === 'in_progress' ? 'rgba(62,194,232,0.2)' : 'rgba(124,108,246,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke={p.status === 'completed' ? '#10b981' : p.status === 'in_progress' ? '#3ec2e8' : '#9b8cff'} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <div style={{ width: 40, height: 40, borderRadius: 12, background: p.status === 'completed' ? 'var(--fm-success-bg)' : p.status === 'in_progress' ? 'var(--fm-info-bg)' : 'var(--fm-primary-soft)', border: `1px solid ${p.status === 'completed' ? 'rgba(16,185,129,0.2)' : p.status === 'in_progress' ? 'var(--fm-info-bg)' : 'var(--fm-primary-soft-strong)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke={p.status === 'completed' ? 'var(--fm-success)' : p.status === 'in_progress' ? 'var(--fm-cyan)' : 'var(--fm-primary-light)'} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                           {p.status === 'completed' ? <polyline points="20 6 9 17 4 12"/> : p.status === 'in_progress' ? <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></> : <><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></>}
                         </svg>
                       </div>
@@ -1046,16 +1046,16 @@ function MissionsTab({ user, users, navigate }) {
                       <div className="flex items-center gap-2 shrink-0">
                         <StatusPill status={p.status} />
                         {p.chat_unlocked && (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 8, background: 'rgba(16,185,129,0.1)', color: '#10b981', whiteSpace: 'nowrap' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 8, background: 'var(--fm-success-bg)', color: 'var(--fm-success)', whiteSpace: 'nowrap' }}>
                             <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 019.9-1"/></svg>
                             Chat débloqué
                           </span>
                         )}
                         <button
                           onClick={() => navigate(`/messages?with=${encodeURIComponent(p.client_email || p.user_email)}`)}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '5px 10px', borderRadius: 8, background: 'rgba(124,108,246,0.1)', color: '#9b8cff', border: '1px solid rgba(124,108,246,0.2)', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                          onMouseEnter={e => { e.currentTarget.style.background='rgba(124,108,246,0.18)'; }}
-                          onMouseLeave={e => { e.currentTarget.style.background='rgba(124,108,246,0.1)'; }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '5px 10px', borderRadius: 8, background: 'var(--fm-primary-soft)', color: 'var(--fm-primary-light)', border: '1px solid var(--fm-primary-soft-strong)', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                          onMouseEnter={e => { e.currentTarget.style.background='var(--fm-primary-soft-strong)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background='var(--fm-primary-soft)'; }}
                         >
                           <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                           Message
@@ -1082,7 +1082,7 @@ function MissionsTab({ user, users, navigate }) {
                   const st = PROPOSAL_STATUS[pr.status] || PROPOSAL_STATUS.pending;
                   return (
                     <div key={pr.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                      <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(124,108,246,0.1)', border: '1px solid rgba(124,108,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--fm-primary-soft)', border: '1px solid var(--fm-primary-soft-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1113,16 +1113,16 @@ function MissionsTab({ user, users, navigate }) {
 // ── TAB: Gains ────────────────────────────────────────────────────────────────
 
 const PROJECT_PAY_STATUS = {
-  en_attente: { label: 'Gain en attente', dot: '#f59e0b', desc: 'Le paiement de votre mission est en attente de confirmation.',    cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' },
-  en_cours:   { label: 'Projet en cours', dot: '#3ec2e8', desc: 'Votre mission est en cours de traitement.',                       cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
-  termine:    { label: 'Gain confirmé',   dot: '#10b981', desc: 'Paiement confirmé et ajouté à votre solde. Merci pour votre confiance.', cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
-  recu:       { label: 'Payé',            dot: '#10b981', desc: 'Paiement reçu pour cette mission.',                                cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
+  en_attente: { label: 'Gain en attente', dot: 'var(--fm-warning)', desc: 'Le paiement de votre mission est en attente de confirmation.',    cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' },
+  en_cours:   { label: 'Projet en cours', dot: 'var(--fm-cyan)', desc: 'Votre mission est en cours de traitement.',                       cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
+  termine:    { label: 'Gain confirmé',   dot: 'var(--fm-success)', desc: 'Paiement confirmé et ajouté à votre solde. Merci pour votre confiance.', cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
+  recu:       { label: 'Payé',            dot: 'var(--fm-success)', desc: 'Paiement reçu pour cette mission.',                                cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
 };
 
 const COURSE_PAY_STATUS = {
-  en_attente: { label: 'En attente', dot: '#f59e0b', desc: 'Votre preuve de paiement est en cours de vérification par notre équipe.', cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' },
-  en_cours:   { label: 'En cours',   dot: '#3ec2e8', desc: 'Votre paiement est en cours de traitement.',                              cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
-  termine:    { label: 'Terminé',    dot: '#10b981', desc: 'Paiement confirmé et accès activé. Merci pour votre confiance.',          cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
+  en_attente: { label: 'En attente', dot: 'var(--fm-warning)', desc: 'Votre preuve de paiement est en cours de vérification par notre équipe.', cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' },
+  en_cours:   { label: 'En cours',   dot: 'var(--fm-cyan)', desc: 'Votre paiement est en cours de traitement.',                              cls: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
+  termine:    { label: 'Terminé',    dot: 'var(--fm-success)', desc: 'Paiement confirmé et accès activé. Merci pour votre confiance.',          cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
 };
 
 function GainsTab({ user }) {
@@ -1179,9 +1179,9 @@ function GainsTab({ user }) {
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Solde disponible', value: `${balance.toFixed(2)} ${currency}`,     svgPath: "M1 4h22v16H1z", svgPath2: "M1 10h22", color: "#10b981", bg: "rgba(16,185,129,0.08)" },
-          { label: 'Transactions',     value: incoming.length,                          svgPath: "M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6", color: "#f59e0b", bg: "rgba(245,158,11,0.08)" },
-          { label: 'Total gagné',      value: `${totalEarned.toFixed(2)} ${currency}`, svgPath: "M23 6l-9.5 9.5-5-5L1 18", svgPath2: "M17 6h6v6",          color: "#7c6cf6", bg: "rgba(124,108,246,0.08)" },
+          { label: 'Solde disponible', value: `${balance.toFixed(2)} ${currency}`,     svgPath: "M1 4h22v16H1z", svgPath2: "M1 10h22", color: "var(--fm-success)", bg: "var(--fm-success-bg)" },
+          { label: 'Transactions',     value: incoming.length,                          svgPath: "M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6", color: "var(--fm-warning)", bg: "var(--fm-warning-bg)" },
+          { label: 'Total gagné',      value: `${totalEarned.toFixed(2)} ${currency}`, svgPath: "M23 6l-9.5 9.5-5-5L1 18", svgPath2: "M17 6h6v6",          color: "var(--fm-primary)", bg: "var(--fm-primary-soft)" },
         ].map(item => (
           <div key={item.label} style={{ background: "var(--fm-surface)", border: "1px solid var(--fm-border)", borderRadius: 16, padding: "20px", display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 40, height: 40, borderRadius: 12, background: item.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -1216,7 +1216,7 @@ function GainsTab({ user }) {
                   <div className="space-y-3">
                     {allDone.map(item => (
                       <div key={item._key} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--fm-success-bg)', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--fm-success)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -1229,8 +1229,8 @@ function GainsTab({ user }) {
                         </div>
                         <div className="text-right shrink-0">
                           <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{item.amount}</p>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'rgba(16,185,129,0.1)', color: '#10b981' }}>
-                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'var(--fm-success-bg)', color: 'var(--fm-success)' }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--fm-success)', display: 'inline-block' }} />
                             Terminé
                           </span>
                         </div>
@@ -1299,8 +1299,8 @@ function GainsTab({ user }) {
                       <div className="text-right shrink-0">
                         <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">+{Number(item.instructor_net || 0).toFixed(2)} TND</p>
                         <p className="text-[10px] text-slate-400 mt-0.5">Brut : {Number(item.gross_amount || 0).toFixed(2)} TND</p>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'rgba(16,185,129,0.1)', color: '#10b981' }}>
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'var(--fm-success-bg)', color: 'var(--fm-success)' }}>
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--fm-success)', display: 'inline-block' }} />
                           Gain confirmé
                         </span>
                       </div>
@@ -1624,7 +1624,7 @@ function CoursesTab({ user }) {
           <div className="p-4 space-y-3">{[1,2].map(i => <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />)}</div>
         ) : courses.length === 0 ? (
           <div className="text-center py-12 px-4">
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(124,108,246,0.1)', border: '1px solid rgba(124,108,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--fm-primary-soft)', border: '1px solid var(--fm-primary-soft-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
             </div>
             <p className="text-sm font-bold text-slate-900 dark:text-white mb-1">Aucun cours pour l'instant</p>
@@ -1639,7 +1639,7 @@ function CoursesTab({ user }) {
               <div key={course.id} className="p-4 space-y-3">
                 {/* Top row: thumbnail + info */}
                 <div className="flex items-start gap-3">
-                  <div style={{ width: 48, height: 48, borderRadius: 12, overflow: 'hidden', background: 'rgba(124,108,246,0.1)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 12, overflow: 'hidden', background: 'var(--fm-primary-soft)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {course.thumbnail_url ? <img src={cldImg(course.thumbnail_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1647,29 +1647,29 @@ function CoursesTab({ user }) {
                     <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                       {/* Status badge */}
                       {course.status === 'pending' && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>
-                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />En attente
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'var(--fm-warning-bg)', color: 'var(--fm-warning)' }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--fm-warning)', display: 'inline-block' }} />En attente
                         </span>
                       )}
                       {course.status === 'approved' && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'rgba(16,185,129,0.12)', color: '#10b981' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'var(--fm-success-bg)', color: 'var(--fm-success)' }}>
                           <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Approuvé
                         </span>
                       )}
                       {course.status === 'rejected' && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'rgba(248,113,113,0.12)', color: '#f87171' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'var(--fm-danger-bg)', color: 'var(--fm-danger)' }}>
                           <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Refusé
                         </span>
                       )}
                       <span className="text-[10px] text-slate-500 dark:text-slate-400">{course.total_students} étudiants</span>
                       <span className="text-[10px] text-slate-400">·</span>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: '#f59e0b' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: 'var(--fm-warning)' }}>
                         <svg width="9" height="9" fill="var(--fm-warning)" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                         {Number(course.avg_rating).toFixed(1)}
                       </span>
                     </div>
                     {course.status === 'rejected' && course.admin_note && (
-                      <p style={{ fontSize: 10, color: '#f87171', marginTop: 4, lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                      <p style={{ fontSize: 10, color: 'var(--fm-danger)', marginTop: 4, lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
                         <svg width="10" height="10" style={{ marginTop: 1, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                         {course.admin_note}
                       </p>
@@ -1682,7 +1682,7 @@ function CoursesTab({ user }) {
                 {/* Discount badge */}
                 {course.discount_pct > 0 && (
                   <div className="flex items-center gap-2">
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', color: '#f87171' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: 'var(--fm-danger-bg)', border: '1px solid rgba(248,113,113,0.25)', color: 'var(--fm-danger)' }}>
                       <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                       -{course.discount_pct}% de remise active
                     </span>
@@ -1808,7 +1808,7 @@ function CoursesTab({ user }) {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10 rounded-t-3xl sm:rounded-t-2xl">
               <div className="flex items-center gap-2">
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: createdCourse ? 'rgba(16,185,129,0.12)' : 'rgba(124,108,246,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: createdCourse ? 'var(--fm-success-bg)' : 'var(--fm-primary-soft-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {createdCourse
                     ? <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-success)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     : <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
@@ -2207,7 +2207,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
         <InputField label="Nouveau mot de passe" type="password" value={pwForm.next} onChange={e => setPwForm(f => ({ ...f, next: e.target.value }))} required />
         <InputField label="Confirmer le nouveau mot de passe" type="password" value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} required />
         {pwError && <p className="text-xs text-rose-500">{pwError}</p>}
-        {pwOk && <p style={{ fontSize: 12, color: '#10b981', display: 'flex', alignItems: 'center', gap: 5 }}><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Mot de passe changé avec succès !</p>}
+        {pwOk && <p style={{ fontSize: 12, color: 'var(--fm-success)', display: 'flex', alignItems: 'center', gap: 5 }}><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Mot de passe changé avec succès !</p>}
         <button type="submit" disabled={saving} className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60">
           {saving ? 'Changement…' : 'Changer le mot de passe'}
         </button>
@@ -2288,8 +2288,8 @@ export default function FreelancerDashboard() {
                     </div>
                   ) : userNotifs.map(n => (
                     <div key={n.id} onClick={() => { markNotificationRead(n.id); setNotifOpen(false); const kind = n.kind||''; let route = null; if (kind.startsWith('course_access:')) { const id=kind.split(':')[1]; route=id?`/courses/${id}`:'/courses'; } else if (kind.includes('_course_')) { const id=kind.split('_course_')[1]; route=id?`/courses/${id}`:'/courses'; } else if (/^course_(approved|rejected|created)_/.test(kind)) { const id=kind.split('_').pop(); route=id&&!isNaN(id)?`/courses/${id}`:'/courses'; } if(route) navigate(route); }} className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors last:border-0 group ${n.read ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50' : 'bg-indigo-50/60 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}>
-                      <div style={{ width: 32, height: 32, borderRadius: 10, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: n.kind.startsWith('course_access') ? 'rgba(16,185,129,0.12)' : n.kind.includes('approved') ? 'rgba(16,185,129,0.12)' : n.kind.includes('rejected') ? 'rgba(248,113,113,0.12)' : n.kind.includes('lesson') ? 'rgba(124,108,246,0.12)' : 'rgba(245,158,11,0.12)' }}>
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={n.kind.startsWith('course_access') ? '#10b981' : n.kind.includes('approved') ? '#10b981' : n.kind.includes('rejected') ? '#f87171' : n.kind.includes('lesson') ? '#9b8cff' : '#f59e0b'} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+                      <div style={{ width: 32, height: 32, borderRadius: 10, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: n.kind.startsWith('course_access') ? 'var(--fm-success-bg)' : n.kind.includes('approved') ? 'var(--fm-success-bg)' : n.kind.includes('rejected') ? 'var(--fm-danger-bg)' : n.kind.includes('lesson') ? 'var(--fm-primary-soft-strong)' : 'var(--fm-warning-bg)' }}>
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={n.kind.startsWith('course_access') ? 'var(--fm-success)' : n.kind.includes('approved') ? 'var(--fm-success)' : n.kind.includes('rejected') ? 'var(--fm-danger)' : n.kind.includes('lesson') ? 'var(--fm-primary-light)' : 'var(--fm-warning)'} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
                           {n.kind.startsWith('course_access') ? <path d="M22 10v6M2 10l10-5 10 5-10 5z"/> : n.kind.includes('approved') ? <polyline points="20 6 9 17 4 12"/> : n.kind.includes('rejected') ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : n.kind.includes('lesson') ? <><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></> : <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>}
                         </svg>
                       </div>
@@ -2327,8 +2327,8 @@ export default function FreelancerDashboard() {
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(4px)', backgroundColor: 'var(--fm-overlay)' }}>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden">
             <div className="flex items-center justify-between px-6 pt-6 pb-0">
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--fm-danger-bg)', border: '1px solid var(--fm-danger-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--fm-danger)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               </div>
               <button onClick={() => setLogoutConfirm(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>

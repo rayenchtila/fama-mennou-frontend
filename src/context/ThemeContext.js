@@ -8,8 +8,17 @@ function resolveIsDark(mode) {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
 }
 
-function applyTheme(isDark) {
+let transitionTimer = null;
+
+function applyTheme(isDark, withTransition = false) {
   const root = document.documentElement;
+
+  if (withTransition && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    root.classList.add('theme-transition');
+    window.clearTimeout(transitionTimer);
+    transitionTimer = window.setTimeout(() => root.classList.remove('theme-transition'), 600);
+  }
+
   root.setAttribute('data-theme', isDark ? 'dark' : 'light');
   root.classList.toggle('dark', isDark);
   root.style.colorScheme = isDark ? 'dark' : 'light';
@@ -24,11 +33,11 @@ export function ThemeProvider({ children }) {
     setModeState(m);
     setIsDark(next);
     localStorage.setItem('fm_theme', m);
-    applyTheme(next);
+    applyTheme(next, true);
   };
 
-  // Sync DOM on mount and on isDark changes
-  useEffect(() => { applyTheme(isDark); }, [isDark]);
+  // Sync DOM on mount (no transition — avoid a flash/fade on first paint)
+  useEffect(() => { applyTheme(isDark, false); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Toggle convenience (dark ↔ light, no system)
   const toggle = () => setMode(isDark ? 'light' : 'dark');
@@ -37,7 +46,7 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     if (mode !== 'system') return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const fn = (e) => { setIsDark(e.matches); applyTheme(e.matches); };
+    const fn = (e) => { setIsDark(e.matches); applyTheme(e.matches, true); };
     mq.addEventListener('change', fn);
     return () => mq.removeEventListener('change', fn);
   }, [mode]);
