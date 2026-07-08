@@ -1,9 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import SEOHead from '../components/Seohead';
 
 const SECTIONS = [
   {
-    title: 'Notre mission',
-    text: 'Permettre à chaque professionnel tunisien de montrer son talent, trouver des clients et développer ses compétences — tout en un seul endroit.',
+    key: 'mission',
     color: '#9b8cff',
     icon: (
       <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -12,8 +12,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: 'Notre vision',
-    text: 'Devenir la référence numéro 1 du freelancing et de la formation en ligne en Tunisie et dans le monde arabe.',
+    key: 'vision',
     color: '#3ec2e8',
     icon: (
       <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -22,8 +21,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: 'Notre équipe',
-    text: 'Une équipe passionnée de développeurs, designers et entrepreneurs basée en Tunisie, dédiée à créer la meilleure expérience pour nos utilisateurs.',
+    key: 'team',
     color: '#10b981',
     icon: (
       <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -33,8 +31,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: 'Pourquoi Fama Mennou ?',
-    text: '"Fama Mennou" signifie "Il y en a" en arabe tunisien — un clin d\'œil à l\'abondance de talents qui existent en Tunisie et qui méritent d\'être reconnus.',
+    key: 'why',
     color: '#f59e0b',
     icon: (
       <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -45,29 +42,30 @@ const SECTIONS = [
 ];
 
 export default function AboutPage() {
+  const { t } = useTranslation();
   return (
     <>
-      <SEOHead title="About Us — Fama Mennou" description="Learn about Fama Mennou, the all-in-one platform connecting freelancers, clients, and learners in Tunisia and beyond." />
+      <SEOHead title={t('about.seo_title')} description={t('about.seo_desc')} />
       <div style={{ minHeight: '100vh', background: 'var(--fm-bg)', paddingTop: 100, paddingBottom: 80 }}>
         <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--fm-primary-light)' }}>À propos</span>
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--fm-primary-light)' }}>{t('about.eyebrow')}</span>
             <h1 style={{ fontSize: 42, fontWeight: 900, color: 'var(--fm-text-1)', margin: '12px 0 16px', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
-              Qui sommes-nous ?
+              {t('about.title')}
             </h1>
             <p style={{ fontSize: 17, color: 'var(--fm-text-5)', lineHeight: 1.8, maxWidth: 600, margin: '0 auto' }}>
-              Fama Mennou est une plateforme tout-en-un qui connecte les professionnels, les clients et les apprenants en Tunisie et dans le monde entier.
+              {t('about.subtitle')}
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {SECTIONS.map(({ title, text, color, icon }) => (
-              <div key={title} style={{ padding: '24px 28px', borderRadius: 20, background: 'var(--fm-surface-hover-soft)', border: '1px solid var(--fm-border)' }}>
+            {SECTIONS.map(({ key, color, icon }) => (
+              <div key={key} style={{ padding: '24px 28px', borderRadius: 20, background: 'var(--fm-surface-hover-soft)', border: '1px solid var(--fm-border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <span style={{ color, display: 'flex', alignItems: 'center' }}>{icon}</span>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--fm-text-1)', margin: 0, letterSpacing: '-0.01em' }}>{title}</h2>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--fm-text-1)', margin: 0, letterSpacing: '-0.01em' }}>{t(`about.${key}.title`)}</h2>
                 </div>
-                <p style={{ fontSize: 14.5, color: 'var(--fm-text-5)', lineHeight: 1.8, margin: 0 }}>{text}</p>
+                <p style={{ fontSize: 14.5, color: 'var(--fm-text-5)', lineHeight: 1.8, margin: 0 }}>{t(`about.${key}.text`)}</p>
               </div>
             ))}
           </div>
