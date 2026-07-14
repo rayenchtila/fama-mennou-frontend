@@ -51,7 +51,7 @@ function PrivateRoute({ children, onLogin }) {
   const location         = useLocation();
 
   if (!user) {
-    onLogin("login", false);
+    onLogin("login", false, location.pathname + location.search);
     return <Navigate to="/" replace />;
   }
 
@@ -132,6 +132,7 @@ function AppInner() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [authForced, setAuthForced] = useState(false);
+  const [redirectAfterLogin, setRedirectAfterLogin] = useState(null);
 
   // Global Enter-key handler — makes every focused interactive element respond to Enter
   useEffect(() => {
@@ -164,10 +165,11 @@ function AppInner() {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
-  const handleLogin = (mode, forced = false) => {
+  const handleLogin = (mode, forced = false, redirectTo = null) => {
     setAuthMode(mode);
     setAuthModalOpen(true);
     setAuthForced(forced);
+    setRedirectAfterLogin(redirectTo);
   };
 
   // Handle email verification redirect (?verified=true/false)
@@ -198,7 +200,10 @@ function AppInner() {
     toast.success(`Welcome, ${userData.name}! 🎉`);
     if (userData.isAdmin) {
       navigate('/admin/dashboard', { replace: true });
+    } else if (redirectAfterLogin) {
+      navigate(redirectAfterLogin, { replace: true });
     }
+    setRedirectAfterLogin(null);
   };
 
   // FIXED: eslint unused var issue (kept logic unchanged)
@@ -238,9 +243,18 @@ function AppInner() {
           <Routes location={location}>
             <Route path="/" element={<Home />} />
 
-            <Route path="/freelancers" element={<FreelancersPage />} />
-            <Route path="/clients"    element={<ClientsPage />} />
-            <Route path="/courses"    element={<CoursesPage />} />
+            <Route
+              path="/freelancers"
+              element={<PrivateRoute onLogin={handleLogin}><FreelancersPage /></PrivateRoute>}
+            />
+            <Route
+              path="/clients"
+              element={<PrivateRoute onLogin={handleLogin}><ClientsPage /></PrivateRoute>}
+            />
+            <Route
+              path="/courses"
+              element={<PrivateRoute onLogin={handleLogin}><CoursesPage /></PrivateRoute>}
+            />
 
             <Route
               path="/courses/:id"

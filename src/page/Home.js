@@ -389,6 +389,7 @@ function useTopFreelancers(users, accountsLoaded) {
 // ── Section: Featured Freelancers ─────────────────────────────────────────────
 function FeaturedFreelancersSection({ items, loading, error }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const empty = !loading && !error && items.length === 0;
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
@@ -417,7 +418,8 @@ function FeaturedFreelancersSection({ items, loading, error }) {
             <motion.div key={f.email}
               initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.45, delay: i * 0.1 }}
-              style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s' }}
+              style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s', cursor: 'pointer' }}
+              onClick={() => navigate(`/profile/${encodeURIComponent(f.email)}`)}
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
               {/* Header */}
@@ -509,6 +511,7 @@ function useTopProjects() {
 // ── Section: Trending Projects ────────────────────────────────────────────────
 function TrendingProjectsSection({ items, loading, error, users }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const empty = !loading && !error && items.length === 0;
   const getClient = email => (users || []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
   return (
@@ -538,7 +541,8 @@ function TrendingProjectsSection({ items, loading, error, users }) {
             <motion.div key={p.id}
               initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.45, delay: i * 0.1 }}
-              style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s', display: 'flex', flexDirection: 'column', gap: '13px' }}
+              style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s', display: 'flex', flexDirection: 'column', gap: '13px', cursor: 'pointer' }}
+              onClick={() => navigate('/clients')}
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
               {/* Client */}
@@ -570,6 +574,7 @@ function TrendingProjectsSection({ items, loading, error, users }) {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '14px', borderTop: '1px solid var(--fm-border)' }}>
                 <span style={{ fontSize: '12.5px', color: 'var(--fm-text-6)' }}>{t('home.tp.proposals', { count: p._proposalCount })}</span>
                 <Link to="/clients"
+                  onClick={e => e.stopPropagation()}
                   style={{ padding: '8px 18px', borderRadius: '9px', background: 'var(--fm-primary)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '13.5px', textDecoration: 'none' }}>
                   {t('home.tp.apply')}
                 </Link>
@@ -620,6 +625,7 @@ function useTopCourses() {
 // ── Section: Courses Preview ──────────────────────────────────────────────────
 function CoursesPreviewSection({ items, loading, error }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const empty = !loading && !error && items.length === 0;
   return (
     <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
@@ -653,6 +659,7 @@ function CoursesPreviewSection({ items, loading, error }) {
               initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.45, delay: i * 0.08 }}
               style={{ ...CARD_STYLE, overflow: 'hidden', transition: 'box-shadow .18s,border-color .18s', cursor: 'pointer' }}
+              onClick={() => navigate(`/courses/${c.id}`)}
               onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
               onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
               {/* Cover */}
