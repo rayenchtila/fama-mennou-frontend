@@ -355,6 +355,11 @@ i18n
           "Terms of Service": "Terms of Service",
           "Cookie Policy": "Cookie Policy",
 
+          // Cookie consent banner
+          "cookie.message": "We use cookies to keep you signed in, remember your preferences, and understand how you use Famamennou.",
+          "cookie.accept": "Accept All",
+          "cookie.decline": "Decline",
+
           // Static pages: Blog / Careers / Help / About / Privacy / Terms
           "blog.seo_title": "Blog — Fama Mennou",
           "blog.seo_desc": "News, tips and resources for freelancers, clients and learners on Fama Mennou.",
@@ -2042,6 +2047,11 @@ i18n
           "Terms of Service": "Conditions d'utilisation",
           "Cookie Policy": "Politique des cookies",
 
+          // Cookie consent banner
+          "cookie.message": "Nous utilisons des cookies pour vous garder connecté, mémoriser vos préférences et comprendre comment vous utilisez Famamennou.",
+          "cookie.accept": "Tout accepter",
+          "cookie.decline": "Refuser",
+
           // Static pages: Blog / Careers / Help / About / Privacy / Terms
           "blog.seo_title": "Blog — Fama Mennou",
           "blog.seo_desc": "Actualités, conseils et ressources pour freelancers, clients et apprenants sur Fama Mennou.",
@@ -3635,6 +3645,11 @@ i18n
           "Help Center": "مركز المساعدة",
           "Terms of Service": "شروط الخدمة",
           "Cookie Policy": "سياسة الكوكيز",
+
+          // Cookie consent banner
+          "cookie.message": "نستخدم ملفات تعريف الارتباط للحفاظ على تسجيل دخولك، وتذكر تفضيلاتك، وفهم كيفية استخدامك لفاما مِنّو.",
+          "cookie.accept": "قبول الكل",
+          "cookie.decline": "رفض",
 
           // Static pages: Blog / Careers / Help / About / Privacy / Terms
           "blog.seo_title": "المدونة — فاما مِنّو",

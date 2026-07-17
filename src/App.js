@@ -9,6 +9,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Authmodal from "./components/Authmodal";
 import ToastProvider, { toast } from "./components/Toast";
+import CookieConsent from "./components/CookieConsent";
 import { PostJobModal, PostCourseModal, PostClientModal } from "./components/Postforms";
 import Home from "./page/Home";
 import FreelancersPage from "./page/FreelancersPage";
@@ -216,6 +217,7 @@ function AppInner() {
   return (
     <ToastProvider>
       <ScrollToTop />
+      <CookieConsent />
       <Authmodal
         open={authModalOpen}
         onClose={() => setAuthModalOpen(false)}

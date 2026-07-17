@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
+    "@sentry/react": "^10.66.0",
     "@supabase/supabase-js": "^2.108.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
