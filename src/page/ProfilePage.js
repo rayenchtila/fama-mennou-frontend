@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { cldImg } from '../utils/cloudinary';
+import { uploadFile } from '../utils/upload';
+import { toast } from '../components/Toast';
 
 const AVATAR_COLORS = ['bg-indigo-500','bg-emerald-500','bg-rose-500','bg-amber-500','bg-sky-500','bg-fuchsia-500'];
 
@@ -17,12 +19,15 @@ export default function ProfilePage() {
 
   const color = AVATAR_COLORS[(user.email?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
 
-  function handlePhoto(e) {
+  async function handlePhoto(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => updateUser(user.email, { photo: ev.target.result });
-    reader.readAsDataURL(file);
+    try {
+      const { secure_url } = await uploadFile({ file, upload_type: 'profile' });
+      await updateUser(user.email, { photo: secure_url });
+    } catch (err) {
+      toast.error(err.message || 'Photo upload failed');
+    }
   }
 
   function handleSave() {

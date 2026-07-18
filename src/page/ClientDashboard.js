@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { cldImg } from '../utils/cloudinary';
+import { uploadFile } from '../utils/upload';
+import { toast } from '../components/Toast';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -93,15 +95,19 @@ export default function ClientDashboard() {
   const statusDesc  = isApproved ? t('cd.status_approved') : isPending ? t('cd.status_pending') : t('cd.status_none');
 
   /* ── All original handlers — unchanged ── */
-  function handlePhotoFile(e) {
+  async function handlePhotoFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      setPhoto(ev.target.result);
-      updateUser(user.email, { photo: ev.target.result }).catch(() => {});
-    };
-    reader.readAsDataURL(file);
+    const localPreview = URL.createObjectURL(file);
+    setPhoto(localPreview);
+    try {
+      const { secure_url } = await uploadFile({ file, upload_type: 'profile' });
+      setPhoto(secure_url);
+      await updateUser(user.email, { photo: secure_url });
+    } catch (err) {
+      setPhoto(user.photo || null);
+      toast.error(err.message || 'Photo upload failed');
+    }
   }
 
   async function handleSave(e) {

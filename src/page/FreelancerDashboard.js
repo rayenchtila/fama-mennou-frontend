@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { uploadVideo, uploadImage, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
+import { toast } from '../components/Toast';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -267,12 +268,19 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     } catch {}
   }
 
-  function handlePhotoFile(e) {
+  async function handlePhotoFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => { setPhoto(ev.target.result); savePhoto(ev.target.result); };
-    reader.readAsDataURL(file);
+    const localPreview = URL.createObjectURL(file);
+    setPhoto(localPreview);
+    try {
+      const { secure_url } = await uploadImage(file, 'famamennou/profiles');
+      setPhoto(secure_url);
+      savePhoto(secure_url);
+    } catch (err) {
+      setPhoto(user.photo || '');
+      toast.error(err.message || 'Photo upload failed');
+    }
   }
 
   function deletePhoto() { setPhoto(''); savePhoto(''); }
@@ -1365,27 +1373,6 @@ function GainsTab({ user }) {
 
 const COURSE_CATEGORIES = ['Design','Development','Marketing','Business','Music','Photography','Finance','Health','Other'];
 
-function imageToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 800;
-        const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
-        const canvas = document.createElement('canvas');
-        canvas.width  = img.width  * ratio;
-        canvas.height = img.height * ratio;
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.8));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
 function CoursesTab({ user }) {
   const navigate = useNavigate();
   const [courses,      setCourses]      = useState([]);
@@ -1463,7 +1450,11 @@ function CoursesTab({ user }) {
       try {
         const r = await uploadImage(form._photoFile, 'famamennou/thumbnails');
         thumbnail_url = r.secure_url;
-      } catch { try { thumbnail_url = await imageToBase64(form._photoFile); } catch {} }
+      } catch (err) {
+        setCreateError(err.message || "Échec de l'envoi de la miniature. Réessayez.");
+        setCreateLoading(false);
+        return;
+      }
     }
 
     const payload = {

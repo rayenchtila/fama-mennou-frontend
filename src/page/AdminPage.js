@@ -2389,12 +2389,12 @@ export default function AdminPage() {
                           ) : (
                             <div className="space-y-4">
                               {/* Course-level video */}
-                              {(course.video_url || course.photo_url) && (
+                              {(course.video_url || course.thumbnail_url) && (
                                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden p-3 space-y-2">
                                   <p className="text-xs font-bold text-slate-700 dark:text-slate-300 px-1">{t('adm.course_video')}</p>
                                   <CourseVideoPlayer url={course.video_url} />
-                                  {course.photo_url && (
-                                    <img src={cldImg(course.photo_url)} alt="cover" className="w-full h-32 object-cover rounded-xl border border-slate-200 dark:border-slate-700 mt-1" />
+                                  {course.thumbnail_url && (
+                                    <img src={cldImg(course.thumbnail_url)} alt="cover" className="w-full h-32 object-cover rounded-xl border border-slate-200 dark:border-slate-700 mt-1" />
                                   )}
                                 </div>
                               )}

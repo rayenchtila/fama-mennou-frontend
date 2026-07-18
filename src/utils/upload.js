@@ -1,6 +1,7 @@
 // Professional Cloudinary Upload Utility
 // Architecture: Browser → sign(backend) → upload(Cloudinary directly) → save URL(Supabase)
 // NO localStorage for files. NO base64. NO unsigned preset issues.
+import { tokenStore } from '../lib/tokenStore';
 
 const SIGN_API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 const IS_DEV   = process.env.REACT_APP_DEV_MODE === 'true';
@@ -74,6 +75,11 @@ async function localUpload(file, folder, onProgress) {
     });
     xhr.addEventListener('error', () => reject(new Error('Upload failed')));
     xhr.open('POST', `${SIGN_API}/uploads/local`);
+    // /uploads/local is requireAuth-protected — unlike fetch(), XHR isn't
+    // covered by the global fetch interceptor (lib/fetchInterceptor.js), so
+    // this needs the token attached by hand or every dev-mode upload 401s.
+    const token = tokenStore.get();
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.send(formData);
   });
 }

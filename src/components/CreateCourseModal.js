@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { uploadImage } from '../utils/upload';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -46,12 +47,17 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
 
   function set(key, val) { setForm(f => ({ ...f, [key]: val })); }
 
-  function handlePhoto(e) {
+  async function handlePhoto(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => { setPhotoPreview(ev.target.result); set('photo', ev.target.result); };
-    reader.readAsDataURL(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    try {
+      const { secure_url } = await uploadImage(file, 'famamennou/thumbnails');
+      set('photo', secure_url);
+    } catch (err) {
+      setPhotoPreview('');
+      setError(err.message || t('ccm.err_photo'));
+    }
   }
 
   async function handleSubmit(e) {
@@ -73,7 +79,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
           creator_email: user.email,
           title:         form.title.trim(),
           description:   form.description.trim(),
-          photo_url:     form.photo,
+          thumbnail_url: form.photo,
           video_url:     form.video_url,
           category:      form.category,
           full_price:    Number(form.full_price) || 0,
