@@ -216,9 +216,16 @@ function ForgotPasswordScreen({ onBack, onSent }) {
         await new Promise(r => setTimeout(r, 3000));
         data = await safeFetch(`${API}/auth/send-reset-code`, { email: email.toLowerCase() });
       }
-      if (data.error === "noAccount")   { setError(t("No account found with this email")); return; }
-      if (data.error === "emailFailed") { setError(t("Failed to send email. Try again.")); return; }
-      if (data.error === "serverError") { setError(t("Server error. Please try again in a moment.")); return; }
+      // Allowlist, not denylist — advance ONLY on confirmed success. Any
+      // error (including ones this component doesn't special-case, e.g.
+      // "invalidCaptcha") must block step 2, not silently fall through to
+      // it — that previously let an unverified/nonexistent email reach the
+      // "enter code" screen whenever the error wasn't one of a hardcoded few.
+      if (data.error === "noAccount")      { setError(t("No account found with this email")); return; }
+      if (data.error === "emailFailed")    { setError(t("Failed to send email. Try again.")); return; }
+      if (data.error === "serverError")    { setError(t("Server error. Please try again in a moment.")); return; }
+      if (data.error === "invalidCaptcha") { setError(t("Please complete the CAPTCHA")); return; }
+      if (data.error)                      { setError(t("Server error. Please try again in a moment.")); return; }
       setStep(2); setError("");
     } catch { setError(t("Network error. Please try again.")); }
     finally  { setLoading(false); }
