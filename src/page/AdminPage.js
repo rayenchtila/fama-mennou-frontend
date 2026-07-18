@@ -1594,6 +1594,15 @@ export default function AdminPage() {
   const [paidCoursesLoading,  setPaidCoursesLoading]  = useState(false);
   const [accessModal,         setAccessModal]         = useState(null);   // { course, lessons, students }
 
+  // ── announcements tab state ──
+  const [announcements,        setAnnouncements]        = useState([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+  const [annTargetPage,        setAnnTargetPage]        = useState('home');
+  const [annMessage,           setAnnMessage]           = useState('');
+  const [annEditingId,         setAnnEditingId]         = useState(null);
+  const [annSaving,            setAnnSaving]            = useState(false);
+  const [annDeleteConfirm,     setAnnDeleteConfirm]     = useState(null); // id pending delete confirmation
+
   // ── admin "Projects" tab state ──
   const [adminProjects,        setAdminProjects]        = useState([]);
   const [adminProjectsLoading, setAdminProjectsLoading] = useState(false);
@@ -1770,6 +1779,59 @@ export default function AdminPage() {
     setRejectModal(null); setRejectNote('');
   };
 
+  // ── Announcements ──
+  const fetchAnnouncements = async () => {
+    setAnnouncementsLoading(true);
+    try {
+      const r = await fetch(`${API}/announcements/admin`);
+      const d = await r.json();
+      if (Array.isArray(d)) setAnnouncements(d);
+    } catch {}
+    setAnnouncementsLoading(false);
+  };
+
+  const resetAnnForm = () => {
+    setAnnEditingId(null);
+    setAnnTargetPage('home');
+    setAnnMessage('');
+  };
+
+  const startEditAnnouncement = (a) => {
+    setAnnEditingId(a.id);
+    setAnnTargetPage(a.target_page);
+    setAnnMessage(a.message);
+  };
+
+  const publishAnnouncement = async () => {
+    if (!annMessage.trim()) return;
+    setAnnSaving(true);
+    try {
+      const url = annEditingId ? `${API}/announcements/${annEditingId}` : `${API}/announcements/`;
+      const method = annEditingId ? 'PATCH' : 'POST';
+      const r = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_page: annTargetPage, message: annMessage.trim() }),
+      });
+      if (r.ok) {
+        resetAnnForm();
+        await fetchAnnouncements();
+      }
+    } catch {}
+    setAnnSaving(false);
+  };
+
+  const deleteAnnouncement = async (id) => {
+    try {
+      const r = await fetch(`${API}/announcements/${id}`, { method: 'DELETE' });
+      if (r.ok) {
+        setAnnouncements(prev => prev.filter(a => a.id !== id));
+        if (annEditingId === id) resetAnnForm();
+      }
+    } catch {}
+    setAnnDeleteConfirm(null);
+  };
+
   const fetchPaidCourses = async () => {
     setPaidCoursesLoading(true);
     try {
@@ -1905,6 +1967,7 @@ export default function AdminPage() {
   useEffect(() => { if (mainTab === 'courses') fetchCourses(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'lessons') fetchLessonsTab(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'paidaccess') fetchPaidCourses(); }, [mainTab]);
+  useEffect(() => { if (mainTab === 'announcements') fetchAnnouncements(); }, [mainTab]);
 
   // ── Admin "Projects" tab — accepted/assigned client↔freelancer projects ──────
   const fetchAdminProjects = React.useCallback(async () => {
@@ -2090,6 +2153,7 @@ export default function AdminPage() {
             { id: "chat",       color: "#ec4899", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>, label: t('adm.tab_chat'),             count: chatUnreadCount },
             { id: "projects",   color: "#f97316", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, label: t('adm.tab_projects'),       count: adminProjects.length },
             { id: "gains",      color: "#22c55e", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>, label: t('nav.gains'),            count: 0 },
+            { id: "announcements", color: "#eab308", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>, label: "Annonces", count: 0 },
           ];
           return (
             <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
@@ -3141,6 +3205,143 @@ export default function AdminPage() {
 
       {/* ══ GAINS TAB ══ */}
       {mainTab === 'gains' && <AdminGainsTab API={API} />}
+
+      {/* ══ ANNOUNCEMENTS TAB ══ */}
+      {mainTab === 'announcements' && (() => {
+        const PAGE_OPTIONS = [
+          { value: 'home',        label: 'Accueil' },
+          { value: 'freelancers', label: 'Freelancers' },
+          { value: 'clients',     label: 'Clients' },
+          { value: 'courses',     label: 'Cours' },
+          { value: 'projects',    label: 'Projets' },
+          { value: 'messages',    label: 'Messages' },
+          { value: 'payments',    label: 'Paiements' },
+          { value: 'dashboard',   label: 'Tableau de bord' },
+          { value: 'profile',     label: 'Profil' },
+          { value: 'settings',    label: 'Paramètres' },
+          { value: 'about',       label: 'À propos' },
+          { value: 'blog',        label: 'Blog' },
+          { value: 'careers',     label: 'Carrières' },
+          { value: 'help',        label: 'Aide' },
+        ];
+        const pageLabel = (v) => PAGE_OPTIONS.find(p => p.value === v)?.label || v;
+        const formatTime = (iso) => {
+          try { return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h'); }
+          catch { return ''; }
+        };
+        const formatDate = (iso) => {
+          try { return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }); }
+          catch { return ''; }
+        };
+
+        return (
+          <div>
+            {/* Create / edit form */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-6">
+              <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-100 mb-4">
+                {annEditingId ? 'Modifier l\'annonce' : 'Nouvelle annonce'}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                <div className="sm:col-span-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5" htmlFor="ann-target-page">Page cible</label>
+                  <select
+                    id="ann-target-page"
+                    aria-label="Page cible"
+                    value={annTargetPage}
+                    onChange={e => setAnnTargetPage(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+                  >
+                    {PAGE_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5" htmlFor="ann-message">Message</label>
+                  <textarea
+                    id="ann-message"
+                    aria-label="Message"
+                    value={annMessage}
+                    onChange={e => setAnnMessage(e.target.value)}
+                    rows={2}
+                    maxLength={500}
+                    placeholder="Ex: Maintenance prévue ce soir de 22h à 23h."
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                {annEditingId && (
+                  <button
+                    onClick={resetAnnForm}
+                    disabled={annSaving}
+                    className="px-4 py-2.5 rounded-xl text-sm font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+                  >
+                    Annuler
+                  </button>
+                )}
+                <button
+                  onClick={publishAnnouncement}
+                  disabled={annSaving || !annMessage.trim()}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors disabled:opacity-50"
+                >
+                  {annSaving ? '...' : (annEditingId ? 'Enregistrer' : 'Publier')}
+                </button>
+              </div>
+            </div>
+
+            {/* List */}
+            {announcementsLoading ? (
+              <div className="flex justify-center py-16">
+                <svg className="w-6 h-6 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
+              </div>
+            ) : announcements.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-slate-400 dark:text-slate-600">
+                <p className="text-sm font-semibold">Aucune annonce pour le moment</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {announcements.map(a => (
+                  <div key={a.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                          {pageLabel(a.target_page)}
+                        </span>
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                          {formatDate(a.updated_at || a.created_at)} · {formatTime(a.updated_at || a.created_at)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-700 dark:text-slate-200 break-words">{a.message}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => startEditAnnouncement(a)}
+                        aria-label="Modifier"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+                      >
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path strokeLinecap="round" strokeLinejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                      </button>
+                      {annDeleteConfirm === a.id ? (
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => deleteAnnouncement(a.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-600 hover:bg-rose-700 text-white transition-colors">Confirmer</button>
+                          <button onClick={() => setAnnDeleteConfirm(null)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 transition-colors">Annuler</button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setAnnDeleteConfirm(a.id)}
+                          aria-label="Supprimer"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-500 dark:text-rose-400 transition-colors"
+                        >
+                          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16" /></svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Logout Confirmation Modal ── */}
       {logoutConfirm && (

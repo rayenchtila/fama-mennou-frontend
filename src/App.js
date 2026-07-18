@@ -10,6 +10,7 @@ import Footer from "./components/Footer";
 import Authmodal from "./components/Authmodal";
 import ToastProvider, { toast } from "./components/Toast";
 import CookieConsent from "./components/CookieConsent";
+import AnnouncementBanner from "./components/AnnouncementBanner";
 import { PostJobModal, PostCourseModal, PostClientModal } from "./components/Postforms";
 import Home from "./page/Home";
 import FreelancersPage from "./page/FreelancersPage";
@@ -233,10 +234,12 @@ function AppInner() {
       <Navbar
         onLogin={handleLogin}
       />
+      <AnnouncementBanner />
 
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
+          style={{ paddingTop: 'var(--fm-announcement-h, 0px)', transition: 'padding-top 0.2s ease' }}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
