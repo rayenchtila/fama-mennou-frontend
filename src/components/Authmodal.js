@@ -221,11 +221,12 @@ function ForgotPasswordScreen({ onBack, onSent }) {
       // "invalidCaptcha") must block step 2, not silently fall through to
       // it — that previously let an unverified/nonexistent email reach the
       // "enter code" screen whenever the error wasn't one of a hardcoded few.
-      if (data.error === "noAccount")      { setError(t("No account found with this email")); return; }
-      if (data.error === "emailFailed")    { setError(t("Failed to send email. Try again.")); return; }
-      if (data.error === "serverError")    { setError(t("Server error. Please try again in a moment.")); return; }
-      if (data.error === "invalidCaptcha") { setError(t("Please complete the CAPTCHA")); return; }
-      if (data.error)                      { setError(t("Server error. Please try again in a moment.")); return; }
+      if (data.error === "noAccount")          { setError(t("No account found with this email")); return; }
+      if (data.error === "emailFailed")        { setError(t("Failed to send email. Try again.")); return; }
+      if (data.error === "serverError")        { setError(t("Server error. Please try again in a moment.")); return; }
+      if (data.error === "invalidCaptcha")     { setError(t("Please complete the CAPTCHA")); return; }
+      if (data.error === "too_many_requests")  { setError(t("Too many attempts. Please wait a few minutes and try again.")); return; }
+      if (data.error)                          { setError(t("Server error. Please try again in a moment.")); return; }
       setStep(2); setError("");
     } catch { setError(t("Network error. Please try again.")); }
     finally  { setLoading(false); }
