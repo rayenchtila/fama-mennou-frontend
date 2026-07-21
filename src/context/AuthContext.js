@@ -58,12 +58,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ── Refresh access token using the httpOnly refresh cookie ──
+  // Also adopts the fresh user object the endpoint now returns alongside the
+  // token — this is what lets the verify-email auto-login flow (which lands
+  // on the frontend with only the refresh cookie set, no user data yet)
+  // turn that cookie into a full session with a single call.
   const refreshAccessToken = useCallback(async () => {
     try {
       const res  = await fetch(`${API}/auth/refresh`, { method: 'POST', credentials: 'include' });
       const data = await res.json();
       if (data.accessToken) {
         storeToken(data.accessToken);
+        if (data.user) setUser(normalizeUser(data.user));
         return data.accessToken;
       }
     } catch {}
@@ -535,6 +540,7 @@ export function AuthProvider({ children }) {
       verifyTOTP,
       authFetch,
       refreshAccessToken,
+      fetchAccounts,
       notifications,
       getAdminNotifications,
       getUserNotifications,

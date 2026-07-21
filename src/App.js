@@ -123,7 +123,7 @@ function PrivateRoute({ children, onLogin }) {
 }
 
 function AppInner() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshAccessToken, fetchAccounts } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -179,13 +179,31 @@ function AppInner() {
     const params = new URLSearchParams(window.location.search);
     const verified = params.get('verified');
     if (!verified) return;
-    // Remove the query param from URL without reload
+    const autologin = params.get('autologin') === '1';
+    // Remove the query params from URL without reload
     const clean = window.location.pathname;
     window.history.replaceState({}, '', clean);
     if (verified === 'true') {
-      toast.success('✅ Email verified! You can now log in.');
-      setAuthMode('login');
-      setAuthModalOpen(true);
+      if (autologin) {
+        // Backend already set the refresh cookie for this account (see
+        // GET /verify-email) — turn it into a real session instead of
+        // making the user log in again right after verifying.
+        refreshAccessToken().then((token) => {
+          if (token) {
+            toast.success('✅ Email vérifié — vous êtes connecté !');
+            fetchAccounts();
+          } else {
+            // Cookie missing/expired for some reason — fall back to manual login.
+            toast.success('✅ Email verified! You can now log in.');
+            setAuthMode('login');
+            setAuthModalOpen(true);
+          }
+        });
+      } else {
+        toast.success('✅ Email verified! You can now log in.');
+        setAuthMode('login');
+        setAuthModalOpen(true);
+      }
     } else {
       const reason = params.get('reason');
       const msg = reason === 'expired'
