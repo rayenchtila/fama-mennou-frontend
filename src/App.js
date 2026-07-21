@@ -239,7 +239,17 @@ function AppInner() {
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
-          style={{ paddingTop: 'var(--fm-announcement-h, 0px)', transition: 'padding-top 0.2s ease' }}
+          style={{
+            paddingTop: 'var(--fm-announcement-h, 0px)',
+            transition: 'padding-top 0.2s ease',
+            // Confirmed via real device emulation: body's own computed
+            // background can resolve light even with the dark theme class
+            // applied. Without this, the padding-top gap above exposes that
+            // wrong-colored background instead of the site's dark theme —
+            // this was the actual cause of the "blank/white page" reports.
+            background: 'var(--fm-bg, #0a0817)',
+            minHeight: '100vh',
+          }}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
