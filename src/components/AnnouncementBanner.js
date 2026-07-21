@@ -95,7 +95,10 @@ export default function AnnouncementBanner() {
       return;
     }
     const el = wrapRef.current;
-    const set = () => document.documentElement.style.setProperty('--fm-announcement-h', `${el.offsetHeight}px`);
+    // Capped defensively — however many announcements stack up, they should
+    // never push page content further down than this, however the height
+    // measurement behaves on any given browser.
+    const set = () => document.documentElement.style.setProperty('--fm-announcement-h', `${Math.min(el.offsetHeight, 240)}px`);
     set();
     const ro = new ResizeObserver(set);
     ro.observe(el);
