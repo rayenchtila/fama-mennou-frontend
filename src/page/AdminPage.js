@@ -41,6 +41,16 @@ function StatusBadge({ status }) {
   );
 }
 
+// CIN images are a Cloudinary URL for accounts registered after the
+// Cloudinary migration, but older accounts still have the raw base64 JPEG
+// that used to be stored directly in Postgres — wrapping a URL in a
+// data:...;base64, prefix (or vice versa) produces an unparseable src and
+// silently renders as a broken image.
+function cinImageSrc(value) {
+  if (!value) return null;
+  return value.startsWith('http') ? value : `data:image/jpeg;base64,${value}`;
+}
+
 // ─── CIN image viewer modal ───────────────────────────────────────────────────
 
 function CINImageModal({ user, onClose }) {
@@ -89,7 +99,7 @@ function CINImageModal({ user, onClose }) {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
             </svg>
           ) : img ? (
-            <img src={`data:image/jpeg;base64,${img}`} alt={`CIN ${side}`} className="max-h-96 w-full object-contain rounded-xl" />
+            <img src={cinImageSrc(img)} alt={`CIN ${side}`} className="max-h-96 w-full object-contain rounded-xl" />
           ) : (
             <div className="text-slate-500 text-sm flex flex-col items-center gap-2">
               <svg className="w-10 h-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
@@ -253,7 +263,7 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
                   <div key={key} className="flex-1">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</p>
                     <div className="relative group cursor-pointer rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-24" onClick={() => onView(user)}>
-                      <img src={`data:image/jpeg;base64,${user[key]}`} alt={label} className="w-full h-full object-cover" />
+                      <img src={cinImageSrc(user[key])} alt={label} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-xs font-bold">{t("admin.card.enlarge")}</span>
                       </div>
