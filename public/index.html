@@ -5,6 +5,12 @@
     <link rel="icon" type="image/png" href="%PUBLIC_URL%/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="theme-color" content="#0a0817" />
+    <!-- Confirmed via throttled real-device emulation: on a slow mobile
+         connection the JS bundle can take 4-6+ seconds to download and
+         mount, and without this the raw HTML defaults to a white body in
+         that window — exactly what verify-email link clicks were landing
+         on, since that's always a fresh full-page load with a cold cache. -->
+    <style>html, body, #root { background: #0a0817; }</style>
 
     <!-- Primary SEO -->
     <title>FamaMennou — Plateforme Freelance & Cours en Tunisie</title>
