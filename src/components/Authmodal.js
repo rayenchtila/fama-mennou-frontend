@@ -810,9 +810,6 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const [pendingApproval,   setPendingApproval]   = useState(null); // { attemptId, device }
   const [pendingTOTPToken,  setPendingTOTPToken]  = useState(null); // { pendingToken }
   const [roleSelectData,    setRoleSelectData]    = useState(null); // { roles, selectionToken, email, password }
-  const [unverifiedEmail,   setUnverifiedEmail]   = useState(null);
-  const [resendVerifDone,   setResendVerifDone]   = useState(false);
-  const [resendVerifLoading,setResendVerifLoading]= useState(false);
 
   // CAPTCHA
   const [captchaToken, setCaptchaToken] = useState(null);
@@ -1007,14 +1004,6 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         setCaptchaToken(null);
         return;
       }
-      if (result.error === "emailNotVerified") {
-        setErrors({ email: t("auth.email_not_verified") });
-        setUnverifiedEmail(form.email);
-        recaptchaRef.current?.reset();
-        setCaptchaToken(null);
-        return;
-      }
-
       // Multiple accounts — show role picker
       if (result.requiresRoleSelect) {
         setRoleSelectData({ roles: result.roles, selectionToken: result.selectionToken, email: form.email, password: form.password });
@@ -1062,36 +1051,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     if (e.key === "Enter") handleSubmit();
   }
 
-  async function handleResendVerification() {
-    if (!unverifiedEmail || resendVerifLoading) return;
-    setResendVerifLoading(true);
-    try {
-      const res = await fetch(`${API}/auth/resend-verification`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: unverifiedEmail }),
-      });
-      const data = await res.json();
-      if (data.success || data.alreadyVerified) setResendVerifDone(true);
-      else setErrors({ email: t("auth.email_not_verified") });
-    } catch {
-      setErrors({ email: t("Network error. Please try again.") });
-    } finally {
-      setResendVerifLoading(false);
-    }
-  }
-
   async function handleRoleSelect(selectedRole) {
     if (!roleSelectData) return;
     setLoading(true);
     try {
       const result = await login(roleSelectData.email, roleSelectData.password, undefined, null, selectedRole, roleSelectData.selectionToken);
-      if (result.error === "emailNotVerified") {
-        setUnverifiedEmail(roleSelectData.email);
-        setErrors({ email: t("auth.email_not_verified") });
-        setScreen("form");
-        return;
-      }
       if (result.error) {
         setErrors({ email: t("Login failed. Please try again.") });
         setScreen("form");
@@ -1656,19 +1620,6 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                 />
               </div>
               {errors.captcha && <p className="mt-1.5 text-xs" style={{ color: 'var(--fm-danger)' }}>{errors.captcha}</p>}
-            </div>
-          )}
-
-          {unverifiedEmail && mode === "login" && (
-            <div className="mt-3 text-center">
-              {resendVerifDone
-                ? <p className="text-xs" style={{ color: 'var(--fm-success)' }}>{t("auth.verif_sent")}</p>
-                : <button onClick={handleResendVerification} disabled={resendVerifLoading}
-                    className="text-xs underline transition-colors disabled:opacity-40"
-                    style={{ color: 'var(--fm-primary-light)' }}>
-                    {resendVerifLoading ? t("auth.verif_sending") : t("auth.verif_resend")}
-                  </button>
-              }
             </div>
           )}
 
