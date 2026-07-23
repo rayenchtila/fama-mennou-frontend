@@ -172,7 +172,8 @@ function VerifyEmailScreen({ email, onVerify, onBack, loading }) {
 // ── Forgot Password Screen ────────────────────────────────────────────────────
 
 function ForgotPasswordScreen({ onBack, onSent }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [step,            setStep]            = useState(1);
   const [email,           setEmail]           = useState("");
   const [code,            setCode]            = useState("");
@@ -394,13 +395,14 @@ function ForgotPasswordScreen({ onBack, onSent }) {
 
       {step === 1 && !IS_DEV && (
         <div className="mt-4 overflow-x-hidden">
-          <div className="origin-top-left scale-[0.78] w-[128%] sm:scale-100 sm:w-full">
+          <div className={`${isRTL ? 'origin-top-right' : 'origin-top-left'} scale-[0.78] w-[128%] sm:scale-100 sm:w-full`}>
             <ReCAPTCHA
               ref={forgotRecaptchaRef}
               sitekey={RECAPTCHA_SITE_KEY}
               onChange={token => { setCaptchaToken(token); setError(""); }}
               onExpired={() => setCaptchaToken(null)}
               theme="dark"
+              hl={i18n.language}
             />
           </div>
         </div>
@@ -824,7 +826,8 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const [cinFrontPreview, setCinFrontPreview] = useState(null);
   const [cinBackPreview,  setCinBackPreview]  = useState(null);
 
-  const { t }                        = useTranslation();
+  const { t, i18n }                  = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const { register, login, verifyTOTP, loginWithUserData, logout, updateUser } = useAuth();
 
   const ROLES = [
@@ -1610,13 +1613,14 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           {/* reCAPTCHA — login + signup */}
           {!IS_DEV && (
             <div className="mt-4 overflow-x-hidden">
-              <div className="origin-top-left scale-[0.78] w-[128%] sm:scale-100 sm:w-full">
+              <div className={`${isRTL ? 'origin-top-right' : 'origin-top-left'} scale-[0.78] w-[128%] sm:scale-100 sm:w-full`}>
                 <ReCAPTCHA
                   ref={recaptchaRef}
                   sitekey={RECAPTCHA_SITE_KEY}
                   onChange={token => { setCaptchaToken(token); setErrors(err => ({ ...err, captcha: "" })); }}
                   onExpired={() => setCaptchaToken(null)}
                   theme="dark"
+                  hl={i18n.language}
                 />
               </div>
               {errors.captcha && <p className="mt-1.5 text-xs" style={{ color: 'var(--fm-danger)' }}>{errors.captcha}</p>}

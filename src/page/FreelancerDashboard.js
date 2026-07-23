@@ -1374,6 +1374,7 @@ function GainsTab({ user }) {
 const COURSE_CATEGORIES = ['Design','Development','Marketing','Business','Music','Photography','Finance','Health','Other'];
 
 function CoursesTab({ user }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [courses,      setCourses]      = useState([]);
   const [earnings,     setEarnings]     = useState(null);
@@ -1928,7 +1929,7 @@ function CoursesTab({ user }) {
                       onChange={e => { setForm(f => ({ ...f, category: e.target.value })); setCreateError(''); }}
                       className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors appearance-none ${!form.category && createError ? 'border-rose-400 text-slate-400 dark:text-slate-500' : 'border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white'}`}>
                       <option value="">Choisir une catégorie…</option>
-                      {COURSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      {COURSE_CATEGORIES.map(c => <option key={c} value={c}>{t(c)}</option>)}
                     </select>
                   </div>
                   <div>
@@ -2171,7 +2172,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
           </div>
           <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
             <span className="text-xs text-slate-500 dark:text-slate-400">Rôle</span>
-            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Freelancer</span>
+            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Freelance</span>
           </div>
           <div className="flex items-center justify-between py-2">
             <span className="text-xs text-slate-500 dark:text-slate-400">Statut CIN</span>
@@ -2181,10 +2182,10 @@ function SettingsTab({ user, updateUser, onLogout }) {
               : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
             }`}>
               {user.cinStatus === 'approved'
-                ? <span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Verified</span>
+                ? <span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Vérifié</span>
                 : user.cinStatus === 'pending'
-                ? <span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Pending</span>
-                : <span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Unverified</span>
+                ? <span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>En attente</span>
+                : <span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Non vérifié</span>
               }
             </span>
           </div>
@@ -2213,7 +2214,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
           <polyline points="16 17 21 12 16 7"/>
           <line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
-        Sign out
+        Se déconnecter
       </button>
     </div>
   );

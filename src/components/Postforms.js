@@ -96,7 +96,7 @@ export function PostJobModal({ open, onClose, onSubmit }) {
           label={t("postjob.job_type")}
           value={form.type}
           onChange={set("type")}
-          options={["Full-time", "Part-time", "Contract", "Freelance", "Internship"]}
+          options={["Full-time", "Part-time", "Contract", "Freelance", "Internship"].map(o => ({ value: o, label: t(o) }))}
         />
         <Textarea
           label={t("postjob.description")}
@@ -164,8 +164,8 @@ export function PostCourseModal({ open, onClose, onSubmit }) {
       <div className="space-y-4">
         <Input label={t("postcourse.course_title")} placeholder={t("postcourse.course_title_ph")} value={form.title} onChange={set("title")} required />
         <div className="grid grid-cols-2 gap-4">
-          <Select label={t("postcourse.category")} value={form.category} onChange={set("category")} options={["Development","Design","Marketing","Writing","SEO","Video","Business"]} />
-          <Select label={t("postcourse.level")} value={form.level} onChange={set("level")} options={["Beginner","Intermediate","Advanced"]} />
+          <Select label={t("postcourse.category")} value={form.category} onChange={set("category")} options={["Development","Design","Marketing","Writing","SEO","Video","Business"].map(c => ({ value: c, label: t(c) }))} />
+          <Select label={t("postcourse.level")} value={form.level} onChange={set("level")} options={["Beginner","Intermediate","Advanced"].map(l => ({ value: l, label: t(l) }))} />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Input label={t("postcourse.price")} placeholder={t("postcourse.price_ph")} value={form.price} onChange={set("price")} type="number" hint={t("postcourse.price_hint")} />
@@ -214,7 +214,7 @@ export function PostClientModal({ open, onClose, onSubmit }) {
           <Input label={t("postproject.budget")} placeholder={t("postproject.budget_ph")} value={form.budget} onChange={set("budget")} />
           <Input label={t("postproject.deadline")} placeholder={t("postproject.deadline_ph")} value={form.deadline} onChange={set("deadline")} />
         </div>
-        <Select label={t("postcourse.category")} value={form.category} onChange={set("category")} options={["Development","Design","Marketing","Writing","SEO","Video","Other"]} />
+        <Select label={t("postcourse.category")} value={form.category} onChange={set("category")} options={["Development","Design","Marketing","Writing","SEO","Video","Other"].map(c => ({ value: c, label: t(c) }))} />
         <Input
           label={t("postproject.skills")}
           placeholder={t("postproject.skills_ph")}

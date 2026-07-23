@@ -254,7 +254,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
                       onFocus={e => e.target.style.borderColor = 'rgba(124,108,246,.5)'}
                       onBlur={e => e.target.style.borderColor = 'var(--fm-border-strong)'}
                     >
-                      {CATEGORIES.map(c => <option key={c} value={c} style={{ background: 'var(--fm-surface-2)' }}>{c}</option>)}
+                      {CATEGORIES.map(c => <option key={c} value={c} style={{ background: 'var(--fm-surface-2)' }}>{t(c)}</option>)}
                     </select>
                     <svg style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--fm-text-7)' }} width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
                   </div>

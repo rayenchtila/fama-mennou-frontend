@@ -73,6 +73,7 @@ async function getNotifLink(n) {
 
 // ── Notifications panel ────────────────────────────────────────────────────────
 function NotifPanel({ notifications, onMarkRead, onMarkAll, onClose, dark }) {
+  const { t } = useTranslation();
   const navigate  = useNavigate();
   const unread    = notifications.filter(n => !n.read).length;
   const panel     = dark ? "#16142e" : "#ffffff";
@@ -89,7 +90,7 @@ function NotifPanel({ notifications, onMarkRead, onMarkAll, onClose, dark }) {
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: `1px solid ${divider}` }}>
           <div className="flex items-center gap-2">
-            <p className="text-sm font-bold" style={{ color: text1 }}>Notifications</p>
+            <p className="text-sm font-bold" style={{ color: text1 }}>{t("Notifications")}</p>
             {unread > 0 && <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold text-white" style={{ background: "#7c6cf6" }}>{unread}</span>}
           </div>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors" style={{ color: text3 }}>
@@ -102,7 +103,7 @@ function NotifPanel({ notifications, onMarkRead, onMarkAll, onClose, dark }) {
               <svg className="w-8 h-8 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
               </svg>
-              <p className="text-xs font-semibold">Aucune notification</p>
+              <p className="text-xs font-semibold">{t("No notifications")}</p>
             </div>
           ) : notifications.map(n => (
             <div key={n.id} role="button" tabIndex={0}
@@ -239,6 +240,7 @@ export default function Navbar({ onLogin }) {
   const location  = useLocation();
   const navigate  = useNavigate();
   const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const NAV_LINKS = [
     { label: t('home.ac.hire.title'), to: "/freelancers" },
     { label: t('home.ac.client.title'), to: "/clients" },
@@ -595,7 +597,7 @@ export default function Navbar({ onLogin }) {
                     </div>
                     <div className="hidden sm:block text-left">
                       <p className="text-xs font-bold leading-tight" style={{ color: bg.text1 }}>{user.name}</p>
-                      <p className="text-[10px] leading-tight capitalize" style={{ color: bg.text3 }}>{user.role ?? "membre"}</p>
+                      <p className="text-[10px] leading-tight capitalize" style={{ color: bg.text3 }}>{user.isAdmin ? t('dash.role.admin') : user.role === 'freelancer' ? t('dash.role.freelancer') : user.role === 'client' ? t('dash.role.client') : (user.role ?? "membre")}</p>
                     </div>
                     <svg className={`hidden sm:block w-3 h-3 transition-transform ${profOpen ? "rotate-180" : ""}`} style={{ color: bg.text3 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
@@ -606,7 +608,7 @@ export default function Navbar({ onLogin }) {
                     {profOpen && (
                       <motion.div
                         initial={{ opacity:0, scale:.95, y:8 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:8 }} transition={{ duration:.14 }}
-                        className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl z-50"
+                        className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-64 overflow-hidden rounded-2xl z-50`}
                         style={{ background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow:"0 24px 64px rgba(0,0,0,.2)" }}
                       >
                         <div className="px-4 py-3.5" style={{ borderBottom: `1px solid ${bg.divider}` }}>
@@ -624,7 +626,7 @@ export default function Navbar({ onLogin }) {
                             style={user.isAdmin
                               ? { background:"rgba(239,68,68,0.15)", border:"1px solid rgba(239,68,68,0.3)", color:"#f87171" }
                               : { background:"rgba(124,108,246,0.12)", border:"1px solid rgba(124,108,246,0.25)", color:"#9b8cff" }}>
-                            {user.isAdmin ? "Admin" : user.role}
+                            {user.isAdmin ? t('dash.role.admin') : user.role === 'freelancer' ? t('dash.role.freelancer') : user.role === 'client' ? t('dash.role.client') : user.role}
                           </span>
                         </div>
                         <div className="py-1.5">
@@ -1049,8 +1051,8 @@ export default function Navbar({ onLogin }) {
                 </button>
               </div>
               <div className="px-6 py-4">
-                <h3 className="text-base font-extrabold mb-1" style={{ color: bg.text1 }}>Log out?</h3>
-                <p className="text-sm" style={{ color: bg.text2 }}>You will be redirected to the home page.</p>
+                <h3 className="text-base font-extrabold mb-1" style={{ color: bg.text1 }}>{t('fd.logout_confirm')}</h3>
+                <p className="text-sm" style={{ color: bg.text2 }}>{t('fd.logout_redirect')}</p>
               </div>
               <div className="flex gap-3 px-6 pb-6">
                 <button onClick={() => setLogoutModal(false)}
@@ -1058,12 +1060,12 @@ export default function Navbar({ onLogin }) {
                   style={{ border: `1px solid ${bg.headerBd}`, color: bg.text2 }}
                   onMouseEnter={e => e.currentTarget.style.background = bg.rowHov}
                   onMouseLeave={e => e.currentTarget.style.background = ""}>
-                  Cancel
+                  {t('Cancel')}
                 </button>
                 <button onClick={() => { logout(); setLogoutModal(false); }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
                   style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 4px 12px -3px rgba(239,68,68,.4)" }}>
-                  Yes, log out
+                  {t('fd.yes_logout')}
                 </button>
               </div>
             </motion.div>
