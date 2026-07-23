@@ -220,9 +220,9 @@ export default function PublicProfilePage() {
             ════════════════ */}
         <div style={{
           borderRadius:28, overflow:'hidden', marginBottom:14, position:'relative',
-          background:'linear-gradient(140deg,rgba(124,108,246,0.09) 0%,rgba(10,13,26,0.98) 55%)',
+          background:`linear-gradient(140deg,${C.accentDim} 0%,${C.card} 55%)`,
           border:'1px solid rgba(124,108,246,0.2)',
-          boxShadow:'0 40px 100px -24px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06)',
+          boxShadow:'0 40px 100px -24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
         }}>
           {/* Decorative overlays */}
           <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:`radial-gradient(ellipse 500px 300px at -5% -20%,${tint}1e,transparent 65%)` }}/>
