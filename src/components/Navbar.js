@@ -51,8 +51,9 @@ async function getNotifLink(n) {
   }
   if (k === "course_pending")                   return "/dashboard?tab=courses";
   if (k === "password_changed")                  return "/settings";
+  if (k === "approved" || k === "rejected")     return "/dashboard";
   if (k.startsWith("profile_saved"))            return "/dashboard?tab=profile";
-  if (k.startsWith("client_profile_saved"))     return "/account?tab=profile";
+  if (k.startsWith("client_profile_saved"))     return "/dashboard";
   if (k.startsWith("new_proposal:"))            return "/projects";
   if (k.startsWith("proposal_accepted:")) {
     const projectId = k.split(":")[1];

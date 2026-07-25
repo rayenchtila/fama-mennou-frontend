@@ -105,7 +105,7 @@ function StarRow({ value, count }) {
    ════════════════════════════════════════════════════════════════════ */
 export default function PublicProfilePage() {
   const { email: rawEmail } = useParams();
-  const { users, user: currentUser } = useAuth();
+  const { users, user: currentUser, authFetch } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -116,6 +116,14 @@ export default function PublicProfilePage() {
   const list    = users || [];
   const profile = list.find(u => u.email?.toLowerCase() === email.toLowerCase());
   const tint    = getTint(email);
+
+  /* record a profile view (skipped for own profile / logged-out visitors —
+     handled server-side, this call is just fire-and-forget) */
+  useEffect(() => {
+    if (!email || !currentUser?.email) return;
+    authFetch(`${API}/users/${encodeURIComponent(email)}/view`, { method: 'POST' }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email]);
 
   /* fetch reviews for this profile — same for everyone */
   useEffect(() => {
