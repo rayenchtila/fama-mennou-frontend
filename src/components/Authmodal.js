@@ -914,7 +914,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     if (mode === "signup") {
       if (!form.dob)    errs.dob    = t("Date of birth is required");
       if (!form.gender) errs.gender = t("Please select your gender");
-      if (!IS_DEV && (!cinFrontFile || !cinBackFile))
+      if (!IS_DEV && role === "freelancer" && (!cinFrontFile || !cinBackFile))
         errs.cin = t("Please upload both sides of your CIN");
     }
     if (mode === "signup" && role === "freelancer") {
@@ -1523,8 +1523,10 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
               </div>
             )}
 
-            {/* CIN section — all signup roles */}
-            {mode === "signup" && (
+            {/* CIN section — freelancer signup only. Clients don't need identity
+                verification, so this is skipped for them entirely (no upload,
+                no admin review queue, no pending-approval gate). */}
+            {mode === "signup" && role === "freelancer" && (
               <div className="mt-1">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex-1 h-px" style={{ background: 'var(--fm-border)' }} />

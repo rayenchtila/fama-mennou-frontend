@@ -2044,6 +2044,9 @@ export default function AdminPage() {
   const adminNotifications = getAdminNotifications();
   const unreadCount = adminNotifications.filter(n => !n.read).length;
 
+  // Clients don't submit a CIN document, but admin still approves/rejects
+  // their account here same as freelancers — the review UI just won't have
+  // a document image to show for them.
   const cinUsers  = (users ?? []).filter(u => u.role === "freelancer" || u.role === "client");
   const getStatus = u => u.cinStatus ?? (u.cinVerified ? "approved" : "pending");
 
