@@ -22,7 +22,11 @@ const TUNISIAN_REGIONS = [
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = reject;
+    // Passing the raw event straight to reject() left Sentry unable to
+    // extract any message/stack from it (surfaced as "Event ProgressEvent
+    // captured as promise rejection") and gave calling code nothing useful
+    // to show the user — wrap it in a real Error instead.
+    reader.onerror = () => reject(new Error("Could not read the selected file."));
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
@@ -34,6 +38,10 @@ function fileToBase64(file) {
         canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL("image/jpeg", 0.7).split(",")[1]);
       };
+      // Without this, a corrupted/undecodable image file left the Promise
+      // pending forever — the signup form would just hang on submit with
+      // no error shown at all.
+      img.onerror = () => reject(new Error("This file isn't a valid image."));
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
@@ -1152,6 +1160,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       }
       setPendingName(pendingFormData.firstName + " " + pendingFormData.lastName);
       setScreen("pending");
+    } catch (e) {
+      // Previously uncaught — a failed fileToBase64() (unreadable file,
+      // corrupted image) left the user staring at a spinner that just
+      // stopped with no explanation and no way to know what to do next.
+      setCodeError(e?.message || t("Something went wrong. Please try again."));
     } finally {
       setLoading(false);
     }
