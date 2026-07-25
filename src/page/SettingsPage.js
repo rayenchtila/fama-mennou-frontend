@@ -62,7 +62,7 @@ function InfoRow({ label, value, badge }) {
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const { user, logout, addNotification } = useAuth();
+  const { user, logout, addNotification, authFetch } = useAuth();
   const [currPass,  setCurrPass]  = useState('');
   const [showCurr,  setShowCurr]  = useState(false);
   const [newPass,   setNewPass]   = useState('');
@@ -95,7 +95,7 @@ export default function SettingsPage() {
     setLoading(true);
     try {
       /* Single call — verifies current password AND stores new hash atomically */
-      const res  = await fetch(`${API}/auth/change-password`, {
+      const res  = await authFetch(`${API}/auth/change-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: user.email, currentPassword: currPass, newPassword: newPass }),
