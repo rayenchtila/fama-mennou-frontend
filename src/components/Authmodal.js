@@ -925,9 +925,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       if (!IS_DEV && role === "freelancer" && (!cinFrontFile || !cinBackFile))
         errs.cin = t("Please upload both sides of your CIN");
     }
+    if (mode === "signup") {
+      if (!form.region) errs.region = t("Please select your region");
+    }
     if (mode === "signup" && role === "freelancer") {
       if (!form.skills.trim()) errs.skills = t("Please enter at least one skill");
-      if (!form.region)        errs.region = t("Please select your region");
     }
     if (!IS_DEV && !captchaToken)
       errs.captcha = t("Please complete the CAPTCHA");
@@ -1506,8 +1508,8 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             )}
 
 
-            {/* Region — freelancer signup only */}
-            {isFreelancer && (
+            {/* Region — all signup roles */}
+            {mode === "signup" && (
               <div>
                 <label className="block text-sm mb-1.5" style={{ color: 'var(--fm-text-3)', fontWeight: 700 }}>
                   {t("Region")} <span style={{ color: 'var(--fm-danger)' }}>*</span>
