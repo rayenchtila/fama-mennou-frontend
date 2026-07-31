@@ -2365,6 +2365,7 @@ i18n
           "msg.page_account": "MON COMPTE",
           "msg.page_title": "Messages",
           "msg.page_subtitle": "Conversations sécurisées avec votre équipe et vos freelancers",
+          "msg.no_convs": "Aucune conversation",
           // FreelancersPage / shared
           "Verified": "Vérifié",
           "Available": "Disponible",
@@ -3984,6 +3985,7 @@ i18n
           "msg.page_account": "حسابي",
           "msg.page_title": "الرسائل",
           "msg.page_subtitle": "محادثات آمنة مع فريقك ومستقليك",
+          "msg.no_convs": "لا توجد محادثات",
           // FreelancersPage / shared
           "Verified": "موثق",
           "Available": "متاح",
