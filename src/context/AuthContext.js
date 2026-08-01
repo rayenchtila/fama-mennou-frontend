@@ -149,13 +149,25 @@ export function AuthProvider({ children }) {
     return () => clearInterval(id);
   }, [fetchNotifications]);
 
-  // ── Ping last_seen every 60s so other users see online status ──
+  // ── Ping last_seen so other users see online status ──
+  // Was every 60s unconditionally — that alone was enough to keep Neon's
+  // compute permanently awake for as long as any tab stayed open, since 60s
+  // is far shorter than any realistic idle-suspend window. Now every 5min,
+  // and only while the tab is actually visible (a backgrounded/minimized
+  // tab has no reason to keep reporting "online").
   useEffect(() => {
     if (!user || user.isAdmin) return;
-    const ping = () => fetch(`${API}/users/${encodeURIComponent(user.email)}/ping`, { method: 'PATCH' }).catch(() => {});
+    const ping = () => {
+      if (document.visibilityState !== 'visible') return;
+      fetch(`${API}/users/${encodeURIComponent(user.email)}/ping`, { method: 'PATCH' }).catch(() => {});
+    };
     ping();
-    const id = setInterval(ping, 60000);
-    return () => clearInterval(id);
+    const id = setInterval(ping, 5 * 60000);
+    document.addEventListener('visibilitychange', ping);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', ping);
+    };
   }, [user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Keep logged-in user in sync when admin updates their account ──

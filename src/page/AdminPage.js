@@ -1994,19 +1994,28 @@ export default function AdminPage() {
   }, [API]);
   useEffect(() => { if (mainTab === 'projects') fetchAdminProjects(); }, [mainTab, fetchAdminProjects]);
 
-  // Chat unread badge — polled independently so it shows even when not on chat tab
+  // Chat unread badge — visible even when not on the chat tab. Previously
+  // polled every 10s unconditionally (the single most aggressive query in
+  // the app, ~8,600 requests/day if the dashboard stays open). Now
+  // event-driven: refetches immediately on a real-time 'new_message', with
+  // a slow 2-minute poll only as a self-healing fallback in case a socket
+  // event is ever missed (e.g. brief disconnect).
+  const fetchChatUnread = React.useCallback(async () => {
+    try {
+      const data = await fetch(`${API}/messages/admin/conversations`).then(r => r.json());
+      if (Array.isArray(data)) setChatUnreadCount(data.reduce((s, c) => s + (Number(c.unread_count) || 0), 0));
+    } catch {}
+  }, [API]);
+
   useEffect(() => {
-    const poll = async () => {
-      try {
-        const data = await fetch(`${API}/messages/admin/conversations`).then(r => r.json());
-        if (Array.isArray(data)) setChatUnreadCount(data.reduce((s, c) => s + (Number(c.unread_count) || 0), 0));
-      } catch {}
-    };
-    poll();
-    const interval = setInterval(poll, 10000);
+    fetchChatUnread();
+    const interval = setInterval(fetchChatUnread, 2 * 60 * 1000);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchChatUnread]);
+
+  useRealtimeChannel(ADMIN_EMAIL, {
+    new_message: fetchChatUnread,
+  });
 
   const coursesByFilter = allCourses.filter(c =>
     courseFilter === 'all' ? true : c.status === courseFilter

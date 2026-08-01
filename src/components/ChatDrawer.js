@@ -97,7 +97,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
   const convPollRef      = useRef();
   const msgPollRef       = useRef();
   const typingTimeoutRef = useRef(null);
-  const typingPollRef    = useRef(null);
+  const otherTypingTimeoutRef = useRef(null);
   const isTypingRef      = useRef(false);
 
   // Animate in
@@ -150,12 +150,25 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
     return () => clearInterval(msgPollRef.current);
   }, [selectedChat, fetchMsgs]);
 
-  // Realtime: instant updates for new messages / conversation list
+  // Realtime: instant updates for new messages / conversation list / typing
   useRealtimeChannel(user?.email, {
     new_message: useCallback(() => {
       fetchConvs();
       if (selectedChat) fetchMsgs(selectedChat);
     }, [fetchConvs, fetchMsgs, selectedChat]),
+    typing: useCallback((payload) => {
+      if (payload?.from === selectedChat) {
+        setOtherTyping(true);
+        clearTimeout(otherTypingTimeoutRef.current);
+        otherTypingTimeoutRef.current = setTimeout(() => setOtherTyping(false), 5000);
+      }
+    }, [selectedChat]),
+    'stop-typing': useCallback((payload) => {
+      if (payload?.from === selectedChat) {
+        clearTimeout(otherTypingTimeoutRef.current);
+        setOtherTyping(false);
+      }
+    }, [selectedChat]),
   });
 
   // Scroll to bottom
@@ -177,47 +190,42 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
   }, []);
 
   // ── Typing indicator ───────────────────────────────────────────────────────
+  // Sends via the dedicated /messages/typing + /stop-typing endpoints (which
+  // broadcast a real-time socket event to the recipient) instead of the
+  // generic user-PATCH endpoint used previously, which only wrote to
+  // Postgres with no broadcast — the only way to observe it was polling.
   const clearTyping = useCallback(() => {
-    if (!isTypingRef.current) return;
+    if (!isTypingRef.current || !selectedChat) return;
     isTypingRef.current = false;
-    fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
-      method: 'PATCH',
+    fetch(`${API}/messages/stop-typing`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ typing_to: null, typing_at: null }),
+      body: JSON.stringify({ to: selectedChat }),
     }).catch(() => {});
-  }, [user.email]);
+  }, [selectedChat]);
 
   const handleMsgChange = useCallback((e) => {
     setNewMsg(e.target.value);
     if (!selectedChat) return;
     if (!isTypingRef.current) {
       isTypingRef.current = true;
-      fetch(`${API}/users/${encodeURIComponent(user.email)}`, {
-        method: 'PATCH',
+      fetch(`${API}/messages/typing`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ typing_to: selectedChat, typing_at: new Date().toISOString() }),
+        body: JSON.stringify({ to: selectedChat }),
       }).catch(() => {});
     }
     clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(clearTyping, 3000);
-  }, [selectedChat, user.email, clearTyping]);
+  }, [selectedChat, clearTyping]);
 
-  // Poll other user's typing status every 2.5s while in a chat
+  // Other user's typing state now arrives via the 'typing'/'stop-typing'
+  // real-time events registered above — no polling. Just reset when
+  // switching conversations so a stale indicator doesn't linger.
   useEffect(() => {
-    if (!selectedChat) { setOtherTyping(false); return; }
-    const check = async () => {
-      try {
-        const d = await fetch(`${API}/users/${encodeURIComponent(selectedChat)}/typing-status`).then(r => r.json());
-        const typing = d.typing_to === user.email?.toLowerCase()
-          && d.typing_at
-          && (Date.now() - new Date(d.typing_at).getTime() < 5000);
-        setOtherTyping(!!typing);
-      } catch { setOtherTyping(false); }
-    };
-    check();
-    typingPollRef.current = setInterval(check, 2500);
-    return () => { clearInterval(typingPollRef.current); setOtherTyping(false); };
-  }, [selectedChat, user.email]);
+    setOtherTyping(false);
+    clearTimeout(otherTypingTimeoutRef.current);
+  }, [selectedChat]);
 
   // Clear my typing state when drawer unmounts or chat changes
   useEffect(() => { return () => { clearTimeout(typingTimeoutRef.current); clearTyping(); }; }, [clearTyping]);
