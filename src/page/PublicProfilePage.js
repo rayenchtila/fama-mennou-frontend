@@ -323,50 +323,54 @@ export default function PublicProfilePage() {
         </div>
 
         {/* ════════════════
-            3. SKILLS SECTION — always rendered, empty state when no data
+            3. SKILLS SECTION — freelancer only, clients don't have skills
             ════════════════ */}
-        <SectionCard title={t('Skills & Expertise', 'Skills & Expertise')} accent={C.accentMid}>
-          {skills.length > 0
-            ? (
-              <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-                {skills.map((s, i) => (
-                  <span key={i} style={{ display:'inline-flex', alignItems:'center', fontSize:12.5, fontWeight:700, color:C.accentMid, background:C.accentDim, border:'1px solid rgba(124,108,246,0.2)', borderRadius:20, padding:'5px 13px' }}>
-                    {s}
-                  </span>
-                ))}
-              </div>
-            )
-            : <EmptyState text={t('No skills added yet.', 'No skills added yet.')}/>
-          }
-        </SectionCard>
+        {profile.role === 'freelancer' && (
+          <SectionCard title={t('Skills & Expertise', 'Skills & Expertise')} accent={C.accentMid}>
+            {skills.length > 0
+              ? (
+                <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                  {skills.map((s, i) => (
+                    <span key={i} style={{ display:'inline-flex', alignItems:'center', fontSize:12.5, fontWeight:700, color:C.accentMid, background:C.accentDim, border:'1px solid rgba(124,108,246,0.2)', borderRadius:20, padding:'5px 13px' }}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )
+              : <EmptyState text={t('No skills added yet.', 'No skills added yet.')}/>
+            }
+          </SectionCard>
+        )}
 
         {/* ════════════════
-            4. SERVICES & RATES — always rendered, empty state when no data
+            4. PORTFOLIO — freelancer only, clients don't have a portfolio
             ════════════════ */}
-        <SectionCard title={t('Portfolio', 'Portfolio')} accent={C.emerald}>
-          {portfolioHref
-            ? (
-              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {portfolioHref && (
-                  <a href={portfolioHref} target="_blank" rel="noopener noreferrer"
-                    style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 18px', borderRadius:14, textDecoration:'none', background:C.emeraldDim, border:`1px solid ${C.emeraldBord}`, transition:'all .18s' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.16)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.45)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = C.emeraldDim; e.currentTarget.style.borderColor = C.emeraldBord; }}>
-                    <div style={{ width:38, height:38, borderRadius:10, background:'rgba(16,185,129,0.18)', display:'flex', alignItems:'center', justifyContent:'center', color:C.emerald, flexShrink:0 }}>
-                      <IcLink/>
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:10, fontWeight:700, color:'rgba(16,185,129,0.7)', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 2px' }}>{t('Portfolio')}</p>
-                      <p style={{ fontSize:13, fontWeight:700, color:C.emerald, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{portfolioHref}</p>
-                    </div>
-                    <div style={{ color:C.emerald, opacity:0.7, flexShrink:0 }}><IcExt/></div>
-                  </a>
-                )}
-              </div>
-            )
-            : <EmptyState text={t('No portfolio link added yet.', 'No portfolio link added yet.')}/>
-          }
-        </SectionCard>
+        {profile.role === 'freelancer' && (
+          <SectionCard title={t('Portfolio', 'Portfolio')} accent={C.emerald}>
+            {portfolioHref
+              ? (
+                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                  {portfolioHref && (
+                    <a href={portfolioHref} target="_blank" rel="noopener noreferrer"
+                      style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 18px', borderRadius:14, textDecoration:'none', background:C.emeraldDim, border:`1px solid ${C.emeraldBord}`, transition:'all .18s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.16)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.45)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = C.emeraldDim; e.currentTarget.style.borderColor = C.emeraldBord; }}>
+                      <div style={{ width:38, height:38, borderRadius:10, background:'rgba(16,185,129,0.18)', display:'flex', alignItems:'center', justifyContent:'center', color:C.emerald, flexShrink:0 }}>
+                        <IcLink/>
+                      </div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <p style={{ fontSize:10, fontWeight:700, color:'rgba(16,185,129,0.7)', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 2px' }}>{t('Portfolio')}</p>
+                        <p style={{ fontSize:13, fontWeight:700, color:C.emerald, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{portfolioHref}</p>
+                      </div>
+                      <div style={{ color:C.emerald, opacity:0.7, flexShrink:0 }}><IcExt/></div>
+                    </a>
+                  )}
+                </div>
+              )
+              : <EmptyState text={t('No portfolio link added yet.', 'No portfolio link added yet.')}/>
+            }
+          </SectionCard>
+        )}
 
         {/* ════════════════
             5. REVIEWS SECTION — always rendered, empty state when no data
