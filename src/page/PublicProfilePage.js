@@ -306,11 +306,10 @@ export default function PublicProfilePage() {
         </div>
 
         {/* ════════════════
-            2. STATS ROW — always 4 identical stat blocks
+            2. STATS ROW — Reviews / Rating / Member since (Skills removed for everyone)
             ════════════════ */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:14 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
           {[
-            { label: t('Skills', 'Skills'),   value: skills.length,         color: C.accentMid },
             { label: t('Reviews', 'Reviews'),  value: reviews.length,        color: C.emerald   },
             { label: t('Rating', 'Rating'),    value: reviews.length ? avgRating.toFixed(1) : '—', color: C.amber },
             { label: t('Member since', 'Member since'), value: memberYear || '—', color: C.sky },
