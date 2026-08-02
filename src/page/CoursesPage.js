@@ -557,10 +557,17 @@ export default function CoursesPage() {
       if (category !== 'All')   p.set('category', category);
       if (priceFilter==='free') p.set('max_price','0');
       if (priceFilter==='paid') p.set('min_price','0.01');
-      const r = await fetch(`${API}/courses?${p}`);
-      const d = await r.json();
+      const url = `${API}/courses?${p}`;
+      let d = await fetch(url).then(r => r.json());
+      // A transient 429/500 (e.g. right as Neon wakes from an idle suspend)
+      // returns a non-array error body — retry once instead of silently
+      // showing "no courses" for a request that never actually succeeded.
+      if (!Array.isArray(d)) {
+        await new Promise(res => setTimeout(res, 2000));
+        d = await fetch(url).then(r => r.json());
+      }
       if (Array.isArray(d)) setCourses(d);
-    } catch { setCourses([]); }
+    } catch { /* leave existing courses in place rather than wiping to empty */ }
     finally  { setLoading(false); }
   }, [debSearch, category, sort, priceFilter]);
 

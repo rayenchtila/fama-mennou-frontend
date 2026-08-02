@@ -94,27 +94,48 @@ export function AuthProvider({ children }) {
   // ── Load users ──
   // If a valid admin token exists → /users (full data incl. cin_status, registered_at…)
   // Otherwise → /users/public (safe public fields only)
+  //
+  // A transient failure (429 rate-limit, or a slow/failed request right as
+  // Neon wakes from an idle suspend) returns a non-array error body, e.g.
+  // {error:"..."}. Previously that silently produced an EMPTY accounts map
+  // with no retry — every freelancer/client listing site-wide would then
+  // show "no results" instead of real data for the rest of the session,
+  // since nothing ever re-triggers this fetch. Retry once before giving up,
+  // and never overwrite already-loaded real data with an empty result.
+  const fetchAccountsAttempt = useCallback(async () => {
+    let rows = null;
+    let trustCin = false;
+    if (accessTokenRef.current) {
+      const r = await authFetch(`${API}/users`);
+      if (r.ok) { rows = await r.json(); trustCin = true; }
+    }
+    if (!rows) {
+      const r = await fetch(`${API}/users/public`);
+      rows = await r.json();
+    }
+    return { rows, trustCin };
+  }, [authFetch]);
+
   const fetchAccounts = useCallback(async () => {
     try {
-      let rows = null;
-      let trustCin = false;
-      if (accessTokenRef.current) {
-        const r = await authFetch(`${API}/users`);
-        if (r.ok) { rows = await r.json(); trustCin = true; }
+      let { rows, trustCin } = await fetchAccountsAttempt();
+      if (!Array.isArray(rows)) {
+        await new Promise(res => setTimeout(res, 2000));
+        ({ rows, trustCin } = await fetchAccountsAttempt());
       }
-      if (!rows) {
-        const r = await fetch(`${API}/users/public`);
-        rows = await r.json();
+      if (!Array.isArray(rows)) {
+        // Still no real data after the retry — leave whatever was already
+        // loaded (possibly nothing, on a first-ever load) rather than
+        // wiping known-good data to empty.
+        return;
       }
       const map = {};
-      if (Array.isArray(rows)) {
-        rows.forEach(r => { if (r?.email) map[r.email.toLowerCase()] = normalizeUser(r, trustCin); });
-      }
+      rows.forEach(r => { if (r?.email) map[r.email.toLowerCase()] = normalizeUser(r, trustCin); });
       setAccounts(map);
       localStorage.setItem("fm_accounts", JSON.stringify(map));
     } catch (e) { console.error("fetchAccounts error:", e); }
     finally { setAccountsLoaded(true); }
-  }, [authFetch]);
+  }, [fetchAccountsAttempt]);
 
   const fetchNotifications = useCallback(async () => {
     try {

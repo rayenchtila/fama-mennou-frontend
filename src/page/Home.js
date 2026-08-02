@@ -479,7 +479,14 @@ function useTopProjects() {
     let cancelled = false;
     setLoading(true);
     setError(false);
-    fetch(`${API}/projects/browse/open`).then(r => r.json()).then(rows => {
+    // A 429/500 (e.g. right as Neon wakes from an idle suspend) returns a
+    // non-array error body — previously that silently rendered as "no open
+    // projects" instead of retrying, permanently hiding real data for the
+    // rest of the session. Retry once before accepting an empty result.
+    const fetchOpen = () => fetch(`${API}/projects/browse/open`).then(r => r.json());
+    fetchOpen().then(rows => Array.isArray(rows) ? rows
+      : new Promise(res => setTimeout(res, 2000)).then(fetchOpen)
+    ).then(rows => {
       const open = Array.isArray(rows) ? rows : [];
       if (cancelled) return;
       setProjects(open);
@@ -597,7 +604,12 @@ function useTopCourses() {
     let cancelled = false;
     setLoading(true);
     setError(false);
-    fetch(`${API}/courses`).then(r => r.json()).then(rows => {
+    // Same retry-once-on-non-array-response fix as useTopProjects — a
+    // transient 429/500 previously rendered as "no courses" permanently.
+    const fetchCourses = () => fetch(`${API}/courses`).then(r => r.json());
+    fetchCourses().then(rows => Array.isArray(rows) ? rows
+      : new Promise(res => setTimeout(res, 2000)).then(fetchCourses)
+    ).then(rows => {
       if (!cancelled) setCourses(Array.isArray(rows) ? rows : []);
     }).catch(() => { if (!cancelled) { setError(true); setCourses([]); } })
       .finally(() => { if (!cancelled) setLoading(false); });
