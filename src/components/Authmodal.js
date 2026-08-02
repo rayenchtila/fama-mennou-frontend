@@ -409,6 +409,7 @@ function ForgotPasswordScreen({ onBack, onSent }) {
               sitekey={RECAPTCHA_SITE_KEY}
               onChange={token => { setCaptchaToken(token); setError(""); }}
               onExpired={() => setCaptchaToken(null)}
+              onErrored={() => { setCaptchaToken(null); setError(t("reCAPTCHA failed to load. Please check your connection and try again.")); }}
               theme="dark"
               hl={i18n.language}
             />
@@ -1636,6 +1637,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                   sitekey={RECAPTCHA_SITE_KEY}
                   onChange={token => { setCaptchaToken(token); setErrors(err => ({ ...err, captcha: "" })); }}
                   onExpired={() => setCaptchaToken(null)}
+                  onErrored={() => { setCaptchaToken(null); setErrors(err => ({ ...err, captcha: t("reCAPTCHA failed to load. Please check your connection and try again.") })); }}
                   theme="dark"
                   hl={i18n.language}
                 />
