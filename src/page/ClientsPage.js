@@ -7,6 +7,11 @@ import SEOHead from '../components/Seohead';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
+// Same last-name-only privacy convention already used on FreelancersPage.js —
+// this page never applied it, so clients were shown by full name here while
+// freelancers were shown by last name only there.
+const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p[p.length - 1] || name; };
+
 /* ────────────────────────────────────────────────────────────────
    Design tokens — CYAN / TEAL palette (distinct from FreelancersPage purple)
    ──────────────────────────────────────────────────────────────── */
@@ -264,11 +269,22 @@ function ReviewModal({ client, user, onClose, onDone }) {
 }
 
 /* ── Project Card ── */
-function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, onApply, onReview, myReviews, hasApplied }) {
+function ProjectCard({ project, clientUser, accountsLoaded, proposalCount, user, saved, onSave, onApply, onReview, myReviews, hasApplied }) {
   const { t } = useTranslation();
   const navigate  = useNavigate();
   const [tintFg, tintBg] = getTint(project.client_email);
-  const displayName = clientUser?.company || clientUser?.name || project.client_email?.split('@')[0] || '?';
+  // Falling back to the raw email prefix (e.g. "mckhnan") was previously the
+  // ONLY fallback, including while the account list simply hadn't finished
+  // loading yet (accounts/users always start empty on a fresh page load) —
+  // so real users with real names briefly, and sometimes persistently on a
+  // slow connection, showed as their email prefix instead. Now that fallback
+  // only applies once accounts have genuinely finished loading and there's
+  // still no match; until then it shows a neutral placeholder instead of a
+  // wrong-looking value.
+  const displayName = clientUser?.company
+    || (clientUser?.name ? getLastName(clientUser.name) : null)
+    || (accountsLoaded ? project.client_email?.split('@')[0] : '…')
+    || '?';
   const initials    = getInitials(displayName);
   const photoUrl    = clientUser?.photo ? cldImg(clientUser.photo) : null;
   const isVerified  = clientUser?.cinStatus === 'approved' || !clientUser;
@@ -431,7 +447,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, saved, onSave, 
    ══════════════════════════════════════════════════════════════════ */
 export default function ClientsPage() {
   const { t } = useTranslation();
-  const { user, users } = useAuth();
+  const { user, users, accountsLoaded } = useAuth();
   const navigate = useNavigate();
 
   const [projects,        setProjects]        = useState([]);
@@ -669,6 +685,7 @@ export default function ClientsPage() {
               key={p.id}
               project={p}
               clientUser={getClient(p.client_email)}
+              accountsLoaded={accountsLoaded}
               proposalCount={proposals[p.id] || 0}
               user={user}
               saved={saved.has(p.id)}
