@@ -585,23 +585,18 @@ export default function ClientsPage() {
           </p>
 
           {/* Search bar */}
-          <div className="fm-search-wrap" style={{ position:'relative', maxWidth:560, margin:'0 auto 44px' }}>
+          <div className="fm-search-wrap" style={{ position:'relative', maxWidth:520, margin:'0 auto 44px' }}>
             <div style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', color:'var(--fm-text-6)', pointerEvents:'none' }}>
               <IcSearch />
             </div>
             <input ref={searchRef} type="text" value={search} onChange={e=>setSearch(e.target.value)}
               placeholder={t('Search clients...')}
-              className="fm-search-input"
-              style={{ width:'100%', boxSizing:'border-box', padding:'15px 130px 15px 48px', borderRadius:16, background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', color:'var(--fm-text-2)', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s, background .2s' }}
-              onFocus={e=>{e.target.style.borderColor=C.accentBord; e.target.style.background=C.accentDim;}} onBlur={e=>{e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-border-soft)';}} />
-            <button
-              style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', padding:'9px 24px', borderRadius:12, background:`linear-gradient(135deg,${C.accent},#0284c7)`, border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:C.accentGlow, transition:'opacity .15s' }}
-              onMouseEnter={e=>{e.currentTarget.style.opacity='0.88';}} onMouseLeave={e=>{e.currentTarget.style.opacity='1';}}>
-              {t('Search')}
-            </button>
+              style={{ width:'100%', boxSizing:'border-box', padding:'14px 44px', borderRadius:14, background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', color:'var(--fm-text-2)', fontSize:14, outline:'none', fontFamily:'inherit', textAlign:'center', transition:'border-color .2s, background .2s' }}
+              onFocus={e=>{e.target.style.borderColor=C.accentBord; e.target.style.background=C.accentDim; e.target.style.textAlign='left';}}
+              onBlur={e=>{e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-border-soft)'; if (!search) e.target.style.textAlign='center';}} />
             {search && (
               <button onClick={()=>{setSearch('');searchRef.current?.focus();}}
-                style={{ position:'absolute', right:110, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--fm-text-6)', cursor:'pointer', padding:4, display:'flex' }}>
+                style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--fm-text-6)', cursor:'pointer', padding:4, display:'flex' }}>
                 <IcX />
               </button>
             )}

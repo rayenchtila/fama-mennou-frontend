@@ -48,6 +48,7 @@ const IcPin     = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="no
 const IcChat    = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
 const IcLink    = () => <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>;
 const IcSearch  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>;
+const IcX       = () => <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>;
 const IcChev    = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>;
 const IcStar    = ({ on }) => <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" style={{ color: on ? 'var(--fm-warning)' : 'var(--fm-border-strong)' }}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>;
 const IcStarBig = ({ on }) => <svg width="22" height="22" viewBox="0 0 20 20" fill="currentColor" style={{ color: on ? 'var(--fm-warning)' : 'var(--fm-border-strong)', cursor:'pointer', transition:'color .1s' }}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>;
@@ -391,22 +392,21 @@ export default function FreelancersPage() {
           </p>
 
           {/* Search */}
-          <div className="fm-search-wrap" style={{ position:'relative', maxWidth:560, margin:'0 auto 44px' }}>
+          <div className="fm-search-wrap" style={{ position:'relative', maxWidth:520, margin:'0 auto 44px' }}>
             <div style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', color:'var(--fm-text-7)', pointerEvents:'none' }}>
               <IcSearch />
             </div>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder={t('Name, skill, region…')}
-              className="fm-search-input"
-              style={{ width:'100%', boxSizing:'border-box', padding:'15px 130px 15px 48px', borderRadius:16, background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', color:'var(--fm-text-2)', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s, background .2s' }}
-              onFocus={e => { e.target.style.borderColor='rgba(124,108,246,0.5)'; e.target.style.background='rgba(124,108,246,0.04)'; }}
-              onBlur={e => { e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-border-soft)'; }} />
-            <button
-              style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', padding:'9px 24px', borderRadius:12, background:'linear-gradient(135deg,#9b8cff,#7c6cf6)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', transition:'opacity .15s', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.65)' }}
-              onMouseEnter={e => { e.currentTarget.style.opacity='0.88'; }}
-              onMouseLeave={e => { e.currentTarget.style.opacity='1'; }}>
-              {t('Search')}
-            </button>
+              style={{ width:'100%', boxSizing:'border-box', padding:'14px 44px', borderRadius:14, background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', color:'var(--fm-text-2)', fontSize:14, outline:'none', fontFamily:'inherit', textAlign:'center', transition:'border-color .2s, background .2s' }}
+              onFocus={e => { e.target.style.borderColor='rgba(124,108,246,0.5)'; e.target.style.background='rgba(124,108,246,0.04)'; e.target.style.textAlign='left'; }}
+              onBlur={e => { e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-border-soft)'; if (!search) e.target.style.textAlign='center'; }} />
+            {search && (
+              <button onClick={() => setSearch('')}
+                style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--fm-text-6)', cursor:'pointer', padding:4, display:'flex' }}>
+                <IcX />
+              </button>
+            )}
           </div>
 
           {/* Stats row with separators */}

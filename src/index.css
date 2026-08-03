@@ -495,13 +495,6 @@ button, a, [role="button"] { min-height: 36px; }
   ::-webkit-scrollbar { width: 0; height: 0; }
 }
 
-/* Search bars: reduce right padding on small screens so the button never overflows */
-@media (max-width: 480px) {
-  .fm-search-input {
-    padding-right: 90px !important;
-  }
-}
-
 /* Freelancer/Client cards: prevent text overflow on small screens */
 @media (max-width: 480px) {
   .fm-search-wrap { max-width: calc(100vw - 32px) !important; }
