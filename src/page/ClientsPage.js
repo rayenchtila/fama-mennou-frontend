@@ -125,11 +125,14 @@ function PeriodSelect({ value, onChange, maxDays }) {
 /* ── Apply Modal ── */
 function ApplyModal({ project, user, onClose, onDone }) {
   const { t } = useTranslation();
+  const { logout } = useAuth();
   const [period,    setPeriod]    = useState('');
   const [portfolio, setPortfolio] = useState('');
   const [letter,    setLetter]    = useState('');
   const [loading,   setLoading]   = useState(false);
   const [err,       setErr]       = useState('');
+  const expiredTimer = useRef(null);
+  useEffect(() => () => { if (expiredTimer.current) clearTimeout(expiredTimer.current); }, []);
 
   const clientMaxDays = PERIOD_DAYS[project.period]; // undefined if project has no period
 
@@ -147,7 +150,16 @@ function ApplyModal({ project, user, onClose, onDone }) {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId: project.id, freelancerEmail: user.email, price: 1, deliveryDays: PERIOD_DAYS[period]||1, coverLetter: portfolio ? `[portfolio:${portfolio}]\n${letter}` : letter }),
       });
-      const d = await res.json();
+      const d = await res.json().catch(() => ({}));
+      // Session/token dead server-side: never show the raw backend error.
+      // Logging out flips `user` to null, which PrivateRoute (App.js) picks
+      // up on its own to reopen the login modal and remember this page as
+      // the post-login redirect target — no new plumbing needed here.
+      if (res.status === 401) {
+        setErr(t('prp.err_session_expired'));
+        expiredTimer.current = setTimeout(logout, 1800);
+        return;
+      }
       if (!res.ok || d.error) { setErr(d.error || t('prp.err_already_applied')); return; }
       onDone();
     } catch { setErr(t('clp.server_unreachable')); }
