@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import CreateCourseModal from '../components/CreateCourseModal';
+import Pagination from '../components/Pagination';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead from '../components/Seohead';
 
@@ -533,6 +534,9 @@ export default function CoursesPage() {
   const { user } = useAuth();
 
   const [courses,         setCourses]         = useState([]);
+  const [total,           setTotal]           = useState(0);
+  const [totalPages,      setTotalPages]      = useState(1);
+  const [page,            setPage]            = useState(1);
   const [loading,         setLoading]         = useState(true);
   const [search,          setSearch]          = useState('');
   const [debSearch,       setDebSearch]       = useState('');
@@ -543,16 +547,20 @@ export default function CoursesPage() {
   const [createType,      setCreateType]      = useState('paid');
   const [showTypeModal,   setShowTypeModal]   = useState(false);
   const [selectedType,    setSelectedType]    = useState('free');
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     const t = setTimeout(() => setDebSearch(search), 320);
     return () => clearTimeout(t);
   }, [search]);
 
+  // Any filter change invalidates the current page — start back at page 1.
+  useEffect(() => { setPage(1); }, [debSearch, category, sort, priceFilter]);
+
   const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
-      const p = new URLSearchParams({ sort });
+      const p = new URLSearchParams({ sort, page: String(page), limit: String(PAGE_SIZE) });
       if (debSearch)            p.set('search', debSearch.trim());
       if (category !== 'All')   p.set('category', category);
       if (priceFilter==='free') p.set('max_price','0');
@@ -562,14 +570,18 @@ export default function CoursesPage() {
       // A transient 429/500 (e.g. right as Neon wakes from an idle suspend)
       // returns a non-array error body — retry once instead of silently
       // showing "no courses" for a request that never actually succeeded.
-      if (!Array.isArray(d)) {
+      if (!d || !Array.isArray(d.rows)) {
         await new Promise(res => setTimeout(res, 2000));
         d = await fetch(url).then(r => r.json());
       }
-      if (Array.isArray(d)) setCourses(d);
+      if (d && Array.isArray(d.rows)) {
+        setCourses(d.rows);
+        setTotal(d.total || 0);
+        setTotalPages(d.totalPages || 1);
+      }
     } catch { /* leave existing courses in place rather than wiping to empty */ }
     finally  { setLoading(false); }
-  }, [debSearch, category, sort, priceFilter]);
+  }, [debSearch, category, sort, priceFilter, page]);
 
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
 
@@ -579,7 +591,13 @@ export default function CoursesPage() {
     return () => { document.body.style.overflow = ''; };
   }, [showTypeModal, showCreateModal]);
 
-  const instructors  = new Set(courses.map(c => c.creator_email)).size;
+  // Distinct-instructor count across the WHOLE catalog, not just this page —
+  // fetched once (60s server cache) rather than derived from `courses`,
+  // which is now just the current page's 10 rows.
+  const [instructors, setInstructors] = useState(0);
+  useEffect(() => {
+    fetch(`${API}/courses/stats`).then(r => r.json()).then(d => setInstructors(d.instructors || 0)).catch(() => {});
+  }, []);
   const isFreelancer = user?.role === 'freelancer';
 
   return (
@@ -688,7 +706,7 @@ export default function CoursesPage() {
             {/* Stats row */}
             <div className="csp-stats-row" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
               {[
-                { n: courses.length,        label: t('csp.stat_courses')     },
+                { n: total,                 label: t('csp.stat_courses')     },
                 { n: CATEGORIES.length - 1, label: t('csp.stat_categories')  },
                 { n: instructors,           label: t('csp.stat_instructors')  },
               ].map((s, i) => (
@@ -762,7 +780,7 @@ export default function CoursesPage() {
 
               {/* Course count */}
               <span className="csp-filter-count" style={{ fontSize:12, color:C.muted, whiteSpace:'nowrap', fontWeight:500 }}>
-                <strong style={{ color:C.accentBr, fontWeight:800 }}>{courses.length}</strong>
+                <strong style={{ color:C.accentBr, fontWeight:800 }}>{total}</strong>
                 {' '}{t('csp.courses_lower')}
               </span>
 
@@ -798,9 +816,9 @@ export default function CoursesPage() {
                   {category === 'All' ? t('csp.all_courses') : t(category)}
                 </span>
               </div>
-              {courses.length > 0 && (
+              {total > 0 && (
                 <span style={{ fontSize:12, color:C.dim, fontWeight:500 }}>
-                  {t('csp.courses_found', { count: courses.length })}
+                  {t('csp.courses_found', { count: total })}
                 </span>
               )}
             </div>
@@ -853,6 +871,10 @@ export default function CoursesPage() {
               ))}
             </div>
           )}
+
+          <Pagination page={page} totalPages={totalPages} total={total} limit={PAGE_SIZE}
+            onPageChange={p => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            accent={C.accentBr} loading={loading} />
         </div>
       </div>
 

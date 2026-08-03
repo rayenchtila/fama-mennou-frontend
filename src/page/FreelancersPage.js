@@ -3,6 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import ChatDrawer from '../components/ChatDrawer';
+import Pagination from '../components/Pagination';
+import { normalizeUser } from '../utils/normalizeUser';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead from '../components/Seohead';
 
@@ -278,23 +280,79 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
    ══════════════════════════════════════════════════════════════════ */
 export default function FreelancersPage() {
   const { t } = useTranslation();
-  const { users, user } = useAuth();
+  const { user } = useAuth();
   const navigate           = useNavigate();
   const [searchParams]     = useSearchParams();
-  const [search,   setSearch]   = useState(searchParams.get('q') || '');
-  const [category, setCategory] = useState('All');
-  const [sortBy,   setSortBy]   = useState('rating');
-  const [reviews,  setReviews]  = useState({});
+  const [search,    setSearch]    = useState(searchParams.get('q') || '');
+  const [debSearch, setDebSearch] = useState(searchParams.get('q') || '');
+  const [category,  setCategory]  = useState('All');
+  const [sortBy,    setSortBy]    = useState('rating');
+  const [reviews,   setReviews]   = useState({});
   const [completedWith, setCompletedWith] = useState([]);
 
-  const isLocal  = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const hasProfile = u => u?.photo && u?.bio && u?.portfolio_url && u?.skills && (Array.isArray(u.skills) ? u.skills.length > 0 : String(u.skills).trim().length > 0);
-  const approved = (users||[]).filter(u => u?.role === 'freelancer' && (isLocal || u?.cinStatus === 'approved') && hasProfile(u));
+  // The directory itself now comes from a dedicated, paginated, server-
+  // filtered endpoint (GET /users/public/freelancers) instead of the global
+  // AuthContext `users` map — that map has to stay the FULL unpaginated
+  // directory for other features (chat, admin, profile lookups), so this
+  // page can't paginate it client-side without breaking those.
+  const PAGE_SIZE = 10;
+  const [freelancers, setFreelancers] = useState([]);
+  const [total,       setTotal]       = useState(0);
+  const [totalPages,  setTotalPages]  = useState(1);
+  const [page,        setPage]        = useState(1);
+  const [listLoading, setListLoading] = useState(true);
+  const [stats, setStats] = useState({ verified: 0, regions: 0, reviews: 0 });
+
+  useEffect(() => {
+    const tmr = setTimeout(() => setDebSearch(search), 320);
+    return () => clearTimeout(tmr);
+  }, [search]);
+
+  // Any filter change invalidates the current page — start back at page 1.
+  useEffect(() => { setPage(1); }, [debSearch, category, sortBy]);
+
+  const fetchFreelancers = useCallback(async () => {
+    setListLoading(true);
+    try {
+      const p = new URLSearchParams({ sort: sortBy, page: String(page), limit: String(PAGE_SIZE) });
+      if (debSearch)           p.set('search', debSearch.trim());
+      if (category !== 'All')  p.set('category', category);
+      const url = `${API}/users/public/freelancers?${p}`;
+      let d = await fetch(url).then(r => r.json());
+      // A transient 429/500 (e.g. right as Neon wakes from an idle suspend)
+      // returns a non-array error body — retry once instead of silently
+      // showing "no freelancers" for a request that never actually succeeded.
+      if (!d || !Array.isArray(d.rows)) {
+        await new Promise(res => setTimeout(res, 2000));
+        d = await fetch(url).then(r => r.json());
+      }
+      if (d && Array.isArray(d.rows)) {
+        setFreelancers(d.rows.map(r => normalizeUser(r, false)));
+        setTotal(d.total || 0);
+        setTotalPages(d.totalPages || 1);
+      }
+    } catch { /* leave existing freelancers in place rather than wiping to empty */ }
+    finally { setListLoading(false); }
+  }, [debSearch, category, sortBy, page]);
+
+  useEffect(() => { fetchFreelancers(); }, [fetchFreelancers]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/users/public/freelancers/stats`).then(r => r.json());
+      setStats({
+        verified: r.verified_freelancers || 0,
+        regions:  r.regions_covered || 0,
+        reviews:  r.reviews_received || 0,
+      });
+    } catch {}
+  }, []);
+  useEffect(() => { fetchStats(); }, [fetchStats]);
 
   const fetchReviews = useCallback(async () => {
-    if (!approved.length) return;
+    if (!freelancers.length) return;
     try {
-      const emails  = approved.map(u => u.email);
+      const emails  = freelancers.map(u => u.email);
       const results = await Promise.all(
         emails.map(email => fetch(`${API}/reviews/${encodeURIComponent(email)}`).then(r=>r.json()).catch(()=>[]))
       );
@@ -308,7 +366,7 @@ export default function FreelancersPage() {
       setReviews(map);
     } catch {}
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users]);
+  }, [freelancers]);
 
   const fetchCompleted = useCallback(async () => {
     if (!user || user.role !== 'client') return;
@@ -322,27 +380,6 @@ export default function FreelancersPage() {
   useEffect(() => { fetchReviews(); },   [fetchReviews]);
   useEffect(() => { fetchCompleted(); }, [fetchCompleted]);
 
-  const filtered = approved.filter(f => {
-    const q   = search.toLowerCase();
-    const ok  = !search || f.name?.toLowerCase().includes(q) || f.region?.toLowerCase().includes(q)
-              || f.skills?.toLowerCase().includes(q) || f.bio?.toLowerCase().includes(q);
-    const hay = `${f.skills||''} ${f.bio||''} ${f.title||''}`.toLowerCase();
-    const cat = category === 'All' || hay.includes(category.toLowerCase())
-              || (CATEGORY_KEYWORDS[category]||[]).some(kw => hay.includes(kw));
-    return ok && cat;
-  }).sort((a, b) => {
-    const rA = reviews[a.email?.toLowerCase()] || [];
-    const rB = reviews[b.email?.toLowerCase()] || [];
-    if (sortBy === 'rating') {
-      const ra = rA.reduce((s,r)=>s+r.rating,0) / (rA.length||1);
-      const rb = rB.reduce((s,r)=>s+r.rating,0) / (rB.length||1);
-      return rb - ra;
-    }
-    if (sortBy === 'reviews') return rB.length - rA.length;
-    if (sortBy === 'newest')  return new Date(b.registeredAt||0) - new Date(a.registeredAt||0);
-    return (a.name||'').localeCompare(b.name||'');
-  });
-
   async function handleAddReview(freelancerEmail, review) {
     try {
       await fetch(`${API}/reviews`, {
@@ -353,8 +390,8 @@ export default function FreelancersPage() {
     } catch {}
   }
 
-  const totalRegions = new Set(approved.map(f => f.region).filter(Boolean)).size;
-  const totalReviews = Object.values(reviews).flat().length;
+  const totalRegions = stats.regions;
+  const totalReviews = stats.reviews;
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--fm-bg)', position:'relative', paddingBottom:80 }}>
@@ -412,10 +449,10 @@ export default function FreelancersPage() {
           {/* Stats row with separators */}
           <div className="fp-stats-row" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
             {[
-              { n: approved.length, label: t('Verified freelancers') },
-              { n: totalRegions,    label: t('Regions covered')      },
-              { n: totalReviews,    label: t('Reviews received')     },
-              { n: filtered.length, label: t('Matching now')         },
+              { n: stats.verified, label: t('Verified freelancers') },
+              { n: totalRegions,   label: t('Regions covered')      },
+              { n: totalReviews,   label: t('Reviews received')     },
+              { n: total,          label: t('Matching now')         },
             ].map((s,i) => (
               <div key={i} className="fp-stat-item" style={{ display:'flex', alignItems:'center' }}>
                 {i > 0 && <span className="fp-stat-sep" style={{ width:1, height:36, background:'var(--fm-border)', margin:'0 clamp(12px,3vw,32px)' }} />}
@@ -455,7 +492,7 @@ export default function FreelancersPage() {
             {/* Separator + count + sort */}
             <div className="fp-filter-right" style={{ flexShrink:0, display:'flex', alignItems:'center', gap:14, borderLeft:'1px solid var(--fm-border)', paddingLeft:16, marginLeft:8 }}>
               <span style={{ fontSize:12, color:'var(--fm-text-7)', whiteSpace:'nowrap' }}>
-                <strong style={{ color:'var(--fm-primary-light)', fontWeight:700 }}>{filtered.length}</strong>
+                <strong style={{ color:'var(--fm-primary-light)', fontWeight:700 }}>{total}</strong>
                 <span style={{ color:'var(--fm-text-7)' }}> {t('Freelancers').toLowerCase()}</span>
               </span>
               <div style={{ position:'relative' }}>
@@ -474,7 +511,11 @@ export default function FreelancersPage() {
 
         {/* ── Freelancer list ── */}
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'24px clamp(16px,3vw,24px) 0', display:'flex', flexDirection:'column', gap:14 }}>
-          {filtered.length === 0 ? (
+          {listLoading && freelancers.length === 0 ? (
+            <div style={{ display:'flex', justifyContent:'center', padding:'70px 20px' }}>
+              <div style={{ width:34, height:34, borderRadius:'50%', border:'3px solid var(--fm-border)', borderTopColor:'var(--fm-primary)', animation:'fpSpin .8s linear infinite' }} />
+            </div>
+          ) : freelancers.length === 0 ? (
             <div style={{ textAlign:'center', padding:'70px 20px', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border)', borderRadius:22 }}>
               <div style={{ width:56, height:56, borderRadius:16, background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.18)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -488,7 +529,7 @@ export default function FreelancersPage() {
                 </button>
               )}
             </div>
-          ) : filtered.map(f => (
+          ) : freelancers.map(f => (
             <FreelancerCard
               key={f.email}
               freelancer={f}
@@ -500,11 +541,9 @@ export default function FreelancersPage() {
             />
           ))}
 
-          {filtered.length > 0 && (
-            <p style={{ textAlign:'center', fontSize:13, color:'var(--fm-text-7)', padding:'10px 0 4px' }}>
-              {t('freelancers shown', { count: filtered.length })}
-            </p>
-          )}
+          <Pagination page={page} totalPages={totalPages} total={total} limit={PAGE_SIZE}
+            onPageChange={p => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            accent="#7c6cf6" loading={listLoading} />
         </div>
       </div>
 
@@ -534,6 +573,7 @@ export default function FreelancersPage() {
           0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(155,140,255,0.5); }
           50%      { opacity:0.6; box-shadow:0 0 0 5px rgba(155,140,255,0); }
         }
+        @keyframes fpSpin { to { transform:rotate(360deg); } }
         @keyframes fpBlob1 {
           0%,100% { transform:translate(0,0) scale(1); }
           33%      { transform:translate(50px,-40px) scale(1.07); }

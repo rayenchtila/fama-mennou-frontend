@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import Pagination from '../components/Pagination';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead from '../components/Seohead';
 
@@ -806,21 +807,31 @@ export default function ProjectsPage() {
     try { return new Set(JSON.parse(localStorage.getItem('fm_edited_projects')||'[]')); } catch { return new Set(); }
   });
   /* My Projects state */
+  const PAGE_SIZE = 10;
   const [myProjects, setMyProjects] = useState([]);
+  const [myTotal,     setMyTotal]     = useState(0);
+  const [myTotalPages,setMyTotalPages]= useState(1);
+  const [myPage,       setMyPage]       = useState(1);
   const [myPropsMap, setMyPropsMap] = useState({});
   const [myLoading,  setMyLoading]  = useState(false);
   const [expandedId, setExpandedId] = useState(null);
   const [acceptingId,setAcceptingId]= useState(null);
   const [rejectingId,setRejectingId]= useState(null);
 
-  /* Load client's own projects + proposals per project */
+  /* Load client's own projects (paginated) + proposals per project */
   const loadMyProjects = useCallback(async () => {
     if (!isClient || !user?.email) return;
     setMyLoading(true);
     try {
-      const rows = await fetch(`${API}/projects/${encodeURIComponent(user.email)}`).then(r=>r.json()).catch(()=>[]);
-      const arr  = Array.isArray(rows) ? rows.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)) : [];
+      const url = `${API}/projects/${encodeURIComponent(user.email)}?page=${myPage}&limit=${PAGE_SIZE}`;
+      let d = await fetch(url).then(r=>r.json()).catch(()=>null);
+      if (!d || !Array.isArray(d.rows)) {
+        await new Promise(res => setTimeout(res, 2000));
+        d = await fetch(url).then(r=>r.json()).catch(()=>null);
+      }
+      const arr = (d && Array.isArray(d.rows)) ? d.rows : [];
       setMyProjects(arr);
+      if (d && Array.isArray(d.rows)) { setMyTotal(d.total || 0); setMyTotalPages(d.totalPages || 1); }
       const map = {};
       await Promise.all(arr.map(async p => {
         const props = await fetch(`${API}/proposals/project/${p.id}`).then(r=>r.json()).catch(()=>[]);
@@ -829,7 +840,7 @@ export default function ProjectsPage() {
       setMyPropsMap(map);
     } catch {}
     finally { setMyLoading(false); }
-  }, [isClient, user?.email]);
+  }, [isClient, user?.email, myPage]);
 
   useEffect(() => { loadMyProjects(); }, [loadMyProjects]);
 
@@ -839,7 +850,9 @@ export default function ProjectsPage() {
     if (!window.confirm(t('prp.confirm_delete'))) return;
     try {
       await fetch(`${API}/projects/${projectId}`, { method:'DELETE' });
-      setMyProjects(prev=>prev.filter(p=>p.id!==projectId));
+      // Full reload (not a local filter) so total/totalPages stay accurate —
+      // e.g. deleting the last item on a page must recompute the page count.
+      loadMyProjects();
     } catch {}
   }
 
@@ -928,7 +941,7 @@ export default function ProjectsPage() {
             ) : (
               <>
                 <p style={{ fontSize:13, color:'var(--fm-text-7)', margin:'0 0 16px' }}>
-                  {t('prp.n_projects_published', { count: myProjects.length })}
+                  {t('prp.n_projects_published', { count: myTotal })}
                 </p>
                 <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                   {myProjects.map(p=>(
@@ -949,6 +962,9 @@ export default function ProjectsPage() {
                     />
                   ))}
                 </div>
+                <Pagination page={myPage} totalPages={myTotalPages} total={myTotal} limit={PAGE_SIZE}
+                  onPageChange={pg => { setMyPage(pg); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  accent="#7c6cf6" loading={myLoading} />
               </>
             )}
           </>

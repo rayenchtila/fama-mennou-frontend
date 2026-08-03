@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import Pagination from '../components/Pagination';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead from '../components/Seohead';
 
@@ -462,26 +463,54 @@ export default function ClientsPage() {
   const { user, users, accountsLoaded } = useAuth();
   const navigate = useNavigate();
 
+  // The project list now comes from the paginated /projects/browse/open
+  // endpoint (search/category/sort applied server-side) instead of a full
+  // fetch filtered client-side — `projects` below IS the current page.
+  const PAGE_SIZE = 10;
   const [projects,        setProjects]        = useState([]);
+  const [total,           setTotal]           = useState(0);
+  const [totalPages,      setTotalPages]      = useState(1);
+  const [page,            setPage]            = useState(1);
   const [proposals,       setProposals]       = useState({});
   const [myApplications,  setMyApplications]  = useState(new Set());
   const [reviews,         setReviews]         = useState({});
   const [loading,         setLoading]         = useState(true);
   const [search,          setSearch]          = useState('');
+  const [debSearch,       setDebSearch]       = useState('');
   const [category,        setCategory]        = useState('All');
   const [sortBy,          setSortBy]          = useState('newest');
   const [saved,           setSaved]           = useState(() => { try { return new Set(JSON.parse(localStorage.getItem('fm_saved_clients')||'[]')); } catch { return new Set(); } });
   const [applyFor,        setApplyFor]        = useState(null);
   const [reviewFor,       setReviewFor]       = useState(null);
+  const [stats, setStats] = useState({ openProjects: 0, activeClients: 0, regionsCovered: 0, proposalsSent: 0 });
   const searchRef = useRef();
+
+  useEffect(() => {
+    const tmr = setTimeout(() => setDebSearch(search), 320);
+    return () => clearTimeout(tmr);
+  }, [search]);
+
+  // Any filter change invalidates the current page — start back at page 1.
+  useEffect(() => { setPage(1); }, [debSearch, category, sortBy]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const res   = await fetch(`${API}/projects/browse/open`);
-      const rows  = await res.json();
-      const open  = Array.isArray(rows) ? rows : [];
+      const p = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), sort: sortBy });
+      if (debSearch)          p.set('search', debSearch.trim());
+      if (category !== 'All') p.set('category', category);
+      const url = `${API}/projects/browse/open?${p}`;
+      let d = await fetch(url).then(r => r.json());
+      // A transient 429/500 (e.g. right as Neon wakes from an idle suspend)
+      // returns a non-array error body — retry once instead of silently
+      // showing "no projects" for a request that never actually succeeded.
+      if (!d || !Array.isArray(d.rows)) {
+        await new Promise(res => setTimeout(res, 2000));
+        d = await fetch(url).then(r => r.json());
+      }
+      const open = (d && Array.isArray(d.rows)) ? d.rows : [];
       setProjects(open);
+      if (d && Array.isArray(d.rows)) { setTotal(d.total || 0); setTotalPages(d.totalPages || 1); }
 
       const propLists = await Promise.all(open.map(p =>
         fetch(`${API}/proposals/project/${p.id}`).then(r=>r.json()).catch(()=>[])
@@ -501,7 +530,7 @@ export default function ClientsPage() {
       setMyApplications(applied);
     } catch { setProjects([]); }
     finally { setLoading(false); }
-  }, [user?.email, user?.role]);
+  }, [user?.email, user?.role, page, debSearch, category, sortBy]);
 
   const loadReviews = useCallback(async () => {
     try {
@@ -515,8 +544,21 @@ export default function ClientsPage() {
     } catch {}
   }, [projects]);
 
+  const loadStats = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/projects/browse/open/stats`).then(r => r.json());
+      setStats({
+        openProjects:   r.open_projects || 0,
+        activeClients:  r.active_clients || 0,
+        regionsCovered: r.regions_covered || 0,
+        proposalsSent:  r.proposals_sent || 0,
+      });
+    } catch {}
+  }, []);
+
   useEffect(() => { loadData(); }, [loadData]);
   useEffect(() => { if (projects.length) loadReviews(); }, [loadReviews, projects.length]);
+  useEffect(() => { loadStats(); }, [loadStats]);
 
   function getClient(email) {
     return (users||[]).find(u => u.email?.toLowerCase() === email?.toLowerCase());
@@ -530,24 +572,6 @@ export default function ClientsPage() {
       return next;
     });
   }
-
-  const filtered = projects.filter(p => {
-    const q   = search.toLowerCase();
-    const cl  = getClient(p.client_email);
-    const hay = `${p.title||''} ${p.description||''} ${p.keywords||''} ${p.experience||''} ${cl?.name||''} ${cl?.company||''} ${cl?.region||''}`.toLowerCase();
-    const okQ = !search || hay.includes(q);
-    const okC = category === 'All' || (CAT_KEYS[category]||[]).some(k=>hay.includes(k));
-    return okQ && okC;
-  }).sort((a,b) => {
-    if (sortBy === 'newest')    return new Date(b.created_at) - new Date(a.created_at);
-    if (sortBy === 'oldest')    return new Date(a.created_at) - new Date(b.created_at);
-    if (sortBy === 'budget')    return Number(b.budget||0) - Number(a.budget||0);
-    if (sortBy === 'proposals') return (proposals[b.id]||0) - (proposals[a.id]||0);
-    return 0;
-  });
-
-  const totalClients = new Set(projects.map(p=>p.client_email?.toLowerCase()).filter(Boolean)).size;
-  const totalRegions = new Set(projects.map(p => getClient(p.client_email)?.region).filter(Boolean)).size;
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--fm-bg)', fontFamily:"'Plus Jakarta Sans', 'Inter', sans-serif", paddingBottom:80, position:'relative' }}>
@@ -605,10 +629,10 @@ export default function ClientsPage() {
           {/* Stats row with separators */}
           <div className="cp-stats-row" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
             {[
-              { n: projects.filter(p=>p.status==='open').length, label:t('clp.stat_open_projects') },
-              { n: totalClients, label:t('clp.stat_active_clients') },
-              { n: totalRegions, label:t('Regions covered') },
-              { n: Object.values(proposals).reduce((s,v)=>s+v,0), label:t('clp.stat_proposals_sent') },
+              { n: stats.openProjects,   label:t('clp.stat_open_projects') },
+              { n: stats.activeClients,  label:t('clp.stat_active_clients') },
+              { n: stats.regionsCovered, label:t('Regions covered') },
+              { n: stats.proposalsSent,  label:t('clp.stat_proposals_sent') },
             ].map((s,i) => (
               <div key={i} className="cp-stat-item" style={{ display:'flex', alignItems:'center' }}>
                 {i > 0 && <span className="cp-stat-sep" style={{ width:1, height:36, background:'var(--fm-border)', margin:'0 clamp(12px,3vw,32px)' }} />}
@@ -648,8 +672,8 @@ export default function ClientsPage() {
           {/* Separator + count + sort */}
           <div className="cp-filter-right" style={{ flexShrink:0, display:'flex', alignItems:'center', gap:14, borderLeft:'1px solid var(--fm-border)', paddingLeft:16, marginLeft:8 }}>
             <span style={{ fontSize:12, whiteSpace:'nowrap' }}>
-              <strong style={{ color:C.accent, fontWeight:700 }}>{filtered.length}</strong>
-              <span style={{ color:'var(--fm-text-7)' }}> {t('clp.projects_count', { count: filtered.length })}</span>
+              <strong style={{ color:C.accent, fontWeight:700 }}>{total}</strong>
+              <span style={{ color:'var(--fm-text-7)' }}> {t('clp.projects_count', { count: total })}</span>
             </span>
             <div style={{ position:'relative' }}>
               <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
@@ -672,7 +696,7 @@ export default function ClientsPage() {
             <div style={{ width:32, height:32, border:`2px solid ${C.accentBord}`, borderTopColor:C.accent, borderRadius:'50%', margin:'0 auto 16px', animation:'spin 0.8s linear infinite' }} />
             {t('clp.loading_projects')}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : projects.length === 0 ? (
           <div style={{ textAlign:'center', padding:'70px 20px', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border-soft)', borderRadius:22 }}>
             <div style={{ width:60, height:60, borderRadius:18, background:C.accentDim, border:`1px solid ${C.accentBord}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px' }}>
               <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke={C.accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -687,7 +711,7 @@ export default function ClientsPage() {
             )}
           </div>
         ) : (
-          filtered.map(p => (
+          projects.map(p => (
             <ProjectCard
               key={p.id}
               project={p}
@@ -705,11 +729,9 @@ export default function ClientsPage() {
           ))
         )}
 
-        {filtered.length > 0 && (
-          <p style={{ textAlign:'center', fontSize:13, color:'var(--fm-text-7)', padding:'12px 0 4px' }}>
-            {t('clp.projects_shown', { count: filtered.length })}
-          </p>
-        )}
+        <Pagination page={page} totalPages={totalPages} total={total} limit={PAGE_SIZE}
+          onPageChange={pg => { setPage(pg); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          accent={C.accent} loading={loading} />
       </div>
 
       {/* ── Apply modal ── */}

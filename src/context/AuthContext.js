@@ -1,6 +1,7 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { tokenStore } from "../lib/tokenStore";
+import { normalizeUser } from "../utils/normalizeUser";
 
 const AuthContext = createContext(null);
 const API = process.env.REACT_APP_API_URL || "https://famamennou-server.onrender.com/api";
@@ -218,52 +219,6 @@ export function AuthProvider({ children }) {
     if (Object.keys(patch).length > 0) setUser({ ...user, ...patch });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accounts]);
-
-  function safeParseJson(val, fallback) {
-    if (Array.isArray(val)) return val;
-    if (typeof val === 'string' && val.startsWith('[')) {
-      try { return JSON.parse(val); } catch { return fallback; }
-    }
-    return val ?? fallback;
-  }
-
-  function normalizeUser(r, trustCin = true) {
-    return {
-      email:              r.email,
-      password:           r.password,
-      name:               r.name,
-      role:               r.role,
-      dob:                r.dob,
-      region:             r.region,
-      gender:             r.gender     ?? null,
-      photo:              r.photo      ?? null,
-      skills:             safeParseJson(r.skills, null),
-      bio:                r.bio           ?? null,
-      portfolio_url:      r.portfolio_url ?? null,
-      hourly_rate:        r.hourly_rate   ?? null,
-      title:              r.title         ?? null,
-      portfolio:          safeParseJson(r.portfolio, []),
-      cin:                r.cin,
-      cinFront:           r.cin_front,
-      cinBack:            r.cin_back,
-      cinVerified:        r.cin_verified,
-      cinStatus:          r.cin_status ?? (r.cin_verified ? "approved" : "pending"),
-      cinRejectionReason: r.cin_rejection_reason ?? null,
-      cinApprovalReason:  r.cin_approval_reason  ?? null,
-      // Public (unauthenticated) listings never include cin_status/rejection/approval
-      // reason — only an admin-sourced fetch or the login response itself can be
-      // trusted for those specific fields.
-      _cinTrusted:        trustCin || r.cin_status !== undefined,
-      statusSeen:         r.status_seen ?? false,
-      availability:       r.availability ?? 'available',
-      company:            r.company      ?? null,
-      registeredAt:       r.registered_at,
-      lastSeen:           r.last_seen    ?? null,
-      isAdmin:            r.role === 'admin',
-      rating:             Number(r.rating) || 0,
-      completedProjects:  Number(r.completed_projects) || 0,
-    };
-  }
 
   async function register(userData) {
     try {
