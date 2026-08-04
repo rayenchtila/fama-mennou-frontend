@@ -1568,8 +1568,26 @@ export default function AdminPage() {
     // AuthContext after refreshAccessToken() completes, guaranteeing the admin
     // token is ready before hitting /users. Calling it here (without token) would
     // race and potentially overwrite correct data with the public /users/public list.
-    const pollId = setInterval(() => { fetchAccounts(); fetchNotifications(); }, 60000);
-    return () => clearInterval(pollId);
+    //
+    // This used to poll every 60s unconditionally, which meant a single admin
+    // tab left open drove ~1,440 full reads of the users table per day — and
+    // because the server-side cache TTL is also 60s, nearly every poll missed
+    // the cache and hit Neon. It kept the database awake around the clock.
+    // Now: 5-minute interval, skipped entirely while the tab is hidden, and
+    // refreshed immediately when the admin comes back so nothing looks stale.
+    const POLL_MS = 5 * 60 * 1000;
+    const poll = () => {
+      if (document.visibilityState !== 'visible') return;
+      fetchAccounts();
+      fetchNotifications();
+    };
+    const pollId = setInterval(poll, POLL_MS);
+    const onVisible = () => { if (document.visibilityState === 'visible') poll(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(pollId);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   // ── main tab: "cin" | "allusers" | "courses" ──
