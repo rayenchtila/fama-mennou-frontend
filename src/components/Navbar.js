@@ -282,11 +282,34 @@ export default function Navbar({ onLogin }) {
     } catch {}
   }, [senderEmail, user]);
 
+  // Navbar is mounted on every page for every logged-in user, so this poll ran
+  // once a minute per open tab forever, with no visibility check — the single
+  // biggest reason Neon's compute could never reach idle suspend (the messages
+  // table showed 322k sequential scans against 2.8k index scans).
+  //
+  // The realtime channel below already delivers `new_message`, so the unread
+  // badge stays live without polling at all. What remains is a low-frequency
+  // safety net for the cases a socket can miss — a dropped connection, a
+  // message sent while the socket was reconnecting — and it only runs while
+  // the tab is actually visible. A hidden or backgrounded tab now performs
+  // zero database work.
   useEffect(() => {
     if (!senderEmail) return;
     fetchMsgs();
-    const id = setInterval(fetchMsgs, 60000);
-    return () => clearInterval(id);
+
+    const FALLBACK_MS = 5 * 60 * 1000;
+    const refreshIfVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      fetchMsgs();
+    };
+    const id = setInterval(refreshIfVisible, FALLBACK_MS);
+    // Re-sync immediately when the user comes back to the tab, so the badge is
+    // never stale on return even though nothing ran while it was hidden.
+    document.addEventListener('visibilitychange', refreshIfVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+    };
   }, [senderEmail, fetchMsgs]);
 
   useRealtimeChannel(senderEmail, { new_message: fetchMsgs });

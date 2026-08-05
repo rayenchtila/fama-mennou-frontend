@@ -63,7 +63,15 @@ export function AuthProvider({ children }) {
   // token — this is what lets the verify-email auto-login flow (which lands
   // on the frontend with only the refresh cookie set, no user data yet)
   // turn that cookie into a full session with a single call.
+  // Timestamp of the last successful refresh, used to decide whether a token
+  // is actually stale before spending a network+database round trip on it.
+  const lastRefreshAtRef = useRef(0);
+
   const refreshAccessToken = useCallback(async () => {
+    // Stamped on every ATTEMPT, not just success: a failed refresh (expired or
+    // missing cookie) must back off to the normal cadence rather than have the
+    // staleness check re-fire it every minute.
+    lastRefreshAtRef.current = Date.now();
     try {
       const res  = await fetch(`${API}/auth/refresh`, { method: 'POST', credentials: 'include' });
       const data = await res.json();
@@ -85,11 +93,44 @@ export function AuthProvider({ children }) {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-refresh every 13 minutes (access token expires at 15 min)
+  // Keep the 15-minute access token alive, without waking the database on a
+  // blind timer.
+  //
+  // This used to be an unconditional `setInterval(refreshAccessToken, 13min)`,
+  // which fired for every open tab forever — visible or not, idle or not. It
+  // was the single largest source of database writes: POST /refresh accounted
+  // for 1,131 of 1,800 audit-log rows in 24h (63%), each call costing two
+  // SELECTs plus an INSERT, and re-waking a suspended Neon compute every 13
+  // minutes per tab.
+  //
+  // Now the timer only *checks a local timestamp* — no network, no database —
+  // and issues a real refresh only when the token is genuinely near expiry
+  // AND the tab is visible. A hidden/backgrounded tab performs zero work; it
+  // re-syncs the moment the user returns to it.
+  //
+  // Reliability is unchanged for anyone actually using the app:
+  //   • a visible tab still refreshes at 13 min, before the 15-min expiry;
+  //   • returning to a stale tab refreshes immediately on focus;
+  //   • and src/lib/fetchInterceptor.js still transparently refreshes+retries
+  //     on any 401, which is the ultimate backstop.
   useEffect(() => {
     if (!user) return;
-    const id = setInterval(refreshAccessToken, 13 * 60 * 1000);
-    return () => clearInterval(id);
+
+    const REFRESH_AFTER_MS = 13 * 60 * 1000; // access token lives 15 min
+    const CHECK_EVERY_MS   = 60 * 1000;      // local timestamp check only
+
+    const refreshIfStaleAndVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - lastRefreshAtRef.current < REFRESH_AFTER_MS) return;
+      refreshAccessToken();
+    };
+
+    const id = setInterval(refreshIfStaleAndVisible, CHECK_EVERY_MS);
+    document.addEventListener('visibilitychange', refreshIfStaleAndVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', refreshIfStaleAndVisible);
+    };
   }, [user?.email, refreshAccessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Load users ──
