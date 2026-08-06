@@ -424,7 +424,21 @@ function FeaturedFreelancersSection({ items, loading, error }) {
               onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '13px', marginBottom: '16px' }}>
-                <span style={{ width: '50px', height: '50px', borderRadius: '50%', background: pickGradient(f.email || f.name), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', flex: 'none' }}>
+                {/* Real profile photo when the freelancer has one, falling back
+                    to the gradient initials circle otherwise (most accounts
+                    still have no photo). onError swaps back to initials if the
+                    image 404s, so a dead Cloudinary URL can never leave a blank
+                    hole in the card. */}
+                {f.photo ? (
+                  <img
+                    src={cldImg(f.photo)}
+                    alt={f.name || ''}
+                    loading="lazy"
+                    onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+                    style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', flex: 'none', background: 'var(--fm-surface-hover)' }}
+                  />
+                ) : null}
+                <span style={{ width: '50px', height: '50px', borderRadius: '50%', background: pickGradient(f.email || f.name), color: '#fff', display: f.photo ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', flex: 'none' }}>
                   {getInitials(f.name)}
                 </span>
                 <div style={{ minWidth: 0, flex: 1 }}>
@@ -490,13 +504,23 @@ function useTopProjects() {
       const open = Array.isArray(rows) ? rows : [];
       if (cancelled) return;
       setProjects(open);
-      return Promise.all(open.map(p => fetch(`${API}/proposals/project/${p.id}`).then(r => r.json()).catch(() => [])))
+      // Proposal counts come from the public aggregate endpoint. This used to
+      // call /proposals/project/:id once per project — a route that returns
+      // full proposal rows and is therefore restricted to the project owner,
+      // so every other visitor got 401/403, the catch turned it into [], and
+      // every card showed "0 propositions" regardless of reality.
+      //
+      // One batched request instead of one per project, and the value is a
+      // live COUNT(*) so it rises on its own as real proposals arrive.
+      if (!open.length) return;
+      const ids = open.map(p => p.id).join(',');
+      return fetch(`${API}/proposals/counts?ids=${ids}`)
+        .then(r => r.json())
         .then(counts => {
           if (cancelled) return;
-          const map = {};
-          open.forEach((p, i) => { map[p.id] = Array.isArray(counts[i]) ? counts[i].length : 0; });
-          setProposalCounts(map);
-        });
+          setProposalCounts(counts && typeof counts === 'object' ? counts : {});
+        })
+        .catch(() => { /* leave counts empty rather than render a wrong number */ });
     }).catch(() => { if (!cancelled) { setError(true); setProjects([]); } })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };

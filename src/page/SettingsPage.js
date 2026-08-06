@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { pushSupported, pushPermission, enablePush, disablePush } from '../lib/pushClient';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -60,9 +61,108 @@ function InfoRow({ label, value, badge }) {
   );
 }
 
+// Row with a switch — used for the push categories.
+function ToggleRow({ label, hint, checked, disabled, onChange }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, paddingBlock:12, borderBottom:`1px solid ${C.border}`, opacity: disabled ? 0.5 : 1 }}>
+      <div style={{ minWidth:0 }}>
+        <p style={{ fontSize:13, fontWeight:600, color:C.text, margin:0 }}>{label}</p>
+        {hint && <p style={{ fontSize:11.5, color:C.muted, margin:'3px 0 0' }}>{hint}</p>}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        disabled={disabled}
+        onClick={() => !disabled && onChange(!checked)}
+        style={{
+          flex:'none', width:44, height:25, borderRadius:20, position:'relative', cursor: disabled ? 'not-allowed' : 'pointer',
+          border:`1px solid ${checked ? 'rgba(124,108,246,0.6)' : C.border}`,
+          background: checked ? 'linear-gradient(135deg,#9b8cff,#7c6cf6)' : 'var(--fm-surface-hover)',
+          transition:'background .2s, border-color .2s',
+        }}>
+        <span style={{
+          position:'absolute', top:2, left: checked ? 21 : 2, width:19, height:19, borderRadius:'50%',
+          background:'#fff', transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.3)',
+        }}/>
+      </button>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const { t } = useTranslation();
   const { user, logout, addNotification, authFetch } = useAuth();
+  // ── Push notifications ──────────────────────────────────────────────────
+  // Two independent pieces of state that are easy to conflate:
+  //   * browser permission — granted/denied/default, owned by the browser and
+  //     NOT resettable from JS once denied (the user must clear it in site
+  //     settings), which is why we never auto-prompt;
+  //   * server preferences — which categories the user wants, stored per user
+  //     so they follow them across devices.
+  const [pushPerm,  setPushPerm]  = useState(() => pushPermission());
+  const [prefs,     setPrefs]     = useState(null);
+  const [pushBusy,  setPushBusy]  = useState(false);
+  const [pushMsg,   setPushMsg]   = useState('');
+  const API_BASE = API;
+
+  const loadPrefs = useCallback(async () => {
+    try {
+      const r = await authFetch(`${API_BASE}/push/preferences`);
+      if (r.ok) setPrefs(await r.json());
+    } catch { /* leave null — the UI shows a loading dash rather than wrong state */ }
+  }, [authFetch, API_BASE]);
+
+  useEffect(() => { if (user) loadPrefs(); }, [user, loadPrefs]);
+
+  async function togglePush(on) {
+    setPushBusy(true); setPushMsg('');
+    try {
+      if (on) {
+        const res = await enablePush(authFetch);
+        setPushPerm(pushPermission());
+        if (!res.ok) {
+          setPushMsg(
+            res.reason === 'denied'      ? t('sp.push_denied')
+            : res.reason === 'unsupported' ? t('sp.push_unsupported')
+            : t('sp.push_failed')
+          );
+          return;
+        }
+        await authFetch(`${API_BASE}/push/preferences`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ push_enabled: true }),
+        });
+        setPushMsg(t('sp.push_enabled_ok'));
+      } else {
+        await disablePush(authFetch);
+        await authFetch(`${API_BASE}/push/preferences`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ push_enabled: false }),
+        });
+        setPushMsg(t('sp.push_disabled_ok'));
+      }
+      await loadPrefs();
+    } catch {
+      setPushMsg(t('sp.push_failed'));
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  async function setCategory(key, value) {
+    setPrefs(p => ({ ...p, [key]: value }));   // optimistic
+    try {
+      const r = await authFetch(`${API_BASE}/push/preferences`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: value }),
+      });
+      if (r.ok) setPrefs(await r.json());
+      else await loadPrefs();                  // server rejected — resync
+    } catch { await loadPrefs(); }
+  }
+
   const [currPass,  setCurrPass]  = useState('');
   const [showCurr,  setShowCurr]  = useState(false);
   const [newPass,   setNewPass]   = useState('');
@@ -214,6 +314,80 @@ export default function SettingsPage() {
               {loading ? t('sp.saving') : t('sp.update_password')}
             </button>
           </form>
+        </SectionCard>
+
+        {/* Push notifications */}
+        <SectionCard title={t('sp.push_title')} icon={<IcBell s={16}/>}>
+          {!pushSupported() ? (
+            <p style={{ fontSize:13, color:C.muted, margin:0 }}>{t('sp.push_unsupported')}</p>
+          ) : (
+            <>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, paddingBottom:14, borderBottom:`1px solid ${C.border}` }}>
+                <div style={{ minWidth:0 }}>
+                  <p style={{ fontSize:13, fontWeight:700, color:C.text, margin:0 }}>{t('sp.push_master')}</p>
+                  <p style={{ fontSize:11.5, color:C.muted, margin:'3px 0 0' }}>{t('sp.push_master_hint')}</p>
+                </div>
+                <span style={{
+                  flex:'none', fontSize:11, fontWeight:800, padding:'3px 12px', borderRadius:20,
+                  color:  pushPerm === 'granted' ? 'var(--fm-success)' : pushPerm === 'denied' ? 'var(--fm-danger)' : C.muted,
+                  background: pushPerm === 'granted' ? 'rgba(16,185,129,0.1)' : pushPerm === 'denied' ? 'rgba(239,68,68,0.1)' : 'var(--fm-surface-hover)',
+                  border:`1px solid ${pushPerm === 'granted' ? 'rgba(16,185,129,0.28)' : pushPerm === 'denied' ? 'rgba(239,68,68,0.28)' : C.border}`,
+                }}>
+                  {pushPerm === 'granted' ? t('sp.push_status_on') : pushPerm === 'denied' ? t('sp.push_status_blocked') : t('sp.push_status_off')}
+                </span>
+              </div>
+
+              <div style={{ paddingTop:14 }}>
+                <button
+                  type="button"
+                  disabled={pushBusy || pushPerm === 'denied'}
+                  onClick={() => togglePush(!(prefs?.push_enabled && pushPerm === 'granted'))}
+                  style={{
+                    width:'100%', padding:'11px 18px', borderRadius:12, border:'none', fontSize:13, fontWeight:700,
+                    fontFamily:'inherit', cursor: (pushBusy || pushPerm === 'denied') ? 'not-allowed' : 'pointer',
+                    color:'#fff', opacity: (pushBusy || pushPerm === 'denied') ? 0.55 : 1,
+                    background: (prefs?.push_enabled && pushPerm === 'granted')
+                      ? 'linear-gradient(135deg,#64748b,#475569)'
+                      : 'linear-gradient(135deg,#9b8cff,#7c6cf6)',
+                  }}>
+                  {pushBusy ? t('sp.push_working')
+                    : (prefs?.push_enabled && pushPerm === 'granted') ? t('sp.push_disable') : t('sp.push_enable')}
+                </button>
+
+                {/* Permission denial cannot be undone from JS — tell the user
+                    where to fix it instead of letting the button silently fail. */}
+                {pushPerm === 'denied' && (
+                  <p style={{ fontSize:11.5, color:'var(--fm-danger)', margin:'10px 0 0', lineHeight:1.5 }}>
+                    {t('sp.push_denied_help')}
+                  </p>
+                )}
+                {pushMsg && (
+                  <p style={{ fontSize:12, color:C.sub, margin:'10px 0 0' }}>{pushMsg}</p>
+                )}
+              </div>
+
+              <div style={{ marginTop:6 }}>
+                <p style={{ fontSize:11, fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:'0.08em', margin:'14px 0 2px' }}>
+                  {t('sp.push_categories')}
+                </p>
+                <ToggleRow
+                  label={t('sp.push_cat_messages')} hint={t('sp.push_cat_messages_hint')}
+                  checked={prefs?.push_messages !== false}
+                  disabled={!prefs?.push_enabled || pushPerm !== 'granted'}
+                  onChange={v => setCategory('push_messages', v)} />
+                <ToggleRow
+                  label={t('sp.push_cat_projects')} hint={t('sp.push_cat_projects_hint')}
+                  checked={prefs?.push_projects !== false}
+                  disabled={!prefs?.push_enabled || pushPerm !== 'granted'}
+                  onChange={v => setCategory('push_projects', v)} />
+                <ToggleRow
+                  label={t('sp.push_cat_reviews')} hint={t('sp.push_cat_reviews_hint')}
+                  checked={prefs?.push_reviews !== false}
+                  disabled={!prefs?.push_enabled || pushPerm !== 'granted'}
+                  onChange={v => setCategory('push_reviews', v)} />
+              </div>
+            </>
+          )}
         </SectionCard>
 
         {/* Session */}

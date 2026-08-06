@@ -31,6 +31,17 @@ function avatarGradient(email = '') {
 // ── Notification link resolver ─────────────────────────────────────────────────
 async function getNotifLink(n) {
   if (!n) return "/courses";
+
+  // Notifications created since the `link` column exist carry their exact
+  // destination, decided by the backend when it had the ids in hand. Trust it.
+  //
+  // Everything below is the legacy resolver, kept only for rows written before
+  // that column existed: it reverse-engineers a route by regex-parsing ids out
+  // of the free-text `kind`. That approach is why `new_review` silently routed
+  // to /courses — it had no id and no branch here. New notification types must
+  // set `link` on the server, NOT add a branch below.
+  if (n.link) return n.link;
+
   const k = n.kind || "";
   if (k === "new_submission")          return "/admin/dashboard?tab=cin";
   if (k === "new_user")                return "/admin/dashboard?tab=allusers";

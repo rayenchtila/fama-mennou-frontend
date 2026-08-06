@@ -512,20 +512,30 @@ export default function ClientsPage() {
       setProjects(open);
       if (d && Array.isArray(d.rows)) { setTotal(d.total || 0); setTotalPages(d.totalPages || 1); }
 
-      const propLists = await Promise.all(open.map(p =>
-        fetch(`${API}/proposals/project/${p.id}`).then(r=>r.json()).catch(()=>[])
-      ));
-      const pmap    = {};
+      // Counts come from the public aggregate endpoint. This previously called
+      // /proposals/project/:id once per project — a route restricted to the
+      // project owner — so any other visitor got 401/403 and every card showed
+      // "0 propositions". Now one batched request, and a live COUNT(*) that
+      // rises on its own as real proposals arrive.
+      const pmap = {};
+      if (open.length) {
+        try {
+          const counts = await fetch(`${API}/proposals/counts?ids=${open.map(p => p.id).join(',')}`).then(r => r.json());
+          if (counts && typeof counts === 'object') Object.assign(pmap, counts);
+        } catch { /* leave blank rather than show a wrong number */ }
+      }
+
+      // "Have I already applied" needs the caller's OWN proposals, which
+      // /proposals/mine returns for the authenticated user — one request
+      // instead of reading every project's full proposal list.
       const applied = new Set();
-      open.forEach((p,i) => {
-        const arr = Array.isArray(propLists[i]) ? propLists[i] : [];
-        pmap[p.id] = arr.length;
-        if (user?.role === 'freelancer' && user?.email) {
-          if (arr.some(prop => prop.freelancer_email?.toLowerCase() === user.email.toLowerCase())) {
-            applied.add(p.id);
-          }
-        }
-      });
+      if (user?.role === 'freelancer' && user?.email) {
+        try {
+          const mine = await fetch(`${API}/proposals/mine?email=${encodeURIComponent(user.email)}`).then(r => r.json());
+          if (Array.isArray(mine)) mine.forEach(pr => applied.add(pr.project_id));
+        } catch { /* absence of data must not imply "not applied" incorrectly */ }
+      }
+
       setProposals(pmap);
       setMyApplications(applied);
     } catch { setProjects([]); }
