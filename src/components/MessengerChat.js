@@ -117,12 +117,24 @@ function ImageViewer({ src, onClose }) {
   );
 }
 
+// Same masking the Freelancers / Clients / public-profile pages already apply:
+// only the last name is shown, so chatting with someone does not reveal their
+// full identity. Kept as a local copy to match how those pages each define it.
+const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p[p.length - 1] || name; };
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function MessengerChat({ currentUser, allUsers = [], initialChat = null }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const senderEmail = currentUser?.isAdmin ? ADMIN_EMAIL : (currentUser?.email || '');
+
+  // Admins are exempt — they moderate conversations and need to know exactly
+  // who is who. Falls back to the email, unchanged, when there is no name.
+  const shownName = (name, fallback) => {
+    const n = name || fallback || '';
+    return currentUser?.isAdmin ? n : getLastName(n);
+  };
 
   function goToProfile(email) {
     if (!email || email === ADMIN_EMAIL) return;
@@ -710,7 +722,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-1">
                     <p className="text-sm truncate font-semibold" style={{ color: unread > 0 ? 'var(--fm-text-1)' : 'var(--fm-text-4)', fontWeight: unread > 0 ? 700 : 600 }}>
-                      {u?.name || conv.other_email}
+                      {shownName(u?.name, conv.other_email)}
                     </p>
                     <span className="text-[11px] shrink-0 tabular-nums" style={{ color: 'var(--fm-text-7)' }}>{fmtConvTime(conv.created_at)}</span>
                   </div>
@@ -750,7 +762,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                   >
                     <UserAvatar user={u} size="md" />
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: 'var(--fm-text-1)' }}>{u.name || u.email}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: 'var(--fm-text-1)' }}>{shownName(u.name, u.email)}</p>
                       <p className="text-xs truncate capitalize" style={{ color: 'var(--fm-text-6)' }}>{u.role || 'user'}</p>
                     </div>
                     <svg className="w-4 h-4 ml-auto shrink-0" style={{ color: 'var(--fm-primary-light)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -846,7 +858,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 style={{ background: 'none', border: 'none', padding: 0, cursor: selectedChat !== ADMIN_EMAIL ? 'pointer' : 'default', textAlign: 'left', maxWidth: '100%' }}
               >
                 <p className="font-bold truncate text-sm" style={{ color: 'var(--fm-text-1)', letterSpacing: '-0.01em' }}>
-                  {otherUser?.name || selectedChat}
+                  {shownName(otherUser?.name, selectedChat)}
                 </p>
               </button>
               <p className="text-xs font-medium flex items-center gap-1.5" style={{ color: otherStatus.online ? 'var(--fm-success)' : 'var(--fm-text-7)' }}>
@@ -1100,7 +1112,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 {m.reply_to_id && (
                                   <div className={`mb-2 pl-2.5 border-l-[3px] rounded-lg pr-2 py-1 ${isMine ? 'border-white/40 bg-white/10' : 'border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'}`}>
                                     <p className={`text-[11px] font-bold mb-0.5 ${isMine ? 'text-white/80' : 'text-indigo-500'}`}>
-                                      {resolveUser(m.reply_sender)?.name || m.reply_sender || 'Reply'}
+                                      {shownName(resolveUser(m.reply_sender)?.name, m.reply_sender) || 'Reply'}
                                     </p>
                                     <p className={`text-xs truncate ${isMine ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'}`}>
                                       {m.reply_attachment_url ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span> : (m.reply_content || '')}
@@ -1334,7 +1346,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                             </div>
                         }
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate" style={{ color: 'var(--fm-text-1)' }}>{u.name}</p>
+                          <p className="text-sm font-medium truncate" style={{ color: 'var(--fm-text-1)' }}>{shownName(u.name)}</p>
                           <p className="text-xs truncate" style={{ color: 'var(--fm-text-6)' }}>{u.email}</p>
                         </div>
                         <svg className="w-4 h-4 ml-auto shrink-0" style={{ color: 'var(--fm-primary-light)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1372,7 +1384,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               <div className="flex items-center gap-2 px-3 sm:px-4 pt-2.5 pb-0">
                 <div style={{ flex: 1, paddingLeft: 10, borderLeft: '3px solid var(--fm-primary-light)', background: 'var(--fm-primary-soft)', paddingRight: 10, paddingTop: 6, paddingBottom: 6, borderRadius: 8, minWidth: 0 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--fm-primary-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {resolveUser(replyTo.sender_email)?.name || replyTo.sender_email}
+                    {shownName(resolveUser(replyTo.sender_email)?.name, replyTo.sender_email)}
                   </p>
                   <p style={{ fontSize: 11, color: 'var(--fm-text-6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {replyTo.attachment_url && !replyTo.content ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span> : replyTo.content}

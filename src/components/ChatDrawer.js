@@ -17,6 +17,11 @@ function avatarColor(email = '') {
   return AVATAR_COLORS[(email.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
 }
 
+// Same masking the Freelancers / Clients / public-profile pages already apply:
+// only the last name is shown, so chatting with someone does not reveal their
+// full identity. Kept as a local copy to match how those pages each define it.
+const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p[p.length - 1] || name; };
+
 function getOnlineStatus(lastSeen) {
   if (!lastSeen) return { online: false, text: 'Hors ligne' };
   const diff = Date.now() - new Date(lastSeen).getTime();
@@ -78,6 +83,14 @@ function ReadTick({ read, online }) {
 export default function ChatDrawer({ user, initialEmail, onClose }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  // Every name rendered in this drawer belongs to the OTHER participant (the
+  // sender label is behind `!isMine`), so there is no own-name case to exempt.
+  // Admins are exempt because they moderate conversations and need to know
+  // exactly who is who. Falls back to the email, unchanged, when there is no name.
+  const shownName = (name, fallback) => {
+    const n = name || fallback || '';
+    return user?.isAdmin ? n : getLastName(n);
+  };
   const [usersMap,       setUsersMap]       = useState({});
   const [conversations,  setConversations]  = useState([]);
   const [selectedChat,   setSelectedChat]   = useState(initialEmail || null);
@@ -320,7 +333,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
               <div className="flex-1 min-w-0">
                 <button onClick={() => goToProfile(selectedChat)} className="block text-left hover:underline">
                   <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                    {otherUser?.name || selectedChat}
+                    {shownName(otherUser?.name, selectedChat)}
                   </p>
                 </button>
                 <p className={`text-[11px] font-semibold ${otherTyping ? 'text-indigo-500' : otherStat.online ? 'text-emerald-500' : 'text-slate-400'}`}>
@@ -372,7 +385,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
               <div className="px-4 pt-4 pb-2 shrink-0">
                 <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40 rounded-2xl px-4 py-3 text-center">
                   <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">
-                    {t('chd.conv_start_with')} <span className="font-bold">{otherUser?.name || selectedChat}</span>
+                    {t('chd.conv_start_with')} <span className="font-bold">{shownName(otherUser?.name, selectedChat)}</span>
                   </p>
                   <p className="text-[10px] text-indigo-400 mt-0.5">{t('chd.private_secure')}</p>
                 </div>
@@ -421,7 +434,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
 
                       {!isMine && isFirst && (
                         <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-0.5 ml-1">
-                          {otherUser?.name?.split(' ')[0] || selectedChat}
+                          {shownName(otherUser?.name, selectedChat)}
                         </p>
                       )}
 
@@ -520,7 +533,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                 onChange={handleMsgChange}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
                 onClick={() => setOpenMenuId(null)}
-                placeholder={t('chd.message_to', { name: otherUser?.name?.split(' ')[0] || '…' })}
+                placeholder={t('chd.message_to', { name: shownName(otherUser?.name, '…') })}
                 className="flex-1 text-sm rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
               />
               <button onClick={sendMsg} disabled={!newMsg.trim() || sending}
@@ -547,7 +560,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                   <Avi user={freelancer || { email: initialEmail }} size="md" online={st?.online} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-indigo-700 dark:text-indigo-300 truncate">
-                      {freelancer?.name || initialEmail}
+                      {shownName(freelancer?.name, initialEmail)}
                     </p>
                     <p className="text-[11px] text-indigo-500 dark:text-indigo-400">{t('chd.start_conversation')}</p>
                   </div>
@@ -583,7 +596,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
                         <p className={`text-xs truncate ${isUnread ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-600 dark:text-slate-300'}`}>
-                          {other?.name || conv.other_email}
+                          {shownName(other?.name, conv.other_email)}
                         </p>
                         <span className={`text-[9px] shrink-0 ${st.online ? 'text-emerald-500 font-bold' : 'text-slate-400'}`}>
                           {st.online ? t('msg.online') : st.text}
