@@ -13,14 +13,17 @@ This repository contains the frontend application.
 ## Features
 
 - Authentication and authorization
+- Freelancer marketplace
+- Client project publishing
 - Freelancer and client dashboards
 - Real-time messaging
-- Notifications
-- Course management
+- Notifications system
+- Online courses
 - Project management
 - Multi-language support (French, English, Arabic)
 - Responsive design
 - Admin panel
+- Real-time collaboration
 
 ## Tech Stack
 
