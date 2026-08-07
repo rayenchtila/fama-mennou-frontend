@@ -38,6 +38,13 @@ This repository contains the frontend application.
 ## Local Development
 
 ```bash
-git clone https://github.com/rayenchtila/rayen-buisness.git
+git clone https://github.com/rayenchtila/fama-mennou-frontend.git
 npm install
 npm start
+
+
+## Author
+
+Rayen Ben Chtila
+
+Full-Stack Developer | Founder of Fama Mennou
