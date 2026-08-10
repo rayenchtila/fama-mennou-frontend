@@ -33,6 +33,10 @@ export default function HomeAdVideo() {
   const navigate = useNavigate();
   const [ads, setAds] = useState([]);
   const [idx, setIdx] = useState(0);
+  // The campaign being watched in full, or null. Opening it suspends the
+  // rotation entirely: the teaser loop is a preview, and it must not keep
+  // running (or keep a second video playing) behind someone actually watching.
+  const [watching, setWatching] = useState(null);
   const videoRefs = useRef([]);
 
   useEffect(() => {
@@ -47,16 +51,20 @@ export default function HomeAdVideo() {
   // Rotate only when there is something to rotate between. With a single
   // campaign this interval is never created, so the one video just loops.
   useEffect(() => {
-    if (ads.length < 2) return undefined;
+    if (ads.length < 2 || watching) return undefined;
     const id = setInterval(() => setIdx(i => (i + 1) % ads.length), ROTATE_MS);
     return () => clearInterval(id);
-  }, [ads.length]);
+  }, [ads.length, watching]);
 
   // Drive playback imperatively so only one element is ever playing, and so a
   // video restarts from the beginning each time it comes back around.
   useEffect(() => {
     videoRefs.current.forEach((v, i) => {
       if (!v) return;
+      // While the full video is open, every teaser is silenced — otherwise two
+      // soundtracks would overlap and the preview would keep burning bandwidth
+      // behind the viewer.
+      if (watching) { v.pause(); return; }
       if (i === idx) {
         v.currentTime = 0;
         // Autoplay can still be refused (data saver, reduced motion); the
@@ -66,6 +74,7 @@ export default function HomeAdVideo() {
         v.pause();
       }
     });
+    if (watching) return;
 
     // Warm the NEXT clip while the current one is on screen. Each clip only
     // gets a five-second window, so one that starts buffering at the moment it
@@ -77,7 +86,22 @@ export default function HomeAdVideo() {
       // readyState < HAVE_FUTURE_DATA means it could not play through yet.
       if (next && next.readyState < 3) next.load();
     }
-  }, [idx, ads.length]);
+  }, [idx, ads.length, watching]);
+
+  // Escape closes the viewer, and the page behind it must not scroll while it
+  // is open — both are what people expect of a lightbox, and without them the
+  // only way out on mobile is the browser's back button.
+  useEffect(() => {
+    if (!watching) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setWatching(null); };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [watching]);
 
   if (!ads.length) return null;
 
@@ -88,11 +112,20 @@ export default function HomeAdVideo() {
 
   return (
     <div data-testid="home-ad" style={{ maxWidth: 560, margin: '0 auto 34px', width: '100%' }}>
-      <div style={{
-        position: 'relative', width: '100%', aspectRatio: '16 / 9',
-        borderRadius: 18, overflow: 'hidden',
-        border: '1px solid var(--fm-border)', background: 'var(--fm-surface-hover)',
-      }}>
+      {/* The teaser is a button: clicking whichever clip is on screen opens it
+          in full. Keyboard users get the same affordance for free. */}
+      <div
+        role="button"
+        tabIndex={0}
+        data-testid="home-ad-open"
+        aria-label={t('home.ad.watch_full')}
+        onClick={() => setWatching(current)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setWatching(current); } }}
+        style={{
+          position: 'relative', width: '100%', aspectRatio: '16 / 9',
+          borderRadius: 18, overflow: 'hidden', cursor: 'pointer',
+          border: '1px solid var(--fm-border)', background: 'var(--fm-surface-hover)',
+        }}>
         {ads.map((ad, i) => (
           <video
             key={ad.id}
@@ -125,6 +158,23 @@ export default function HomeAdVideo() {
             }}
           />
         ))}
+
+        {/* Play affordance — without it nothing signals the teaser is clickable */}
+        <span style={{
+          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+          justifyContent: 'center', pointerEvents: 'none',
+        }}>
+          <span style={{
+            width: 54, height: 54, borderRadius: '50%',
+            background: 'rgba(0,0,0,.45)', backdropFilter: 'blur(2px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '1.5px solid rgba(255,255,255,.75)',
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true" style={{ marginLeft: 3 }}>
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </span>
+        </span>
 
         {/* Progress pips, only meaningful with more than one campaign */}
         {ads.length > 1 && (
@@ -191,6 +241,73 @@ export default function HomeAdVideo() {
           {t('home.ad.sponsored')}
         </span>
       </button>
+
+      {/* ── Full video viewer ────────────────────────────────────────────────
+          A lightbox rather than a route: closing it returns to exactly the
+          homepage state that was already there, so the rotation simply picks
+          up again with no reload and no lost scroll position. */}
+      {watching && (
+        <div
+          data-testid="home-ad-viewer"
+          role="dialog"
+          aria-modal="true"
+          aria-label={watching.profile_name || t('home.ad.watch_full')}
+          onClick={() => setWatching(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(0,0,0,.88)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <div
+            // Clicks inside the player must not reach the backdrop's close
+            // handler, or scrubbing the timeline would dismiss the video.
+            onClick={e => e.stopPropagation()}
+            style={{ position: 'relative', width: '100%', maxWidth: 900 }}
+          >
+            <video
+              data-testid="home-ad-full"
+              src={cldVideo(watching.video_url)}
+              controls
+              autoPlay
+              playsInline
+              // Deliberately NOT muted and NOT looping: this is the full
+              // viewing experience, and the click that opened it is the user
+              // gesture browsers require before allowing sound.
+              style={{ width: '100%', maxHeight: '80vh', borderRadius: 14, background: '#000', display: 'block' }}
+            />
+
+            <button
+              type="button"
+              data-testid="home-ad-close"
+              onClick={() => setWatching(null)}
+              aria-label={t('home.ad.close')}
+              style={{
+                position: 'absolute', top: -14, right: -8,
+                width: 40, height: 40, borderRadius: '50%',
+                border: '1px solid rgba(255,255,255,.35)', background: 'rgba(0,0,0,.75)',
+                color: '#fff', cursor: 'pointer', fontSize: 20, lineHeight: 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              ×
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setWatching(null); goToProfile(); }}
+              style={{
+                marginTop: 12, width: '100%', padding: '10px 14px', borderRadius: 12,
+                border: '1px solid rgba(255,255,255,.25)', background: 'rgba(255,255,255,.08)',
+                color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+              }}
+            >
+              {watching.profile_name || watching.profile_email}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
