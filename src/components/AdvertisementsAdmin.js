@@ -82,8 +82,14 @@ export default function AdvertisementsAdmin() {
       fd.append('folder', 'famamennou/ads');
       const r = await authFetch(`${API}/uploads/video`, { method: 'POST', body: fd });
       const d = await r.json();
-      if (!r.ok || !d.secure_url) { setError(d.error || "Échec de l'envoi de la vidéo."); }
-      else { setVideoUrl(d.secure_url); setVideoId(d.public_id || ''); }
+      if (!r.ok || !d.secure_url) {
+        // The server passes Cloudinary's own reason through on a 4xx (wrong
+        // codec, corrupt file, too large). Showing it is the difference between
+        // "try a different file" and staring at a generic failure.
+        setError(d.message
+          ? `Vidéo refusée : ${d.message}`
+          : "Échec de l'envoi de la vidéo.");
+      } else { setVideoUrl(d.secure_url); setVideoId(d.public_id || ''); }
     } catch {
       setError("Échec de l'envoi de la vidéo.");
     }
@@ -109,8 +115,16 @@ export default function AdvertisementsAdmin() {
         { method: editingId ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' }, body }
       );
       const d = await r.json();
-      if (!r.ok) setError(d.error || 'Enregistrement impossible.');
-      else { resetForm(); await load(); }
+      if (r.status === 404) {
+        // The campaign was deleted somewhere else while this form was open, so
+        // the list on screen is stale. Staying in edit mode would just repeat
+        // the same 404 on every save; drop back to "new" and refresh instead.
+        setEditingId(null);
+        await load();
+        setError("Cette publicité n'existe plus — la liste a été actualisée. Vos champs sont conservés : cliquez sur Publier pour en créer une nouvelle.");
+      } else if (!r.ok) {
+        setError(d.message || d.error || 'Enregistrement impossible.');
+      } else { resetForm(); await load(); }
     } catch {
       setError('Enregistrement impossible.');
     }
@@ -128,6 +142,9 @@ export default function AdvertisementsAdmin() {
   async function remove(ad) {
     if (!window.confirm('Supprimer définitivement cette publicité ?')) return;
     await authFetch(`${API}/advertisements/${ad.id}`, { method: 'DELETE' }).catch(() => {});
+    // Deleting the campaign currently loaded in the form would leave editingId
+    // pointing at a row that no longer exists, and the next save would 404.
+    if (String(editingId) === String(ad.id)) resetForm();
     load();
   }
 
