@@ -23,6 +23,28 @@ const STATUS_STYLE = {
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
+const MB = (bytes) => (bytes / 1024 / 1024).toFixed(1);
+
+// Turns every way an upload can fail into something the admin can act on.
+// The generic fallback still exists, but it now carries the status code so a
+// new failure mode can be identified from a screenshot instead of guessed at.
+function uploadErrorMessage(status, body, file) {
+  const size = file ? ` (votre fichier : ${MB(file.size)} Mo)` : '';
+  if (status === 413) {
+    return `Vidéo trop lourde pour le serveur${size}. Réduisez la taille ou la durée de la vidéo.`;
+  }
+  if (body.error === 'file_too_large') {
+    return `Vidéo trop lourde${size}. Maximum : ${body.maxMB} Mo.`;
+  }
+  if (body.error === 'unsupported_file_type') {
+    return `Format non supporté (${body.received || 'inconnu'}). Formats acceptés : MP4, WebM, MOV.`;
+  }
+  if (status === 401) return 'Session expirée. Rechargez la page et reconnectez-vous.';
+  if (status === 429) return 'Trop d’envois en peu de temps. Patientez quelques minutes.';
+  if (body.message) return `Vidéo refusée : ${body.message}`;
+  return `Échec de l'envoi de la vidéo (erreur ${status}).`;
+}
+
 const INPUT_CLS =
   'w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 ' +
   'text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30';
@@ -82,17 +104,21 @@ export default function AdvertisementsAdmin() {
       fd.append('file', file);
       fd.append('folder', 'famamennou/ads');
       const r = await authFetch(`${API}/uploads/video`, { method: 'POST', body: fd });
-      const d = await r.json();
+
+      // Not every failure is JSON. A reverse proxy that refuses the request
+      // body answers with its own HTML error page (nginx does this for
+      // client_max_body_size), and calling r.json() on that throws — which is
+      // how a hard size limit used to surface as a generic "envoi échoué"
+      // with nothing to act on.
+      const raw = await r.text();
+      let d = {};
+      try { d = raw ? JSON.parse(raw) : {}; } catch { d = {}; }
+
       if (!r.ok || !d.secure_url) {
-        // The server passes Cloudinary's own reason through on a 4xx (wrong
-        // codec, corrupt file, too large). Showing it is the difference between
-        // "try a different file" and staring at a generic failure.
-        setError(d.message
-          ? `Vidéo refusée : ${d.message}`
-          : "Échec de l'envoi de la vidéo.");
+        setError(uploadErrorMessage(r.status, d, file));
       } else { setVideoUrl(d.secure_url); setVideoId(d.public_id || ''); }
     } catch {
-      setError("Échec de l'envoi de la vidéo.");
+      setError("Échec de l'envoi de la vidéo — connexion interrompue. Réessayez.");
     }
     setUploading(false);
   }
