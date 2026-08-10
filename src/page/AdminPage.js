@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import MessengerChat from "../components/MessengerChat";
+import AdvertisementsAdmin from "../components/AdvertisementsAdmin";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 import { cldImg, cldVideo } from "../utils/cloudinary";
 
@@ -2197,6 +2198,7 @@ export default function AdminPage() {
             { id: "projects",   color: "#f97316", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, label: t('adm.tab_projects'),       count: adminProjects.length },
             { id: "gains",      color: "#22c55e", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>, label: t('nav.gains'),            count: 0 },
             { id: "announcements", color: "#eab308", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>, label: "Annonces", count: 0 },
+            { id: "publicite",  color: "#d946ef", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>, label: "Publicité", count: 0 },
           ];
           return (
             <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-4">
@@ -3250,6 +3252,12 @@ export default function AdminPage() {
       {mainTab === 'gains' && <AdminGainsTab API={API} />}
 
       {/* ══ ANNOUNCEMENTS TAB ══ */}
+      {mainTab === 'publicite' && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-10">
+          <AdvertisementsAdmin />
+        </div>
+      )}
+
       {mainTab === 'announcements' && (() => {
         const PAGE_OPTIONS = [
           { value: 'home',        label: 'Accueil' },

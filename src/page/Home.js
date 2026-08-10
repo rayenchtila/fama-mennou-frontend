@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import SEOHead, { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd, FAQJsonLd } from '../components/Seohead';
+import HomeAdVideo from '../components/HomeAdVideo';
 import DemoVideoSection from '../components/DemoVideoSection';
 import { cldImg } from '../utils/cloudinary';
 
@@ -195,6 +196,9 @@ function HeroSection() {
           style={{ fontSize: 'clamp(16px,2vw,19px)', color: 'var(--fm-text-5)', maxWidth: '520px', margin: '0 auto 34px', lineHeight: 1.55 }}>
           {t('home.hero.subtitle')}
         </motion.p>
+
+        {/* Active promotional video(s) — renders nothing when none are live */}
+        <HomeAdVideo />
 
         {/* Search */}
         <motion.div
