@@ -861,8 +861,10 @@ export default function Home() {
         { question: "Que faire si je ne suis pas satisfait du travail ?", answer: "Nous avons un processus structuré de résolution des litiges. Notre équipe de support sert de médiateur pour parvenir à un résultat équitable pour les deux parties." },
       ]} />
       <HeroSection />
-      <ActionCardsSection />
+      {/* Directly under the hero's three CTA buttons, which are the last thing
+          HeroSection renders. */}
       <DemoVideoSection />
+      <ActionCardsSection />
       <HowItWorksSection />
       <FeaturedFreelancersSection {...freelancers} />
       <TrendingProjectsSection {...projects} users={users} />
