@@ -18,7 +18,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { cldImg } from '../utils/cloudinary';
+import { cldImg, cldVideo } from '../utils/cloudinary';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -87,7 +87,13 @@ export default function HomeAdVideo() {
             key={ad.id}
             ref={el => { videoRefs.current[i] = el; }}
             data-testid="home-ad-video"
-            src={ad.video_url}
+            // cldVideo, not the raw URL: the stored URL points at the ORIGINAL
+            // upload, and a video recorded on a phone is usually HEVC/H.265,
+            // which Chrome cannot decode — it renders a broken frame that never
+            // plays. f_auto,q_auto,vc_auto makes Cloudinary transcode to a codec
+            // the requesting browser actually supports. Same helper the course
+            // player and the admin course preview already use.
+            src={cldVideo(ad.video_url)}
             muted
             playsInline
             loop

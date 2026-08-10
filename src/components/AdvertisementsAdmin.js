@@ -10,6 +10,7 @@
 // the homepage would disagree with.
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { cldVideo } from '../utils/cloudinary';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -192,7 +193,12 @@ export default function AdvertisementsAdmin() {
         />
         {uploading && <p className="text-xs text-indigo-500 font-semibold mb-2">Envoi en cours…</p>}
         {videoUrl && !uploading && (
-          <video src={videoUrl} muted playsInline controls className="w-full max-w-xs rounded-xl mb-3 border border-slate-200 dark:border-slate-700" />
+          // cldVideo, not the raw URL: the upload response points at the
+          // ORIGINAL file, and phone recordings are usually HEVC/H.265, which
+          // Chrome cannot decode — the preview shows a broken frame stuck at
+          // 0:00. Transcoding on delivery is what makes it playable, and it is
+          // the same helper the course player already uses.
+          <video src={cldVideo(videoUrl)} muted playsInline controls className="w-full max-w-xs rounded-xl mb-3 border border-slate-200 dark:border-slate-700" />
         )}
 
         {/* Profile picker */}
@@ -277,7 +283,7 @@ export default function AdvertisementsAdmin() {
             const s = STATUS_STYLE[ad.status] || STATUS_STYLE.expired;
             return (
               <div key={ad.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col sm:flex-row gap-4">
-                <video src={ad.video_url} muted playsInline
+                <video src={cldVideo(ad.video_url)} muted playsInline
                   className="w-full sm:w-40 aspect-video rounded-xl object-cover bg-slate-100 dark:bg-slate-800 shrink-0"/>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
