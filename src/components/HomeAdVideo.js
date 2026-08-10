@@ -66,6 +66,17 @@ export default function HomeAdVideo() {
         v.pause();
       }
     });
+
+    // Warm the NEXT clip while the current one is on screen. Each clip only
+    // gets a five-second window, so one that starts buffering at the moment it
+    // becomes visible burns part of its own slot and shows less than its first
+    // five seconds — measured at 3.3s of content in a 5s slot before this.
+    // Loading it a slot early means it is decodable the instant it is shown.
+    if (ads.length > 1) {
+      const next = videoRefs.current[(idx + 1) % ads.length];
+      // readyState < HAVE_FUTURE_DATA means it could not play through yet.
+      if (next && next.readyState < 3) next.load();
+    }
   }, [idx, ads.length]);
 
   if (!ads.length) return null;
@@ -98,9 +109,12 @@ export default function HomeAdVideo() {
             playsInline
             loop
             autoPlay={i === 0}
-            // Only the first is worth fetching eagerly; the rest load their
-            // metadata now and the rest when they come into rotation.
-            preload={i === 0 ? 'auto' : 'metadata'}
+            // Every clip is fetched eagerly, not just the first. With a five
+            // second slot each, a clip that only has metadata when its turn
+            // arrives spends part of that slot buffering and shows less than
+            // its first five seconds. Ads are short, so the extra fetch is
+            // cheaper than a visibly truncated rotation.
+            preload="auto"
             aria-hidden={i !== idx}
             style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%',
