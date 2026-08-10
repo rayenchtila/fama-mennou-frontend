@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import SEOHead, { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd, FAQJsonLd } from '../components/Seohead';
+import DemoVideoSection from '../components/DemoVideoSection';
 import { cldImg } from '../utils/cloudinary';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
@@ -857,6 +858,7 @@ export default function Home() {
       ]} />
       <HeroSection />
       <ActionCardsSection />
+      <DemoVideoSection />
       <HowItWorksSection />
       <FeaturedFreelancersSection {...freelancers} />
       <TrendingProjectsSection {...projects} users={users} />
