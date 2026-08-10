@@ -25,6 +25,19 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 
 const MB = (bytes) => (bytes / 1024 / 1024).toFixed(1);
 
+// Maps free text to a profile, but only when there is exactly one answer:
+// an exact email, or a name held by a single account. Anything ambiguous
+// returns null so the admin is asked to disambiguate rather than having a
+// campaign silently attached to the wrong person.
+function resolveTypedProfile(query, users) {
+  const q = (query || '').trim().toLowerCase();
+  if (!q) return null;
+  const byEmail = users.find(u => (u.email || '').toLowerCase() === q);
+  if (byEmail) return byEmail.email;
+  const byName = users.filter(u => (u.name || '').trim().toLowerCase() === q);
+  return byName.length === 1 ? byName[0].email : null;
+}
+
 // Turns every way an upload can fail into something the admin can act on.
 // The generic fallback still exists, but it now carries the status code so a
 // new failure mode can be identified from a screenshot instead of guessed at.
@@ -127,15 +140,26 @@ export default function AdvertisementsAdmin() {
     setError('');
     // Mirrors the server rules so the admin gets an instant answer; the server
     // re-checks all of it, which is what actually protects the data.
-    if (!videoUrl)  return setError('Ajoutez une vidéo.');
-    if (!userEmail) return setError('Sélectionnez un profil.');
+    if (!videoUrl) return setError('Ajoutez une vidéo.');
+
+    // Requiring a tap on the dropdown was too brittle: typing a full name,
+    // pasting an address, or letting the browser autofill the field all leave
+    // userEmail empty even though the admin has clearly named someone. Resolve
+    // what was typed against the directory before refusing — an exact email,
+    // or a name that matches exactly one profile, is unambiguous.
+    const chosen = userEmail || resolveTypedProfile(userQuery, users);
+    if (!chosen) {
+      return setError(userQuery.trim()
+        ? `Aucun profil ne correspond exactement à « ${userQuery.trim()} » — choisissez-en un dans la liste.`
+        : 'Sélectionnez un profil.');
+    }
     if (endsAt < startsAt) return setError('La date de fin ne peut pas précéder la date de début (minimum 1 jour).');
 
     setBusy(true);
     try {
       const body = JSON.stringify({
         video_url: videoUrl, video_public_id: videoId || null,
-        user_email: userEmail, starts_at: startsAt, ends_at: endsAt,
+        user_email: chosen, starts_at: startsAt, ends_at: endsAt,
       });
       const r = await authFetch(
         editingId ? `${API}/advertisements/${editingId}` : `${API}/advertisements`,
