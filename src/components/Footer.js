@@ -59,7 +59,7 @@ export default function Footer() {
             </a>
 
             {/* Instagram */}
-            <a href="https://www.instagram.com/famamennou?igsh=MXhpZXA1Y2J0dG9idQ==" target="_blank" rel="noopener noreferrer"
+            <a href="https://www.instagram.com/famamennou.tn?igsh=MXhpZXA1Y2J0dG9idQ==" target="_blank" rel="noopener noreferrer"
               style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fm-text-5)', transition: 'background .15s,color .15s,border-color .15s' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(228,64,95,.15)'; e.currentTarget.style.color = '#e4405f'; e.currentTarget.style.borderColor = 'rgba(228,64,95,.35)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'var(--fm-surface-hover)'; e.currentTarget.style.color = 'var(--fm-text-5)'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}
