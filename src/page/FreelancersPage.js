@@ -302,6 +302,7 @@ export default function FreelancersPage() {
   const [page,        setPage]        = useState(1);
   const [listLoading, setListLoading] = useState(true);
   const [stats, setStats] = useState({ verified: 0, regions: 0, reviews: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     const tmr = setTimeout(() => setDebSearch(search), 320);
@@ -346,6 +347,7 @@ export default function FreelancersPage() {
         reviews:  r.reviews_received || 0,
       });
     } catch {}
+    finally { setStatsLoading(false); }
   }, []);
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
@@ -449,15 +451,15 @@ export default function FreelancersPage() {
           {/* Stats row with separators */}
           <div className="fp-stats-row" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
             {[
-              { n: stats.verified, label: t('Verified freelancers') },
-              { n: totalRegions,   label: t('Regions covered')      },
-              { n: totalReviews,   label: t('Reviews received')     },
-              { n: total,          label: t('Matching now')         },
+              { n: stats.verified, label: t('Verified freelancers'), loading: statsLoading },
+              { n: totalRegions,   label: t('Regions covered'),      loading: statsLoading },
+              { n: totalReviews,   label: t('Reviews received'),     loading: statsLoading },
+              { n: total,          label: t('Matching now'),         loading: listLoading  },
             ].map((s,i) => (
               <div key={i} className="fp-stat-item" style={{ display:'flex', alignItems:'center' }}>
                 {i > 0 && <span className="fp-stat-sep" style={{ width:1, height:36, background:'var(--fm-border)', margin:'0 clamp(12px,3vw,32px)' }} />}
                 <div style={{ textAlign:'center' }}>
-                  <div style={{ fontSize:28, fontWeight:900, color:'var(--fm-primary-light)', lineHeight:1.1, letterSpacing:'-0.03em' }}>{s.n}</div>
+                  <div style={{ fontSize:28, fontWeight:900, color:'var(--fm-primary-light)', lineHeight:1.1, letterSpacing:'-0.03em' }}>{s.loading && s.n === 0 ? '…' : s.n}</div>
                   <div style={{ fontSize:11, color:'var(--fm-text-7)', fontWeight:600, marginTop:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{s.label}</div>
                 </div>
               </div>

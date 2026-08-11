@@ -595,8 +595,10 @@ export default function CoursesPage() {
   // fetched once (60s server cache) rather than derived from `courses`,
   // which is now just the current page's 10 rows.
   const [instructors, setInstructors] = useState(0);
+  const [instructorsLoading, setInstructorsLoading] = useState(true);
   useEffect(() => {
-    fetch(`${API}/courses/stats`).then(r => r.json()).then(d => setInstructors(d.instructors || 0)).catch(() => {});
+    fetch(`${API}/courses/stats`).then(r => r.json()).then(d => setInstructors(d.instructors || 0)).catch(() => {})
+      .finally(() => setInstructorsLoading(false));
   }, []);
   const isFreelancer = user?.role === 'freelancer';
 
@@ -706,15 +708,15 @@ export default function CoursesPage() {
             {/* Stats row */}
             <div className="csp-stats-row" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, flexWrap:'wrap' }}>
               {[
-                { n: total,                 label: t('csp.stat_courses')     },
+                { n: total,                 label: t('csp.stat_courses'),     loading: loading },
                 { n: CATEGORIES.length - 1, label: t('csp.stat_categories')  },
-                { n: instructors,           label: t('csp.stat_instructors')  },
+                { n: instructors,           label: t('csp.stat_instructors'), loading: instructorsLoading },
               ].map((s, i) => (
                 <div key={i} className="csp-stat-item" style={{ display:'flex', alignItems:'center' }}>
                   {i > 0 && <span className="csp-stat-sep" style={{ width:1, height:32, background:'var(--fm-border)', margin:'0 clamp(12px,3vw,28px)' }} />}
                   <div style={{ textAlign:'center' }}>
                     <div style={{ fontSize:30, fontWeight:900, color:C.accentBr, lineHeight:1.1, letterSpacing:'-0.03em' }}>
-                      {s.n}
+                      {s.loading && s.n === 0 ? '…' : s.n}
                     </div>
                     <div style={{ fontSize:11, color:C.muted, fontWeight:600, marginTop:5, letterSpacing:'0.06em', textTransform:'uppercase' }}>
                       {s.label}

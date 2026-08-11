@@ -483,6 +483,7 @@ export default function ClientsPage() {
   const [applyFor,        setApplyFor]        = useState(null);
   const [reviewFor,       setReviewFor]       = useState(null);
   const [stats, setStats] = useState({ openProjects: 0, activeClients: 0, regionsCovered: 0, proposalsSent: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
   const searchRef = useRef();
 
   useEffect(() => {
@@ -564,6 +565,7 @@ export default function ClientsPage() {
         proposalsSent:  r.proposals_sent || 0,
       });
     } catch {}
+    finally { setStatsLoading(false); }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -647,7 +649,7 @@ export default function ClientsPage() {
               <div key={i} className="cp-stat-item" style={{ display:'flex', alignItems:'center' }}>
                 {i > 0 && <span className="cp-stat-sep" style={{ width:1, height:36, background:'var(--fm-border)', margin:'0 clamp(12px,3vw,32px)' }} />}
                 <div style={{ textAlign:'center' }}>
-                  <div style={{ fontSize:28, fontWeight:900, color:C.accent, lineHeight:1.1, letterSpacing:'-0.03em' }}>{s.n}</div>
+                  <div style={{ fontSize:28, fontWeight:900, color:C.accent, lineHeight:1.1, letterSpacing:'-0.03em' }}>{statsLoading && s.n === 0 ? '…' : s.n}</div>
                   <div style={{ fontSize:11, color:'var(--fm-text-6)', fontWeight:600, marginTop:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{s.label}</div>
                 </div>
               </div>
