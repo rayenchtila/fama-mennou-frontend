@@ -22,7 +22,12 @@ import { cldImg, cldVideo } from '../utils/cloudinary';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
-const ROTATE_MS = 5000;
+// How much of each campaign is shown when several are live. Measured in the
+// clip's own playback time, so it is five seconds of video rather than five
+// seconds of wall clock.
+const SEGMENT_SECONDS = 5;
+// If a clip cannot decode at all, move on rather than freezing the rotation.
+const STALL_GRACE_MS = 3000;
 
 function initials(name) {
   return (name || '').trim().split(/\s+/).map(w => w[0]?.toUpperCase() || '').slice(0, 2).join('') || '?';
@@ -37,7 +42,14 @@ export default function HomeAdVideo() {
   // rotation entirely: the teaser loop is a preview, and it must not keep
   // running (or keep a second video playing) behind someone actually watching.
   const [watching, setWatching] = useState(null);
+  // Teasers MUST start muted — every browser refuses to autoplay a video with
+  // sound, and an unmuted autoplay simply never starts. The toggle below is the
+  // user gesture that makes sound legal, and the choice then applies to every
+  // clip in the rotation, not just the one that was on screen.
+  const [teaserMuted, setTeaserMuted] = useState(true);
+  const [speed, setSpeed] = useState(1);
   const videoRefs = useRef([]);
+  const fullRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,9 +64,41 @@ export default function HomeAdVideo() {
   // campaign this interval is never created, so the one video just loops.
   useEffect(() => {
     if (ads.length < 2 || watching) return undefined;
-    const id = setInterval(() => setIdx(i => (i + 1) % ads.length), ROTATE_MS);
-    return () => clearInterval(id);
-  }, [ads.length, watching]);
+    const v = videoRefs.current[idx];
+    let advanced = false;
+    const advance = () => {
+      if (advanced) return;
+      advanced = true;
+      setIdx(i => (i + 1) % ads.length);
+    };
+
+    // Driven by the clip's OWN playback position, not a wall-clock timer.
+    // A wall-clock interval measures how long the slot lasted, not how much
+    // video was seen: a clip that stalls while buffering keeps the timer
+    // running and gets cut early — measured as little as 2.55s of content in
+    // a 5s slot. Watching currentTime means every campaign shows its first
+    // five seconds however slow the network is.
+    let prev = 0;
+    const onTime = () => {
+      const t = v.currentTime;
+      // A clip shorter than the segment loops instead of reaching 5s; the
+      // playhead jumping backwards means it has just played in full.
+      if (t < prev - 0.25) { advance(); return; }
+      prev = t;
+      if (t >= SEGMENT_SECONDS) advance();
+    };
+
+    v?.addEventListener('timeupdate', onTime);
+
+    // Safety net: a clip that never decodes at all would otherwise freeze the
+    // rotation on a black frame forever.
+    const stallCap = setTimeout(advance, SEGMENT_SECONDS * 1000 + STALL_GRACE_MS);
+
+    return () => {
+      v?.removeEventListener('timeupdate', onTime);
+      clearTimeout(stallCap);
+    };
+  }, [idx, ads.length, watching]);
 
   // Drive playback imperatively so only one element is ever playing, and so a
   // video restarts from the beginning each time it comes back around.
@@ -87,6 +131,19 @@ export default function HomeAdVideo() {
       if (next && next.readyState < 3) next.load();
     }
   }, [idx, ads.length, watching]);
+
+  // Mute state is applied imperatively to every clip: React sets `muted` as a
+  // property only on first mount, so a re-render alone would leave already
+  // mounted <video> elements at their original state.
+  useEffect(() => {
+    videoRefs.current.forEach(v => { if (v) v.muted = teaserMuted; });
+  }, [teaserMuted, ads.length]);
+
+  // Keep the chosen speed applied — including after entering fullscreen, which
+  // does not recreate the element but does re-run this on reopen.
+  useEffect(() => {
+    if (fullRef.current) fullRef.current.playbackRate = speed;
+  }, [speed, watching]);
 
   // Escape closes the viewer, and the page behind it must not scroll while it
   // is open — both are what people expect of a lightbox, and without them the
@@ -138,7 +195,7 @@ export default function HomeAdVideo() {
             // the requesting browser actually supports. Same helper the course
             // player and the admin course preview already use.
             src={cldVideo(ad.video_url)}
-            muted
+            muted={teaserMuted}
             playsInline
             loop
             autoPlay={i === 0}
@@ -158,6 +215,33 @@ export default function HomeAdVideo() {
             }}
           />
         ))}
+
+        {/* Sound toggle. stopPropagation so muting does not also open the full
+            viewer — they are two different intents on the same surface. */}
+        <button
+          type="button"
+          data-testid="home-ad-mute"
+          aria-label={teaserMuted ? t('home.ad.unmute') : t('home.ad.mute')}
+          aria-pressed={!teaserMuted}
+          onClick={e => { e.stopPropagation(); setTeaserMuted(m => !m); }}
+          style={{
+            position: 'absolute', top: 10, right: 10, zIndex: 2,
+            width: 36, height: 36, borderRadius: '50%',
+            border: '1px solid rgba(255,255,255,.4)', background: 'rgba(0,0,0,.5)',
+            color: '#fff', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {teaserMuted ? (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M11 5 6 9H2v6h4l5 4z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+          ) : (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>
+            </svg>
+          )}
+        </button>
 
         {/* Play affordance — without it nothing signals the teaser is clickable */}
         <span style={{
@@ -268,15 +352,48 @@ export default function HomeAdVideo() {
           >
             <video
               data-testid="home-ad-full"
+              ref={fullRef}
               src={cldVideo(watching.video_url)}
               controls
+              // Native controls carry volume, fullscreen and the browser's own
+              // speed menu, and they keep working once fullscreen is entered —
+              // a custom overlay would disappear at that moment, which is why
+              // playback is left to them rather than reimplemented.
+              controlsList="nodownload"
               autoPlay
               playsInline
+              onLoadedMetadata={e => { e.currentTarget.playbackRate = speed; }}
               // Deliberately NOT muted and NOT looping: this is the full
               // viewing experience, and the click that opened it is the user
               // gesture browsers require before allowing sound.
               style={{ width: '100%', maxHeight: '80vh', borderRadius: 14, background: '#000', display: 'block' }}
             />
+
+            {/* Explicit speed control: Chrome hides playback speed behind the
+                overflow menu and Safari offers none at all, so the one thing
+                that is genuinely hard to reach gets a visible control. */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.65)', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                {t('home.ad.speed')}
+              </span>
+              {[0.5, 1, 1.25, 1.5, 2].map(r => (
+                <button
+                  key={r}
+                  type="button"
+                  data-testid={`home-ad-speed-${r}`}
+                  onClick={() => setSpeed(r)}
+                  aria-pressed={speed === r}
+                  style={{
+                    padding: '5px 10px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                    border: `1px solid ${speed === r ? 'rgba(255,255,255,.8)' : 'rgba(255,255,255,.25)'}`,
+                    background: speed === r ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.06)',
+                    color: '#fff',
+                  }}
+                >
+                  {r}×
+                </button>
+              ))}
+            </div>
 
             <button
               type="button"
