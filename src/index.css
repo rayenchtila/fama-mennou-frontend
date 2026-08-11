@@ -395,15 +395,20 @@ button, a, [role="button"] { min-height: 36px; }
   overflow-y: auto;
 }
 
-/* Home page hero: responsive padding via class */
+/* Home page hero: responsive padding via class.
+   The bottom padding is deliberately small — the DEMO section sits directly
+   under the hero's CTA buttons, and the old 96/60/48px bottom gap stacked on
+   top of that section's own spacing to leave well over 120px of emptiness
+   between the buttons and the video on a phone. One scaling value keeps that
+   gap looking the same at every width instead of jumping at each breakpoint. */
 .fm-hero-content {
-  padding: 140px 28px 96px;
+  padding: 140px 28px clamp(16px, 2.6vw, 30px);
 }
 @media (max-width: 768px) {
-  .fm-hero-content { padding: 100px 20px 60px; }
+  .fm-hero-content { padding: 100px 20px clamp(14px, 3vw, 24px); }
 }
 @media (max-width: 480px) {
-  .fm-hero-content { padding: 86px 16px 48px; }
+  .fm-hero-content { padding: 86px 16px clamp(12px, 3.5vw, 20px); }
 }
 
 /* Section containers: responsive horizontal padding */

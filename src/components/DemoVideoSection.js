@@ -14,8 +14,13 @@ export default function DemoVideoSection() {
   const { t } = useTranslation();
 
   return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+    // This section sits immediately under the hero's CTA buttons, so it adds no
+    // top padding of its own — the hero's (small) bottom padding is the entire
+    // gap. A fixed 72px here used to stack on top of it and pushed the video
+    // most of a screen away on a phone. The remaining values scale with the
+    // viewport so the spacing reads the same on every device.
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: 0 }}>
+      <div style={{ textAlign: 'center', marginBottom: 'clamp(12px,2.2vw,20px)' }}>
         <h2 style={{ fontWeight: 800, fontSize: 'clamp(24px,3.4vw,32px)', letterSpacing: '-.025em', margin: 0, color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
           {t('home.demo.title')}
         </h2>
