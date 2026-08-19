@@ -1115,7 +1115,36 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     onClose?.();
   }
 
-  async function submitGoogleAuth(accessToken, extra = {}) {
+  // Shared by both the signup submit button and the login-mode Google button
+  // below — fetches Google's own userinfo + People API for display-only
+  // prefill (name/email/dob shown in the form), never trusted server-side.
+  async function prefillFromGoogle(accessToken) {
+    const [userinfo, people] = await Promise.all([
+      fetch("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: `Bearer ${accessToken}` } })
+        .then(r => (r.ok ? r.json() : null)).catch(() => null),
+      fetch("https://people.googleapis.com/v1/people/me?personFields=birthdays", { headers: { Authorization: `Bearer ${accessToken}` } })
+        .then(r => (r.ok ? r.json() : null)).catch(() => null),
+    ]);
+    if (!userinfo?.email) return false;
+    const bday = (people?.birthdays || []).map(b => b.date).find(d => d?.year && d?.month && d?.day);
+    const dobStr = bday ? `${bday.year}-${String(bday.month).padStart(2, "0")}-${String(bday.day).padStart(2, "0")}` : "";
+    setForm(f => ({
+      ...f,
+      firstName: userinfo.given_name || f.firstName,
+      lastName:  userinfo.family_name || f.lastName,
+      email:     userinfo.email || f.email,
+      dob:       dobStr,
+    }));
+    setGoogleProfile({ accessToken, dobAvailable: !!bday });
+    return true;
+  }
+
+  // `onNoAccountYet` lets the login-mode Google button (which never collects
+  // region/captcha up front) fall into the signup-with-prefill flow instead
+  // of just erroring when the backend reports there's no account for this
+  // Gmail yet — same outcome as if the person had clicked "Sign up with
+  // Google" in the first place.
+  async function submitGoogleAuth(accessToken, extra = {}, { onNoAccountYet } = {}) {
     try {
       const res = await fetch(`${API}/auth/google`, {
         method: "POST",
@@ -1123,7 +1152,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         body: JSON.stringify({ accessToken, ...extra }),
       });
       const result = await res.json();
-      if (result.error === "missingRegion") { setErrors({ region: t("Please select your region") }); return; }
+      if (result.error === "missingRegion") {
+        if (onNoAccountYet) { await onNoAccountYet(); return; }
+        setErrors({ region: t("Please select your region") });
+        return;
+      }
       if (result.error === "invalidCaptcha") {
         setErrors({ captcha: t("Please complete the CAPTCHA") });
         recaptchaRef.current?.reset();
@@ -1164,29 +1197,21 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       setErrors({});
       try {
         if (mode === "login") {
-          await submitGoogleAuth(tokenResponse.access_token);
+          await submitGoogleAuth(tokenResponse.access_token, {}, {
+            onNoAccountYet: async () => {
+              // No client account for this Gmail yet — switch into the
+              // signup flow with the same prefill "Sign up with Google"
+              // gives, instead of silently 400ing with nothing shown.
+              setMode("signup");
+              setRole("client");
+              const ok = await prefillFromGoogle(tokenResponse.access_token);
+              if (!ok) setErrors({ email: t("Google sign-in failed. Please try again.") });
+            },
+          });
           return;
         }
-        const [userinfo, people] = await Promise.all([
-          fetch("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } })
-            .then(r => (r.ok ? r.json() : null)).catch(() => null),
-          fetch("https://people.googleapis.com/v1/people/me?personFields=birthdays", { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } })
-            .then(r => (r.ok ? r.json() : null)).catch(() => null),
-        ]);
-        if (!userinfo?.email) {
-          setErrors({ email: t("Google sign-in failed. Please try again.") });
-          return;
-        }
-        const bday = (people?.birthdays || []).map(b => b.date).find(d => d?.year && d?.month && d?.day);
-        const dobStr = bday ? `${bday.year}-${String(bday.month).padStart(2, "0")}-${String(bday.day).padStart(2, "0")}` : "";
-        setForm(f => ({
-          ...f,
-          firstName: userinfo.given_name || f.firstName,
-          lastName:  userinfo.family_name || f.lastName,
-          email:     userinfo.email || f.email,
-          dob:       dobStr,
-        }));
-        setGoogleProfile({ accessToken: tokenResponse.access_token, dobAvailable: !!bday });
+        const ok = await prefillFromGoogle(tokenResponse.access_token);
+        if (!ok) setErrors({ email: t("Google sign-in failed. Please try again.") });
       } catch {
         setErrors({ email: t("Google sign-in failed. Please try again.") });
       } finally {
