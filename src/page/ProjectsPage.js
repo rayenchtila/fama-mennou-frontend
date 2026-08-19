@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead from '../components/Seohead';
+import usePendingClientReadOnly from '../hooks/usePendingClientReadOnly';
+import PendingClientBanner from '../components/PendingClientBanner';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -294,7 +296,7 @@ function PostModal({ user, onClose, onDone }) {
 /* ══════════════════════════════════════════════════════════════
    PROPOSAL CARD — single freelancer proposal (in My Projects)
    ══════════════════════════════════════════════════════════════ */
-function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, users }) {
+function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, users, readOnly }) {
   const { t } = useTranslation();
   const [showFull, setShowFull] = useState(false);
   const [confirm,  setConfirm]  = useState(null); // null | 'accept' | 'reject'
@@ -430,16 +432,18 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
               )}
               {isPending && (
                 <>
-                  <button onClick={()=>setConfirm('reject')} disabled={rejecting}
-                    style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 14px', borderRadius:12, background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.22)', color:'var(--fm-danger)', fontSize:12.5, fontWeight:700, cursor:'pointer', transition:'all .15s' }}
-                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(248,113,113,0.15)';e.currentTarget.style.transform='translateY(-1px)';}}
-                    onMouseLeave={e=>{e.currentTarget.style.background='rgba(248,113,113,0.08)';e.currentTarget.style.transform='translateY(0)';}}>
+                  <button onClick={()=>setConfirm('reject')} disabled={rejecting || readOnly}
+                    title={readOnly ? t("Your account is pending approval — you can browse, but this action isn't available yet.") : undefined}
+                    style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 14px', borderRadius:12, background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.22)', color:'var(--fm-danger)', fontSize:12.5, fontWeight:700, cursor:readOnly?'not-allowed':'pointer', opacity:readOnly?0.5:1, transition:'all .15s' }}
+                    onMouseEnter={e=>{if(!readOnly){e.currentTarget.style.background='rgba(248,113,113,0.15)';e.currentTarget.style.transform='translateY(-1px)';}}}
+                    onMouseLeave={e=>{if(!readOnly){e.currentTarget.style.background='rgba(248,113,113,0.08)';e.currentTarget.style.transform='translateY(0)';}}}>
                     <IcX s={12}/>{rejecting?'…':t('prp.cancel_short')}
                   </button>
-                  <button onClick={()=>setConfirm('accept')} disabled={accepting}
-                    style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:12.5, fontWeight:800, cursor:'pointer', opacity:accepting?0.7:1, boxShadow:'0 4px 14px -4px rgba(124,108,246,0.5)', transition:'all .15s' }}
-                    onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.opacity='0.9';}}
-                    onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.opacity='1';}}>
+                  <button onClick={()=>setConfirm('accept')} disabled={accepting || readOnly}
+                    title={readOnly ? t("Your account is pending approval — you can browse, but this action isn't available yet.") : undefined}
+                    style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:12.5, fontWeight:800, cursor:readOnly?'not-allowed':'pointer', opacity:(accepting||readOnly)?0.5:1, boxShadow:'0 4px 14px -4px rgba(124,108,246,0.5)', transition:'all .15s' }}
+                    onMouseEnter={e=>{if(!readOnly){e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.opacity='0.9';}}}
+                    onMouseLeave={e=>{if(!readOnly){e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.opacity='1';}}}>
                     <IcCheck s={12}/>{accepting?'…':t('prp.accept')}
                   </button>
                 </>
@@ -598,7 +602,7 @@ function EditModal({ project, onClose, onDone }) {
 /* ══════════════════════════════════════════════════════════════
    MY PROJECT CARD — client's own project with proposals
    ══════════════════════════════════════════════════════════════ */
-function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAccept, acceptingId, onReject, rejectingId, onEdit, wasEdited, users }) {
+function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAccept, acceptingId, onReject, rejectingId, onEdit, wasEdited, users, readOnly }) {
   const { t } = useTranslation();
   const st       = STATUS_MAP[project.status] || STATUS_MAP.open;
   const stLabel  = t(`fd.status.${project.status}`, st.label);
@@ -708,7 +712,7 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
         <div style={{ borderTop:'1px solid var(--fm-border)', padding:'16px 24px', background:'rgba(0,0,0,0.18)', display:'flex', flexDirection:'column', gap:10 }}>
           <p style={{ fontSize:10, fontWeight:800, color:'var(--fm-text-7)', textTransform:'uppercase', letterSpacing:'0.08em', margin:'0 0 4px' }}>{t('prp.applications_received')}</p>
           {proposals.map(p=>(
-            <ProposalCard key={p.id} proposal={p} onAccept={onAccept} accepting={acceptingId===p.id} onReject={onReject} rejecting={rejectingId===p.id} users={users}/>
+            <ProposalCard key={p.id} proposal={p} onAccept={onAccept} accepting={acceptingId===p.id} onReject={onReject} rejecting={rejectingId===p.id} users={users} readOnly={readOnly}/>
           ))}
         </div>
       )}
@@ -800,6 +804,7 @@ export default function ProjectsPage() {
   const { user, users } = useAuth();
   const isClient     = user?.role === 'client';
   const isFreelancer = user?.role === 'freelancer';
+  const readOnly     = usePendingClientReadOnly();
 
   const [showPost,      setShowPost]      = useState(false);
   const [editingProject,setEditingProject]= useState(null);
@@ -909,13 +914,16 @@ export default function ProjectsPage() {
             </h1>
             <p style={{ fontSize:14, color:'var(--fm-text-6)', margin:0 }}>{t('prp.header_sub')}</p>
           </div>
-          <button onClick={()=>setShowPost(true)}
-            style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:7, padding:'11px 20px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 18px -4px rgba(124,108,246,0.5)', whiteSpace:'nowrap', transition:'opacity .15s, transform .15s' }}
-            onMouseEnter={e=>{e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}
-            onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}>
+          <button onClick={()=>!readOnly && setShowPost(true)} disabled={readOnly}
+            title={readOnly ? t("Your account is pending approval — you can browse, but this action isn't available yet.") : undefined}
+            style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:7, padding:'11px 20px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:readOnly?'not-allowed':'pointer', opacity:readOnly?0.5:1, boxShadow:'0 4px 18px -4px rgba(124,108,246,0.5)', whiteSpace:'nowrap', transition:'opacity .15s, transform .15s' }}
+            onMouseEnter={e=>{if(!readOnly){e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}}
+            onMouseLeave={e=>{if(!readOnly){e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}}>
             <IcPlus s={14}/> {t('prp.publish')}
           </button>
         </div>
+
+        {readOnly && <PendingClientBanner className="mb-4" />}
 
         {/* ═══════════════════════════════════════
             MES PROJETS
@@ -933,8 +941,9 @@ export default function ProjectsPage() {
                 </div>
                 <p style={{ fontSize:16, fontWeight:700, color:'var(--fm-text-4)', margin:'0 0 6px' }}>{t('prp.no_projects')}</p>
                 <p style={{ fontSize:13, color:'var(--fm-text-7)', margin:'0 0 22px' }}>{t('prp.no_projects_sub')}</p>
-                <button onClick={()=>setShowPost(true)}
-                  style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'11px 24px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)' }}>
+                <button onClick={()=>!readOnly && setShowPost(true)} disabled={readOnly}
+                  title={readOnly ? t("Your account is pending approval — you can browse, but this action isn't available yet.") : undefined}
+                  style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'11px 24px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:readOnly?'not-allowed':'pointer', opacity:readOnly?0.5:1, boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)' }}>
                   <IcPlus s={13}/> {t('prp.publish')}
                 </button>
               </div>
@@ -959,6 +968,7 @@ export default function ProjectsPage() {
                       onEdit={setEditingProject}
                       wasEdited={editedProjects.has(p.id)}
                       users={users}
+                      readOnly={readOnly}
                     />
                   ))}
                 </div>

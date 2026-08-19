@@ -57,8 +57,12 @@ function PrivateRoute({ children, onLogin }) {
     return <Navigate to="/" replace />;
   }
 
-  // Allow /messages for everyone — pending users must still be able to chat with admin
-  if (!user.isAdmin && user.cinStatus === "pending" && location.pathname !== '/messages') {
+  // Allow /messages for everyone — pending users must still be able to chat with admin.
+  // Pending CLIENTS are exempt from this block entirely (not just /messages) —
+  // they can log in and browse read-only; every actionable request is refused
+  // separately (requireApprovedClient on the backend, and per-action UI gates
+  // on the frontend). Freelancer/admin behavior here is unchanged.
+  if (!user.isAdmin && user.role !== 'client' && user.cinStatus === "pending" && location.pathname !== '/messages') {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--fm-bg)' }}>
         <div className="rounded-2xl p-8 max-w-md w-full text-center" style={{ background: 'var(--fm-surface)', border: '1px solid var(--fm-border)' }}>

@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { uploadVideo, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead, { CourseJsonLd } from '../components/Seohead';
+import usePendingClientReadOnly from '../hooks/usePendingClientReadOnly';
 
 const API    = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 const IS_DEV = process.env.REACT_APP_DEV_MODE === 'true';
@@ -100,6 +101,7 @@ export default function CourseDetailPage() {
   const navigate   = useNavigate();
   const { user }   = useAuth();
   const [sp]       = useSearchParams();
+  const readOnly   = usePendingClientReadOnly();
 
   const [course,       setCourse]       = useState(null);
   const [lessons,      setLessons]      = useState([]);
@@ -499,12 +501,12 @@ export default function CourseDetailPage() {
                   ):requestStatus==='rejected'?(
                     <>
                       <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,background:'rgba(244,63,94,.1)',border:'1px solid rgba(244,63,94,.3)',color:C.rose,fontSize:12,marginBottom:10}}><svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>{t('cdp.request_rejected')}</div>
-                      <button onClick={buyFull} disabled={requesting} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,opacity:requesting?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.3)'}}>
+                      <button onClick={buyFull} disabled={requesting||readOnly} title={readOnly?t("Your account is pending approval — you can browse, but this action isn't available yet."):undefined} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:readOnly?'not-allowed':'pointer',marginBottom:12,opacity:(requesting||readOnly)?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.3)'}}>
                         {requesting?t('cdp.sending'):t('cdp.resend_request')}
                       </button>
                     </>
                   ):(
-                    <button onClick={buyFull} disabled={buying||requesting} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,opacity:(buying||requesting)?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
+                    <button onClick={buyFull} disabled={buying||requesting||readOnly} title={readOnly?t("Your account is pending approval — you can browse, but this action isn't available yet."):undefined} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:readOnly?'not-allowed':'pointer',marginBottom:12,opacity:(buying||requesting||readOnly)?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
                       {requesting?t('cdp.sending_progress'):buying?t('cdp.processing'):isFree?t('cdp.enroll_free'):t('cdp.buy_course')}
                     </button>
                   )}

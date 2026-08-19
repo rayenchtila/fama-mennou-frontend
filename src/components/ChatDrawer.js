@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { cldImg } from '../utils/cloudinary';
+import usePendingClientReadOnly from '../hooks/usePendingClientReadOnly';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -81,6 +82,9 @@ function ReadTick({ read, online }) {
 // ── Main ChatDrawer ────────────────────────────────────────────────────────────
 
 export default function ChatDrawer({ user, initialEmail, onClose }) {
+  // Sender-side only — never affects a freelancer's own send button, and a
+  // pending client can still open the drawer and read existing messages.
+  const readOnly = usePendingClientReadOnly();
   const { t } = useTranslation();
   const navigate = useNavigate();
   // Every name rendered in this drawer belongs to the OTHER participant (the
@@ -527,16 +531,22 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
             )}
 
             {/* Input */}
+            {readOnly && (
+              <div className="px-4 py-2 text-xs font-semibold text-center shrink-0" style={{ background: 'var(--fm-warning-bg)', color: 'var(--fm-warning)' }}>
+                {t("Your account is pending approval — you can browse, but this action isn't available yet.")}
+              </div>
+            )}
             <div className="px-3 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2 items-end shrink-0">
               <input ref={inputRef}
                 value={newMsg}
                 onChange={handleMsgChange}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
                 onClick={() => setOpenMenuId(null)}
+                disabled={readOnly}
                 placeholder={t('chd.message_to', { name: shownName(otherUser?.name, '…') })}
-                className="flex-1 text-sm rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="flex-1 text-sm rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50"
               />
-              <button onClick={sendMsg} disabled={!newMsg.trim() || sending}
+              <button onClick={sendMsg} disabled={!newMsg.trim() || sending || readOnly}
                 className="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-full transition-all shrink-0 shadow-sm shadow-indigo-500/30">
                 <svg className="w-4 h-4 translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>

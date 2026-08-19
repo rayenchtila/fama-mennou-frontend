@@ -7,6 +7,7 @@ import Button from "./Button";
 import { useTranslation, Trans } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useGoogleLogin } from "@react-oauth/google";
 
 
 const RECAPTCHA_SITE_KEY = "6LcBezwtAAAAAPrUKtdxbyCPkPMfHDbzY3HDv3Yc";
@@ -826,6 +827,15 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   const [captchaToken, setCaptchaToken] = useState(null);
   const recaptchaRef = useRef();
 
+  // Google Sign Up/Login — CLIENT ONLY (button is only ever rendered when
+  // role === "client"; freelancer/admin never touch this state or endpoint).
+  // googleProfile is set once Google auth succeeds in signup mode: it holds
+  // the access token to send to the backend, plus whether Google actually
+  // provided a birthday (never assumed otherwise — see fetchGoogleBirthday
+  // on the backend, which is the only source of truth for dob).
+  const [googleProfile, setGoogleProfile] = useState(null); // { accessToken, dobAvailable }
+  const [googleLoading, setGoogleLoading] = useState(false);
+
   // Terms acceptance
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -877,6 +887,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     setPendingApproval(null);
     setCaptchaToken(null);
     setTermsAccepted(false);
+    setGoogleProfile(null);
   }, [defaultMode, open]);
 
   function resetCIN() {
@@ -940,6 +951,24 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   }
 
   async function handleSubmit() {
+    // Google-signup: name/email/dob already came from Google (or don't
+    // apply — dob is never required here), so only region + captcha +
+    // terms need validating, not the full password-signup field set.
+    if (mode === "signup" && role === "client" && googleProfile) {
+      const gErrs = {};
+      if (!form.region) gErrs.region = t("Please select your region");
+      if (!IS_DEV && !captchaToken) gErrs.captcha = t("Please complete the CAPTCHA");
+      if (!termsAccepted) gErrs.terms = t("You must accept the Terms of Service");
+      if (Object.keys(gErrs).length) { setErrors(gErrs); return; }
+      setLoading(true);
+      try {
+        await submitGoogleAuth(googleProfile.accessToken, { region: form.region, captchaToken });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
@@ -1012,6 +1041,12 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         setCaptchaToken(null);
         return;
       }
+      if (result.error === "useGoogleLogin") {
+        setErrors({ password: t("This account uses Google Sign-In. Use the Google button instead.") });
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
+        return;
+      }
       if (result.error === "invalidCaptcha") {
         setErrors({ captcha: t("CAPTCHA expired or invalid. Please complete it again.") });
         recaptchaRef.current?.reset();
@@ -1046,7 +1081,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           setScreen("status");
           return;
         }
-        if (result.user.cinStatus === "pending") {
+        // A pending CLIENT is let in read-only (browse only, no actionable
+        // requests — enforced by PrivateRoute + per-action gating, backed by
+        // requireApprovedClient on the backend). Freelancers are unchanged:
+        // still logged back out and shown the blocking "under review" screen.
+        if (result.user.cinStatus === "pending" && result.user.role !== "client") {
           setPendingName(result.user.name);
           setScreen("pending");
           logout();
@@ -1060,6 +1099,102 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       setLoading(false);
     }
   }
+
+  // ── Google Sign Up / Login — CLIENT ONLY ──────────────────────────────────
+  // The response from POST /auth/google always carries a client account (the
+  // backend hardcodes role='client' server-side), so unlike finishAuthResult
+  // above there's no freelancer/admin branch to consider here at all.
+  function finishGoogleAuth(loggedUser) {
+    if ((loggedUser.cinStatus === "approved" || loggedUser.cinStatus === "rejected") && !loggedUser.statusSeen) {
+      setStatusUser(loggedUser);
+      setScreen("status");
+      return;
+    }
+    // Pending: let them in read-only, same as the password-login path.
+    onAuth?.(loggedUser);
+    onClose?.();
+  }
+
+  async function submitGoogleAuth(accessToken, extra = {}) {
+    try {
+      const res = await fetch(`${API}/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken, ...extra }),
+      });
+      const result = await res.json();
+      if (result.error === "missingRegion") { setErrors({ region: t("Please select your region") }); return; }
+      if (result.error === "invalidCaptcha") {
+        setErrors({ captcha: t("Please complete the CAPTCHA") });
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
+        return;
+      }
+      if (result.error === "googleAccountMismatch") {
+        setErrors({ email: t("This email is already linked to a different Google account.") });
+        return;
+      }
+      if (result.requiresTOTP) {
+        setPendingTOTPToken(result.pendingToken);
+        setScreen("totp");
+        return;
+      }
+      if (result.error === "invalidTOTP") { setErrors({ email: t("Invalid code. Try again.") }); return; }
+      if (result.error || !result.user) {
+        setErrors({ email: t("Google sign-in failed. Please try again.") });
+        return;
+      }
+      const loggedUser = loginWithUserData(result.user, result.accessToken);
+      finishGoogleAuth(loggedUser);
+    } catch {
+      setErrors({ email: t("Google sign-in failed. Please try again.") });
+    }
+  }
+
+  // useGoogleLogin (not the ID-token <GoogleLogin> widget) — only this,
+  // access-token flow lets the frontend request the People API birthday
+  // scope. In login mode it submits immediately; in signup mode it only
+  // prefills the visible form (display only — the backend independently
+  // re-derives name/email/dob from the token itself when the form is
+  // actually submitted, so nothing shown here is a trust boundary).
+  const googleAuth = useGoogleLogin({
+    scope: "openid email profile https://www.googleapis.com/auth/user.birthday.read",
+    onSuccess: async (tokenResponse) => {
+      setGoogleLoading(true);
+      setErrors({});
+      try {
+        if (mode === "login") {
+          await submitGoogleAuth(tokenResponse.access_token);
+          return;
+        }
+        const [userinfo, people] = await Promise.all([
+          fetch("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } })
+            .then(r => (r.ok ? r.json() : null)).catch(() => null),
+          fetch("https://people.googleapis.com/v1/people/me?personFields=birthdays", { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } })
+            .then(r => (r.ok ? r.json() : null)).catch(() => null),
+        ]);
+        if (!userinfo?.email) {
+          setErrors({ email: t("Google sign-in failed. Please try again.") });
+          return;
+        }
+        const bday = (people?.birthdays || []).map(b => b.date).find(d => d?.year && d?.month && d?.day);
+        const dobStr = bday ? `${bday.year}-${String(bday.month).padStart(2, "0")}-${String(bday.day).padStart(2, "0")}` : "";
+        setForm(f => ({
+          ...f,
+          firstName: userinfo.given_name || f.firstName,
+          lastName:  userinfo.family_name || f.lastName,
+          email:     userinfo.email || f.email,
+          dob:       dobStr,
+        }));
+        setGoogleProfile({ accessToken: tokenResponse.access_token, dobAvailable: !!bday });
+      } catch {
+        setErrors({ email: t("Google sign-in failed. Please try again.") });
+      } finally {
+        setGoogleLoading(false);
+      }
+    },
+    onError: () => setErrors({ email: t("Google sign-in failed. Please try again.") }),
+  });
 
   function handleKey(e) {
     if (e.key === "Enter") handleSubmit();
@@ -1092,7 +1227,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           setScreen("status");
           return;
         }
-        if (result.user.cinStatus === "pending") {
+        if (result.user.cinStatus === "pending" && result.user.role !== "client") {
           setPendingName(result.user.name);
           setScreen("pending");
           logout();
@@ -1359,7 +1494,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             {[{ id: "login", label: t("Log in") }, { id: "signup", label: t("Sign up") }].map(m => (
               <button
                 key={m.id}
-                onClick={() => { setMode(m.id); setErrors({}); setCaptchaToken(null); recaptchaRef.current?.reset(); }}
+                onClick={() => { setMode(m.id); setErrors({}); setCaptchaToken(null); recaptchaRef.current?.reset(); setGoogleProfile(null); }}
                 className="flex-1 py-2 text-sm font-semibold rounded-xl transition-all duration-200"
                 style={mode === m.id
                   ? { background: 'var(--fm-primary)', color: '#fff' }
@@ -1392,7 +1527,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                 {ROLES.map(r => (
                   <button
                     key={r.id}
-                    onClick={() => { setRole(r.id); setErrors({}); }}
+                    onClick={() => { setRole(r.id); setErrors({}); setGoogleProfile(null); }}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 12px', borderRadius: '9px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600, position: 'relative', zIndex: 1, background: 'transparent', transition: 'color 0.2s ease', color: role === r.id ? '#fff' : 'var(--fm-text-5)' }}
                   >
                     {r.icon}
@@ -1406,11 +1541,75 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             </div>
           )}
 
+          {/* Google Sign Up / Login — CLIENT ONLY. In signup mode this only
+              shows once "Client" is selected above; freelancer signup is
+              completely untouched. In login mode there's no role toggle to
+              gate on (role isn't known until the account is looked up), so
+              the button is always shown, clearly labeled — the backend only
+              ever matches/creates a client account through this endpoint,
+              so it can never log anyone into a freelancer account. */}
+          {(mode === "login" || (mode === "signup" && role === "client")) && (
+            <div className="mb-5">
+              {!googleProfile && (
+                <button
+                  type="button"
+                  onClick={() => googleAuth()}
+                  disabled={googleLoading}
+                  className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
+                  style={{
+                    background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border-strong)', color: 'var(--fm-text-2)',
+                    opacity: googleLoading ? 0.6 : 1, cursor: googleLoading ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {googleLoading ? (
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 18 18">
+                      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.9c1.7-1.56 2.7-3.87 2.7-6.62z"/>
+                      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 009 18z"/>
+                      <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 013.68 9c0-.59.1-1.17.27-1.7V4.97H.96A9 9 0 000 9c0 1.45.35 2.83.96 4.03l3-2.32z"/>
+                      <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.96 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z"/>
+                    </svg>
+                  )}
+                  {t(mode === "login" ? "Continue with Google" : "Sign up with Google")}
+                </button>
+              )}
+              {!googleProfile && (
+                <div className="flex items-center gap-3 mt-4" aria-hidden="true">
+                  <div className="flex-1 h-px" style={{ background: 'var(--fm-border)' }} />
+                  <span className="text-xs font-semibold" style={{ color: 'var(--fm-text-7)' }}>{t("or")}</span>
+                  <div className="flex-1 h-px" style={{ background: 'var(--fm-border)' }} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Signed in with Google — signup-only confirmation strip, replaces
+              the button above once Google auth has prefilled the form. */}
+          {mode === "signup" && role === "client" && googleProfile && (
+            <div className="mb-5 flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl" style={{ background: 'var(--fm-success-bg)', border: '1px solid color-mix(in srgb, var(--fm-success) 25%, transparent)' }}>
+              <span className="text-xs font-semibold flex items-center gap-2 flex-wrap" style={{ color: 'var(--fm-success)' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" className="shrink-0"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"/></svg>
+                {t("Signed in with Google")} — {form.email}
+                <span style={{ color: 'var(--fm-text-6)', fontWeight: 500 }}>
+                  ({googleProfile.dobAvailable ? t("date of birth included") : t("date of birth not shared by Google")})
+                </span>
+              </span>
+              <button type="button" onClick={() => { setGoogleProfile(null); setForm(f => ({ ...f, dob: "" })); }}
+                className="text-xs font-semibold underline shrink-0" style={{ color: 'var(--fm-text-6)' }}>
+                {t("Change")}
+              </button>
+            </div>
+          )}
+
           {/* Form fields */}
           <div className="space-y-3" onKeyDown={handleKey}>
 
-            {/* Last name + First name */}
-            {mode === "signup" && (
+            {/* Last name + First name — hidden for Google signup: already
+                captured from the verified Google profile (shown in the
+                confirmation strip above), and the backend never reads these
+                fields from this endpoint anyway. */}
+            {mode === "signup" && !googleProfile && (
               <div className="grid grid-cols-2 gap-3 auth-grid-2">
                 <Input
                   label={t("Last name")} placeholder={t("Your last name")}
@@ -1423,19 +1622,22 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
               </div>
             )}
 
-            {/* Email */}
-            <Input
-              label={t("Email address")} type="email" placeholder="you@example.com"
-              value={form.email} onChange={set("email")} error={errors.email} required
-              leftIcon={
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                </svg>
-              }
-            />
+            {/* Email — same reasoning as above */}
+            {!googleProfile && (
+              <Input
+                label={t("Email address")} type="email" placeholder="you@example.com"
+                value={form.email} onChange={set("email")} error={errors.email} required
+                leftIcon={
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                }
+              />
+            )}
 
-            {/* Password — login: single with lock icon; signup: 2-col grid */}
-            {mode === "login" ? (
+            {/* Password — login: single with lock icon; signup: 2-col grid.
+                Not shown for Google signup — that account has no password. */}
+            {googleProfile ? null : mode === "login" ? (
               <Input
                 label={t("Password")} type="password" placeholder={t("Enter your password")}
                 value={form.password} onChange={set("password")} error={errors.password} required
@@ -1459,8 +1661,11 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
               </div>
             )}
 
-            {/* Date of birth + Gender — signup only, 2-col grid */}
-            {mode === "signup" && (
+            {/* Date of birth + Gender — signup only, 2-col grid. Skipped
+                entirely for Google signup: dob is never required there (only
+                prefilled if Google actually provided one — see the strip
+                above), and gender isn't collected on that path at all. */}
+            {mode === "signup" && !googleProfile && (
               <div className="grid grid-cols-2 gap-3 auth-grid-2">
                 <Input
                   label={t("Date of birth")} type="date"
