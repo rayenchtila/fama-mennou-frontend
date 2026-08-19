@@ -13,6 +13,12 @@ if (process.env.REACT_APP_SENTRY_DSN) {
     dsn: process.env.REACT_APP_SENTRY_DSN,
     environment: process.env.NODE_ENV,
     tracesSampleRate: 0.1,
+    // Instagram's (and some other apps') in-app browser injects its own
+    // navigation-performance JS bridge (iabjs://navigation_performance_logger_android)
+    // and throws this when its own native-side object is torn down mid-call —
+    // happens on effectively any site opened in that in-app browser, not
+    // something in our code, and not actionable here.
+    ignoreErrors: [/Error invoking postMessage: Java object is gone/],
   });
 }
 
