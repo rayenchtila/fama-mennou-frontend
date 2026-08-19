@@ -829,11 +829,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
   // Google Sign Up/Login — CLIENT ONLY (button is only ever rendered when
   // role === "client"; freelancer/admin never touch this state or endpoint).
-  // googleProfile is set once Google auth succeeds in signup mode: it holds
-  // the access token to send to the backend, plus whether Google actually
-  // provided a birthday (never assumed otherwise — see fetchGoogleBirthday
-  // on the backend, which is the only source of truth for dob).
-  const [googleProfile, setGoogleProfile] = useState(null); // { accessToken, dobAvailable }
+  // googleProfile is set once Google auth succeeds in signup mode: it just
+  // holds the access token to send to the backend on final submit.
+  const [googleProfile, setGoogleProfile] = useState(null); // { accessToken }
   const [googleLoading, setGoogleLoading] = useState(false);
 
   // Terms acceptance
@@ -1116,27 +1114,32 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   }
 
   // Shared by both the signup submit button and the login-mode Google button
-  // below — fetches Google's own userinfo + People API for display-only
-  // prefill (name/email/dob shown in the form), never trusted server-side.
+  // below — routed through our own backend (POST /auth/google/prefill)
+  // rather than calling googleapis.com directly from the browser: production's
+  // CSP connect-src only allows this API's own origin, so a direct client-side
+  // call to Google's userinfo endpoint is silently blocked. Display-only
+  // either way — the backend independently re-derives everything itself when
+  // the form is actually submitted, so nothing shown here is a trust boundary.
   async function prefillFromGoogle(accessToken) {
-    const [userinfo, people] = await Promise.all([
-      fetch("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: `Bearer ${accessToken}` } })
-        .then(r => (r.ok ? r.json() : null)).catch(() => null),
-      fetch("https://people.googleapis.com/v1/people/me?personFields=birthdays", { headers: { Authorization: `Bearer ${accessToken}` } })
-        .then(r => (r.ok ? r.json() : null)).catch(() => null),
-    ]);
-    if (!userinfo?.email) return false;
-    const bday = (people?.birthdays || []).map(b => b.date).find(d => d?.year && d?.month && d?.day);
-    const dobStr = bday ? `${bday.year}-${String(bday.month).padStart(2, "0")}-${String(bday.day).padStart(2, "0")}` : "";
-    setForm(f => ({
-      ...f,
-      firstName: userinfo.given_name || f.firstName,
-      lastName:  userinfo.family_name || f.lastName,
-      email:     userinfo.email || f.email,
-      dob:       dobStr,
-    }));
-    setGoogleProfile({ accessToken, dobAvailable: !!bday });
-    return true;
+    try {
+      const res = await fetch(`${API}/auth/google/prefill`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken }),
+      });
+      const data = await res.json();
+      if (!data?.email) return false;
+      setForm(f => ({
+        ...f,
+        firstName: data.givenName || f.firstName,
+        lastName:  data.familyName || f.lastName,
+        email:     data.email || f.email,
+      }));
+      setGoogleProfile({ accessToken });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   // `onNoAccountYet` lets the login-mode Google button (which never collects
