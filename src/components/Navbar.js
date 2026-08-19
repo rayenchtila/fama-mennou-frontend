@@ -922,8 +922,8 @@ export default function Navbar({ onLogin }) {
                   );
                 })}
 
-                {/* ── Account (logged-in non-admin) ── */}
-                {user && !user.isAdmin && (
+                {/* ── Account (logged-in non-admin, non-freelancer) ── */}
+                {user && !user.isAdmin && user.role !== 'freelancer' && (
                   <>
                     <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>{t('nav.account')}</p>
                     {[
