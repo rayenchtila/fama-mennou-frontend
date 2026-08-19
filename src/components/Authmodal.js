@@ -1185,13 +1185,23 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   }
 
   // useGoogleLogin (not the ID-token <GoogleLogin> widget) — only this,
-  // access-token flow lets the frontend request the People API birthday
-  // scope. In login mode it submits immediately; in signup mode it only
-  // prefills the visible form (display only — the backend independently
-  // re-derives name/email/dob from the token itself when the form is
-  // actually submitted, so nothing shown here is a trust boundary).
+  // access-token flow, kept even without the birthday scope for consistency
+  // with the backend. In login mode it submits immediately; in signup mode
+  // it only prefills the visible form (display only — the backend
+  // independently re-derives name/email/dob from the token itself when the
+  // form is actually submitted, so nothing shown here is a trust boundary).
+  //
+  // Deliberately NOT requesting user.birthday.read: it's a Google "sensitive"
+  // scope, and while unverified, Google caps the app at 100 users EVER
+  // (lifetime, not resettable) for any client requesting an unapproved
+  // sensitive/restricted scope — even after publishing to Production. Since
+  // the spec always treated dob as best-effort/optional, dropping the scope
+  // removes that cap entirely (openid/email/profile are not sensitive).
+  // fetchGoogleBirthday on the backend still runs and still returns null
+  // gracefully now that the scope is never granted — no backend change
+  // needed, dob just always ends up unset via this path.
   const googleAuth = useGoogleLogin({
-    scope: "openid email profile https://www.googleapis.com/auth/user.birthday.read",
+    scope: "openid email profile",
     onSuccess: async (tokenResponse) => {
       setGoogleLoading(true);
       setErrors({});
@@ -1616,9 +1626,6 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
               <span className="text-xs font-semibold flex items-center gap-2 flex-wrap" style={{ color: 'var(--fm-success)' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" className="shrink-0"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"/></svg>
                 {t("Signed in with Google")} — {form.email}
-                <span style={{ color: 'var(--fm-text-6)', fontWeight: 500 }}>
-                  ({googleProfile.dobAvailable ? t("date of birth included") : t("date of birth not shared by Google")})
-                </span>
               </span>
               <button type="button" onClick={() => { setGoogleProfile(null); setForm(f => ({ ...f, dob: "" })); }}
                 className="text-xs font-semibold underline shrink-0" style={{ color: 'var(--fm-text-6)' }}>
