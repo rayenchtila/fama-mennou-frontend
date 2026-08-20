@@ -207,12 +207,42 @@ function HeroSection() {
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}
             style={{ marginBottom: '28px' }}>
-            <Link to="/projects?post=1"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '11px', background: '#fff', color: '#1a1730', border: 'none', fontFamily: 'inherit', fontWeight: 800, fontSize: '14.5px', textDecoration: 'none', boxShadow: '0 10px 26px -8px rgba(255,255,255,.35)', transition: 'transform .18s, box-shadow .18s' }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 32px -8px rgba(255,255,255,.5)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 26px -8px rgba(255,255,255,.35)'; }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-              {t('home.publish_cta')}
+            <style>{`
+              .fm-publish-cta {
+                position: relative; overflow: hidden; isolation: isolate;
+                transition: transform .25s cubic-bezier(0.34,1.36,0.64,1), box-shadow .3s ease, border-color .3s ease;
+              }
+              .fm-publish-cta::before {
+                content: ''; position: absolute; inset: 0; z-index: -1;
+                background: linear-gradient(115deg, transparent 30%, rgba(124,108,246,.16) 48%, rgba(62,194,232,.16) 52%, transparent 70%);
+                transform: translateX(-140%);
+                transition: transform .7s cubic-bezier(0.22,1,0.36,1);
+              }
+              .fm-publish-cta:hover::before, .fm-publish-cta:focus-visible::before { transform: translateX(140%); }
+              .fm-publish-cta:hover, .fm-publish-cta:focus-visible {
+                transform: translateY(-3px);
+                box-shadow: 0 20px 44px -12px rgba(124,108,246,.55), 0 0 0 1px rgba(124,108,246,.3);
+              }
+              .fm-publish-icon { transition: transform .3s cubic-bezier(0.34,1.36,0.64,1); }
+              .fm-publish-cta:hover .fm-publish-icon { transform: rotate(90deg) scale(1.08); }
+            `}</style>
+            <Link to="/projects?post=1" className="fm-publish-cta"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '9px 22px 9px 9px',
+                borderRadius: '999px', background: '#fff', border: '1px solid rgba(124,108,246,.22)',
+                fontFamily: 'inherit', textDecoration: 'none',
+                boxShadow: '0 14px 32px -10px rgba(124,108,246,.4), 0 0 0 1px rgba(124,108,246,.12)',
+              }}>
+              <span className="fm-publish-icon" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none',
+                width: '30px', height: '30px', borderRadius: '50%',
+                background: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', boxShadow: '0 4px 12px -3px rgba(124,108,246,.6)',
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+              <span style={{ fontWeight: 800, fontSize: '14.5px', letterSpacing: '-.01em', background: 'linear-gradient(110deg,#3d3568,#5b4fb0 60%,#3d3568)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+                {t('home.publish_cta')}
+              </span>
             </Link>
           </motion.div>
         )}
