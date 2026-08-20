@@ -951,12 +951,7 @@ export default function ProjectsPage() {
                   <IcFolder s={26}/>
                 </div>
                 <p style={{ fontSize:16, fontWeight:700, color:'var(--fm-text-4)', margin:'0 0 6px' }}>{t('prp.no_projects')}</p>
-                <p style={{ fontSize:13, color:'var(--fm-text-7)', margin:'0 0 22px' }}>{t('prp.no_projects_sub')}</p>
-                <button onClick={()=>!readOnly && setShowPost(true)} disabled={readOnly}
-                  title={readOnly ? t("Your account is pending approval — you can browse, but this action isn't available yet.") : undefined}
-                  style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'11px 24px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:readOnly?'not-allowed':'pointer', opacity:readOnly?0.5:1, boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)' }}>
-                  <IcPlus s={13}/> {t('prp.publish')}
-                </button>
+                <p style={{ fontSize:13, color:'var(--fm-text-7)', margin:0 }}>{t('prp.no_projects_sub')}</p>
               </div>
             ) : (
               <>
