@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
@@ -807,6 +807,17 @@ export default function ProjectsPage() {
   const readOnly     = usePendingClientReadOnly();
 
   const [showPost,      setShowPost]      = useState(false);
+  const [searchParams]  = useSearchParams();
+
+  // Deep link from the homepage's "+ Publier" button (?post=1) — auto-open
+  // the post-project modal on arrival. Only for an approved client; a
+  // pending client would just find the same button disabled here anyway,
+  // so silently doing nothing is the right outcome rather than popping a
+  // modal whose own submit is going to be refused.
+  useEffect(() => {
+    if (searchParams.get('post') === '1' && isClient && !readOnly) setShowPost(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient, readOnly]);
   const [editingProject,setEditingProject]= useState(null);
   const [editedProjects,setEditedProjects]= useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('fm_edited_projects')||'[]')); } catch { return new Set(); }

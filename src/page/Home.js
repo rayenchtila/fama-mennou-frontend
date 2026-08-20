@@ -119,6 +119,7 @@ function HeroSection() {
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   const SEARCH_LABELS = [t('home.search.tab1'), t('home.search.tab2'), t('home.search.tab3')];
   const SEARCH_PLACEHOLDERS = [t('home.search.ph1'), t('home.search.ph2'), t('home.search.ph3')];
@@ -196,6 +197,25 @@ function HeroSection() {
           style={{ fontSize: 'clamp(16px,2vw,19px)', color: 'var(--fm-text-5)', maxWidth: '520px', margin: '0 auto 34px', lineHeight: 1.55 }}>
           {t('home.hero.subtitle')}
         </motion.p>
+
+        {/* Post-a-project shortcut — every client account, new or old,
+            approved or still pending (the /projects page itself already
+            disables the actual Publier button and explains why for a
+            pending client, so no extra gating is needed here). Never
+            shown to freelancers, admins, or logged-out visitors. */}
+        {user?.role === 'client' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}
+            style={{ marginBottom: '28px' }}>
+            <Link to="/projects?post=1"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '11px', background: '#fff', color: '#1a1730', border: 'none', fontFamily: 'inherit', fontWeight: 800, fontSize: '14.5px', textDecoration: 'none', boxShadow: '0 10px 26px -8px rgba(255,255,255,.35)', transition: 'transform .18s, box-shadow .18s' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 32px -8px rgba(255,255,255,.5)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 26px -8px rgba(255,255,255,.35)'; }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              {t('home.publish_cta')}
+            </Link>
+          </motion.div>
+        )}
 
         {/* Active promotional video(s) — renders nothing when none are live */}
         <HomeAdVideo />
