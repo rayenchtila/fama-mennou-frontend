@@ -280,10 +280,11 @@ function AppInner() {
           <Routes location={location}>
             <Route path="/" element={<Home />} />
 
-            <Route
-              path="/freelancers"
-              element={<PrivateRoute onLogin={handleLogin}><FreelancersPage /></PrivateRoute>}
-            />
+            {/* Public — anyone can see the freelancer directory, logged in or
+                not, before or after signup, any account status. Actions
+                inside the page (message, review, apply) still individually
+                require login where they always did. */}
+            <Route path="/freelancers" element={<FreelancersPage />} />
             <Route
               path="/clients"
               element={<PrivateRoute onLogin={handleLogin}><ClientsPage /></PrivateRoute>}
