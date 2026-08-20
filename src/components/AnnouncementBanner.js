@@ -47,6 +47,25 @@ export default function AnnouncementBanner() {
   const [items, setItems] = useState([]);
   const [dismissedIds, setDismissedIds] = useState(getDismissed);
 
+  // Logged-in: pull this account's dismissals from the server too, merged
+  // into the localStorage-derived set — this is what makes a dismissal on
+  // one phone/browser also hide the announcement on a completely different
+  // device for the same account, instead of being stuck to one browser.
+  // Anonymous visitors have no account to attach this to, so they keep the
+  // localStorage-only behavior unchanged.
+  useEffect(() => {
+    if (!user?.email) return;
+    let cancelled = false;
+    fetch(`${API}/announcements/dismissed`)
+      .then(r => (r.ok ? r.json() : []))
+      .then(serverIds => {
+        if (cancelled || !Array.isArray(serverIds) || !serverIds.length) return;
+        setDismissedIds(prev => new Set([...prev, ...serverIds]));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user?.email]);
+
   // Initial load (works for every visitor, logged in or not) — real-time
   // below is a same-session live-update layer on top of this, not a
   // replacement for it.
@@ -113,6 +132,14 @@ export default function AnnouncementBanner() {
   const handleDismiss = (id) => {
     markDismissed(id);
     setDismissedIds(getDismissed());
+    // Logged in: also persist to the account server-side, so this follows
+    // them to their next device instead of only hiding it on this browser.
+    // Fire-and-forget — the UI above already updated from localStorage, and
+    // a failed request here just means the next device asks again, not a
+    // broken experience on this one.
+    if (user?.email) {
+      fetch(`${API}/announcements/${id}/dismiss`, { method: 'POST' }).catch(() => {});
+    }
   };
 
   return (
