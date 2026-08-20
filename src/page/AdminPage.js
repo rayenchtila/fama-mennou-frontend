@@ -1604,6 +1604,9 @@ export default function AdminPage() {
   });
   const [filter,       setFilter]       = useState("pending");
   const [search,       setSearch]       = useState("");
+  // "Tous les utilisateurs" drill-down: initial -> pick a role -> filtered list.
+  const [allUsersStep, setAllUsersStep] = useState("initial"); // "initial" | "choice" | "list"
+  const [allUsersRole, setAllUsersRole] = useState(null);      // "client" | "freelancer"
   const [viewing,      setViewing]      = useState(null);
   const [rejecting,    setRejecting]    = useState(null);
   const [approving,    setApproving]    = useState(null);
@@ -2303,32 +2306,90 @@ export default function AdminPage() {
           </>
         )}
 
-        {/* ══ ALL USERS TAB ══ */}
+        {/* ══ ALL USERS TAB — Voir liste -> pick Client/Freelancer -> filtered list ══ */}
         {mainTab === "allusers" && (
           <>
-            <div className="relative mb-4">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              <input
-                type="text"
-                placeholder={t("admin.search_placeholder")}
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-colors"
-              />
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              {[
-                { label: t("admin.total"),       value: (users ?? []).length,                                    color: "text-slate-700 dark:text-slate-200",     bg: "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800" },
-                { label: t("admin.clients"),     value: (users ?? []).filter(u => u.role === "client").length,   color: "text-sky-600 dark:text-sky-400",          bg: "bg-sky-50 dark:bg-sky-900/20 border-sky-100 dark:border-sky-900" },
-                { label: t("admin.freelancers"), value: (users ?? []).filter(u => u.role === "freelancer").length, color: "text-indigo-600 dark:text-indigo-400",  bg: "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-900" },
-              ].map(s => (
-                <div key={s.label} className={`${s.bg} rounded-2xl px-4 py-3 border`}>
-                  <p className={`text-2xl font-extrabold ${s.color}`}>{!accountsLoaded && s.value === 0 ? '…' : s.value}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{s.label}</p>
+            {allUsersStep === "initial" && (
+              <div className="flex items-center justify-center py-16">
+                <button
+                  onClick={() => setAllUsersStep("choice")}
+                  className="px-6 py-3 rounded-2xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors shadow"
+                >
+                  ( {t("admin.view_list")} )
+                </button>
+              </div>
+            )}
+
+            {allUsersStep === "choice" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+                <button
+                  onClick={() => { setAllUsersRole("client"); setAllUsersStep("list"); }}
+                  className="text-left rounded-2xl border p-6 transition-all hover:-translate-y-0.5 bg-sky-50 dark:bg-sky-900/20 border-sky-100 dark:border-sky-900"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="w-11 h-11 rounded-xl flex items-center justify-center bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400">
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+                    </span>
+                    <span className="text-2xl font-extrabold text-sky-600 dark:text-sky-400">
+                      {!accountsLoaded ? '…' : (users ?? []).filter(u => u.role === "client").length}
+                    </span>
+                  </div>
+                  <p className="font-bold text-slate-800 dark:text-slate-100">{t("admin.clients")}</p>
+                </button>
+
+                <button
+                  onClick={() => { setAllUsersRole("freelancer"); setAllUsersStep("list"); }}
+                  className="text-left rounded-2xl border p-6 transition-all hover:-translate-y-0.5 bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-900"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="w-11 h-11 rounded-xl flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    </span>
+                    <span className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">
+                      {!accountsLoaded ? '…' : (users ?? []).filter(u => u.role === "freelancer").length}
+                    </span>
+                  </div>
+                  <p className="font-bold text-slate-800 dark:text-slate-100">{t("admin.freelancers")}</p>
+                </button>
+              </div>
+            )}
+
+            {allUsersStep === "list" && (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    onClick={() => { setAllUsersStep("choice"); setSearch(""); }}
+                    aria-label={t("Back")}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                  >
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                  </button>
+                  <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wide">
+                    {allUsersRole === "client" ? t("admin.clients") : t("admin.freelancers")}
+                  </p>
+                  <button
+                    onClick={() => { setAllUsersStep("initial"); setAllUsersRole(null); setSearch(""); }}
+                    aria-label={t("Close")}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
+                  >
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+                  </button>
                 </div>
-              ))}
-            </div>
-            <AllUsersTable allUsers={users} search={search} loading={!accountsLoaded} />
+
+                <div className="relative mb-4">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                  <input
+                    type="text"
+                    placeholder={t("admin.search_placeholder")}
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-colors"
+                  />
+                </div>
+
+                <AllUsersTable allUsers={(users ?? []).filter(u => u.role === allUsersRole)} search={search} loading={!accountsLoaded} />
+              </>
+            )}
           </>
         )}
 
