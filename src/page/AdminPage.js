@@ -2315,7 +2315,7 @@ export default function AdminPage() {
                   onClick={() => setAllUsersStep("choice")}
                   className="px-6 py-3 rounded-2xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors shadow"
                 >
-                  ( {t("admin.view_list")} )
+                  {t("admin.view_list")}
                 </button>
               </div>
             )}
