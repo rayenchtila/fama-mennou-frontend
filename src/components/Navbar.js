@@ -957,40 +957,6 @@ export default function Navbar({ onLogin }) {
                   </>
                 )}
 
-                {/* ── Admin section ── */}
-                {user?.isAdmin && (
-                  <>
-                    <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>Admin</p>
-                    {[
-                      { label: t("Dashboard"),             to: "/admin/dashboard", icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, color: "#7c6cf6" },
-                      { label: t("msg.page_title"),        to: "/messages",        icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
-                      { label: t('home.ac.hire.title'),    to: "/freelancers",     icon: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></>, color: "#9b8cff" },
-                      { label: t('home.ac.client.title'),  to: "/clients",         icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#0ea5e9" },
-                      { label: t('Courses'),               to: "/courses",         icon: <><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></>, color: "#10b981" },
-                    ].map(item => {
-                      const active = location.pathname === item.to;
-                      return (
-                        <Link key={item.to} to={item.to} onClick={() => setMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold no-underline transition-colors"
-                          style={{ color: active ? "#9b8cff" : bg.navClr, background: active ? "rgba(124,108,246,0.1)" : "transparent" }}
-                          onMouseEnter={e => { if (!active) { e.currentTarget.style.background = bg.btnHovBg; } }}
-                          onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; } }}>
-                          <span style={{ width: 28, height: 28, borderRadius: 8, background: active ? `${item.color}22` : bg.btnHovBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={active ? item.color : bg.iconClr} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-                              {item.icon}
-                            </svg>
-                          </span>
-                          <span className="flex-1">{item.label}</span>
-                          {item.badge > 0 && (
-                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold text-white" style={{ background: "#ef4444" }}>
-                              {item.badge > 9 ? "9+" : item.badge}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </>
-                )}
               </nav>
 
               {/* Bottom actions */}
