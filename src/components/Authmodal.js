@@ -1532,7 +1532,18 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
             {[{ id: "login", label: t("Log in") }, { id: "signup", label: t("Sign up") }].map(m => (
               <button
                 key={m.id}
-                onClick={() => { setMode(m.id); setErrors({}); setCaptchaToken(null); recaptchaRef.current?.reset(); setGoogleProfile(null); }}
+                onClick={() => {
+                  setMode(m.id);
+                  setErrors({});
+                  setCaptchaToken(null);
+                  recaptchaRef.current?.reset();
+                  setGoogleProfile(null);
+                  // Login and Signup share one form state, so without this,
+                  // whatever was typed in one (email, password...) stayed
+                  // visible after switching to the other — same bug in
+                  // reverse too. Blank slate every time the tab is clicked.
+                  setForm({ lastName: "", firstName: "", email: "", password: "", confirmPassword: "", skills: "", bio: "", dob: "", region: "", gender: "" });
+                }}
                 className="flex-1 py-2 text-sm font-semibold rounded-xl transition-all duration-200"
                 style={mode === m.id
                   ? { background: 'var(--fm-primary)', color: '#fff' }
