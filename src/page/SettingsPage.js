@@ -239,14 +239,16 @@ export default function SettingsPage() {
         <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.08),transparent 68%)', top:'40%', right:'-160px', animation:'spBlob2 26s ease-in-out infinite' }}/>
       </div>
 
-      <div className="fm-page-header" style={{ position:'relative', zIndex:1, maxWidth:680, margin:'0 auto' }}>
+      <div className="fm-page-header" style={{ position:'relative', zIndex:1, width:'100%', margin:'0 auto' }}>
 
         {/* Account info */}
         <SectionCard title={t('sp.account_info')} icon={<IcShield s={16}/>}>
           <InfoRow label={t('sp.full_name')} value={user.name || '—'}/>
           <InfoRow label={t('sp.email')} value={user.email}/>
           <InfoRow label={t('sp.role')} value={user.role === 'client' ? t('dash.role.client') : user.role === 'freelancer' ? t('dash.role.freelancer') : user.role}/>
-          <InfoRow label={t('sp.status')} value={statusBadge.label} badge={statusBadge}/>
+          {user.role !== 'client' && (
+            <InfoRow label={t('sp.status')} value={statusBadge.label} badge={statusBadge}/>
+          )}
           <div style={{ borderBottom:`1px solid ${C.border}` }}/>
         </SectionCard>
 

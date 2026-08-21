@@ -35,7 +35,7 @@ function StatusBadge({ statusKey, map }) {
   const s = map[statusKey] || map.en_attente;
   const Icon = s.icon === 'check' ? IcCheck : IcClock;
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:10.5, fontWeight:700, padding:'3px 11px', borderRadius:20, background:s.bg, border:`1px solid ${s.border}`, color:s.color, whiteSpace:'nowrap' }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:10.5, fontWeight:700, color:s.color, whiteSpace:'nowrap' }}>
       <Icon s={10}/>
       {t(s.labelKey)}
     </span>
