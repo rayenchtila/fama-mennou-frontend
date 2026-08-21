@@ -208,6 +208,9 @@ function PostModal({ user, onClose, onDone }) {
     if (!form.description.trim()) errors.description = t('prp.required');
     if (!form.experience)         errors.experience  = t('prp.required');
     if (!form.period)             errors.period      = t('prp.required');
+    if (form.budget === '' || form.budget === null || isNaN(Number(form.budget)) || Number(form.budget) < 0)
+      errors.budget = t('prp.required');
+    if (form.keywords.some(k => !k.trim())) errors.keywords = t('prp.required');
     if (Object.keys(errors).length) { setErrs(errors); return; }
     setPosting(true); setErr('');
     try {
@@ -260,7 +263,7 @@ function PostModal({ user, onClose, onDone }) {
             </div>
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-7)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.budget_tnd')}</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-7)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.budget_tnd')} <span style={{color:'var(--fm-danger)'}}>*</span></p>
             <div style={{ display:'flex', alignItems:'stretch', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:12, overflow:'hidden' }}>
               <button type="button" onClick={()=>setForm(f=>({...f,budget:String(Math.max(0,(Number(f.budget)||0)-100))}))}
                 style={{ flexShrink:0, minWidth:44, padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>−</button>
@@ -269,18 +272,20 @@ function PostModal({ user, onClose, onDone }) {
               <button type="button" onClick={()=>setForm(f=>({...f,budget:String((Number(f.budget)||0)+100)}))}
                 style={{ flexShrink:0, minWidth:44, padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>+</button>
             </div>
+            {errs.budget && <p style={{fontSize:11,color:'var(--fm-danger)',margin:'3px 0 0'}}>{errs.budget}</p>}
           </div>
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-7)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>{t('prp.keywords')}</p>
+            <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-7)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>{t('prp.keywords')} <span style={{color:'var(--fm-danger)'}}>*</span></p>
             <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
               {form.keywords.map((kw,i)=>(
-                <div key={i} style={{ display:'flex', alignItems:'center', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:10, overflow:'hidden' }}>
+                <div key={i} style={{ display:'flex', alignItems:'center', background:'var(--fm-border-soft)', border:`1px solid ${errs.keywords && !kw.trim() ? 'var(--fm-danger)' : 'var(--fm-border)'}`, borderRadius:10, overflow:'hidden' }}>
                   <span style={{ paddingLeft:10, fontSize:13, fontWeight:700, color:'var(--fm-text-6)' }}>#</span>
                   <input maxLength={25} value={kw} onChange={e=>{const v=e.target.value.replace(/[#\s]/g,'');setForm(f=>({...f,keywords:f.keywords.map((k,idx)=>idx===i?v:k)}));}}
                     placeholder={t('prp.word_n', { n: i+1 })} style={{ background:'transparent', color:'var(--fm-text-2)', fontSize:12, fontWeight:600, padding:'8px 8px 8px 4px', outline:'none', width:'9ch' }}/>
                 </div>
               ))}
             </div>
+            {errs.keywords && <p style={{fontSize:11,color:'var(--fm-danger)',margin:'3px 0 0'}}>{errs.keywords}</p>}
           </div>
           {err && <p style={{fontSize:12,color:'var(--fm-danger)'}}>{err}</p>}
           <button type="submit" disabled={posting}
