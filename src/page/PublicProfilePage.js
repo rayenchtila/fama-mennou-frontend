@@ -242,24 +242,29 @@ export default function PublicProfilePage() {
 
           <div style={{ position:'relative', padding:'32px 32px 28px' }}>
 
-            {/* Role + Status chips — identical structure for all users */}
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:24, flexWrap:'wrap' }}>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:roleDim, border:`1px solid ${roleBord}`, color:roleColor, fontSize:10.5, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em' }}>
-                <IcUser/> {roleLabel}
-              </span>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:statusDim, border:`1px solid ${statusBord}`, color:statusColor, fontSize:10.5, fontWeight:700 }}>
-                <IcShield/> {statusLabel}
-              </span>
-              {profile.availability && (
-                <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 13px', borderRadius:20, background:`${availColor}14`, border:`1px solid ${availColor}44`, color:availColor, fontSize:10.5, fontWeight:700 }}>
-                  <IcDot color={availColor}/> {availLabel}
+            {/* Role + Status chips — identical structure for all users,
+                except freelancers no longer get this row at all. */}
+            {profile.role !== 'freelancer' && (
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:24, flexWrap:'wrap' }}>
+                <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:roleDim, border:`1px solid ${roleBord}`, color:roleColor, fontSize:10.5, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em' }}>
+                  <IcUser/> {roleLabel}
                 </span>
-              )}
-            </div>
+                <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:statusDim, border:`1px solid ${statusBord}`, color:statusColor, fontSize:10.5, fontWeight:700 }}>
+                  <IcShield/> {statusLabel}
+                </span>
+                {profile.availability && (
+                  <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 13px', borderRadius:20, background:`${availColor}14`, border:`1px solid ${availColor}44`, color:availColor, fontSize:10.5, fontWeight:700 }}>
+                    <IcDot color={availColor}/> {availLabel}
+                  </span>
+                )}
+              </div>
+            )}
 
-            {/* Avatar + identity — identical for all users */}
+            {/* Avatar + identity — identical for all users, except
+                freelancers get a circular photo (matches Embaucher des
+                Freelancers) instead of the rounded-square used for clients. */}
             <div style={{ display:'flex', alignItems:'flex-start', gap:22, marginBottom:22 }}>
-              <div style={{ width:96, height:96, borderRadius:24, overflow:'hidden', flexShrink:0, background:`linear-gradient(135deg,${tint}30,${tint}10)`, color:tint, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:30, border:`2px solid ${tint}45`, boxShadow:`0 0 0 5px ${tint}12, 0 20px 48px -12px ${tint}45` }}>
+              <div style={{ width:96, height:96, borderRadius: profile.role === 'freelancer' ? '50%' : 24, overflow:'hidden', flexShrink:0, background:`linear-gradient(135deg,${tint}30,${tint}10)`, color:tint, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:30, border:`2px solid ${tint}45`, boxShadow:`0 0 0 5px ${tint}12, 0 20px 48px -12px ${tint}45` }}>
                 {profile.photo
                   ? <img src={profile.photo.startsWith('data:') ? profile.photo : cldImg(profile.photo)} alt={profile.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none'; }}/>
                   : inits}
