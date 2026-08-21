@@ -84,16 +84,6 @@ export default function ClientDashboard() {
   const firstName = (name || user.name || 'Client').split(' ')[0];
   const avatarSrc = photo || user.photo;
 
-  const cinStatus   = user.cinStatus;
-  const isApproved  = cinStatus === 'approved';
-  const isPending   = cinStatus === 'pending';
-  const statusColor = isApproved ? C.emerald : isPending ? C.amber : C.rose;
-  const statusDim   = isApproved ? C.emeraldDim  : isPending ? C.amberDim  : C.roseDim;
-  const statusBord  = isApproved ? C.emeraldBord  : isPending ? C.amberBord  : C.roseBord;
-  const statusLabel = isApproved ? t('dash.identity.verified') : isPending ? t('dash.identity.verifying') : t('dash.identity.not_verified');
-  const StatusIcon  = isApproved ? IcShield : isPending ? IcClock : IcAlert;
-  const statusDesc  = isApproved ? t('cd.status_approved') : isPending ? t('cd.status_pending') : t('cd.status_none');
-
   /* ── All original handlers — unchanged ── */
   async function handlePhotoFile(e) {
     const file = e.target.files?.[0];
@@ -177,7 +167,7 @@ export default function ClientDashboard() {
               {greeting},{' '}
               <span style={{ background:`linear-gradient(110deg,var(--fm-text-1) 0%,${tint} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
                 {firstName}
-              </span>
+              </span>{' '}😊
             </h1>
           </div>
 
@@ -272,28 +262,6 @@ export default function ClientDashboard() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-
-        {/* ════════════════════════════════════════════
-            CIN VERIFICATION STATUS CARD
-            ════════════════════════════════════════════ */}
-        <div style={{
-          borderRadius:20, marginBottom:18, padding:'18px 22px',
-          background: statusDim,
-          border:`1px solid ${statusBord}`,
-          display:'flex', alignItems:'flex-start', gap:14,
-        }}>
-          <div style={{
-            width:40, height:40, borderRadius:13, flexShrink:0,
-            background:`${statusColor}18`, border:`1px solid ${statusColor}35`,
-            display:'flex', alignItems:'center', justifyContent:'center', color:statusColor,
-          }}>
-            <StatusIcon s={18}/>
-          </div>
-          <div style={{ flex:1, minWidth:0 }}>
-            <p style={{ fontSize:13, fontWeight:800, color:statusColor, margin:'0 0 3px' }}>{statusLabel}</p>
-            <p style={{ fontSize:12.5, color:C.sub, margin:0, lineHeight:1.6 }}>{statusDesc}</p>
           </div>
         </div>
 
