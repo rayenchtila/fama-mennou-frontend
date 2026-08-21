@@ -129,7 +129,7 @@ export default function PaymentsPage() {
         <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(16,185,129,0.08),transparent 68%)', top:'30%', right:'-160px', animation:'ppBlob2 25s ease-in-out infinite' }}/>
       </div>
 
-      <div style={{ position:'relative', zIndex:1, maxWidth:820, margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,3vw,24px) 0' }}>
+      <div style={{ position:'relative', zIndex:1, width:'100%', margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,3vw,24px) 0' }}>
 
         {/* Summary cards */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:14, marginBottom:32 }}>

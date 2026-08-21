@@ -919,7 +919,7 @@ export default function ProjectsPage() {
         <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.07),transparent 68%)', bottom:'15%', right:'-120px', animation:'prBlob2 28s ease-in-out infinite' }}/>
       </div>
 
-      <div style={{ position:'relative', zIndex:1, maxWidth:940, margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,3vw,24px) 0' }}>
+      <div style={{ position:'relative', zIndex:1, width:'100%', margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,3vw,24px) 0' }}>
 
         {/* ─── Header ─── */}
         <div style={{ marginBottom:28 }}>
