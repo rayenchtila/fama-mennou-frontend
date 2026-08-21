@@ -113,6 +113,83 @@ function ClockIcon({ size = 13, color = 'var(--fm-text-6)' }) {
 
 const CARD_STYLE = { background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', borderRadius: '16px' };
 
+// ── Typewriter effect for the hero headline ─────────────────────────────────────
+// Types `fullText` out character by character with slightly randomized timing
+// (real typing is never perfectly even) and a longer pause after punctuation.
+// Restarts whenever `fullText` changes — which happens naturally on a fresh
+// mount of the Home page (every first visit / reload) and also whenever the
+// user switches language, since t() then returns a different string. Respects
+// prefers-reduced-motion by skipping straight to the full text.
+function useTypewriter(fullText, speed = 42) {
+  const [count, setCount] = useState(0);
+  const chars = useMemo(() => Array.from(fullText || ''), [fullText]);
+  const reduceMotion = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+    []
+  );
+
+  useEffect(() => {
+    if (reduceMotion) { setCount(chars.length); return; }
+    setCount(0);
+    if (!chars.length) return undefined;
+    let i = 0;
+    let cancelled = false;
+    let timeoutId;
+    const tick = () => {
+      if (cancelled) return;
+      i += 1;
+      setCount(i);
+      if (i < chars.length) {
+        const prevChar = chars[i - 1];
+        const base = /[.,!?\n]/.test(prevChar) ? speed * 6.5 : speed;
+        timeoutId = setTimeout(tick, base * (0.55 + Math.random() * 0.9));
+      }
+    };
+    timeoutId = setTimeout(tick, 380);
+    return () => { cancelled = true; clearTimeout(timeoutId); };
+  }, [chars, reduceMotion, speed]);
+
+  return { text: chars.slice(0, count).join(''), done: count >= chars.length };
+}
+
+function TypeCursor() {
+  return (
+    <span aria-hidden="true" style={{
+      display: 'inline-block', width: '3px', height: '0.85em', marginInlineStart: '3px',
+      verticalAlign: '-0.1em', background: 'var(--fm-primary-light)', animation: 'fmTypeCursor 0.9s step-end infinite',
+    }} />
+  );
+}
+
+function TypewriterHeadline({ title1, title2 }) {
+  const fullText = `${title1}\n${title2}`;
+  const { text: typed, done } = useTypewriter(fullText);
+  const nlIdx = typed.indexOf('\n');
+  const line1 = nlIdx === -1 ? typed : typed.slice(0, nlIdx);
+  const line2 = nlIdx === -1 ? '' : typed.slice(nlIdx + 1);
+  const typingLine2 = nlIdx !== -1;
+
+  const [showCursor, setShowCursor] = useState(true);
+  useEffect(() => {
+    if (!done) { setShowCursor(true); return undefined; }
+    const t = setTimeout(() => setShowCursor(false), 1000);
+    return () => clearTimeout(t);
+  }, [done]);
+
+  return (
+    <>
+      <style>{`@keyframes fmTypeCursor { 0%,45% { opacity:1; } 50%,100% { opacity:0; } }`}</style>
+      {line1}
+      {showCursor && !typingLine2 && <TypeCursor />}
+      <br />
+      <span style={{ background: 'linear-gradient(110deg,var(--fm-primary-light),var(--fm-blue) 60%,var(--fm-cyan))', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+        {line2}
+      </span>
+      {showCursor && typingLine2 && <TypeCursor />}
+    </>
+  );
+}
+
 // ── Section: Hero ─────────────────────────────────────────────────────────────
 function HeroSection() {
   const [typeIdx, setTypeIdx] = useState(0);
@@ -181,13 +258,15 @@ function HeroSection() {
           <span className="premium-badge-text">{t('home.badge')}</span>
         </motion.span>
 
-        {/* H1 */}
+        {/* H1 — typed out live, like someone typing it in real time. Full
+            text stays available to screen readers/crawlers via aria-label
+            even while the animated version is still mid-type. */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
+          aria-label={`${t('home.hero.title1')} ${t('home.hero.title2')}`}
           style={{ fontWeight: 800, fontSize: 'clamp(34px,5.4vw,56px)', lineHeight: 1.06, letterSpacing: '-.03em', margin: '0 0 18px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-          {t('home.hero.title1')}<br />
-          <span style={{ background: 'linear-gradient(110deg,var(--fm-primary-light),var(--fm-blue) 60%,var(--fm-cyan))', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-            {t('home.hero.title2')}
+          <span aria-hidden="true">
+            <TypewriterHeadline title1={t('home.hero.title1')} title2={t('home.hero.title2')} />
           </span>
         </motion.h1>
 
