@@ -53,7 +53,7 @@ const IcSpark       = ({s=14}) => <svg width={s} height={s} fill="none" viewBox=
 
 function FieldLabel({ children }) {
   return (
-    <p style={{ fontSize:10, fontWeight:800, margin:'0 0 10px', display:'flex', alignItems:'center', gap:7,
+    <p style={{ fontSize:13, fontWeight:800, margin:'0 0 10px', display:'flex', alignItems:'center', gap:7,
       textTransform:'uppercase', letterSpacing:'0.1em', color:'rgba(155,140,255,0.8)' }}>
       <span style={{ width:2.5, height:12, borderRadius:2, background:'linear-gradient(to bottom,#7c6cf6,#a78bfa)', display:'inline-block', flexShrink:0 }}/>
       {children}
@@ -232,7 +232,7 @@ export default function ClientDashboard() {
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <div style={{ display:'flex', alignItems:'center', gap:7 }}>
                 <IcSpark s={12} style={{ color: isComplete ? C.emerald : C.accentMid }}/>
-                <p style={{ fontSize:11.5, fontWeight:700, color: isComplete ? C.emerald : C.sub, margin:0 }}>
+                <p style={{ fontSize:14, fontWeight:700, color: isComplete ? C.emerald : C.sub, margin:0 }}>
                   {isComplete ? t('cd.profile_complete') : t('cd.complete_profile')}
                 </p>
               </div>
