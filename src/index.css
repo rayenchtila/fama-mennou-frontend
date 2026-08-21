@@ -461,6 +461,19 @@ button, a, [role="button"] { min-height: 36px; }
 /* Prevent long words/emails from breaking layout */
 .break-words { word-break: break-word; overflow-wrap: anywhere; }
 
+/* Number inputs (e.g. the budget stepper on "Publier un projet"): hide the
+   browser's native up/down spinner arrows everywhere. Left on, they render
+   inside the input's own box right next to our custom −/+ buttons and, on
+   narrow phone screens, visually collide with/hide the custom + button. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 /* Message/chat page: ensure it fills available space on mobile */
 @media (max-width: 640px) {
   .fm-messages-header {

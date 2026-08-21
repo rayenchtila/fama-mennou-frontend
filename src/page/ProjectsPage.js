@@ -263,11 +263,11 @@ function PostModal({ user, onClose, onDone }) {
             <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-7)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.budget_tnd')}</p>
             <div style={{ display:'flex', alignItems:'stretch', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:12, overflow:'hidden' }}>
               <button type="button" onClick={()=>setForm(f=>({...f,budget:String(Math.max(0,(Number(f.budget)||0)-100))}))}
-                style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>−</button>
+                style={{ flexShrink:0, minWidth:44, padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>−</button>
               <input type="number" step="1" min="0" value={form.budget} onChange={e=>setForm(f=>({...f,budget:e.target.value}))}
-                style={{ flex:1, background:'transparent', color:'var(--fm-text-2)', fontSize:14, fontWeight:700, textAlign:'center', border:'none', outline:'none' }}/>
+                style={{ flex:1, minWidth:0, background:'transparent', color:'var(--fm-text-2)', fontSize:14, fontWeight:700, textAlign:'center', border:'none', outline:'none' }}/>
               <button type="button" onClick={()=>setForm(f=>({...f,budget:String((Number(f.budget)||0)+100)}))}
-                style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>+</button>
+                style={{ flexShrink:0, minWidth:44, padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>+</button>
             </div>
           </div>
           <div>
@@ -569,11 +569,11 @@ function EditModal({ project, onClose, onDone }) {
             <p style={{ fontSize:10, fontWeight:700, color:'var(--fm-text-7)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 6px' }}>{t('prp.budget_tnd')}</p>
             <div style={{ display:'flex', alignItems:'stretch', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:12, overflow:'hidden' }}>
               <button type="button" onClick={()=>setForm(f=>({...f,budget:String(Math.max(0,(Number(f.budget)||0)-100))}))}
-                style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>−</button>
+                style={{ flexShrink:0, minWidth:44, padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>−</button>
               <input type="number" step="1" min="0" value={form.budget} onChange={e=>setForm(f=>({...f,budget:e.target.value}))}
-                style={{ flex:1, background:'transparent', color:'var(--fm-text-2)', fontSize:14, fontWeight:700, textAlign:'center', border:'none', outline:'none' }}/>
+                style={{ flex:1, minWidth:0, background:'transparent', color:'var(--fm-text-2)', fontSize:14, fontWeight:700, textAlign:'center', border:'none', outline:'none' }}/>
               <button type="button" onClick={()=>setForm(f=>({...f,budget:String((Number(f.budget)||0)+100)}))}
-                style={{ padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>+</button>
+                style={{ flexShrink:0, minWidth:44, padding:'0 16px', fontSize:18, fontWeight:700, color:'var(--fm-text-6)', background:'none', border:'none', cursor:'pointer' }}>+</button>
             </div>
           </div>
           <div>
