@@ -1600,6 +1600,8 @@ export default function AdminPage() {
   const navigate = useNavigate();
   const chatWith = searchParams.get("with") || null;
   const [mainTab,      setMainTab]      = useState(searchParams.get("tab") || "cin");
+  const [chatFullscreen, setChatFullscreen] = useState(false);
+  useBodyScrollLock(chatFullscreen);
   const [tabDismissed, setTabDismissed] = useState(() => {
     try {
       const saved = localStorage.getItem('admin_tab_dismissed');
@@ -2012,6 +2014,7 @@ export default function AdminPage() {
   useEffect(() => { if (mainTab === 'lessons') fetchLessonsTab(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'paidaccess') fetchPaidCourses(); }, [mainTab]);
   useEffect(() => { if (mainTab === 'announcements') fetchAnnouncements(); }, [mainTab]);
+  useEffect(() => { if (mainTab !== 'chat') setChatFullscreen(false); }, [mainTab]);
 
   // ── Admin "Projects" tab — accepted/assigned client↔freelancer projects ──────
   const fetchAdminProjects = React.useCallback(async () => {
@@ -3237,10 +3240,49 @@ export default function AdminPage() {
       {/* ══ CHAT TAB ══ */}
       {mainTab === 'chat' && (
         <div
-          className="max-w-5xl mx-auto px-0 md:px-4 lg:px-6 py-0 md:py-4"
+          className="max-w-5xl mx-auto px-0 md:px-4 lg:px-6 py-0 md:py-4 relative"
           style={{ height: 'calc(100dvh - 280px)', minHeight: 360 }}
         >
+          <button
+            onClick={() => setChatFullscreen(true)}
+            title={t('adm.chat_fullscreen')}
+            aria-label={t('adm.chat_fullscreen')}
+            className="absolute top-2 right-2 md:top-4 md:right-4 z-10 w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
+            style={{ background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', color: 'var(--fm-text-4)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--fm-surface-hover)'; e.currentTarget.style.color = 'var(--fm-text-1)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--fm-surface)'; e.currentTarget.style.color = 'var(--fm-text-4)'; }}>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+            </svg>
+          </button>
           <MessengerChat currentUser={user} allUsers={users} initialChat={chatWith} />
+        </div>
+      )}
+
+      {/* ══ CHAT TAB — full-screen overlay ══
+          Same MessengerChat instance's data, just given the whole viewport:
+          the embedded tab above is cramped (height comes out of the tile
+          grid + header), especially on phones — this lets the admin expand
+          it to read/type comfortably, then collapse back into the dashboard. */}
+      {mainTab === 'chat' && chatFullscreen && (
+        <div className="fm-backdrop-blur-in" style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'var(--fm-bg)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 12px', flexShrink: 0 }}>
+            <button
+              onClick={() => setChatFullscreen(false)}
+              title={t('adm.chat_exit_fullscreen')}
+              aria-label={t('adm.chat_exit_fullscreen')}
+              className="w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
+              style={{ background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', color: 'var(--fm-text-4)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--fm-surface-hover)'; e.currentTarget.style.color = 'var(--fm-text-1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--fm-surface)'; e.currentTarget.style.color = 'var(--fm-text-4)'; }}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 14h6v6" /><path d="M20 10h-6V4" /><path d="M14 10l7-7" /><path d="M3 21l7-7" />
+              </svg>
+            </button>
+          </div>
+          <div style={{ flex: 1, minHeight: 0, padding: '0 12px 12px' }}>
+            <MessengerChat currentUser={user} allUsers={users} initialChat={chatWith} fullScreen />
+          </div>
         </div>
       )}
 
