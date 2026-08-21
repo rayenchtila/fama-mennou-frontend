@@ -171,28 +171,14 @@ export default function ClientDashboard() {
             WebkitMaskImage:'radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%)',
             maskImage:'radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%)' }}/>
 
-          {/* ── Top bar: breadcrumb + role badges ── */}
-          <div style={{ position:'relative', padding:'28px 32px 0', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16 }}>
-            <div>
-              <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
-                <div style={{ width:6, height:6, borderRadius:'50%', background:tint, boxShadow:`0 0 8px ${tint}` }}/>
-                <p style={{ fontSize:10.5, fontWeight:700, color:'rgba(155,140,255,0.65)', textTransform:'uppercase', letterSpacing:'0.12em', margin:0 }}>{t('dash.my_account')}</p>
-              </div>
-              <h1 style={{ fontSize:30, fontWeight:900, color:C.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
-                {greeting},{' '}
-                <span style={{ background:`linear-gradient(110deg,var(--fm-text-1) 0%,${tint} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
-                  {firstName}
-                </span>
-              </h1>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:7, flexShrink:0 }}>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:C.skyDim, border:`1px solid ${C.skyBord}`, color:C.sky, fontSize:10.5, fontWeight:800, letterSpacing:'0.07em', textTransform:'uppercase' }}>
-                <IcUser s={10}/> {t('dash.role.client')}
+          {/* ── Top bar: greeting ── */}
+          <div style={{ position:'relative', padding:'28px 32px 0' }}>
+            <h1 style={{ fontSize:30, fontWeight:900, color:C.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
+              {greeting},{' '}
+              <span style={{ background:`linear-gradient(110deg,var(--fm-text-1) 0%,${tint} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+                {firstName}
               </span>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:statusDim, border:`1px solid ${statusBord}`, color:statusColor, fontSize:10.5, fontWeight:700 }}>
-                <StatusIcon s={10}/> {isApproved ? t('dash.badge.verified') : isPending ? t('dash.badge.pending') : t('dash.badge.not_verified')}
-              </span>
-            </div>
+            </h1>
           </div>
 
           {/* ── Avatar + identity ── */}
@@ -349,11 +335,6 @@ export default function ClientDashboard() {
               }}>{t('cd.profile_info')}</p>
               <p style={{ fontSize:12, color:'var(--fm-text-7)', margin:0 }}>{t('cd.visible_clients')}</p>
             </div>
-            <span style={{
-              padding:'5px 13px', borderRadius:20, flexShrink:0,
-              background:'rgba(124,108,246,0.1)', border:'1px solid rgba(124,108,246,0.22)',
-              color:'rgba(155,140,255,0.85)', fontSize:10, fontWeight:800, letterSpacing:'0.09em', textTransform:'uppercase',
-            }}>{t('cd.edit')}</span>
           </div>
 
           {/* ── Form — field sections ── */}
