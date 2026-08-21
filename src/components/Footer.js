@@ -132,14 +132,10 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '18px 20px', borderTop: '1px solid var(--fm-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '18px 20px', borderTop: '1px solid var(--fm-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <p style={{ fontSize: '12.5px', color: 'var(--fm-text-7)', margin: 0 }}>
           © {new Date().getFullYear()} Fama Mennou. {t('All rights reserved.')}
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--fm-success)', boxShadow: '0 0 7px var(--fm-success)', flexShrink: 0, display: 'inline-block' }} />
-          <span style={{ fontSize: '12.5px', color: 'var(--fm-text-7)' }}>{t('All systems operational')}</span>
-        </div>
       </div>
     </footer>
   );
