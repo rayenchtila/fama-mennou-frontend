@@ -479,6 +479,18 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+/* Shared modal/overlay backdrop: blur ramps up from nothing to full on
+   open instead of snapping straight to a fixed value — used by every
+   modal/drawer/lightbox backdrop across the app (see useBodyScrollLock,
+   which pairs with this to also freeze the page behind it). */
+@keyframes fmBackdropBlurIn {
+  from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
+  to   { opacity: 1; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+}
+.fm-backdrop-blur-in {
+  animation: fmBackdropBlurIn 0.45s ease-out forwards;
+}
+
 /* Message/chat page: ensure it fills available space on mobile */
 @media (max-width: 640px) {
   .fm-messages-header {

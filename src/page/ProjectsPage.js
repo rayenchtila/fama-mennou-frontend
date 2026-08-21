@@ -7,6 +7,7 @@ import { cldImg } from '../utils/cloudinary';
 import SEOHead from '../components/Seohead';
 import usePendingClientReadOnly from '../hooks/usePendingClientReadOnly';
 import PendingClientBanner from '../components/PendingClientBanner';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -126,6 +127,8 @@ function ApplyModal({ project, user, onClose, onDone }) {
   const [sending,   setSending]   = useState(false);
   const [err,       setErr]       = useState('');
 
+  useBodyScrollLock(true); // this component only exists while the modal is open
+
   const clientMaxDays = PERIOD_DAYS[project.period]; // undefined if project has no period set
 
   async function submit(e) {
@@ -150,7 +153,7 @@ function ApplyModal({ project, user, onClose, onDone }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}
+    <div className="fm-backdrop-blur-in" style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}
       onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
       <div style={{ width:'100%', maxWidth:480, background:'var(--fm-surface)', border:'1px solid rgba(124,108,246,0.3)', borderRadius:22, padding:'28px 28px 24px', boxShadow:'0 24px 80px -12px var(--fm-overlay)' }}>
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:20 }}>
@@ -201,6 +204,8 @@ function PostModal({ user, onClose, onDone }) {
   const [posting,setPosting]=useState(false);
   const [err,  setErr]    = useState('');
 
+  useBodyScrollLock(true); // this component only exists while the modal is open
+
   async function submit(e) {
     e.preventDefault();
     const errors = {};
@@ -226,7 +231,7 @@ function PostModal({ user, onClose, onDone }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, overflowY:'auto' }}
+    <div className="fm-backdrop-blur-in" style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, overflowY:'auto' }}
       onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
       <div style={{ width:'100%', maxWidth:560, background:'var(--fm-surface)', border:'1px solid rgba(124,108,246,0.3)', borderRadius:22, padding:28, boxShadow:'0 24px 80px -12px var(--fm-overlay)', marginBlock:'auto' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:22 }}>
@@ -326,6 +331,8 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
 
   const isAccept = confirm === 'accept';
 
+  useBodyScrollLock(!!confirm);
+
   function doConfirm() {
     setConfirm(null);
     if (isAccept) onAccept(proposal.id);
@@ -337,8 +344,9 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
       {/* ── Confirmation overlay ── */}
       {confirm && (
         <div
+          className="fm-backdrop-blur-in"
           style={{ position:'fixed', inset:0, zIndex:3000, display:'flex', alignItems:'center', justifyContent:'center', padding:24,
-            background:'var(--fm-overlay)', backdropFilter:'blur(10px)', WebkitBackdropFilter:'blur(10px)' }}
+            background:'var(--fm-overlay)' }}
           onClick={e=>{ if(e.target===e.currentTarget) setConfirm(null); }}>
           <div style={{ width:'100%', maxWidth:400, background:'var(--fm-bg-2)', borderRadius:28,
             border:`1px solid ${isAccept?'rgba(124,108,246,0.35)':'rgba(248,113,113,0.3)'}`,
@@ -498,6 +506,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
    ══════════════════════════════════════════════════════════════ */
 function EditModal({ project, onClose, onDone }) {
   const { t } = useTranslation();
+  useBodyScrollLock(true); // this component only exists while the modal is open
   const parseKws = () => {
     const kws = (project.keywords||'').split(/\s+/).filter(Boolean).map(k=>k.replace(/^#/,''));
     while (kws.length < 5) kws.push('');
@@ -530,7 +539,7 @@ function EditModal({ project, onClose, onDone }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, overflowY:'auto' }}
+    <div className="fm-backdrop-blur-in" style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, overflowY:'auto' }}
       onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
       <div style={{ width:'100%', maxWidth:560, background:'var(--fm-surface)', border:'1px solid rgba(124,108,246,0.3)', borderRadius:22, padding:28, boxShadow:'0 24px 80px -12px var(--fm-overlay)', marginBlock:'auto' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>

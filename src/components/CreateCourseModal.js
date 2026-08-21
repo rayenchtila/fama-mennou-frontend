@@ -117,8 +117,8 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center p-4"
-      style={{ background: 'var(--fm-overlay)', backdropFilter: 'blur(8px)' }}
+      className="fixed inset-0 z-[300] flex items-center justify-center p-4 fm-backdrop-blur-in"
+      style={{ background: 'var(--fm-overlay)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div

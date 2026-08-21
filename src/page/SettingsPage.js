@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { pushSupported, pushPermission, enablePush, disablePush } from '../lib/pushClient';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -173,6 +174,7 @@ export default function SettingsPage() {
   const [passErr,   setPassErr]   = useState('');
   const [loading,   setLoading]   = useState(false);
   const [logoutModal, setLogoutModal] = useState(false);
+  useBodyScrollLock(logoutModal);
 
   if (!user) return null;
 
@@ -394,7 +396,7 @@ export default function SettingsPage() {
 
       {/* Logout modal */}
       {logoutModal && (
-        <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:24, background:'var(--fm-overlay)', backdropFilter:'blur(6px)' }}
+        <div className="fm-backdrop-blur-in" style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:24, background:'var(--fm-overlay)' }}
           onClick={()=>setLogoutModal(false)}>
           <div style={{ width:'100%', maxWidth:380, background:'var(--fm-surface)', border:`1px solid ${C.border}`, borderRadius:24, boxShadow:'0 24px 64px rgba(0,0,0,0.8)', overflow:'hidden' }}
             onClick={e=>e.stopPropagation()}>

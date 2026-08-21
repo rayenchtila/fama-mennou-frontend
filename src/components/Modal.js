@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import useBodyScrollLock from "../hooks/useBodyScrollLock";
 
 const sizes = {
   sm: "max-w-sm",
@@ -27,19 +28,15 @@ export default function Modal({
   const { t } = useTranslation();
   const overlayRef = useRef(null);
 
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
     const handleKey = (e) => {
       if (e.key === "Escape" && closable) onClose?.();
     };
     window.addEventListener("keydown", handleKey);
-    return () => {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
-      window.removeEventListener("keydown", handleKey);
-    };
+    return () => window.removeEventListener("keydown", handleKey);
   }, [open, closable, onClose]);
 
   if (!open) return null;
@@ -184,9 +181,9 @@ export default function Modal({
         if (e.target === overlayRef.current && closable) onClose?.();
       }}
     >
-      {/* Backdrop */}
+      {/* Backdrop — blur ramps up from nothing to full instead of snapping in */}
       <div
-        className="absolute inset-0 backdrop-blur-sm animate-[fadeIn_0.2s_ease]"
+        className="absolute inset-0 fm-backdrop-blur-in"
         style={{ background: 'var(--fm-overlay)' }}
       />
 
@@ -243,7 +240,6 @@ export default function Modal({
       </div>
 
       <style>{`
-        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
         @keyframes modalUp {
           from { opacity: 0; transform: translateY(24px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0)   scale(1); }

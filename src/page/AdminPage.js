@@ -7,6 +7,7 @@ import MessengerChat from "../components/MessengerChat";
 import AdvertisementsAdmin from "../components/AdvertisementsAdmin";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 import { cldImg, cldVideo } from "../utils/cloudinary";
+import useBodyScrollLock from "../hooks/useBodyScrollLock";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,7 @@ function cinImageSrc(value) {
 function CINImageModal({ user, onClose }) {
   const { t } = useTranslation();
   const { authFetch } = useAuth();
+  useBodyScrollLock(true); // this component only exists while the modal is open
   const [side, setSide] = useState("front");
   const [cinData, setCinData] = useState({ cin_front: null, cin_back: null });
   const [cinLoading, setCinLoading] = useState(true);
@@ -72,7 +74,7 @@ function CINImageModal({ user, onClose }) {
 
   const img = side === "front" ? cinData.cin_front : cinData.cin_back;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
       <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden w-full max-w-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
@@ -125,6 +127,7 @@ function CINImageModal({ user, onClose }) {
 
 function RejectDialog({ user, onConfirm, onClose }) {
   const { t } = useTranslation();
+  useBodyScrollLock(true); // this component only exists while the modal is open
   const [reason, setReason] = useState("");
   const REJECT_PRESETS = [
     t("admin.reject.preset1"),
@@ -133,7 +136,7 @@ function RejectDialog({ user, onConfirm, onClose }) {
     t("admin.reject.preset4"),
   ];
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-center gap-3 mb-4">
@@ -169,6 +172,7 @@ function RejectDialog({ user, onConfirm, onClose }) {
 
 function ApproveDialog({ user, onConfirm, onClose }) {
   const { t } = useTranslation();
+  useBodyScrollLock(true); // this component only exists while the modal is open
   const [reason, setReason] = useState("");
   const APPROVE_PRESETS = [
     t("admin.approve.preset1"),
@@ -177,7 +181,7 @@ function ApproveDialog({ user, onConfirm, onClose }) {
     t("admin.approve.preset4"),
   ];
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-center gap-3 mb-4">
@@ -1683,6 +1687,11 @@ export default function AdminPage() {
   const [lessonsByCourse, setLessonsByCourse] = useState({});
   const [lessonsLoading,  setLessonsLoading]  = useState(false);
 
+  useBodyScrollLock(!!(
+    logoutConfirm || accessModal || revokeConfirm ||
+    lessonRejectId || lessonApproveId || courseRejectId || courseApproveId
+  ));
+
   const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
   // Sync tab from URL when URL changes
@@ -2695,7 +2704,7 @@ export default function AdminPage() {
 
           {/* Approve modal */}
           {lessonApproveId && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in">
               <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0">
@@ -2719,7 +2728,7 @@ export default function AdminPage() {
 
           {/* Reject modal */}
           {lessonRejectId && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in">
               <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex items-center justify-center shrink-0">
@@ -2814,7 +2823,7 @@ export default function AdminPage() {
 
       {/* ── Paid Course Access Modal ── */}
       {accessModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/70 backdrop-blur-sm" onClick={() => { setAccessModal(null); setWatchLesson(null); }}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/70 fm-backdrop-blur-in" onClick={() => { setAccessModal(null); setWatchLesson(null); }}>
           <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
 
             {/* Header */}
@@ -3051,7 +3060,7 @@ export default function AdminPage() {
       {/* ══ DEMANDES D'ACCÈS AUX COURS TAB ══ */}
       {/* ── Revoke Access Confirmation Modal ── */}
       {revokeConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(6px)', backgroundColor: 'var(--fm-overlay)' }}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 fm-backdrop-blur-in" style={{ backgroundColor: 'var(--fm-overlay)' }}>
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700">
 
             {/* X close button */}
@@ -3102,7 +3111,7 @@ export default function AdminPage() {
 
       {/* ── Course approve modal ── */}
       {courseApproveId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in">
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 pt-5 pb-3">
               <div className="flex items-center gap-3">
@@ -3132,7 +3141,7 @@ export default function AdminPage() {
 
       {/* ── Course reject modal ── */}
       {courseRejectId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in">
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 pt-5 pb-3">
               <div className="flex items-center gap-3">
@@ -3458,8 +3467,8 @@ export default function AdminPage() {
       {/* ── Logout Confirmation Modal ── */}
       {logoutConfirm && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          style={{ backdropFilter: 'blur(4px)', backgroundColor: 'var(--fm-overlay)' }}
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 fm-backdrop-blur-in"
+          style={{ backgroundColor: 'var(--fm-overlay)' }}
         >
           <div
             className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl w-full max-w-sm overflow-hidden"

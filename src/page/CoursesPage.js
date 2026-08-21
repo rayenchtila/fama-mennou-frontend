@@ -7,6 +7,7 @@ import CreateCourseModal from '../components/CreateCourseModal';
 import Pagination from '../components/Pagination';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead from '../components/Seohead';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -170,6 +171,7 @@ function CourseCard({ course, onClick, onDeleted }) {
   const [editForm, setEditForm]     = useState({ title: course.title||'', description: course.description||'', category: course.category||'', full_price: course.full_price||'', discount_pct: course.discount_pct||'' });
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError]   = useState('');
+  useBodyScrollLock(confirmDel || editOpen);
   const EDIT_KEY = `fm_edited_course_${course.id}`;
   const alreadyEdited = !!localStorage.getItem(EDIT_KEY);
   const isOwner = user && course.creator_email && user.email === course.creator_email;
@@ -354,7 +356,7 @@ function CourseCard({ course, onClick, onDeleted }) {
                 </div>
               )}
               {confirmDel && createPortal(
-                <div style={{ position:'fixed', inset:0, zIndex:9999, background:'var(--fm-overlay)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+                <div className="fm-backdrop-blur-in" style={{ position:'fixed', inset:0, zIndex:9999, background:'var(--fm-overlay)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
                   onClick={() => setConfirmDel(false)}>
                   <div style={{ background:'var(--fm-surface)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:20, padding:'28px 24px 24px', maxWidth:360, width:'100%', position:'relative' }}
                     onClick={e => e.stopPropagation()}>
@@ -372,7 +374,7 @@ function CourseCard({ course, onClick, onDeleted }) {
 
               {/* ── Edit Modal ── */}
               {editOpen && createPortal(
-                <div style={{ position:'fixed', inset:0, zIndex:9999, background:'var(--fm-overlay)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, overflowY:'auto' }}
+                <div className="fm-backdrop-blur-in" style={{ position:'fixed', inset:0, zIndex:9999, background:'var(--fm-overlay)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, overflowY:'auto' }}
                   onClick={() => setEditOpen(false)}>
                   <div style={{ background:'var(--fm-surface)', border:'1px solid rgba(94,234,212,0.22)', borderRadius:22, padding:'clamp(20px,5vw,30px)', maxWidth:480, width:'100%', position:'relative', boxShadow:'0 24px 64px var(--fm-shadow)', margin:'auto' }}
                     onClick={e => e.stopPropagation()}>
@@ -585,11 +587,7 @@ export default function CoursesPage() {
 
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
 
-  useEffect(() => {
-    const lock = showTypeModal || showCreateModal;
-    document.body.style.overflow = lock ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [showTypeModal, showCreateModal]);
+  useBodyScrollLock(showTypeModal || showCreateModal);
 
   // Distinct-instructor count across the WHOLE catalog, not just this page —
   // fetched once (60s server cache) rather than derived from `courses`,
@@ -883,7 +881,8 @@ export default function CoursesPage() {
       {/* ══ Type chooser modal ══ */}
       {showTypeModal && (
         <div
-          style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:20, background:'var(--fm-overlay)', backdropFilter:'blur(8px)' }}
+          className="fm-backdrop-blur-in"
+          style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:20, background:'var(--fm-overlay)' }}
           onClick={() => { setShowTypeModal(false); setSelectedType('free'); }}>
           <div
             style={{ width:'100%', maxWidth:340, background:'var(--fm-surface)', border:`1px solid ${C.border}`, borderRadius:24, padding:28, boxShadow:'0 24px 64px var(--fm-shadow)' }}

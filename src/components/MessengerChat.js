@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { cldImg } from '../utils/cloudinary';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const API          = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 const ADMIN_EMAIL  = 'admin@famamennou.com';
@@ -82,6 +83,7 @@ function TypingDots() {
 // ── ImageViewer ────────────────────────────────────────────────────────────────
 
 function ImageViewer({ src, onClose }) {
+  useBodyScrollLock(true); // this component only exists while the viewer is open
   useEffect(() => {
     const h = e => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', h);
@@ -168,6 +170,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const [forwardMsg,    setForwardMsg]    = useState(null);
   const [fwdSearch,     setFwdSearch]     = useState('');
   const [showAttachMenu,setShowAttachMenu]= useState(false);
+  useBodyScrollLock(!!forwardMsg);
 
   // Admin-only: payment status panels for the selected conversation
   const [userCourseReq, setUserCourseReq] = useState(null);
@@ -1282,7 +1285,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
           {/* ── Forward dialog ────────────────────────────────────────────── */}
           {forwardMsg && (
-            <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+            <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/40 fm-backdrop-blur-in"
               onClick={() => { setForwardMsg(null); setFwdSearch(''); }}>
               <div className="w-full sm:w-96 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col"
                 style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border)' }}

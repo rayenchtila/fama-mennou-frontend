@@ -6,6 +6,7 @@ import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { uploadVideo, uploadImage, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
 import { toast } from '../components/Toast';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -1398,6 +1399,7 @@ function CoursesTab({ user }) {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [createdCourse, setCreatedCourse] = useState(null);
   const [discountCourseId, setDiscountCourseId] = useState(null);
+  useBodyScrollLock(!!(showCreate || showLessons || showSession || deleteConfirmId));
   const [discountInput,    setDiscountInput]    = useState('');
   const [discountSaving,   setDiscountSaving]   = useState(false);
 
@@ -1762,7 +1764,7 @@ function CoursesTab({ user }) {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4 bg-black/50 fm-backdrop-blur-in">
           <div className="bg-white dark:bg-slate-900 rounded-3xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full sm:max-w-sm p-6 flex flex-col items-center text-center gap-4">
             <div className="w-full flex justify-end">
               <button onClick={() => setDeleteConfirmId(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
@@ -1794,7 +1796,7 @@ function CoursesTab({ user }) {
 
       {/* Create Course Modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-4 bg-black/50 fm-backdrop-blur-in">
           <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full sm:max-w-lg max-h-[92vh] overflow-y-auto">
 
             {/* Header */}
@@ -1966,7 +1968,7 @@ function CoursesTab({ user }) {
 
       {/* Manage Lessons Modal */}
       {showLessons && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 fm-backdrop-blur-in">
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">Manage Lessons</h3>
@@ -2074,7 +2076,7 @@ function CoursesTab({ user }) {
 
       {/* Create Live Session Modal */}
       {showSession && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 fm-backdrop-blur-in">
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">Schedule Live Session</h3>
@@ -2229,6 +2231,7 @@ export default function FreelancerDashboard() {
   const { user, updateUser, logout, users, fetchAccounts, fetchNotifications, getUserNotifications, markNotificationRead } = useAuth();
   const [activeTab, setActiveTab]        = useState(() => searchParams.get('tab') || 'profile');
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+  useBodyScrollLock(logoutConfirm);
   const [notifOpen, setNotifOpen]        = useState(false);
 
   useEffect(() => {
@@ -2316,7 +2319,7 @@ export default function FreelancerDashboard() {
 
       {/* ── Logout modal ── */}
       {logoutConfirm && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ backdropFilter: 'blur(4px)', backgroundColor: 'var(--fm-overlay)' }}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 fm-backdrop-blur-in" style={{ backgroundColor: 'var(--fm-overlay)' }}>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm overflow-hidden">
             <div className="flex items-center justify-between px-6 pt-6 pb-0">
               <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--fm-danger-bg)', border: '1px solid var(--fm-danger-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

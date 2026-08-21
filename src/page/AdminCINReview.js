@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+import useBodyScrollLock from "../hooks/useBodyScrollLock";
 
 // ─── tiny helpers ────────────────────────────────────────────────────────────
 
@@ -59,11 +60,12 @@ const APPROVE_PRESET_KEYS = [
  
 function CINImageModal({ user, onClose }) {
   const { t } = useTranslation();
+  useBodyScrollLock(true); // this component only exists while the modal is open
   const [side, setSide] = useState("front");
   const img = side === "front" ? user.cinFront : user.cinBack;
  
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
       <div
         className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden w-full max-w-2xl"
         onClick={e => e.stopPropagation()}
@@ -145,9 +147,10 @@ function CINImageModal({ user, onClose }) {
  
 function RejectDialog({ user, onConfirm, onClose }) {
   const { t } = useTranslation();
+  useBodyScrollLock(true); // this component only exists while the modal is open
   const [reason, setReason] = useState("");
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
       <div
         className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
         onClick={e => e.stopPropagation()}
@@ -219,9 +222,10 @@ function RejectDialog({ user, onConfirm, onClose }) {
  
 function ApproveDialog({ user, onConfirm, onClose }) {
   const { t } = useTranslation();
+  useBodyScrollLock(true); // this component only exists while the modal is open
   const [reason, setReason] = useState("");
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
       <div
         className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
         onClick={e => e.stopPropagation()}

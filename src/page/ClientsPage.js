@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead from '../components/Seohead';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -127,6 +128,7 @@ function PeriodSelect({ value, onChange, maxDays }) {
 function ApplyModal({ project, user, onClose, onDone }) {
   const { t } = useTranslation();
   const { logout } = useAuth();
+  useBodyScrollLock(true); // this component only exists while the modal is open
   const [period,    setPeriod]    = useState('');
   const [portfolio, setPortfolio] = useState('');
   const [letter,    setLetter]    = useState('');
@@ -172,7 +174,7 @@ function ApplyModal({ project, user, onClose, onDone }) {
   const onBlr = e => { e.target.style.borderColor = 'var(--fm-border)'; };
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', backdropFilter:'blur(7px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+    <div className="fm-backdrop-blur-in" style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ width:'100%', maxWidth:480, background:'var(--fm-surface)', border:`1px solid ${C.accentBord}`, borderRadius:24, padding:'28px 28px 24px', boxShadow:`0 28px 80px -12px var(--fm-shadow), ${C.accentGlow}` }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:22 }}>
@@ -217,6 +219,7 @@ function ApplyModal({ project, user, onClose, onDone }) {
 /* ── Review Modal ── */
 function ReviewModal({ client, user, onClose, onDone }) {
   const { t } = useTranslation();
+  useBodyScrollLock(true); // this component only exists while the modal is open
   const [stars,   setStars]   = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState('');
@@ -241,7 +244,7 @@ function ReviewModal({ client, user, onClose, onDone }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', backdropFilter:'blur(7px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
+    <div className="fm-backdrop-blur-in" style={{ position:'fixed', inset:0, zIndex:1000, background:'var(--fm-overlay)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ width:'100%', maxWidth:440, background:'var(--fm-surface)', border:`1px solid ${C.amberBord}`, borderRadius:24, padding:'28px', boxShadow:'0 28px 80px -12px var(--fm-shadow)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>

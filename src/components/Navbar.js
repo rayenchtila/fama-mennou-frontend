@@ -7,6 +7,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 import { cldImg } from "../utils/cloudinary";
 import { useTranslation } from "react-i18next";
+import useBodyScrollLock from "../hooks/useBodyScrollLock";
 
 const API_URL = process.env.REACT_APP_API_URL || "https://famamennou-server.onrender.com/api";
 
@@ -267,6 +268,7 @@ export default function Navbar({ onLogin }) {
   const [profOpen,    setProfOpen]    = useState(false);
   const [notifOpen,   setNotifOpen]   = useState(false);
   const [logoutModal, setLogoutModal] = useState(false);
+  useBodyScrollLock(logoutModal);
   const [msgOpen,     setMsgOpen]     = useState(false);
   const [msgConvs,    setMsgConvs]    = useState([]);
   const [msgUnread,   setMsgUnread]   = useState(0);

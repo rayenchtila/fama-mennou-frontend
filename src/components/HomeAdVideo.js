@@ -19,6 +19,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cldImg, cldVideo } from '../utils/cloudinary';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -42,6 +43,7 @@ export default function HomeAdVideo() {
   // rotation entirely: the teaser loop is a preview, and it must not keep
   // running (or keep a second video playing) behind someone actually watching.
   const [watching, setWatching] = useState(null);
+  useBodyScrollLock(!!watching);
   // Teasers MUST start muted — every browser refuses to autoplay a video with
   // sound, and an unmuted autoplay simply never starts. The toggle below is the
   // user gesture that makes sound legal, and the choice then applies to every

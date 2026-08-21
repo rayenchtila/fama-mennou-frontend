@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -121,6 +122,7 @@ export default function VideoPlayerPage(){
   const [sideOpen,  setSideOpen]  = useState(false);
   const [purchases, setPurchases] = useState([]);
   const [isMobile,  setIsMobile]  = useState(typeof window!=='undefined'&&window.innerWidth<768);
+  useBodyScrollLock(isMobile && sideOpen);
 
   useEffect(()=>{
     const handle=()=>setIsMobile(window.innerWidth<768);
@@ -350,8 +352,9 @@ export default function VideoPlayerPage(){
         {/* Mobile backdrop */}
         {isMobile&&sideOpen&&(
           <div
+            className="fm-backdrop-blur-in"
             onClick={()=>setSideOpen(false)}
-            style={{position:'fixed',inset:0,background:'var(--fm-overlay)',zIndex:40,backdropFilter:'blur(3px)',WebkitBackdropFilter:'blur(3px)'}}
+            style={{position:'fixed',inset:0,background:'var(--fm-overlay)',zIndex:40}}
           />
         )}
 
