@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import CreateCourseModal from '../components/CreateCourseModal';
@@ -824,53 +825,62 @@ export default function CoursesPage() {
             </div>
           )}
 
-          {/* Grid */}
-          {loading ? (
-            <div className="csp-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:24 }}>
-              {[...Array(6)].map((_,i) => <SkeletonCard key={i} />)}
-            </div>
-          ) : courses.length === 0 ? (
-            <div style={{
-              textAlign:'center', padding:'80px 20px',
-              background:'var(--fm-surface-hover-soft)',
-              border:`1px solid ${C.border}`, borderRadius:24,
-            }}>
-              <div style={{
-                width:64, height:64, borderRadius:20, margin:'0 auto 20px',
-                background:'rgba(13,148,136,0.08)', border:'1px solid rgba(13,148,136,0.22)',
-                display:'flex', alignItems:'center', justifyContent:'center',
-              }}>
-                <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke={C.accentBr} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-                </svg>
-              </div>
-              <p style={{ fontSize:18, fontWeight:800, color:C.text, margin:'0 0 8px' }}>{t('csp.no_courses_found')}</p>
-              <p style={{ fontSize:13, color:C.muted, margin:'0 0 22px', lineHeight:1.6 }}>
-                {search ? t('csp.no_results_for', { query: search }) : t('csp.adjust_filters')}
-              </p>
-              {(search || category !== 'All' || priceFilter !== 'all') && (
-                <button
-                  onClick={() => { setSearch(''); setCategory('All'); setPriceFilter('all'); }}
-                  style={{
-                    fontSize:13, fontWeight:700, color:C.accentBr,
-                    background:'rgba(13,148,136,0.08)', border:`1px solid rgba(94,234,212,0.25)`,
-                    borderRadius:10, padding:'9px 22px', cursor:'pointer',
-                    transition:'background .15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background='rgba(13,148,136,0.14)'}
-                  onMouseLeave={e => e.currentTarget.style.background='rgba(13,148,136,0.08)'}>
-                  {t('csp.clear_filters')}
-                </button>
+          {/* Grid — key={`${page}-${loading}`}: a fresh key on every page
+              change (and on the loading->loaded flip) makes AnimatePresence
+              smoothly cross-fade in whatever replaces it, instead of the
+              grid just snapping to the new page instantly. */}
+          <AnimatePresence mode="wait">
+            <motion.div key={`${page}-${loading}`}
+              initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}
+              transition={{ duration:0.25, ease:'easeOut' }}>
+              {loading ? (
+                <div className="csp-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:24 }}>
+                  {[...Array(6)].map((_,i) => <SkeletonCard key={i} />)}
+                </div>
+              ) : courses.length === 0 ? (
+                <div style={{
+                  textAlign:'center', padding:'80px 20px',
+                  background:'var(--fm-surface-hover-soft)',
+                  border:`1px solid ${C.border}`, borderRadius:24,
+                }}>
+                  <div style={{
+                    width:64, height:64, borderRadius:20, margin:'0 auto 20px',
+                    background:'rgba(13,148,136,0.08)', border:'1px solid rgba(13,148,136,0.22)',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                  }}>
+                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke={C.accentBr} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                    </svg>
+                  </div>
+                  <p style={{ fontSize:18, fontWeight:800, color:C.text, margin:'0 0 8px' }}>{t('csp.no_courses_found')}</p>
+                  <p style={{ fontSize:13, color:C.muted, margin:'0 0 22px', lineHeight:1.6 }}>
+                    {search ? t('csp.no_results_for', { query: search }) : t('csp.adjust_filters')}
+                  </p>
+                  {(search || category !== 'All' || priceFilter !== 'all') && (
+                    <button
+                      onClick={() => { setSearch(''); setCategory('All'); setPriceFilter('all'); }}
+                      style={{
+                        fontSize:13, fontWeight:700, color:C.accentBr,
+                        background:'rgba(13,148,136,0.08)', border:`1px solid rgba(94,234,212,0.25)`,
+                        borderRadius:10, padding:'9px 22px', cursor:'pointer',
+                        transition:'background .15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background='rgba(13,148,136,0.14)'}
+                      onMouseLeave={e => e.currentTarget.style.background='rgba(13,148,136,0.08)'}>
+                      {t('csp.clear_filters')}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="csp-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:24 }}>
+                  {courses.map(c => (
+                    <CourseCard key={c.id} course={c} onClick={() => navigate(`/courses/${c.id}`)} onDeleted={id => setCourses(prev => prev.filter(x => x.id !== id))} />
+                  ))}
+                </div>
               )}
-            </div>
-          ) : (
-            <div className="csp-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:24 }}>
-              {courses.map(c => (
-                <CourseCard key={c.id} course={c} onClick={() => navigate(`/courses/${c.id}`)} onDeleted={id => setCourses(prev => prev.filter(x => x.id !== id))} />
-              ))}
-            </div>
-          )}
+            </motion.div>
+          </AnimatePresence>
 
           <Pagination page={page} totalPages={totalPages} total={total} limit={PAGE_SIZE}
             onPageChange={p => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}

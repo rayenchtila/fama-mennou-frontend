@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import ChatDrawer from '../components/ChatDrawer';
@@ -513,35 +514,45 @@ export default function FreelancersPage() {
 
         {/* ── Freelancer list ── */}
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'24px clamp(16px,3vw,24px) 0', display:'flex', flexDirection:'column', gap:14 }}>
-          {listLoading && freelancers.length === 0 ? (
-            <div style={{ display:'flex', justifyContent:'center', padding:'70px 20px' }}>
-              <div style={{ width:34, height:34, borderRadius:'50%', border:'3px solid var(--fm-border)', borderTopColor:'var(--fm-primary)', animation:'fpSpin .8s linear infinite' }} />
-            </div>
-          ) : freelancers.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'70px 20px', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border)', borderRadius:22 }}>
-              <div style={{ width:56, height:56, borderRadius:16, background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.18)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-              </div>
-              <p style={{ fontSize:15, fontWeight:800, color:'var(--fm-text-4)', margin:'0 0 6px' }}>{t('No freelancers found')}</p>
-              <p style={{ fontSize:13, color:'var(--fm-text-7)', margin:'0 0 18px' }}>{t('Try a different search or category.')}</p>
-              {search && (
-                <button onClick={() => setSearch('')}
-                  style={{ fontSize:13, fontWeight:700, color:'var(--fm-primary-light)', background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.2)', borderRadius:10, padding:'8px 18px', cursor:'pointer' }}>
-                  {t('Clear search')}
-                </button>
-              )}
-            </div>
-          ) : freelancers.map(f => (
-            <FreelancerCard
-              key={f.email}
-              freelancer={f}
-              reviews={reviews}
-              onAddReview={handleAddReview}
-              currentUser={user}
-              completedWith={completedWith}
-              navigate={navigate}
-            />
-          ))}
+          {/* key={page}: a fresh key on every page change makes AnimatePresence
+              smoothly cross-fade the list in, instead of it snapping instantly
+              — old data stays on screen (no spinner flash) until it does. */}
+          <AnimatePresence mode="wait">
+            <motion.div key={page}
+              initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}
+              transition={{ duration:0.25, ease:'easeOut' }}
+              style={{ display:'flex', flexDirection:'column', gap:14 }}>
+              {listLoading && freelancers.length === 0 ? (
+                <div style={{ display:'flex', justifyContent:'center', padding:'70px 20px' }}>
+                  <div style={{ width:34, height:34, borderRadius:'50%', border:'3px solid var(--fm-border)', borderTopColor:'var(--fm-primary)', animation:'fpSpin .8s linear infinite' }} />
+                </div>
+              ) : freelancers.length === 0 ? (
+                <div style={{ textAlign:'center', padding:'70px 20px', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border)', borderRadius:22 }}>
+                  <div style={{ width:56, height:56, borderRadius:16, background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.18)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                  </div>
+                  <p style={{ fontSize:15, fontWeight:800, color:'var(--fm-text-4)', margin:'0 0 6px' }}>{t('No freelancers found')}</p>
+                  <p style={{ fontSize:13, color:'var(--fm-text-7)', margin:'0 0 18px' }}>{t('Try a different search or category.')}</p>
+                  {search && (
+                    <button onClick={() => setSearch('')}
+                      style={{ fontSize:13, fontWeight:700, color:'var(--fm-primary-light)', background:'rgba(124,108,246,0.08)', border:'1px solid rgba(124,108,246,0.2)', borderRadius:10, padding:'8px 18px', cursor:'pointer' }}>
+                      {t('Clear search')}
+                    </button>
+                  )}
+                </div>
+              ) : freelancers.map(f => (
+                <FreelancerCard
+                  key={f.email}
+                  freelancer={f}
+                  reviews={reviews}
+                  onAddReview={handleAddReview}
+                  currentUser={user}
+                  completedWith={completedWith}
+                  navigate={navigate}
+                />
+              ))}
+            </motion.div>
+          </AnimatePresence>
 
           <Pagination page={page} totalPages={totalPages} total={total} limit={PAGE_SIZE}
             onPageChange={p => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}

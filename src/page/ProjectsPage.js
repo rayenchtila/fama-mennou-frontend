@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
@@ -946,8 +947,14 @@ export default function ProjectsPage() {
         {/* ═══════════════════════════════════════
             MES PROJETS
             ═══════════════════════════════════════ */}
-        {(
-          <>
+        {/* key={`${myPage}-${myLoading}`}: a fresh key on every page change
+            (and on the loading->loaded flip) makes AnimatePresence smoothly
+            cross-fade in whatever replaces it, instead of it snapping
+            instantly to the new page. */}
+        <AnimatePresence mode="wait">
+          <motion.div key={`${myPage}-${myLoading}`}
+            initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}
+            transition={{ duration:0.25, ease:'easeOut' }}>
             {myLoading ? (
               <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                 {[...Array(3)].map((_,i)=><div key={i} style={{ height:130, borderRadius:20, background:'var(--fm-surface-hover-soft)', animation:'prPulse 1.5s ease infinite' }}/>)}
@@ -990,8 +997,8 @@ export default function ProjectsPage() {
                   accent="#7c6cf6" loading={myLoading} />
               </>
             )}
-          </>
-        )}
+          </motion.div>
+        </AnimatePresence>
 
       </div>
 

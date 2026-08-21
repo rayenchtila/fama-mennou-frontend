@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
@@ -700,43 +701,54 @@ export default function ClientsPage() {
 
       {/* ── PROJECT CARDS ── */}
       <div style={{ maxWidth:1100, margin:'0 auto', padding:'24px clamp(16px,3vw,24px) 0', display:'flex', flexDirection:'column', gap:14 }}>
-        {loading ? (
-          <div style={{ textAlign:'center', padding:'70px 0', color:'var(--fm-text-7)', fontSize:14 }}>
-            <div style={{ width:32, height:32, border:`2px solid ${C.accentBord}`, borderTopColor:C.accent, borderRadius:'50%', margin:'0 auto 16px', animation:'spin 0.8s linear infinite' }} />
-            {t('clp.loading_projects')}
-          </div>
-        ) : projects.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'70px 20px', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border-soft)', borderRadius:22 }}>
-            <div style={{ width:60, height:60, borderRadius:18, background:C.accentDim, border:`1px solid ${C.accentBord}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px' }}>
-              <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke={C.accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-            </div>
-            <p style={{ fontSize:16, fontWeight:800, color:'var(--fm-text-3)', margin:'0 0 7px' }}>{t('clp.no_projects_found')}</p>
-            <p style={{ fontSize:13, color:'var(--fm-text-6)', margin:'0 0 18px' }}>{search ? t('clp.try_different_search') : t('clp.no_open_projects')}</p>
-            {search && (
-              <button onClick={()=>setSearch('')}
-                style={{ fontSize:13, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, borderRadius:10, padding:'8px 18px', cursor:'pointer' }}>
-                {t('Clear search')}
-              </button>
+        {/* key={`${page}-${loading}`}: a fresh key on every page change (and on
+            the loading->loaded flip) makes AnimatePresence smoothly cross-fade
+            between whatever was on screen and what replaces it, instead of the
+            content just snapping to the new page instantly. */}
+        <AnimatePresence mode="wait">
+          <motion.div key={`${page}-${loading}`}
+            initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}
+            transition={{ duration:0.25, ease:'easeOut' }}
+            style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            {loading ? (
+              <div style={{ textAlign:'center', padding:'70px 0', color:'var(--fm-text-7)', fontSize:14 }}>
+                <div style={{ width:32, height:32, border:`2px solid ${C.accentBord}`, borderTopColor:C.accent, borderRadius:'50%', margin:'0 auto 16px', animation:'spin 0.8s linear infinite' }} />
+                {t('clp.loading_projects')}
+              </div>
+            ) : projects.length === 0 ? (
+              <div style={{ textAlign:'center', padding:'70px 20px', background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border-soft)', borderRadius:22 }}>
+                <div style={{ width:60, height:60, borderRadius:18, background:C.accentDim, border:`1px solid ${C.accentBord}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 18px' }}>
+                  <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke={C.accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+                <p style={{ fontSize:16, fontWeight:800, color:'var(--fm-text-3)', margin:'0 0 7px' }}>{t('clp.no_projects_found')}</p>
+                <p style={{ fontSize:13, color:'var(--fm-text-6)', margin:'0 0 18px' }}>{search ? t('clp.try_different_search') : t('clp.no_open_projects')}</p>
+                {search && (
+                  <button onClick={()=>setSearch('')}
+                    style={{ fontSize:13, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, borderRadius:10, padding:'8px 18px', cursor:'pointer' }}>
+                    {t('Clear search')}
+                  </button>
+                )}
+              </div>
+            ) : (
+              projects.map(p => (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  clientUser={getClient(p.client_email)}
+                  accountsLoaded={accountsLoaded}
+                  proposalCount={proposals[p.id] || 0}
+                  user={user}
+                  saved={saved.has(p.id)}
+                  onSave={toggleSave}
+                  onApply={setApplyFor}
+                  onReview={setReviewFor}
+                  myReviews={reviews[p.client_email?.toLowerCase()] || []}
+                  hasApplied={myApplications.has(p.id)}
+                />
+              ))
             )}
-          </div>
-        ) : (
-          projects.map(p => (
-            <ProjectCard
-              key={p.id}
-              project={p}
-              clientUser={getClient(p.client_email)}
-              accountsLoaded={accountsLoaded}
-              proposalCount={proposals[p.id] || 0}
-              user={user}
-              saved={saved.has(p.id)}
-              onSave={toggleSave}
-              onApply={setApplyFor}
-              onReview={setReviewFor}
-              myReviews={reviews[p.client_email?.toLowerCase()] || []}
-              hasApplied={myApplications.has(p.id)}
-            />
-          ))
-        )}
+          </motion.div>
+        </AnimatePresence>
 
         <Pagination page={page} totalPages={totalPages} total={total} limit={PAGE_SIZE}
           onPageChange={pg => { setPage(pg); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
