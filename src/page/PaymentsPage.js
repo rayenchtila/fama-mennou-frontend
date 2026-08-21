@@ -15,13 +15,13 @@ const C = {
 };
 
 const COURSE_STATUS = {
-  en_attente:{ labelKey:'ppg.status.pending',     color:C.amber,   bg:C.amberDim,   border:C.amberBord,   descKey:'ppg.course.pending_desc'     },
-  en_cours:  { labelKey:'ppg.status.in_progress', color:C.sky,     bg:C.skyDim,     border:C.skyBord,     descKey:'ppg.course.in_progress_desc' },
-  termine:   { labelKey:'ppg.status.done',        color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, descKey:'ppg.course.done_desc'        },
+  en_attente:{ labelKey:'ppg.status.pending',     color:C.amber,   bg:C.amberDim,   border:C.amberBord,   descKey:'ppg.course.pending_desc',     icon:'clock' },
+  en_cours:  { labelKey:'ppg.status.in_progress', color:C.sky,     bg:C.skyDim,     border:C.skyBord,     descKey:'ppg.course.in_progress_desc', icon:'clock' },
+  termine:   { labelKey:'ppg.status.done',        color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, descKey:'ppg.course.done_desc',        icon:'check' },
 };
 const PROJ_STATUS = {
-  en_attente:{ labelKey:'ppg.status.pending', color:C.amber,   bg:C.amberDim,   border:C.amberBord,   descKey:'ppg.proj.pending_desc' },
-  recu:      { labelKey:'ppg.status.paid',    color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, descKey:'ppg.proj.paid_desc'    },
+  en_attente:{ labelKey:'ppg.status.pending', color:C.amber,   bg:C.amberDim,   border:C.amberBord,   descKey:'ppg.proj.pending_desc', icon:'clock' },
+  recu:      { labelKey:'ppg.status.paid',    color:C.emerald, bg:C.emeraldDim, border:C.emeraldBord, descKey:'ppg.proj.paid_desc',    icon:'check' },
 };
 
 const IcDollar = ({s=18}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
@@ -33,9 +33,10 @@ const IcReceipt = ({s=36}) => <svg width={s} height={s} fill="none" viewBox="0 0
 function StatusBadge({ statusKey, map }) {
   const { t } = useTranslation();
   const s = map[statusKey] || map.en_attente;
+  const Icon = s.icon === 'check' ? IcCheck : IcClock;
   return (
     <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:10.5, fontWeight:700, padding:'3px 11px', borderRadius:20, background:s.bg, border:`1px solid ${s.border}`, color:s.color, whiteSpace:'nowrap' }}>
-      <span style={{ width:5, height:5, borderRadius:'50%', background:s.color, display:'inline-block' }}/>
+      <Icon s={10}/>
       {t(s.labelKey)}
     </span>
   );
