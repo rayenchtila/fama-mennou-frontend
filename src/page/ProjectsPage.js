@@ -917,14 +917,7 @@ export default function ProjectsPage() {
       <div style={{ position:'relative', zIndex:1, maxWidth:940, margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,3vw,24px) 0' }}>
 
         {/* ─── Header ─── */}
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:28, flexWrap:'wrap' }}>
-          <div>
-            <p style={{ fontSize:11, fontWeight:700, color:'var(--fm-text-7)', textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>{t('ppg.my_account')}</p>
-            <h1 style={{ fontSize:'clamp(26px,6vw,36px)', fontWeight:900, color:'var(--fm-text-2)', margin:'0 0 8px', letterSpacing:'-0.02em' }}>
-              {t('prp.header_title')} <span style={{ background:'linear-gradient(120deg,#c4baff 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{t('prp.header_title_2')}</span>
-            </h1>
-            <p style={{ fontSize:14, color:'var(--fm-text-6)', margin:0 }}>{t('prp.header_sub')}</p>
-          </div>
+        <div style={{ marginBottom:28 }}>
           <button onClick={()=>!readOnly && setShowPost(true)} disabled={readOnly}
             title={readOnly ? t("Your account is pending approval — you can browse, but this action isn't available yet.") : undefined}
             style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:7, padding:'11px 20px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:readOnly?'not-allowed':'pointer', opacity:readOnly?0.5:1, boxShadow:'0 4px 18px -4px rgba(124,108,246,0.5)', whiteSpace:'nowrap', transition:'opacity .15s, transform .15s' }}
