@@ -382,7 +382,7 @@ function ActionCardsSection() {
     { to: '/courses',     color: '#14b8a6', colorDim: 'rgba(20,184,166,.16)',  colorBd: 'rgba(20,184,166,.3)',   colorLight: '#5eead4', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, title: t('home.ac.learn.title'), desc: t('home.ac.learn.desc'), cta: t('home.ac.learn.cta') },
   ];
   return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '16px' }}>
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '56px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '20px' }}>
         {cards.map((card, i) => (
           <motion.div key={card.to}
