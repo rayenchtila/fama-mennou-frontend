@@ -140,7 +140,7 @@ export default function ClientDashboard() {
         <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(14,165,233,0.07),transparent 68%)', bottom:'-60px', left:'35%', animation:'cdBlob3 32s ease-in-out infinite' }}/>
       </div>
 
-      <div style={{ position:'relative', zIndex:1, maxWidth:780, margin:'0 auto', padding:'clamp(80px,10vw,90px) clamp(16px,3vw,24px) 0' }}>
+      <div style={{ position:'relative', zIndex:1, width:'100%', margin:'0 auto', padding:'clamp(80px,10vw,90px) clamp(16px,3vw,24px) 0' }}>
 
         {/* ════════════════════════════════════════════
             HERO PROFILE CARD
