@@ -241,18 +241,6 @@ export default function SettingsPage() {
 
       <div className="fm-page-header" style={{ position:'relative', zIndex:1, maxWidth:680, margin:'0 auto' }}>
 
-        {/* Header */}
-        <div style={{ marginBottom:36 }}>
-          <p style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>{t('sp.my_account')}</p>
-          <h1 style={{ fontSize:38, fontWeight:900, color:C.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1.1 }}>
-            {t('sp.my')}{' '}
-            <span style={{ background:'linear-gradient(120deg,var(--fm-text-1) 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
-              {t('sp.settings')}
-            </span>
-          </h1>
-          <p style={{ fontSize:14, color:C.muted, margin:0 }}>{t('sp.subtitle')}</p>
-        </div>
-
         {/* Account info */}
         <SectionCard title={t('sp.account_info')} icon={<IcShield s={16}/>}>
           <InfoRow label={t('sp.full_name')} value={user.name || '—'}/>
