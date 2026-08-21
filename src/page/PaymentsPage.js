@@ -130,18 +130,6 @@ export default function PaymentsPage() {
 
       <div style={{ position:'relative', zIndex:1, maxWidth:820, margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,3vw,24px) 0' }}>
 
-        {/* Header */}
-        <div style={{ marginBottom:36 }}>
-          <p style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 10px' }}>{t('ppg.my_account')}</p>
-          <h1 style={{ fontSize:'clamp(26px,6vw,38px)', fontWeight:900, color:C.text, margin:'0 0 8px', letterSpacing:'-0.03em', lineHeight:1.1 }}>
-            {t('ppg.my')}{' '}
-            <span style={{ background:'linear-gradient(120deg,#c4baff 0%,#9b8cff 42%,#7c6cf6 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
-              {t('ppg.payments')}
-            </span>
-          </h1>
-          <p style={{ fontSize:14, color:C.muted, margin:0 }}>{t('ppg.subtitle')}</p>
-        </div>
-
         {/* Summary cards */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:14, marginBottom:32 }}>
           {[
