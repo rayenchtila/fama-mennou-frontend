@@ -595,7 +595,6 @@ function TrendingProjectsSection({ items, loading, error, users }) {
         {!loading && !error && items.map((p, i) => {
           const client      = getClient(p.client_email);
           const displayName = client?.company || client?.name || p.client_email?.split('@')[0] || '?';
-          const isVerified  = client?.cinStatus === 'approved' || !client;
           const tags        = (p.keywords ? p.keywords.split(/\s+/).filter(Boolean) : []).slice(0, 3);
           return (
             <motion.div key={p.id}
@@ -609,7 +608,6 @@ function TrendingProjectsSection({ items, loading, error, users }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ width: '34px', height: '34px', borderRadius: '9px', background: pickGradient(p.client_email || displayName), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', flex: 'none' }}>{getInitials(displayName)}</span>
                 <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--fm-text-4)' }}>{displayName.split(' ')[0]}</span>
-                {isVerified && <ShieldIcon size={14} color="var(--fm-primary-light)" />}
               </div>
               {/* Title */}
               <div style={{ fontWeight: 700, fontSize: '17px', color: 'var(--fm-text-1)', letterSpacing: '-.01em', lineHeight: 1.3 }}>{p.title}</div>
