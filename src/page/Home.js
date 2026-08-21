@@ -824,11 +824,11 @@ function FAQSection() {
 function CTASection() {
   const { t } = useTranslation();
   return (
-    <section className="fm-section" style={{ width: '100%', margin: '0 auto', paddingTop: '72px', paddingBottom: '80px' }}>
+    <section style={{ width: '100%', margin: 0 }}>
       <motion.div
         initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        style={{ position: 'relative', overflow: 'hidden', borderRadius: '24px', background: 'linear-gradient(135deg,#6c5cf6 0%,#7d5cf0 45%,#3a8ce0 100%)', padding: 'clamp(28px,5vw,60px) clamp(20px,5vw,60px)', textAlign: 'center', boxShadow: '0 28px 64px -26px rgba(108,92,246,.8)' }}>
+        style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg,#6c5cf6 0%,#7d5cf0 45%,#3a8ce0 100%)', padding: 'clamp(48px,8vw,88px) clamp(20px,5vw,60px)', textAlign: 'center' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(440px 240px at 12% 0%,rgba(255,255,255,.2),transparent 70%),radial-gradient(420px 240px at 90% 100%,rgba(255,255,255,.12),transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative' }}>
           <h2 style={{ fontWeight: 800, fontSize: 'clamp(26px,4vw,38px)', letterSpacing: '-.025em', margin: '0 0 12px', color: '#fff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
