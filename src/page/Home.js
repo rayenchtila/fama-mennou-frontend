@@ -824,7 +824,7 @@ function FAQSection() {
 function CTASection() {
   const { t } = useTranslation();
   return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px', paddingBottom: '80px' }}>
+    <section className="fm-section" style={{ width: '100%', margin: '0 auto', paddingTop: '72px', paddingBottom: '80px' }}>
       <motion.div
         initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
         transition={{ duration: 0.6 }}
