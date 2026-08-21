@@ -300,7 +300,6 @@ function ProjectCard({ project, clientUser, accountsLoaded, proposalCount, user,
     || '?';
   const initials    = getInitials(displayName);
   const photoUrl    = clientUser?.photo ? cldImg(clientUser.photo) : null;
-  const isVerified  = clientUser?.cinStatus === 'approved' || !clientUser;
   const region      = clientUser?.region || '';
   const keywords    = project.keywords ? project.keywords.split(/\s+/).filter(Boolean) : [];
   const isOwn       = user?.email?.toLowerCase() === project.client_email?.toLowerCase();
@@ -327,11 +326,6 @@ function ProjectCard({ project, clientUser, accountsLoaded, proposalCount, user,
           <div style={{ minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', marginBottom:2 }}>
               <span onClick={() => navigate(`/profile/${encodeURIComponent(project.client_email)}`)} style={{ fontSize:14, fontWeight:800, color:'var(--fm-text-2)', lineHeight:1.2, cursor:'pointer', transition:'color .15s' }} onMouseEnter={e=>e.currentTarget.style.color='var(--fm-primary-light)'} onMouseLeave={e=>e.currentTarget.style.color='var(--fm-text-2)'}>{displayName}</span>
-              {isVerified && (
-                <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, padding:'2px 7px', borderRadius:20 }}>
-                  <IcVerified /> {t('Verified')}
-                </span>
-              )}
               {region && (
                 <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:11, color:'var(--fm-text-6)', fontWeight:500 }}>
                   <IcPin /> {region}
