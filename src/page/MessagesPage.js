@@ -11,6 +11,20 @@ export default function MessagesPage() {
 
   if (!user) return null;
 
+  // Clients and admin get an immersive, header-free full-screen chat.
+  // Freelancers keep the header block + card layout, unchanged.
+  const fullScreen = user.isAdmin || user.role === 'client';
+
+  if (fullScreen) {
+    return (
+      <div style={{ height:'calc(100vh - var(--fm-announcement-h, 0px))', overflow:'hidden', background:'var(--fm-bg)', fontFamily:"'Plus Jakarta Sans','Inter',sans-serif", display:'flex', flexDirection:'column', paddingTop:66 }}>
+        <div style={{ flex:1, minHeight:0 }}>
+          <MessengerChat currentUser={user} allUsers={users} initialChat={initialChat} fullScreen />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight:'100vh', background:'var(--fm-bg)', fontFamily:"'Plus Jakarta Sans','Inter',sans-serif", display:'flex', flexDirection:'column', paddingBottom:40 }}>
 

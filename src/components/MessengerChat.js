@@ -124,7 +124,7 @@ const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export default function MessengerChat({ currentUser, allUsers = [], initialChat = null }) {
+export default function MessengerChat({ currentUser, allUsers = [], initialChat = null, fullScreen = false }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const senderEmail = currentUser?.isAdmin ? ADMIN_EMAIL : (currentUser?.email || '');
@@ -649,8 +649,10 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
   return (
     <div
-      className="flex h-full overflow-hidden rounded-none md:rounded-2xl"
-      style={{ background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', boxShadow: '0 32px 80px -8px var(--fm-shadow), 0 0 0 1px var(--fm-primary-soft)' }}
+      className={`flex h-full overflow-hidden ${fullScreen ? 'rounded-none' : 'rounded-none md:rounded-2xl'}`}
+      style={fullScreen
+        ? { background: 'var(--fm-surface)' }
+        : { background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', boxShadow: '0 32px 80px -8px var(--fm-shadow), 0 0 0 1px var(--fm-primary-soft)' }}
       onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}
     >
 
