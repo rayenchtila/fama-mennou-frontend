@@ -135,7 +135,12 @@ input::-webkit-credentials-auto-fill-button,
 input::-webkit-contacts-auto-fill-button { visibility: hidden; pointer-events: none; position: absolute; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; overflow-x: hidden; }
+/* Background lives on <html> (the real document canvas), not just <body> —
+   this is what keeps it pinned behind the content on every screen, on every
+   device, instead of scrolling or flashing the wrong color during momentum/
+   rubber-band overscroll (very visible on iOS Safari) past the top or
+   bottom of a page. Every interface inherits this automatically. */
+html { scroll-behavior: smooth; overflow-x: hidden; background: var(--body-bg); }
 body { overflow-x: hidden; background: var(--body-bg); color: var(--body-color); font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; transition: background-color 0.25s ease, color 0.25s ease; }
 
 /* ── Dark mode: remap Tailwind slate → Fama Mennou purple dark theme ────── */
