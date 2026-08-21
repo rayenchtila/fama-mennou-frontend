@@ -62,8 +62,7 @@ export default function TermsPage() {
       <div style={{ minHeight: '100vh', background: 'var(--fm-bg)', paddingTop: 100, paddingBottom: 80 }}>
         <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 24px' }}>
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--fm-primary-light)' }}>{t('terms.eyebrow')}</span>
-            <h1 style={{ fontSize: 42, fontWeight: 900, color: 'var(--fm-text-1)', margin: '12px 0 16px', letterSpacing: '-0.02em' }}>{t('terms.title')}</h1>
+            <h1 style={{ fontSize: 42, fontWeight: 900, color: 'var(--fm-text-1)', margin: '0 0 16px', letterSpacing: '-0.02em' }}>{t('terms.title')}</h1>
             <p style={{ fontSize: 14, color: 'var(--fm-text-7)' }}>{t('terms.last_updated')}</p>
           </div>
 

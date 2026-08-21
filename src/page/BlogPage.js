@@ -8,8 +8,7 @@ export default function BlogPage() {
       <SEOHead title={t('blog.seo_title')} description={t('blog.seo_desc')} />
       <div style={{ minHeight: '100vh', background: 'var(--fm-bg)', paddingTop: 100, paddingBottom: 80 }}>
         <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
-          <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--fm-primary-light)' }}>{t('Blog')}</span>
-          <h1 style={{ fontSize: 42, fontWeight: 900, color: 'var(--fm-text-1)', margin: '12px 0 16px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 42, fontWeight: 900, color: 'var(--fm-text-1)', margin: '0 0 16px', letterSpacing: '-0.02em' }}>
             {t('blog.title')}
           </h1>
           <p style={{ fontSize: 17, color: 'var(--fm-text-5)', lineHeight: 1.8, maxWidth: 500, margin: '0 auto 56px' }}>
