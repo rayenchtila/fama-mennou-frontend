@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
-import { cldImg } from '../utils/cloudinary';
+import { cldImg, cldVideo } from '../utils/cloudinary';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 const API          = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
@@ -13,6 +13,24 @@ const REACTIONS    = ['👍','❤️','😂','😮','😢','😡'];
 const COLORS       = ['bg-indigo-500','bg-emerald-500','bg-rose-500','bg-amber-500','bg-sky-500','bg-fuchsia-500','bg-violet-500','bg-teal-500'];
 
 function avatarColor(e) { return COLORS[(e?.charCodeAt(0) ?? 0) % COLORS.length]; }
+
+// A voice note is stored as a normal message row — content carries just a
+// "[voice:<seconds>]" marker (same bracket-prefix convention already used
+// elsewhere in this codebase, e.g. proposals' "[portfolio:...]") and
+// attachment_url points at the recording. No schema change needed.
+const VOICE_RE = /^\[voice:(\d+)\]$/;
+// A hard cap keeps voice notes squarely under the 15MB upload limit
+// (routes/uploads.js) even on a browser recording an inefficient codec, and
+// matches the "short clip", not "long memo", nature of a chat voice note.
+const MAX_RECORDING_SECS = 180;
+function parseVoice(content) {
+  const m = VOICE_RE.exec((content || '').trim());
+  return m ? Number(m[1]) : null;
+}
+function fmtVoiceTime(s) {
+  s = Math.max(0, Math.round(s));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
 
 function onlineStatus(lastSeen) {
   if (!lastSeen) return { online: false, label: 'Offline' };
@@ -61,6 +79,99 @@ function UserAvatar({ user, size = 'md', online }) {
         <span className={`absolute bottom-0 right-0 ${dot} rounded-full`}
           style={{ background: online ? 'var(--fm-success)' : 'var(--fm-text-7)', border: '2px solid var(--fm-surface-2)' }} />
       )}
+    </div>
+  );
+}
+
+// ── VoiceBubble ────────────────────────────────────────────────────────────────
+// Playback UI for a voice note. The bar heights are a deterministic
+// pseudo-waveform (seeded from the URL, so it's stable across re-renders and
+// reloads) rather than a real audio analysis — visually reads the same as a
+// true waveform without decoding the file client-side just to draw bars.
+const VOICE_BARS = 27;
+function seededBars(seed, count) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const bars = [];
+  for (let i = 0; i < count; i++) {
+    h = (h * 1103515245 + 12345) >>> 0;
+    bars.push(0.28 + (h % 100) / 100 * 0.72); // 0.28–1.0
+  }
+  return bars;
+}
+
+function VoiceBubble({ url, duration, isMine }) {
+  const audioRef  = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [curTime, setCurTime] = useState(0);
+  const [realDur, setRealDur] = useState(0);
+  const bars = useMemo(() => seededBars(url || String(duration), VOICE_BARS), [url, duration]);
+
+  const totalDur = realDur || duration || 0;
+  const progress = totalDur ? Math.min(1, curTime / totalDur) : 0;
+  const activeBars = Math.round(progress * VOICE_BARS);
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    const onTime = () => setCurTime(a.currentTime);
+    const onMeta = () => { if (isFinite(a.duration)) setRealDur(a.duration); };
+    const onEnd  = () => { setPlaying(false); setCurTime(0); };
+    a.addEventListener('timeupdate', onTime);
+    a.addEventListener('loadedmetadata', onMeta);
+    a.addEventListener('ended', onEnd);
+    return () => {
+      a.removeEventListener('timeupdate', onTime);
+      a.removeEventListener('loadedmetadata', onMeta);
+      a.removeEventListener('ended', onEnd);
+    };
+  }, []);
+
+  function toggle() {
+    const a = audioRef.current;
+    if (!a) return;
+    if (playing) { a.pause(); setPlaying(false); }
+    else { a.play().catch(() => {}); setPlaying(true); }
+  }
+
+  function seekTo(e) {
+    const a = audioRef.current;
+    if (!a || !totalDur) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    a.currentTime = pct * totalDur;
+    setCurTime(a.currentTime);
+  }
+
+  const fg = isMine ? '#fff' : 'var(--fm-primary-light)';
+  const dim = isMine ? 'rgba(255,255,255,0.4)' : 'var(--fm-border-strong)';
+
+  return (
+    <div className="flex items-center gap-2.5" style={{ minWidth: 200, padding: '2px 2px' }}>
+      <audio ref={audioRef} src={url} preload="metadata" />
+      <button onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}
+        className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-transform active:scale-90"
+        style={{ background: isMine ? 'rgba(255,255,255,0.22)' : 'var(--fm-primary-soft-strong)', color: fg }}>
+        {playing
+          ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+          : <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ marginLeft: 1 }}><path d="M8 5v14l11-7z"/></svg>
+        }
+      </button>
+
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div onClick={seekTo} className="flex items-end gap-[2px] cursor-pointer" style={{ height: 22 }}>
+          {bars.map((h, i) => (
+            <span key={i} style={{
+              flex: 1, height: `${h * 100}%`, minHeight: 2, borderRadius: 2,
+              background: i < activeBars ? fg : dim,
+              transition: 'background-color .1s',
+            }} />
+          ))}
+        </div>
+        <span className="text-[10.5px] tabular-nums" style={{ color: isMine ? 'rgba(255,255,255,0.75)' : 'var(--fm-text-7)' }}>
+          {fmtVoiceTime(playing || curTime > 0 ? curTime : totalDur)}
+        </span>
+      </div>
     </div>
   );
 }
@@ -169,6 +280,9 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const [forwardMsg,    setForwardMsg]    = useState(null);
   const [fwdSearch,     setFwdSearch]     = useState('');
   const [showAttachMenu,setShowAttachMenu]= useState(false);
+  const [recording,     setRecording]     = useState(false);
+  const [recordingSecs, setRecordingSecs] = useState(0);
+  const [micError,      setMicError]      = useState('');
   useBodyScrollLock(!!forwardMsg);
 
   // Admin-only: payment status panels for the selected conversation
@@ -193,6 +307,10 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const typingPollRef = useRef();
   const typingTimer   = useRef();
   const dragCounter   = useRef(0);
+  const mediaRecorderRef  = useRef(null);
+  const recordedChunksRef = useRef([]);
+  const recordingStreamRef= useRef(null);
+  const recordingTimerRef = useRef(null);
 
   // user lookup
   const usersMap = {};
@@ -386,6 +504,131 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     e.target.value = '';
   }
 
+  // ── Voice notes ──────────────────────────────────────────────────────────────
+  // Recording browsers report the MediaRecorder blob in whichever container
+  // they natively support — Chrome/Firefox/Edge: webm+opus, Safari: mp4/aac.
+  // Trying isTypeSupported() in this order picks the best one available and
+  // falls back to the browser's own default (empty string) so this never
+  // hard-fails just because none of the guesses matched.
+  function pickAudioMimeType() {
+    if (typeof window === 'undefined' || !window.MediaRecorder) return '';
+    const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'];
+    for (const c of candidates) {
+      if (MediaRecorder.isTypeSupported?.(c)) return c;
+    }
+    return '';
+  }
+
+  function stopRecordingTracks() {
+    clearInterval(recordingTimerRef.current);
+    recordingTimerRef.current = null;
+    recordingStreamRef.current?.getTracks().forEach(tr => tr.stop());
+    recordingStreamRef.current = null;
+  }
+
+  async function startRecording() {
+    // Guards a double-tap/double-click from opening two overlapping mic
+    // streams before the first getUserMedia() promise has even resolved.
+    if (recording || mediaRecorderRef.current) return;
+    setMicError('');
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setMicError(t('mgc.voice_unsupported'));
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recordingStreamRef.current = stream;
+      const mimeType = pickAudioMimeType();
+      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      recordedChunksRef.current = [];
+      mr.ondataavailable = e => { if (e.data && e.data.size > 0) recordedChunksRef.current.push(e.data); };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setRecordingSecs(0);
+      setRecording(true);
+      recordingTimerRef.current = setInterval(() => setRecordingSecs(s => s + 1), 1000);
+    } catch (err) {
+      setMicError(err?.name === 'NotAllowedError' ? t('mgc.voice_denied') : t('mgc.voice_error'));
+    }
+  }
+
+  function cancelRecording() {
+    const mr = mediaRecorderRef.current;
+    if (mr && mr.state !== 'inactive') { mr.ondataavailable = null; mr.onstop = null; mr.stop(); }
+    stopRecordingTracks();
+    mediaRecorderRef.current = null;
+    recordedChunksRef.current = [];
+    setRecording(false);
+    setRecordingSecs(0);
+  }
+
+  async function stopAndSendRecording() {
+    const mr = mediaRecorderRef.current;
+    if (!mr || mr.state === 'inactive') return;
+    const duration = Math.max(1, recordingSecs);
+
+    await new Promise(resolve => { mr.onstop = resolve; mr.stop(); });
+    stopRecordingTracks();
+    mediaRecorderRef.current = null;
+    setRecording(false);
+    setRecordingSecs(0);
+
+    const chunks = recordedChunksRef.current;
+    recordedChunksRef.current = [];
+    // A near-zero-byte blob means the mic never actually produced audio
+    // (permission race, or stop fired within the same tick as start) —
+    // sending it would just create a voice bubble that fails to play.
+    if (!chunks.length) return;
+    const mimeType = chunks[0].type || mr.mimeType || 'audio/webm';
+    const blob = new Blob(chunks, { type: mimeType });
+    if (blob.size < 500) return;
+
+    await sendVoiceNote(blob, duration);
+  }
+
+  async function sendVoiceNote(blob, duration) {
+    if (!selectedChat) return;
+    setUploading(true);
+    try {
+      const ext = blob.type.includes('mp4') ? 'm4a' : blob.type.includes('ogg') ? 'ogg' : blob.type.includes('wav') ? 'wav' : 'webm';
+      const fd = new FormData();
+      fd.append('file', blob, `voice-${Date.now()}.${ext}`);
+      const d = await fetch(`${API}/uploads/voice`, { method: 'POST', body: fd }).then(r => r.json());
+      const attachmentUrl = d.secure_url || null;
+      if (!attachmentUrl) return;
+      const res = await fetch(`${API}/messages`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderEmail, receiverEmail: selectedChat, content: `[voice:${duration}]`, attachmentUrl, replyToId: null }),
+      });
+      if (res.ok) { loadMsgs(selectedChat); loadConvs(); }
+    } catch {} finally { setUploading(false); }
+  }
+
+  // Stop any in-progress recording whenever the selected conversation
+  // changes (switching chats, or the component unmounting entirely) —
+  // otherwise a recording started in one conversation could get sent to
+  // whichever chat happens to be selected by the time it's stopped, and the
+  // mic stream would keep running in the background either way.
+  useEffect(() => () => {
+    const mr = mediaRecorderRef.current;
+    if (mr && mr.state !== 'inactive') { mr.ondataavailable = null; mr.onstop = null; mr.stop(); }
+    stopRecordingTracks();
+    mediaRecorderRef.current = null;
+    recordedChunksRef.current = [];
+    setRecording(false);
+    setRecordingSecs(0);
+  }, [selectedChat]);
+
+  // Auto-stop (and send) once the recording hits MAX_RECORDING_SECS. A
+  // fresh effect closure on every render always sees the current
+  // recordingSecs — calling stopAndSendRecording() directly from inside the
+  // setInterval callback in startRecording would instead close over
+  // recordingSecs as it was when that interval was created (i.e. 0), a
+  // classic stale-closure bug.
+  useEffect(() => {
+    if (recording && recordingSecs >= MAX_RECORDING_SECS) stopAndSendRecording();
+  }, [recordingSecs]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Send ─────────────────────────────────────────────────────────────────────
 
   async function sendMsg() {
@@ -518,7 +761,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
     if (!email || email === selectedChat) return;
     setSelectedChat(email);
     setMobileSide('chat');
-    setNewMsg(''); setReplyTo(null); setStagedFile(null); setLockError('');
+    setNewMsg(''); setReplyTo(null); setStagedFile(null); setMicError('');
     setEditingId(null); setEditText('');
     setOtherTyping(false); setHoveredMsg(null);
     setOpenMenuId(null); setShowEmojiFor(null);
@@ -709,10 +952,11 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             </div>
           )}
           {filteredConvs.map(conv => {
-            const u      = resolveUser(conv.other_email);
-            const status = onlineStatus(conv.user_last_seen || u?.last_seen || u?.lastSeen);
-            const unread = Number(conv.unread_count || 0);
-            const active = selectedChat === conv.other_email;
+            const u         = resolveUser(conv.other_email);
+            const status    = onlineStatus(conv.user_last_seen || u?.last_seen || u?.lastSeen);
+            const unread    = Number(conv.unread_count || 0);
+            const active    = selectedChat === conv.other_email;
+            const convVoice = parseVoice(conv.last_message);
             return (
               <button key={conv.other_email} onClick={() => selectChat(conv.other_email)}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors"
@@ -733,7 +977,12 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                   </div>
                   <div className="flex items-center gap-1 mt-0.5">
                     <p className="text-xs truncate flex-1" style={{ color: unread > 0 ? 'var(--fm-text-5)' : 'var(--fm-text-6)', fontWeight: unread > 0 ? 500 : 400 }}>
-                      {conv.sender_email === senderEmail ? t('mgc.you_prefix') : ''}{conv.last_message || <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span>}
+                      {conv.sender_email === senderEmail ? t('mgc.you_prefix') : ''}
+                      {convVoice != null ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>{t('mgc.voice_message')}</span>
+                      ) : conv.last_message || (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span>
+                      )}
                     </p>
                     {unread > 0 && (
                       <span className="shrink-0 min-w-[18px] h-[18px] text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 leading-none" style={{ background: 'var(--fm-primary)' }}>
@@ -970,6 +1219,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                     const isEditing = editingId === m.id;
                     const reactions = m.reactions || {};
                     const hasReact  = Object.keys(reactions).some(k => (reactions[k] || []).length > 0);
+                    const voiceDur  = parseVoice(m.content); // seconds, or null if not a voice note
 
                     const bubbleRound = isMine
                       ? `rounded-2xl ${isFirst ? 'rounded-tr-sm' : ''} ${isLast ? 'rounded-br-sm' : ''}`
@@ -1061,8 +1311,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }}
                                 transition={{ type: 'spring', stiffness: 320, damping: 22 }}
                                 className={`absolute ${isMine ? 'right-0' : 'left-0'} -top-16 flex items-center gap-0.5 rounded-full shadow-2xl px-2 py-1.5 z-40`}
-                                style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border-strong)' }}
-                                style={{ minWidth: 'max-content' }}
+                                style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border-strong)', minWidth: 'max-content' }}
                                 onClick={e => e.stopPropagation()}
                               >
                                 {REACTIONS.map(emoji => (
@@ -1120,12 +1369,16 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                       {shownName(resolveUser(m.reply_sender)?.name, m.reply_sender) || 'Reply'}
                                     </p>
                                     <p className={`text-xs truncate ${isMine ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'}`}>
-                                      {m.reply_attachment_url ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span> : (m.reply_content || '')}
+                                      {parseVoice(m.reply_content) != null ? (
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>{t('mgc.voice_message')}</span>
+                                      ) : m.reply_attachment_url ? (
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span>
+                                      ) : (m.reply_content || '')}
                                     </p>
                                   </div>
                                 )}
                                 {/* Image */}
-                                {m.attachment_url && (
+                                {m.attachment_url && voiceDur == null && (
                                   <div className="relative w-fit">
                                     <img src={cldImg(m.attachment_url)} alt="Photo"
                                       className={`max-w-[220px] sm:max-w-[260px] w-full object-cover rounded-xl block cursor-zoom-in ${m.content ? 'mb-2' : ''}`}
@@ -1143,8 +1396,25 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                     )}
                                   </div>
                                 )}
+                                {/* Voice note */}
+                                {m.attachment_url && voiceDur != null && (
+                                  <div className="relative" onClick={e => e.stopPropagation()}>
+                                    <VoiceBubble url={cldVideo(m.attachment_url)} duration={voiceDur} isMine={isMine} />
+                                    {/* ⋯ overlay — own voice notes only → Reply + Delete */}
+                                    {isMine && (
+                                      <button data-menu
+                                        onClick={e => { e.stopPropagation(); openContextMenu(e, m.id); }}
+                                        className="absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg transition-colors z-10"
+                                        style={{ background: 'rgba(0,0,0,0.35)', color: '#fff' }}>
+                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                          <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                                        </svg>
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
                                 {/* Text */}
-                                {m.content && (
+                                {m.content && voiceDur == null && (
                                   m.flagged ? (
                                     <span className="block">
                                       <span className="break-words leading-relaxed whitespace-pre-wrap blur-sm select-none">{m.content}</span>
@@ -1225,8 +1495,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             return (
               <div data-menu
                 className="fixed z-[60] rounded-2xl shadow-2xl overflow-hidden min-w-[180px] py-1"
-                style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border-strong)' }}
-                style={{ top: menuPos.top, ...(menuPos.left !== undefined ? { left: menuPos.left } : { right: menuPos.right }) }}
+                style={{ background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border-strong)', top: menuPos.top, ...(menuPos.left !== undefined ? { left: menuPos.left } : { right: menuPos.right }) }}
                 onClick={e => e.stopPropagation()}
               >
                 {isImg ? (
@@ -1302,10 +1571,15 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 </div>
                 {/* Preview of what's being forwarded */}
                 <div className="px-4 py-2.5 shrink-0" style={{ background: 'var(--fm-surface-hover-soft)', borderBottom: '1px solid var(--fm-border)' }}>
-                  {forwardMsg.attachment_url && (
+                  {forwardMsg.attachment_url && parseVoice(forwardMsg.content) == null && (
                     <img src={cldImg(forwardMsg.attachment_url)} alt="" className="w-12 h-12 object-cover rounded-lg mb-1"/>
                   )}
-                  {forwardMsg.content && (
+                  {parseVoice(forwardMsg.content) != null ? (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
+                      {t('mgc.voice_message')}
+                    </p>
+                  ) : forwardMsg.content && (
                     <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{forwardMsg.content}</p>
                   )}
                 </div>
@@ -1376,7 +1650,11 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                     {shownName(resolveUser(replyTo.sender_email)?.name, replyTo.sender_email)}
                   </p>
                   <p style={{ fontSize: 11, color: 'var(--fm-text-6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {replyTo.attachment_url && !replyTo.content ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span> : replyTo.content}
+                    {parseVoice(replyTo.content) != null ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>{t('mgc.voice_message')}</span>
+                    ) : replyTo.attachment_url && !replyTo.content ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>{t('mgc.photo')}</span>
+                    ) : replyTo.content}
                   </p>
                 </div>
                 <button onClick={() => setReplyTo(null)}
@@ -1390,8 +1668,24 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               </div>
             )}
 
+            {/* Mic error banner */}
+            {micError && (
+              <div className="flex items-center justify-between gap-2 px-3 sm:px-4 pt-2.5 pb-0">
+                <p className="flex-1 text-xs font-bold px-3 py-1.5 rounded-lg" style={{ color: 'var(--fm-danger)', background: 'var(--fm-danger-bg)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  {micError}
+                </p>
+                <button onClick={() => setMicError('')}
+                  className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-colors shrink-0">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            )}
+
             {/* Staged image preview */}
-            {stagedFile && (
+            {stagedFile && !recording && (
               <div className="flex items-center gap-2 px-3 sm:px-4 pt-2.5 pb-0">
                 <div className="relative">
                   <img src={stagedFile.previewUrl} alt="" className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-xl ring-2 ring-indigo-300" />
@@ -1412,7 +1706,47 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               </div>
             )}
 
-            {/* Input row */}
+            {/* Recording bar — replaces the whole compose row while recording */}
+            {recording ? (
+              <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5">
+                <button onClick={cancelRecording} title={t('mgc.cancel')}
+                  className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center transition-colors"
+                  style={{ color: 'var(--fm-danger)', background: 'var(--fm-danger-bg)', border: '1px solid transparent' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.22)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--fm-danger-bg)'; }}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+
+                <motion.span
+                  animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--fm-danger)', flexShrink: 0 }}
+                />
+                <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--fm-text-2)', minWidth: 36 }}>
+                  {fmtVoiceTime(recordingSecs)}
+                </span>
+
+                <div className="flex-1 flex items-center justify-center gap-[3px]" style={{ height: 24 }}>
+                  {Array.from({ length: 20 }).map((_, i) => (
+                    <motion.span key={i}
+                      animate={{ scaleY: [0.3, 1, 0.3] }}
+                      transition={{ duration: 0.7 + (i % 5) * 0.1, repeat: Infinity, ease: 'easeInOut', delay: i * 0.05 }}
+                      style={{ width: 3, height: 16, borderRadius: 2, background: 'var(--fm-primary-light)', display: 'inline-block' }}
+                    />
+                  ))}
+                </div>
+
+                <button onClick={stopAndSendRecording} title={t('mgc.send')}
+                  className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center transition-all"
+                  style={{ background: 'linear-gradient(135deg,#7c6cf6,#6c8cf6)', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.7)' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.06)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}>
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              </div>
+            ) : (
+            /* Input row */
             <div className="flex items-end gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5">
               {/* Single attach button */}
               <div data-attach style={{ position:'relative' }}>
@@ -1462,22 +1796,33 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 onBlur={e => { e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-surface-hover-soft)'; e.target.style.boxShadow='none'; }}
               />
 
-              {/* Send */}
-              <button onClick={sendMsg} disabled={uploading || (!newMsg.trim() && !stagedFile)}
-                className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center mb-0.5 transition-all"
-                style={newMsg.trim() || stagedFile
-                  ? { background: 'linear-gradient(135deg,#7c6cf6,#6c8cf6)', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.7)', transform: 'scale(1)' }
-                  : { background: 'var(--fm-surface-hover)', color: 'var(--fm-text-7)', cursor: 'not-allowed', border: '1px solid var(--fm-border)' }
-                }
-                onMouseEnter={e => { if (newMsg.trim() || stagedFile) { e.currentTarget.style.transform='scale(1.06)'; e.currentTarget.style.boxShadow='0 6px 20px -4px rgba(124,108,246,.8)'; } }}
-                onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow=newMsg.trim()||stagedFile?'0 4px 16px -4px rgba(124,108,246,.7)':'none'; }}
-              >
-                {uploading
-                  ? <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                  : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                }
-              </button>
+              {/* Send — or, when there's nothing typed/staged yet, a mic button to record a voice note instead */}
+              {(newMsg.trim() || stagedFile || uploading) ? (
+                <button onClick={sendMsg} disabled={uploading || (!newMsg.trim() && !stagedFile)}
+                  className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center mb-0.5 transition-all"
+                  style={{ background: 'linear-gradient(135deg,#7c6cf6,#6c8cf6)', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.7)', transform: 'scale(1)' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform='scale(1.06)'; e.currentTarget.style.boxShadow='0 6px 20px -4px rgba(124,108,246,.8)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow='0 4px 16px -4px rgba(124,108,246,.7)'; }}
+                >
+                  {uploading
+                    ? <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                  }
+                </button>
+              ) : (
+                <button onClick={startRecording} title={t('mgc.record_voice')}
+                  className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center mb-0.5 transition-all"
+                  style={{ color: 'var(--fm-text-7)', background: 'var(--fm-surface-hover-soft)', border: '1px solid var(--fm-border)' }}
+                  onMouseEnter={e => { e.currentTarget.style.color='var(--fm-primary-light)'; e.currentTarget.style.borderColor='var(--fm-primary-border)'; e.currentTarget.style.background='var(--fm-primary-soft)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color='var(--fm-text-7)'; e.currentTarget.style.borderColor='var(--fm-border)'; e.currentTarget.style.background='var(--fm-surface-hover-soft)'; }}
+                >
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/>
+                  </svg>
+                </button>
+              )}
             </div>
+            )}
           </div>
         </div>
       )}
