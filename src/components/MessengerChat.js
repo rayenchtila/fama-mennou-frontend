@@ -1431,6 +1431,27 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
                               {/* Time + receipt */}
                               <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                                {/* ⋯ — own text messages only (image/voice already have their own
+                                    overlay ⋯). Inline, not absolutely positioned like the hover
+                                    action bar above, so it's never clipped off-screen for a message
+                                    near the top of the scroll area, and it's always visible — no
+                                    hover/tap-to-reveal needed to find Delete. Same viewport-clamped
+                                    menu (openContextMenu/menuPos) already used by images and voice
+                                    notes, so this is identical for every role: client, freelancer,
+                                    admin. */}
+                                {isMine && !m.attachment_url && (
+                                  <button data-menu
+                                    onClick={e => { e.stopPropagation(); openContextMenu(e, m.id); }}
+                                    aria-label={t('mgc.more_options')}
+                                    className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                    style={{ color: 'var(--fm-text-7)' }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--fm-surface-hover)'; e.currentTarget.style.color = 'var(--fm-text-4)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--fm-text-7)'; }}>
+                                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24">
+                                      <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                                    </svg>
+                                  </button>
+                                )}
                                 {m.edited_at && <span className="text-[10px] italic" style={{ color: 'var(--fm-text-7)' }}>{t('mgc.edited')}</span>}
                                 <span className="text-[10px] tabular-nums" style={{ color: 'var(--fm-text-7)' }}>{fmtTime(m.created_at)}</span>
                                 {isMine && isLast && (

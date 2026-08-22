@@ -1772,6 +1772,7 @@ i18n
           "mgc.save": "Save",
           "mgc.cancel": "Cancel",
           "mgc.send": "Send",
+          "mgc.more_options": "More options",
           "mgc.edited": "edited ·",
           "mgc.forward_message": "Forward message",
         }
@@ -3446,6 +3447,7 @@ i18n
           "mgc.save": "Enregistrer",
           "mgc.cancel": "Annuler",
           "mgc.send": "Envoyer",
+          "mgc.more_options": "Plus d'options",
           "mgc.edited": "modifié ·",
           "mgc.forward_message": "Transférer le message",
         }
@@ -5124,6 +5126,7 @@ i18n
           "mgc.save": "حفظ",
           "mgc.cancel": "إلغاء",
           "mgc.send": "إرسال",
+          "mgc.more_options": "خيارات إضافية",
           "mgc.edited": "مُعدّل ·",
           "mgc.forward_message": "إعادة توجيه الرسالة",
         }
