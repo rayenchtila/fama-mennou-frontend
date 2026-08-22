@@ -1,34 +1,38 @@
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import MessengerChat from '../components/MessengerChat';
+import useBodyScrollLock from '../hooks/useBodyScrollLock';
 
 export default function MessagesPage() {
   const { user, users } = useAuth();
   const [searchParams] = useSearchParams();
   const initialChat = searchParams.get('with') || null;
 
-  if (!user) return null;
-
   // Immersive, header-free full-screen chat for everyone — client,
   // freelancer, and admin alike.
   //
-  // Height uses dvh (dynamic viewport height), not vh: on mobile, vh is
-  // measured against the LARGEST possible viewport (browser chrome
-  // collapsed), so a fixed vh-tall column ends up taller than what's
-  // actually visible whenever the address bar is showing — pushing the
-  // message input off the bottom of the screen, exactly the bug reported.
-  // dvh tracks the real, currently-visible viewport instead. The plain vh
-  // rule stays first purely as a fallback for the handful of browsers that
-  // don't understand dvh yet — updated by the dvh rule right after it.
+  // Pinned with position:fixed (top/bottom anchored) instead of an
+  // in-flow height:100dvh block: on mobile, focusing the message input
+  // makes the browser auto-scroll the PAGE to bring the input above the
+  // keyboard — for an in-flow block that drags the whole chat (header
+  // included) up and off the top of the screen, leaving only the input
+  // bar visible against a blank background, exactly the bug reported.
+  // A fixed element is anchored to the viewport and isn't a target for
+  // that page-level auto-scroll, so header + messages + input all stay
+  // exactly where they are, in view, keyboard open or not. Body scroll
+  // is also locked for the same reason, belt-and-suspenders.
+  useBodyScrollLock(!!user);
+
+  if (!user) return null;
+
   return (
-    <div className="fm-fullchat-wrap" style={{ overflow:'hidden', background:'var(--fm-bg)', fontFamily:"'Plus Jakarta Sans','Inter',sans-serif", display:'flex', flexDirection:'column', paddingTop:66 }}>
+    <div className="fm-fullchat-wrap" style={{ position:'fixed', left:0, right:0, bottom:0, overflow:'hidden', background:'var(--fm-bg)', fontFamily:"'Plus Jakarta Sans','Inter',sans-serif", display:'flex', flexDirection:'column' }}>
       <div style={{ flex:1, minHeight:0 }}>
         <MessengerChat currentUser={user} allUsers={users} initialChat={initialChat} fullScreen />
       </div>
       <style>{`
         .fm-fullchat-wrap {
-          height: calc(100vh - var(--fm-announcement-h, 0px));
-          height: calc(100dvh - var(--fm-announcement-h, 0px));
+          top: calc(66px + var(--fm-announcement-h, 0px));
         }
       `}</style>
     </div>
