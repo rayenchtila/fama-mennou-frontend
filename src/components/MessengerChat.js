@@ -1262,11 +1262,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                             e.stopPropagation();
                           }}
                         >
-                          {/* Hover / tap action bar — text messages only (photos/voice use overlay
-                              ⋯, and now so does text — see the always-visible ⋯ next to the
-                              timestamp below). Edit and Delete used to live here too, duplicating
-                              what that ⋯ menu now covers; trimmed down to just the emoji-react
-                              shortcut, which has no other entry point. */}
+                          {/* Hover / tap action bar — text messages only (photos use overlay ⋯) */}
                           <AnimatePresence>
                             {hoveredMsg === m.id && !isEditing && !m.attachment_url && (
                               <motion.div
@@ -1286,6 +1282,24 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                     <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
                                   </svg>
                                 </button>
+                                {/* Edit — own messages only */}
+                                {isMine && (
+                                  <button onClick={e => { e.stopPropagation(); setEditingId(m.id); setEditText(m.content || ''); setEditStagedFile(null); setHoveredMsg(null); }}
+                                    className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-colors">
+                                    <svg className="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                  </button>
+                                )}
+                                {/* Delete — own messages within 1h only */}
+                                {isMine && (Date.now() - new Date(m.created_at).getTime()) < 3600000 && (
+                                  <button onClick={e => { e.stopPropagation(); deleteMsg(m.id); }}
+                                    className="w-8 h-8 rounded-full hover:bg-rose-50 dark:hover:bg-rose-900/20 flex items-center justify-center transition-colors">
+                                    <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                  </button>
+                                )}
                               </motion.div>
                             )}
                           </AnimatePresence>
@@ -1526,7 +1540,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                     )}
                   </>
                 ) : (
-                  /* ── Text message menu: Copy · Edit · Forward · Delete ── */
+                  /* ── Text message menu: Copy · Forward · Delete ── */
                   <>
                     {msg.content && (
                       <button onClick={() => copyMsg(msg.content)}
@@ -1535,15 +1549,6 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                           <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                         </svg>
                         Copy text
-                      </button>
-                    )}
-                    {isMineMsg && (
-                      <button onClick={() => { setEditingId(msg.id); setEditText(msg.content || ''); setEditStagedFile(null); setOpenMenuId(null); setHoveredMsg(null); }}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors text-left" style={{ color: 'var(--fm-text-4)' }} onMouseEnter={e=>e.currentTarget.style.background='var(--fm-surface-hover)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                        <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                        {t('mgc.edit')}
                       </button>
                     )}
                     <button onClick={() => { setForwardMsg(msg); setFwdSearch(''); setOpenMenuId(null); setHoveredMsg(null); }}
