@@ -43,36 +43,45 @@ function StatusBadge({ status }) {
   );
 }
 
-// CIN images are a Cloudinary URL for accounts registered after the
-// Cloudinary migration, but older accounts still have the raw base64 JPEG
-// that used to be stored directly in Postgres — wrapping a URL in a
-// data:...;base64, prefix (or vice versa) produces an unparseable src and
-// silently renders as a broken image.
-function cinImageSrc(value) {
-  if (!value) return null;
-  return value.startsWith('http') ? value : `data:image/jpeg;base64,${value}`;
+// The bulk admin user list (GET /users) deliberately strips cin_front/
+// cin_back — they're multi-KB-per-row and only ever needed one user at a
+// time, for CIN review specifically (see routes/users.js's ADMIN_FIELDS
+// comment). Any component that wants to actually show a CIN image must
+// fetch it itself via GET /users/:email/cin, which now also resolves
+// whichever storage shape that account's row happens to be in (raw base64,
+// a full Cloudinary URL, or a bare Cloudinary public_id) into something
+// directly usable as an <img src> — the frontend no longer needs to guess.
+// A single shared hook means every CIN viewer in the dashboard pulls from
+// the same correct source, so this can't silently drift out of sync again.
+function useCinImages(email) {
+  const { authFetch } = useAuth();
+  const [data, setData] = useState({ cin_front: null, cin_back: null });
+  const [loading, setLoading] = useState(true);
+  const API_URL = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
+
+  React.useEffect(() => {
+    if (!email) { setLoading(false); return; }
+    let cancelled = false;
+    setLoading(true);
+    authFetch(`${API_URL}/users/${encodeURIComponent(email)}/cin`)
+      .then(r => r.json())
+      .then(d => { if (!cancelled) { setData(d); setLoading(false); } })
+      .catch(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [email]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return { ...data, loading };
 }
 
 // ─── CIN image viewer modal ───────────────────────────────────────────────────
 
 function CINImageModal({ user, onClose }) {
   const { t } = useTranslation();
-  const { authFetch } = useAuth();
   useBodyScrollLock(true); // this component only exists while the modal is open
   const [side, setSide] = useState("front");
-  const [cinData, setCinData] = useState({ cin_front: null, cin_back: null });
-  const [cinLoading, setCinLoading] = useState(true);
-  const API_URL = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
+  const { cin_front, cin_back, loading: cinLoading } = useCinImages(user.email);
 
-  React.useEffect(() => {
-    setCinLoading(true);
-    authFetch(`${API_URL}/users/${encodeURIComponent(user.email)}/cin`)
-      .then(r => r.json())
-      .then(d => { setCinData(d); setCinLoading(false); })
-      .catch(() => setCinLoading(false));
-  }, [user.email]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const img = side === "front" ? cinData.cin_front : cinData.cin_back;
+  const img = side === "front" ? cin_front : cin_back;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
       <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden w-full max-w-2xl" onClick={e => e.stopPropagation()}>
@@ -102,7 +111,7 @@ function CINImageModal({ user, onClose }) {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
             </svg>
           ) : img ? (
-            <img src={cinImageSrc(img)} alt={`CIN ${side}`} className="max-h-96 w-full object-contain rounded-xl" />
+            <img src={img} alt={`CIN ${side}`} className="max-h-96 w-full object-contain rounded-xl" />
           ) : (
             <div className="text-slate-500 text-sm flex flex-col items-center gap-2">
               <svg className="w-10 h-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
@@ -219,6 +228,14 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
   const { t } = useTranslation();
   const status = user.cinStatus ?? (user.cinVerified ? "approved" : "pending");
   const acted  = justActed[user.email];
+  // user.cinFront/cinBack are never present here — the bulk list they come
+  // from deliberately strips them (see the useCinImages comment above) —
+  // this thumbnail preview needs its own per-user fetch, same as the modal.
+  const { cin_front, cin_back } = useCinImages(user.email);
+  const thumbs = [
+    { key: "cinFront", label: t("Face avant"),  src: cin_front },
+    { key: "cinBack",  label: t("Face arrière"), src: cin_back },
+  ];
 
   return (
     <div className={["bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-500 overflow-hidden", acted === "approved" ? "border-emerald-300 dark:border-emerald-700 shadow-lg shadow-emerald-100 dark:shadow-emerald-900/20" : acted === "rejected" ? "border-rose-300 dark:border-rose-700 shadow-lg shadow-rose-100 dark:shadow-rose-900/20" : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"].join(" ")}>
@@ -262,13 +279,13 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
               ))}
             </div>
 
-            {(user.cinFront || user.cinBack) && (
+            {(cin_front || cin_back) && (
               <div className="flex gap-3 mb-4">
-                {[{ key: "cinFront", label: t("Face avant") }, { key: "cinBack", label: t("Face arrière") }].map(({ key, label }) => user[key] ? (
+                {thumbs.map(({ key, label, src }) => src ? (
                   <div key={key} className="flex-1">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</p>
                     <div className="relative group cursor-pointer rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-24" onClick={() => onView(user)}>
-                      <img src={cinImageSrc(user[key])} alt={label} className="w-full h-full object-cover" />
+                      <img src={src} alt={label} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-xs font-bold">{t("admin.card.enlarge")}</span>
                       </div>
