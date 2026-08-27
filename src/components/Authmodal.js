@@ -20,7 +20,7 @@ const TUNISIAN_REGIONS = [
   "Tataouine","Tozeur","Tunis","Zaghouan",
 ];
 
-function fileToBase64(file) {
+function readAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     // Passing the raw event straight to reject() left Sentry unable to
@@ -28,24 +28,79 @@ function fileToBase64(file) {
     // captured as promise rejection") and gave calling code nothing useful
     // to show the user — wrap it in a real Error instead.
     reader.onerror = () => reject(new Error("Could not read the selected file."));
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 800;
-        const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
-        const canvas = document.createElement("canvas");
-        canvas.width  = img.width  * ratio;
-        canvas.height = img.height * ratio;
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", 0.7).split(",")[1]);
-      };
-      // Without this, a corrupted/undecodable image file left the Promise
-      // pending forever — the signup form would just hang on submit with
-      // no error shown at all.
-      img.onerror = () => reject(new Error("This file isn't a valid image."));
-      img.src = e.target.result;
-    };
+    reader.onload = (e) => resolve(e.target.result);
     reader.readAsDataURL(file);
+  });
+}
+
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    // A WebKit quirk on some iOS versions fires onload for an undecodable
+    // HEIC source with a 0x0 image instead of onerror — treat that the same
+    // as a real decode failure so it falls through to the HEIC conversion
+    // path below instead of silently producing a blank upload.
+    img.onload = () => (img.width && img.height) ? resolve(img) : reject(new Error('decoded to 0x0'));
+    img.onerror = () => reject(new Error('native decode failed'));
+    img.src = src;
+  });
+}
+
+// Decodes a user-picked file into something <canvas> can draw, trying
+// progressively slower but broader-compatibility paths. This exists because
+// "choose from gallery" was silently broken for a large share of real
+// devices: HEIC/HEIF — the default photo format on iPhone, and increasingly
+// on some Android cameras — cannot be decoded by a plain <img> in most
+// browsers. iOS Safari transcodes HEIC to JPEG before handing it to the page
+// in many cases, but that is not guaranteed across every browser/webview a
+// real user is actually on (Chrome for iOS, in-app browsers, older iOS
+// versions, some Android gallery apps) — which is exactly why this "worked
+// on some devices, failed on others" instead of failing (or working)
+// consistently for everyone.
+async function decodeToImage(file) {
+  const dataUrl = await readAsDataUrl(file);
+
+  // Fast path: covers the vast majority of real uploads (JPEG/PNG/WebP/GIF,
+  // plus any HEIC the browser already transcoded for us).
+  try {
+    return await loadImageElement(dataUrl);
+  } catch {
+    // fall through to the slower paths below
+  }
+
+  const looksHeic = /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name || '');
+  if (looksHeic) {
+    try {
+      // Loaded on demand — most users never hit this path, so it shouldn't
+      // cost every visitor a WASM download just to sign up.
+      const heic2any = (await import('heic2any')).default;
+      const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+      const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+      return await loadImageElement(await readAsDataUrl(jpegBlob));
+    } catch {
+      // fall through to the last resort below
+    }
+  }
+
+  // Last resort: createImageBitmap decodes a broader set of codecs than
+  // <img> in some browsers (notably Chromium) and works straight off the
+  // Blob, no data-URI round trip needed.
+  try {
+    return await createImageBitmap(file);
+  } catch {
+    throw new Error("This file isn't a valid image.");
+  }
+}
+
+function fileToBase64(file) {
+  return decodeToImage(file).then((img) => {
+    const MAX = 800;
+    const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+    const canvas = document.createElement("canvas");
+    canvas.width  = img.width  * ratio;
+    canvas.height = img.height * ratio;
+    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.7).split(",")[1];
   });
 }
 
@@ -126,9 +181,9 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
         </>
       )}
 
-      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
+      <input ref={cameraRef} type="file" accept="image/*,.heic,.heif" capture="environment" className="hidden"
         onChange={e => { if (e.target.files[0]) onFile(e.target.files[0]); }} />
-      <input ref={galleryRef} type="file" accept="image/*" className="hidden"
+      <input ref={galleryRef} type="file" accept="image/*,.heic,.heif" className="hidden"
         onChange={e => { if (e.target.files[0]) onFile(e.target.files[0]); }} />
     </div>
   );
