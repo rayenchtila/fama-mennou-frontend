@@ -448,7 +448,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
               <p style={{ fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em', background:'linear-gradient(90deg,var(--fm-text-1) 0%,var(--fm-primary-light) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{t('fd.profile_info')}</p>
               <p style={{ fontSize:12, color:'var(--fm-text-7)', margin:0 }}>{t('fd.visible_clients')}</p>
             </div>
-            <span style={{ padding:'5px 13px', borderRadius:20, flexShrink:0, background:'var(--fm-primary-soft)', border:'1px solid var(--fm-primary-border)', color:'var(--fm-primary-light)', fontSize:10, fontWeight:800, letterSpacing:'0.09em', textTransform:'uppercase' }}>{t('cd.edit')}</span>
+            <span style={{ flexShrink:0, color:'var(--fm-primary-light)', fontSize:10, fontWeight:800, letterSpacing:'0.09em', textTransform:'uppercase' }}>{t('cd.edit')}</span>
           </div>
 
           <div style={{ display:'flex', flexDirection:'column' }}>
