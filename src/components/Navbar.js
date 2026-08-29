@@ -659,12 +659,10 @@ export default function Navbar({ onLogin }) {
                               <p className="text-[11px] truncate" style={{ color: bg.text3 }}>{user.email}</p>
                             </div>
                           </div>
-                          <span className={`text-[10px] font-bold capitalize ${!user.isAdmin && user.role === 'client' ? '' : 'px-2 py-0.5 rounded-full'}`}
+                          <span className={`text-[10px] font-bold capitalize ${user.isAdmin ? 'px-2 py-0.5 rounded-full' : ''}`}
                             style={user.isAdmin
                               ? { background:"rgba(239,68,68,0.15)", border:"1px solid rgba(239,68,68,0.3)", color:"#f87171" }
-                              : user.role === 'client'
-                              ? { color:"#9b8cff" }
-                              : { background:"rgba(124,108,246,0.12)", border:"1px solid rgba(124,108,246,0.25)", color:"#9b8cff" }}>
+                              : { color: "#9b8cff" }}>
                             {user.isAdmin ? t('dash.role.admin') : user.role === 'freelancer' ? t('dash.role.freelancer') : user.role === 'client' ? t('dash.role.client') : user.role}
                           </span>
                         </div>
@@ -873,12 +871,10 @@ export default function Navbar({ onLogin }) {
                     <p className="text-sm font-bold truncate leading-tight" style={{ color: bg.text1 }}>{user.name}</p>
                     <p className="text-[10px] truncate" style={{ color: bg.text3 }}>{user.email}</p>
                   </div>
-                  <span className={`text-[10px] font-bold capitalize shrink-0 ${!user.isAdmin && user.role === 'client' ? '' : 'px-2 py-0.5 rounded-full'}`}
+                  <span className={`text-[10px] font-bold capitalize shrink-0 ${user.isAdmin ? 'px-2 py-0.5 rounded-full' : ''}`}
                     style={user.isAdmin
                       ? { background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }
-                      : user.role === 'client'
-                      ? { color: "#9b8cff" }
-                      : { background: "rgba(124,108,246,0.12)", border: "1px solid rgba(124,108,246,0.25)", color: "#9b8cff" }}>
+                      : { color: "#9b8cff" }}>
                     {user.isAdmin ? "Admin" : user.role}
                   </span>
                 </div>
