@@ -188,7 +188,7 @@ const focusOn_P  = e => { e.target.style.borderColor='rgba(124,108,246,0.55)'; e
 const focusOff_P = e => { e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-border-soft)'; e.target.style.boxShadow='none'; };
 function PFieldLabel({ children }) {
   return (
-    <p style={{ fontSize:10, fontWeight:800, margin:'0 0 10px', display:'flex', alignItems:'center', gap:7, textTransform:'uppercase', letterSpacing:'0.1em', color:'var(--fm-primary-light)' }}>
+    <p style={{ fontSize:13, fontWeight:800, margin:'0 0 10px', display:'flex', alignItems:'center', gap:7, textTransform:'uppercase', letterSpacing:'0.1em', color:'var(--fm-primary-light)' }}>
       <span style={{ width:2.5, height:12, borderRadius:2, background:'linear-gradient(to bottom,#7c6cf6,#a78bfa)', display:'inline-block', flexShrink:0 }}/>
       {children}
     </p>
@@ -1234,8 +1234,7 @@ function GainsTab({ user }) {
                         </div>
                         <div className="text-right shrink-0">
                           <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{item.amount}</p>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'var(--fm-success-bg)', color: 'var(--fm-success)' }}>
-                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--fm-success)', display: 'inline-block' }} />
+                          <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 700, color: 'var(--fm-success)' }}>
                             Terminé
                           </span>
                         </div>
@@ -1268,8 +1267,7 @@ function GainsTab({ user }) {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-extrabold text-slate-900 dark:text-white">{Number(p.amount || 0).toFixed(2)} TND</p>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: info.dot + '18', color: info.dot }}>
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: info.dot, display: 'inline-block' }} />
+                        <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 700, color: info.dot }}>
                           {info.label}
                         </span>
                       </div>
@@ -1304,8 +1302,7 @@ function GainsTab({ user }) {
                       <div className="text-right shrink-0">
                         <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">+{Number(item.instructor_net || 0).toFixed(2)} TND</p>
                         <p className="text-[10px] text-slate-400 mt-0.5">Brut : {Number(item.gross_amount || 0).toFixed(2)} TND</p>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: 'var(--fm-success-bg)', color: 'var(--fm-success)' }}>
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--fm-success)', display: 'inline-block' }} />
+                        <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 700, color: 'var(--fm-success)' }}>
                           Gain confirmé
                         </span>
                       </div>
@@ -1348,8 +1345,7 @@ function GainsTab({ user }) {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-extrabold text-slate-900 dark:text-white">{Number(item.amount || 0).toFixed(2)} TND</p>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: info.dot + '18', color: info.dot }}>
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: info.dot, display: 'inline-block' }} />
+                        <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 700, color: info.dot }}>
                           {info.label}
                         </span>
                       </div>
