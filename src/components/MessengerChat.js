@@ -1291,8 +1291,12 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                     </svg>
                                   </button>
                                 )}
-                                {/* Delete — own messages within 1h only */}
-                                {isMine && (Date.now() - new Date(m.created_at).getTime()) < 3600000 && (
+                                {/* Delete — own messages, any age. The backend's DELETE /:id has no
+                                    time restriction either (sender ownership is the only check) —
+                                    this used to also require < 1h old, which made Delete silently
+                                    vanish from the UI for any message past that window even though
+                                    deleting it would have worked fine. */}
+                                {isMine && (
                                   <button onClick={e => { e.stopPropagation(); deleteMsg(m.id); }}
                                     className="w-8 h-8 rounded-full hover:bg-rose-50 dark:hover:bg-rose-900/20 flex items-center justify-center transition-colors">
                                     <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1512,7 +1516,11 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
             if (!msg) return null;
             const isImg     = !!msg.attachment_url;
             const isMineMsg = msg.sender_email === senderEmail;
-            const canDelete = isMineMsg && (Date.now() - new Date(msg.created_at).getTime()) < 3600000;
+            // Own message, any age — the backend's DELETE /:id only ever checks
+            // sender ownership, no time limit. This menu is also what serves
+            // voice notes (they carry an attachment_url too, same as images),
+            // so this one flag covers text, image, and voice message delete.
+            const canDelete = isMineMsg;
             return (
               <div data-menu
                 className="fixed z-[60] rounded-2xl shadow-2xl overflow-hidden min-w-[180px] py-1"
