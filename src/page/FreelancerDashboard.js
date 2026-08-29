@@ -327,7 +327,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     : `linear-gradient(90deg,${PC.accent},${PC.accentMid},#a78bfa)`;
 
   return (
-    <div style={{ maxWidth:780, margin:'0 auto', paddingTop:8, paddingBottom:80, paddingLeft:'clamp(16px,3vw,24px)', paddingRight:'clamp(16px,3vw,24px)' }}>
+    <div style={{ paddingTop:8, paddingBottom:80 }}>
 
       {/* ── Animated background blobs ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
@@ -346,21 +346,20 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
           {/* Top bar */}
           <div style={{ position:'relative', padding:'28px clamp(18px,4vw,32px) 0', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
             <div>
-              <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
-                <div style={{ width:6, height:6, borderRadius:'50%', background:tintP, boxShadow:`0 0 8px ${tintP}` }}/>
+              <div style={{ marginBottom:10 }}>
                 <p style={{ fontSize:10.5, fontWeight:700, color:'var(--fm-primary-light)', textTransform:'uppercase', letterSpacing:'0.12em', margin:0 }}>{t('dash.my_account')}</p>
               </div>
               <h1 style={{ fontSize:30, fontWeight:900, color:PC.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
                 {greeting},{' '}
-                <span style={{ background:`linear-gradient(110deg,var(--fm-primary-light) 0%,${tintP} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{firstName}</span>
+                <span style={{ background:`linear-gradient(110deg,var(--fm-primary-light) 0%,${tintP} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{firstName}</span>{' '}😊
               </h1>
             </div>
-            <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:7, flexShrink:0 }}>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:PC.accentDim, border:'1px solid var(--fm-primary-border)', color:PC.accentMid, fontSize:10.5, fontWeight:800, letterSpacing:'0.07em', textTransform:'uppercase' }}>
-                <PIcUser s={10}/> {t('dash.role.freelancer')}
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:5, flexShrink:0 }}>
+              <span style={{ color:PC.accentMid, fontSize:12, fontWeight:800, letterSpacing:'0.05em', textTransform:'uppercase' }}>
+                {t('dash.role.freelancer')}
               </span>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 13px', borderRadius:20, background:statusDim, border:`1px solid ${statusBord}`, color:statusColor, fontSize:10.5, fontWeight:700 }}>
-                <StatusIcon s={10}/> {isApproved ? t('dash.badge.verified') : isPending ? t('dash.badge.pending') : t('dash.badge.not_verified')}
+              <span style={{ color:statusColor, fontSize:12, fontWeight:700 }}>
+                {isApproved ? t('dash.badge.verified') : isPending ? t('dash.badge.pending') : t('dash.badge.not_verified')}
               </span>
             </div>
           </div>
@@ -418,8 +417,8 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             {missing.length > 0 && (
               <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:4 }}>
                 {missing.map(item => (
-                  <span key={item.label} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, color:PC.muted, background:'var(--fm-border-soft)', border:`1px solid ${PC.border}`, borderRadius:20, padding:'3px 10px', fontWeight:500 }}>
-                    <span style={{ width:4, height:4, borderRadius:'50%', background:'var(--fm-border-strong)', display:'inline-block', flexShrink:0 }}/>{item.label}
+                  <span key={item.label} style={{ display:'inline-flex', alignItems:'center', fontSize:11, color:PC.muted, background:'var(--fm-border-soft)', border:`1px solid ${PC.border}`, borderRadius:20, padding:'3px 10px', fontWeight:500 }}>
+                    {item.label}
                   </span>
                 ))}
               </div>
