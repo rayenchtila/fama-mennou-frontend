@@ -7,6 +7,7 @@ import { uploadVideo, uploadImage, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
 import { toast } from '../components/Toast';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
+import { useTypewriter, TypeCursor, TypeCursorStyle } from '../hooks/useTypewriter';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -207,6 +208,43 @@ const PIcSpark     = ({s=12}) => <svg width={s} height={s} fill="none" viewBox="
 const PIcLink      = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>;
 const PIcBriefcase = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>;
 
+// Greeting typed out live on every visit — "Bon après-midi, Karim 😊" appears
+// character by character instead of snapping in all at once. Same
+// useTypewriter used by Home.js's hero headline; the name keeps its gradient
+// styling exactly like the static version did, the emoji stays plain (as it
+// always was) since a gradient text-fill has no visible effect on emoji glyphs
+// anyway. Restarts on every mount, i.e. every time the dashboard loads.
+function TypewriterGreeting({ greeting, firstName, tint }) {
+  const prefix = `${greeting}, `;
+  const fullText = `${prefix}${firstName} 😊`;
+  const { text: typed, done } = useTypewriter(fullText, 38);
+
+  const prefixEnd = Math.min(typed.length, prefix.length);
+  const nameEnd   = Math.min(typed.length, prefix.length + firstName.length);
+  const typedPrefix = typed.slice(0, prefixEnd);
+  const typedName   = typed.slice(prefixEnd, nameEnd);
+  const typedSuffix = typed.slice(nameEnd);
+
+  const [showCursor, setShowCursor] = useState(true);
+  useEffect(() => {
+    if (!done) { setShowCursor(true); return undefined; }
+    const t = setTimeout(() => setShowCursor(false), 1000);
+    return () => clearTimeout(t);
+  }, [done]);
+
+  return (
+    <>
+      <TypeCursorStyle />
+      {typedPrefix}
+      <span style={{ background:`linear-gradient(110deg,var(--fm-primary-light) 0%,${tint} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+        {typedName}
+      </span>
+      {typedSuffix}
+      {showCursor && <TypeCursor />}
+    </>
+  );
+}
+
 // ── TAB: Profil ───────────────────────────────────────────────────────────────
 
 function ProfileTab({ user, updateUser, fetchAccounts }) {
@@ -347,8 +385,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
           <div style={{ position:'relative', padding:'28px clamp(18px,4vw,32px) 0', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
             <div>
               <h1 style={{ fontSize:30, fontWeight:900, color:PC.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
-                {greeting},{' '}
-                <span style={{ background:`linear-gradient(110deg,var(--fm-primary-light) 0%,${tintP} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{firstName}</span>{' '}😊
+                <TypewriterGreeting greeting={greeting} firstName={firstName} tint={tintP} />
               </h1>
             </div>
             <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:5, flexShrink:0 }}>

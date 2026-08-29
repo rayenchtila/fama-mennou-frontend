@@ -7,6 +7,7 @@ import SEOHead, { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd, FAQJso
 import HomeAdVideo from '../components/HomeAdVideo';
 import DemoVideoSection from '../components/DemoVideoSection';
 import { cldImg } from '../utils/cloudinary';
+import { useTypewriter, TypeCursor, TypeCursorStyle } from '../hooks/useTypewriter';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -113,54 +114,10 @@ function ClockIcon({ size = 13, color = 'var(--fm-text-6)' }) {
 
 const CARD_STYLE = { background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', borderRadius: '16px' };
 
-// ── Typewriter effect for the hero headline ─────────────────────────────────────
-// Types `fullText` out character by character with slightly randomized timing
-// (real typing is never perfectly even) and a longer pause after punctuation.
-// Restarts whenever `fullText` changes — which happens naturally on a fresh
-// mount of the Home page (every first visit / reload) and also whenever the
-// user switches language, since t() then returns a different string. Respects
-// prefers-reduced-motion by skipping straight to the full text.
-function useTypewriter(fullText, speed = 42) {
-  const [count, setCount] = useState(0);
-  const chars = useMemo(() => Array.from(fullText || ''), [fullText]);
-  const reduceMotion = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
-    []
-  );
-
-  useEffect(() => {
-    if (reduceMotion) { setCount(chars.length); return; }
-    setCount(0);
-    if (!chars.length) return undefined;
-    let i = 0;
-    let cancelled = false;
-    let timeoutId;
-    const tick = () => {
-      if (cancelled) return;
-      i += 1;
-      setCount(i);
-      if (i < chars.length) {
-        const prevChar = chars[i - 1];
-        const base = /[.,!?\n]/.test(prevChar) ? speed * 6.5 : speed;
-        timeoutId = setTimeout(tick, base * (0.55 + Math.random() * 0.9));
-      }
-    };
-    timeoutId = setTimeout(tick, 380);
-    return () => { cancelled = true; clearTimeout(timeoutId); };
-  }, [chars, reduceMotion, speed]);
-
-  return { text: chars.slice(0, count).join(''), done: count >= chars.length };
-}
-
-function TypeCursor() {
-  return (
-    <span aria-hidden="true" style={{
-      display: 'inline-block', width: '3px', height: '0.85em', marginInlineStart: '3px',
-      verticalAlign: '-0.1em', background: 'var(--fm-primary-light)', animation: 'fmTypeCursor 0.9s step-end infinite',
-    }} />
-  );
-}
-
+// Hero headline typewriter — useTypewriter/TypeCursor now live in
+// src/hooks/useTypewriter.js (shared with dashboard greetings), this just
+// composes them into the specific two-line, gradient-on-line2 layout the
+// hero needs.
 function TypewriterHeadline({ title1, title2 }) {
   const fullText = `${title1}\n${title2}`;
   const { text: typed, done } = useTypewriter(fullText);
@@ -178,7 +135,7 @@ function TypewriterHeadline({ title1, title2 }) {
 
   return (
     <>
-      <style>{`@keyframes fmTypeCursor { 0%,45% { opacity:1; } 50%,100% { opacity:0; } }`}</style>
+      <TypeCursorStyle />
       {line1}
       {showCursor && !typingLine2 && <TypeCursor />}
       <br />
