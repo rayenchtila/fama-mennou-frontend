@@ -327,7 +327,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     : `linear-gradient(90deg,${PC.accent},${PC.accentMid},#a78bfa)`;
 
   return (
-    <div style={{ paddingTop:8, paddingBottom:80 }}>
+    <div style={{ paddingTop:8, paddingBottom:24 }}>
 
       {/* ── Animated background blobs ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
@@ -811,7 +811,7 @@ function FindProjectsTab({ user, navigate }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
@@ -1572,7 +1572,7 @@ function CoursesTab({ user }) {
   const avgRating     = courses.length ? (courses.reduce((a,c) => a + Number(c.avg_rating || 0), 0) / courses.length).toFixed(1) : '—';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
+    <div className="space-y-4">
       {/* Stats — 4 cols always, compact on mobile */}
       <div className="grid grid-cols-4 gap-2 sm:gap-4">
         {[
@@ -2151,7 +2151,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Account info */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
         <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>} title="Informations du compte" />
@@ -2299,10 +2299,9 @@ export default function FreelancerDashboard() {
       </div>
 
       {/* ── Content ── */}
-      {/* Profile tab drops the max-w-6xl cap other tabs use — it's meant to
-          run edge-to-edge like ClientDashboard's own account page, not sit
-          in a narrow centered column. */}
-      <div className={activeTab === 'profile' ? 'px-4 sm:px-6 py-8' : 'max-w-6xl mx-auto px-4 sm:px-6 py-8'}>
+      {/* Full-bleed on every tab — no max-w-6xl cap and no extra vertical
+          padding beyond the fixed navbar's own pt-16 on the outer shell. */}
+      <div className="px-4 sm:px-6">
         {activeTab === 'profile'       && <ProfileTab       user={user} updateUser={updateUser} fetchAccounts={fetchAccounts} />}
         {activeTab === 'dashboard'     && <DashboardTab     user={user} users={users} onNavigate={setActiveTab} navigate={navigate} />}
         {activeTab === 'find-projects' && <FindProjectsTab  user={user} users={users} navigate={navigate} />}
