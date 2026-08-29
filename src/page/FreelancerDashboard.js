@@ -346,9 +346,6 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
           {/* Top bar */}
           <div style={{ position:'relative', padding:'28px clamp(18px,4vw,32px) 0', display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
             <div>
-              <div style={{ marginBottom:10 }}>
-                <p style={{ fontSize:10.5, fontWeight:700, color:'var(--fm-primary-light)', textTransform:'uppercase', letterSpacing:'0.12em', margin:0 }}>{t('dash.my_account')}</p>
-              </div>
               <h1 style={{ fontSize:30, fontWeight:900, color:PC.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
                 {greeting},{' '}
                 <span style={{ background:`linear-gradient(110deg,var(--fm-primary-light) 0%,${tintP} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{firstName}</span>{' '}😊
@@ -2306,7 +2303,10 @@ export default function FreelancerDashboard() {
       </div>
 
       {/* ── Content ── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      {/* Profile tab drops the max-w-6xl cap other tabs use — it's meant to
+          run edge-to-edge like ClientDashboard's own account page, not sit
+          in a narrow centered column. */}
+      <div className={activeTab === 'profile' ? 'px-4 sm:px-6 py-8' : 'max-w-6xl mx-auto px-4 sm:px-6 py-8'}>
         {activeTab === 'profile'       && <ProfileTab       user={user} updateUser={updateUser} fetchAccounts={fetchAccounts} />}
         {activeTab === 'dashboard'     && <DashboardTab     user={user} users={users} onNavigate={setActiveTab} navigate={navigate} />}
         {activeTab === 'find-projects' && <FindProjectsTab  user={user} users={users} navigate={navigate} />}
