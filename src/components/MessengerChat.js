@@ -15,6 +15,33 @@ const COLORS       = ['bg-indigo-500','bg-emerald-500','bg-rose-500','bg-amber-5
 
 function avatarColor(e) { return COLORS[(e?.charCodeAt(0) ?? 0) % COLORS.length]; }
 
+// Turns any http(s):// or www. URL sitting in plain message text into a
+// real clickable link — the main case being someone pasting a project's
+// "Copy link" (ShareMenu.js -> `${origin}/project/:id`) straight into chat.
+// Trailing punctuation ("check this: https://... .") is kept out of the
+// href so a sentence-ending period doesn't 404 the link.
+const URL_RE = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+const TRAILING_PUNCT_RE = /[.,;:!?)\]}'"]+$/;
+function linkify(text) {
+  if (!text) return text;
+  return text.split(URL_RE).map((part, i) => {
+    if (i % 2 === 0) return part; // plain text between/around matches
+    const trailMatch = part.match(TRAILING_PUNCT_RE);
+    const trail = trailMatch ? trailMatch[0] : '';
+    const clean = trail ? part.slice(0, -trail.length) : part;
+    const href = clean.startsWith('http') ? clean : `https://${clean}`;
+    return (
+      <span key={i}>
+        <a href={href} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+          className="underline break-all" style={{ color: 'inherit', textDecorationColor: 'currentColor' }}>
+          {clean}
+        </a>
+        {trail}
+      </span>
+    );
+  });
+}
+
 // A voice note is stored as a normal message row — content carries just a
 // "[voice:<seconds>]" marker (same bracket-prefix convention already used
 // elsewhere in this codebase, e.g. proposals' "[portfolio:...]") and
@@ -1442,7 +1469,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                       </span>
                                     </span>
                                   ) : (
-                                    <span className="break-words leading-relaxed whitespace-pre-wrap">{m.content}</span>
+                                    <span className="break-words leading-relaxed whitespace-pre-wrap">{linkify(m.content)}</span>
                                   )
                                 )}
                               </motion.div>
