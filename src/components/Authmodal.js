@@ -58,14 +58,23 @@ function loadImageElement(src) {
 // on some devices, failed on others" instead of failing (or working)
 // consistently for everyone.
 async function decodeToImage(file) {
-  const dataUrl = await readAsDataUrl(file);
-
-  // Fast path: covers the vast majority of real uploads (JPEG/PNG/WebP/GIF,
-  // plus any HEIC the browser already transcoded for us).
+  // Fast path: URL.createObjectURL, not FileReader — it doesn't need to read
+  // the whole file into memory and re-encode it as base64 just to get a
+  // usable <img src>, which makes it meaningfully more reliable for large
+  // photos or a flaky file handle. This matters in practice: a real user hit
+  // "Could not read the selected file" here because FileReader.readAsDataURL
+  // itself failed (some Android gallery pickers hand back content:// URIs
+  // FileReader can intermittently fail to read at all) — and since that used
+  // to be the *only* read attempted, with no fallback, every layer built
+  // below for HEIC/broader-codec support never even got a chance to run.
+  // Covers JPEG/PNG/WebP/GIF, plus any HEIC the browser already transcoded.
+  const objectUrl = URL.createObjectURL(file);
   try {
-    return await loadImageElement(dataUrl);
+    return await loadImageElement(objectUrl);
   } catch {
     // fall through to the slower paths below
+  } finally {
+    URL.revokeObjectURL(objectUrl);
   }
 
   const looksHeic = /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name || '');
@@ -76,17 +85,32 @@ async function decodeToImage(file) {
       const heic2any = (await import('heic2any')).default;
       const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
       const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
-      return await loadImageElement(await readAsDataUrl(jpegBlob));
+      const jpegUrl = URL.createObjectURL(jpegBlob);
+      try {
+        return await loadImageElement(jpegUrl);
+      } finally {
+        URL.revokeObjectURL(jpegUrl);
+      }
     } catch {
       // fall through to the last resort below
     }
   }
 
-  // Last resort: createImageBitmap decodes a broader set of codecs than
-  // <img> in some browsers (notably Chromium) and works straight off the
-  // Blob, no data-URI round trip needed.
+  // Next: createImageBitmap decodes a broader set of codecs than <img> in
+  // some browsers (notably Chromium) and works straight off the Blob.
   try {
     return await createImageBitmap(file);
+  } catch {
+    // fall through to the absolute last resort below
+  }
+
+  // Absolute last resort: FileReader. Slower and the least reliable of the
+  // four paths tried here, but still worth one attempt before giving up —
+  // some old/quirky browsers decode successfully from a data: URI even after
+  // failing every direct-from-Blob path above.
+  try {
+    const dataUrl = await readAsDataUrl(file);
+    return await loadImageElement(dataUrl);
   } catch {
     throw new Error("This file isn't a valid image.");
   }
@@ -1106,6 +1130,19 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
         setCaptchaToken(null);
         return;
       }
+      // login() in AuthContext.js returns this specifically when the request
+      // itself failed (a network blip, a timeout — common on mobile data),
+      // as opposed to the backend actually answering with a real rejection.
+      // Without this, a plain connectivity hiccup showed the exact same
+      // "Login failed. Please try again." as a wrong password or a genuine
+      // server error, giving no hint that retrying (rather than re-checking
+      // credentials) was the right next step.
+      if (result.error === "serverError") {
+        setErrors({ email: t("Network error. Please check your connection and try again.") });
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
+        return;
+      }
       // Multiple accounts — show role picker
       if (result.requiresRoleSelect) {
         setRoleSelectData({ roles: result.roles, selectionToken: result.selectionToken, email: form.email, password: form.password });
@@ -1299,7 +1336,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     try {
       const result = await login(roleSelectData.email, roleSelectData.password, undefined, null, selectedRole, roleSelectData.selectionToken);
       if (result.error) {
-        setErrors({ email: t("Login failed. Please try again.") });
+        setErrors({ email: result.error === "serverError"
+          ? t("Network error. Please check your connection and try again.")
+          : t("Login failed. Please try again.") });
         setScreen("form");
         return;
       }
