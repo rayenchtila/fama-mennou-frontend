@@ -352,7 +352,15 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
 
 function AllUsersTable({ allUsers, search, loading }) {
   const { t } = useTranslation();
-  const getStatus = u => u.cinStatus ?? (u.cinVerified ? "approved" : "pending");
+  // Returns null (not a guessed status) when this row's cin_status is
+  // genuinely unknown (_cinTrusted===false — the row came from the public,
+  // unauthenticated endpoint, which never includes cin_status at all). A
+  // rejected user has cin_verified=false exactly like a still-pending one,
+  // so guessing "pending" here for an untrusted row was silently
+  // miscounting every rejected freelancer/client as pending in every
+  // aggregate stat computed from this — this way they're correctly
+  // excluded from all three buckets instead, rather than confidently wrong.
+  const getStatus = u => u._cinTrusted === false ? null : (u.cinStatus ?? (u.cinVerified ? "approved" : "pending"));
 
   const filtered = (allUsers ?? []).filter(u => {
     if (!search.trim()) return true;
@@ -470,7 +478,9 @@ function StatisticsPanel({ allUsers }) {
   const clientPct     = totalUsers ? Math.round((clients.length     / totalUsers) * 100) : 0;
   const freelancerPct = totalUsers ? Math.round((freelancers.length / totalUsers) * 100) : 0;
 
-  const getStatus  = u => u.cinStatus ?? (u.cinVerified ? "approved" : "pending");
+  // See the identical getStatus in AllUsersTable above for why untrusted
+  // rows must resolve to null instead of a guessed "pending".
+  const getStatus  = u => u._cinTrusted === false ? null : (u.cinStatus ?? (u.cinVerified ? "approved" : "pending"));
   const flApproved = freelancers.filter(u => getStatus(u) === "approved").length;
   const flPending  = freelancers.filter(u => getStatus(u) === "pending").length;
   const flRejected = freelancers.filter(u => getStatus(u) === "rejected").length;
@@ -2111,7 +2121,15 @@ export default function AdminPage() {
   // their account here same as freelancers — the review UI just won't have
   // a document image to show for them.
   const cinUsers  = (users ?? []).filter(u => u.role === "freelancer" || u.role === "client");
-  const getStatus = u => u.cinStatus ?? (u.cinVerified ? "approved" : "pending");
+  // Returns null (not a guessed status) when this row's cin_status is
+  // genuinely unknown (_cinTrusted===false — the row came from the public,
+  // unauthenticated endpoint, which never includes cin_status at all). A
+  // rejected user has cin_verified=false exactly like a still-pending one,
+  // so guessing "pending" here for an untrusted row was silently
+  // miscounting every rejected freelancer/client as pending in every
+  // aggregate stat computed from this — this way they're correctly
+  // excluded from all three buckets instead, rather than confidently wrong.
+  const getStatus = u => u._cinTrusted === false ? null : (u.cinStatus ?? (u.cinVerified ? "approved" : "pending"));
 
   const counts = {
     all:      cinUsers.length,

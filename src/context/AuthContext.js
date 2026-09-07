@@ -87,9 +87,31 @@ export function AuthProvider({ children }) {
   // On mount: restore token from httpOnly cookie if user is in localStorage
   // This handles page refresh — token is in-memory and lost on refresh,
   // but the 7-day httpOnly cookie survives and can re-issue a new access token.
+  //
+  // refreshAccessToken() swallows its own failures and resolves anyway (see
+  // its catch block), so a single transient failure here — a mobile network
+  // blip, a cold Neon wake-up, anything — used to fall straight through into
+  // fetchAccounts() with no access token ever having been set. That silently
+  // seeds this whole session's users/accounts state from GET /users/public
+  // instead of the real GET /users, for the rest of the page load — for an
+  // admin specifically, that's a real, visible bug: the public payload never
+  // includes cin_status, so normalizeUser's fallback guesses a status from
+  // cin_verified alone, and a REJECTED user has cin_verified=false exactly
+  // like a genuinely-pending one — so every rejected freelancer or client
+  // silently displays as "pending" on the admin dashboard until a fresh
+  // token eventually gets fetched some other way. One retry after a short
+  // delay closes that window without masking a real, persistent auth
+  // failure (a second consecutive failure still falls through as before).
   useEffect(() => {
     if (user) {
-      refreshAccessToken().then(() => fetchAccounts());
+      (async () => {
+        let token = await refreshAccessToken();
+        if (!token) {
+          await new Promise(r => setTimeout(r, 1500));
+          token = await refreshAccessToken();
+        }
+        fetchAccounts();
+      })();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
