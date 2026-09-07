@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -460,6 +460,7 @@ export default function ClientsPage() {
   const { t } = useTranslation();
   const { user, users, accountsLoaded } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // The project list now comes from the paginated /projects/browse/open
   // endpoint (search/category/sort applied server-side) instead of a full
@@ -488,6 +489,22 @@ export default function ClientsPage() {
     const tmr = setTimeout(() => setDebSearch(search), 320);
     return () => clearTimeout(tmr);
   }, [search]);
+
+  // Deep link from a shared project's detail page (ProjectDetailPage.js ->
+  // "Postuler" -> /clients?applyProjectId=X, after login if needed). Fetches
+  // that one project directly by id rather than relying on it being present
+  // in the current (paginated/filtered) `projects` page — it may well not
+  // be, and this needs to work regardless of what filter/page happens to be
+  // active when the link is opened.
+  useEffect(() => {
+    const applyProjectId = searchParams.get('applyProjectId');
+    if (!applyProjectId || !user || user.role !== 'freelancer') return;
+    fetch(`${API}/projects/by-id/${encodeURIComponent(applyProjectId)}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(p => { if (p) setApplyFor(p); })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, user?.email]);
 
   // Any filter change invalidates the current page — start back at page 1.
   useEffect(() => { setPage(1); }, [debSearch, category, sortBy]);

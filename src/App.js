@@ -21,6 +21,7 @@ import ClientsPage from "./page/ClientsPage";
 import AdminPage from "./page/AdminPage";
 import ProfilePage from "./page/ProfilePage";
 import ProjectsPage from "./page/ProjectsPage";
+import ProjectDetailPage from "./page/ProjectDetailPage";
 import MessagesPage from "./page/MessagesPage";
 import SettingsPage from "./page/SettingsPage";
 import AboutPage from "./page/AboutPage";
@@ -346,6 +347,11 @@ function AppInner() {
               path="/settings"
               element={<PrivateRoute onLogin={handleLogin}><SettingsPage /></PrivateRoute>}
             />
+            {/* Public — no login required. This is the actual destination of a
+                project's "share" link (see ProjectsPage.js's share button):
+                anyone arriving from Facebook/WhatsApp/Instagram needs to see
+                something real before we ask them to sign up. */}
+            <Route path="/project/:id" element={<ProjectDetailPage onLogin={handleLogin} />} />
             <Route path="/about"    element={<AboutPage />} />
             <Route path="/blog"     element={<BlogPage />} />
             <Route path="/careers"  element={<CareersPage />} />
