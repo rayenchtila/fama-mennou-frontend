@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { cldImg, cldVideo } from '../utils/cloudinary';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
+import { toast } from './Toast';
 
 const API          = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 const ADMIN_EMAIL  = 'admin@famamennou.com';
@@ -655,15 +656,28 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ senderEmail, receiverEmail: selectedChat, content, attachmentUrl, replyToId }),
       });
-      if (res.status === 403) {
-        // Sending is never actually locked between clients and freelancers
-        // any more — this only fires now for a genuinely unrelated failure
-        // (e.g. a suspended account). Restore the draft rather than losing it.
+      if (!res.ok) {
+        // This used to silently drop the message with zero feedback — from
+        // the user's side that reads as "sending is just broken", no
+        // indication why, no way to tell it apart from a real network glitch.
+        // Restore the draft either way, and say *why* whenever the backend
+        // told us (account not approved/rejected); other failures still get
+        // a generic error rather than nothing.
         setNewMsg(content);
+        let reason = '';
+        try { reason = (await res.json())?.error || ''; } catch {}
+        const reasons = {
+          accountPendingApproval: "Votre compte est en attente d'approbation — vous ne pouvez pas encore envoyer de messages.",
+          accountRejected:        "Votre compte n'a pas été approuvé — vous ne pouvez pas envoyer de messages.",
+        };
+        toast.error(reasons[reason] || "Le message n'a pas pu être envoyé. Réessayez.");
         return;
       }
       loadMsgs(selectedChat); loadConvs();
-    } catch {}
+    } catch {
+      setNewMsg(content);
+      toast.error('Connexion impossible — vérifiez votre réseau et réessayez.');
+    }
   }
 
   // ── Edit ─────────────────────────────────────────────────────────────────────
