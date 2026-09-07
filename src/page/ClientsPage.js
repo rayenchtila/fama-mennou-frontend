@@ -7,6 +7,7 @@ import Pagination from '../components/Pagination';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead from '../components/Seohead';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
+import ShareButton from '../components/ShareMenu';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -356,6 +357,8 @@ function ProjectCard({ project, clientUser, accountsLoaded, proposalCount, user,
           {isOwn && (
             <span style={{ fontSize:10, fontWeight:700, color:C.accent, background:C.accentDim, border:`1px solid ${C.accentBord}`, padding:'2px 8px', borderRadius:20 }}>{t('clp.your_project')}</span>
           )}
+          <ShareButton url={`${window.location.origin}/project/${project.id}`} title={project.title}
+            accent={C.accent} accentBg={C.accentDim} accentBorder={C.accentBord} accentHoverBg="rgba(14,165,233,0.2)" />
         </div>
       </div>
 
