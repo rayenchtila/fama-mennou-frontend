@@ -51,7 +51,6 @@ export default function ProjectDetailPage({ onLogin }) {
   const { user } = useAuth();
 
   const [project, setProject] = useState(null);
-  const [client,  setClient]  = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -60,19 +59,15 @@ export default function ProjectDetailPage({ onLogin }) {
     setLoading(true); setNotFound(false);
     fetch(`${API}/projects/by-id/${encodeURIComponent(id)}`)
       .then(r => { if (r.status === 404) throw new Error('not_found'); return r.json(); })
-      .then(async (p) => {
+      .then((p) => {
         if (cancelled) return;
+        // client_name/client_region come pre-resolved from the backend now
+        // (a server-side join) instead of the page fetching the ENTIRE
+        // public user directory and filtering client-side just to find one
+        // person's name — that shipped every user's email to anyone who
+        // opened this page, logged in or not, to display a name nobody
+        // needed the raw address for in the first place.
         setProject(p);
-        // Resolve the client's display name/region client-side, from the
-        // public directory — never render client_email itself on a page
-        // anyone on the internet can open.
-        try {
-          const users = await fetch(`${API}/users/public`).then(r => r.json());
-          const match = Array.isArray(users)
-            ? users.find(u => u.email?.toLowerCase() === p.client_email?.toLowerCase())
-            : null;
-          if (!cancelled) setClient(match || null);
-        } catch { if (!cancelled) setClient(null); }
       })
       .catch(() => { if (!cancelled) setNotFound(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -90,7 +85,7 @@ export default function ProjectDetailPage({ onLogin }) {
   }
 
   const keywords = project?.keywords ? project.keywords.split(/\s+/).filter(Boolean) : [];
-  const clientTint = tint(project?.client_email || '');
+  const clientTint = tint(project?.client_name || String(project?.id || ''));
   const isOwnProject = user?.email && project?.client_email && user.email.toLowerCase() === project.client_email.toLowerCase();
 
   return (
@@ -187,11 +182,11 @@ export default function ProjectDetailPage({ onLogin }) {
             {/* Client card */}
             <div style={{ display:'flex', alignItems:'center', gap:14, borderRadius:18, background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border)', padding:'16px 20px', marginBottom:28 }}>
               <div style={{ width:44, height:44, borderRadius:14, background:clientTint.bg, color:clientTint.fg, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:15, flexShrink:0 }}>
-                {initials(client?.name)}
+                {initials(project?.client_name)}
               </div>
               <div style={{ minWidth:0 }}>
-                <p style={{ fontSize:14, fontWeight:800, color:'var(--fm-text-1)', margin:'0 0 2px' }}>{client?.name || t('prp.detail.client_fallback')}</p>
-                <p style={{ fontSize:12, color:'var(--fm-text-7)', margin:0 }}>{client?.region ? client.region : t('prp.detail.member')}</p>
+                <p style={{ fontSize:14, fontWeight:800, color:'var(--fm-text-1)', margin:'0 0 2px' }}>{project?.client_name || t('prp.detail.client_fallback')}</p>
+                <p style={{ fontSize:12, color:'var(--fm-text-7)', margin:0 }}>{project?.client_region ? project.client_region : t('prp.detail.member')}</p>
               </div>
             </div>
 
