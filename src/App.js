@@ -286,10 +286,12 @@ function AppInner() {
                 inside the page (message, review, apply) still individually
                 require login where they always did. */}
             <Route path="/freelancers" element={<FreelancersPage />} />
-            <Route
-              path="/clients"
-              element={<PrivateRoute onLogin={handleLogin}><ClientsPage /></PrivateRoute>}
-            />
+            {/* Public — same treatment as /freelancers above: anyone can browse
+                the client/project directory logged in or out, any account
+                status. Apply/message/review buttons only render for a logged-in
+                freelancer (see isFreelancer in ClientsPage.js), so anonymous
+                visitors just can't trigger those actions. */}
+            <Route path="/clients" element={<ClientsPage />} />
             <Route
               path="/courses"
               element={<PrivateRoute onLogin={handleLogin}><CoursesPage /></PrivateRoute>}
