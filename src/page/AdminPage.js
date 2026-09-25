@@ -1587,6 +1587,201 @@ function AdminGainsTab({ API }) {
   );
 }
 
+// Admin-editable D17/Flouci/RIB — what a client sees in the payment modal.
+// Own small component so its load/save cycle doesn't interfere with the
+// review list's polling below.
+function AdminPaymentMethodsEditor({ API }) {
+  const [form, setForm]       = React.useState({ d17_number: '', flouci_number: '', rib: '' });
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving]   = React.useState(false);
+  const [saved, setSaved]     = React.useState(false);
+
+  React.useEffect(() => {
+    fetch(`${API}/project-payments/methods`).then(r => r.json())
+      .then(d => setForm({ d17_number: d.d17_number || '', flouci_number: d.flouci_number || '', rib: d.rib || '' }))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [API]);
+
+  async function save() {
+    setSaving(true); setSaved(false);
+    try {
+      const res = await fetch(`${API}/project-payments/methods`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
+      });
+      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 2000); }
+      else alert('Échec de l’enregistrement.');
+    } finally { setSaving(false); }
+  }
+
+  const FIELDS = [
+    { key: 'd17_number',    label: 'Numéro D17' },
+    { key: 'flouci_number', label: 'Numéro Flouci' },
+    { key: 'rib',           label: 'RIB' },
+  ];
+
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Moyens de paiement affichés aux clients</p>
+      {loading ? (
+        <div className="text-center py-4 text-sm text-slate-400">…</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {FIELDS.map(f => (
+            <div key={f.key}>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{f.label}</label>
+              <input value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-indigo-400" />
+            </div>
+          ))}
+          <div className="sm:col-span-3 flex items-center gap-3">
+            <button onClick={save} disabled={saving}
+              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold disabled:opacity-60 transition-colors">
+              {saving ? 'Enregistrement…' : 'Enregistrer'}
+            </button>
+            {saved && <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Enregistré ✓</span>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Admin: project payment verification (D17/Flouci/RIB proofs) ─────────────
+function AdminPaymentsPanel({ API }) {
+  const { t } = useTranslation();
+  const [rows, setRows]         = React.useState([]);
+  const [showAll, setShowAll]   = React.useState(false);
+  const [loading, setLoading]   = React.useState(true);
+  const [busyId, setBusyId]     = React.useState(null);
+  const [proofUrls, setProofUrls] = React.useState({}); // id -> signed url
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetch(`${API}/project-payments/admin/${showAll ? 'all' : 'pending'}`).then(r => r.json());
+      setRows(Array.isArray(data) ? data : []);
+    } catch {}
+    setLoading(false);
+  }, [API, showAll]);
+
+  React.useEffect(() => { load(); }, [load]);
+
+  async function viewProof(id) {
+    if (proofUrls[id]) { window.open(proofUrls[id], '_blank', 'noopener'); return; }
+    try {
+      const data = await fetch(`${API}/project-payments/${id}/proof-url`).then(r => r.json());
+      if (data.url) {
+        setProofUrls(p => ({ ...p, [id]: data.url }));
+        window.open(data.url, '_blank', 'noopener');
+      }
+    } catch {}
+  }
+
+  async function approve(row) {
+    setBusyId(row.id);
+    try {
+      const res = await fetch(`${API}/project-payments/${row.id}/approve`, { method: 'PATCH' });
+      const data = await res.json();
+      if (!res.ok) { alert(data.message || 'Échec de la validation.'); return; }
+      load();
+    } finally { setBusyId(null); }
+  }
+
+  async function reject(row) {
+    const reason = window.prompt('Raison du refus (visible par le client) :');
+    if (!reason || !reason.trim()) return;
+    setBusyId(row.id);
+    try {
+      const res = await fetch(`${API}/project-payments/${row.id}/reject`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.message || 'Échec du refus.'); return; }
+      load();
+    } finally { setBusyId(null); }
+  }
+
+  const STATUS_STYLE = {
+    pending:  { label: 'En attente',  cls: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400' },
+    approved: { label: 'Vérifié',     cls: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' },
+    rejected: { label: 'Refusé',      cls: 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400' },
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto px-2 sm:px-4 py-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">Paiements des projets</h2>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowAll(a => !a)}
+            className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors ${showAll ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300'}`}>
+            {showAll ? 'Tout l’historique' : 'En attente uniquement'}
+          </button>
+          <button onClick={load} className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 transition-colors">{t('adm.refresh')}</button>
+        </div>
+      </div>
+
+      <AdminPaymentMethodsEditor API={API} />
+
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        {loading ? (
+          <div className="text-center py-8 text-sm text-slate-400">{t('fd.loading')}</div>
+        ) : rows.length === 0 ? (
+          <div className="text-center py-8">
+            <svg width="36" height="36" className="mb-2 opacity-30 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <p className="text-sm text-slate-400">{showAll ? 'Aucun paiement pour le moment.' : 'Aucun paiement en attente.'}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {rows.map(row => {
+              const st = STATUS_STYLE[row.status] || STATUS_STYLE.pending;
+              const dateStr = new Date(row.created_at).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+              return (
+                <div key={row.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div className="flex flex-wrap justify-between items-start gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{row.project_title}</p>
+                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
+                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase">{row.method}</span>
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        Client : <span className="font-semibold text-slate-600 dark:text-slate-300">{row.client_name || row.client_email}</span>
+                        {' → '}Freelance : <span className="font-semibold text-slate-600 dark:text-slate-300">{row.freelancer_name || row.freelancer_email}</span>
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5">{dateStr}</p>
+                      {row.status === 'rejected' && row.rejection_reason && (
+                        <p className="text-xs text-rose-500 mt-1">Raison du refus : {row.rejection_reason}</p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-lg font-extrabold text-slate-700 dark:text-slate-200">{Number(row.amount).toFixed(2)} TND</p>
+                      <button onClick={() => viewProof(row.id)} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline mt-1">Voir la capture</button>
+                    </div>
+                  </div>
+                  {row.status === 'pending' && (
+                    <div className="flex gap-2 mt-3">
+                      <button onClick={() => approve(row)} disabled={busyId === row.id}
+                        className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-60 transition-colors">
+                        {busyId === row.id ? '…' : 'APPROUVER'}
+                      </button>
+                      <button onClick={() => reject(row)} disabled={busyId === row.id}
+                        className="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold disabled:opacity-60 transition-colors">
+                        {busyId === row.id ? '…' : 'REFUSER'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── main AdminPage ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -1722,6 +1917,23 @@ export default function AdminPage() {
   ));
 
   const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
+
+  // Badge count for the Payments tab — fetched independently of which tab is
+  // active (same reason chatUnreadCount/adminProjects.length aren't: the
+  // sidebar badge has to show a pending count even before the admin opens
+  // the tab). Refreshed on the same 5-minute poll as accounts/notifications.
+  const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    const loadCount = () => fetch(`${API}/project-payments/admin/pending`)
+      .then(r => r.json())
+      .then(d => { if (!cancelled && Array.isArray(d)) setPendingPaymentsCount(d.length); })
+      .catch(() => {});
+    loadCount();
+    const id = setInterval(() => { if (document.visibilityState === 'visible') loadCount(); }, 5 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(id); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync tab from URL when URL changes
   useEffect(() => {
@@ -2247,6 +2459,7 @@ export default function AdminPage() {
             { id: "chat",       color: "#ec4899", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>, label: t('adm.tab_chat'),             count: chatUnreadCount },
             { id: "projects",   color: "#f97316", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, label: t('adm.tab_projects'),       count: adminProjects.length },
             { id: "gains",      color: "#22c55e", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>, label: t('nav.gains'),            count: 0 },
+            { id: "payments",   color: "#7c6cf6", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>, label: "Paiements",           count: pendingPaymentsCount },
             { id: "announcements", color: "#eab308", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>, label: "Annonces", count: 0 },
             { id: "publicite",  color: "#d946ef", icon: <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>, label: "Publicité", count: 0 },
           ];
@@ -3397,6 +3610,7 @@ export default function AdminPage() {
 
       {/* ══ GAINS TAB ══ */}
       {mainTab === 'gains' && <AdminGainsTab API={API} />}
+      {mainTab === 'payments' && <AdminPaymentsPanel API={API} />}
 
       {/* ══ ANNOUNCEMENTS TAB ══ */}
       {mainTab === 'publicite' && (

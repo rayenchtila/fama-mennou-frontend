@@ -10,6 +10,7 @@ import usePendingClientReadOnly from '../hooks/usePendingClientReadOnly';
 import PendingClientBanner from '../components/PendingClientBanner';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import ShareButton from '../components/ShareMenu';
+import ProjectPaymentModal from '../components/ProjectPaymentModal';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -618,7 +619,7 @@ function EditModal({ project, onClose, onDone }) {
 /* ══════════════════════════════════════════════════════════════
    MY PROJECT CARD — client's own project with proposals
    ══════════════════════════════════════════════════════════════ */
-function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAccept, acceptingId, onReject, rejectingId, onEdit, wasEdited, users, readOnly }) {
+function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAccept, acceptingId, onReject, rejectingId, onEdit, wasEdited, users, readOnly, onPay }) {
   const { t } = useTranslation();
   const st       = STATUS_MAP[project.status] || STATUS_MAP.open;
   const stLabel  = t(`fd.status.${project.status}`, st.label);
@@ -712,6 +713,12 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
               <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, fontWeight:800, color:'var(--fm-success)', background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.25)', padding:'3px 10px', borderRadius:20 }}>
                 <IcCheck s={10}/> {t('prp.accepted')}
               </span>
+            )}
+            {isLocked && project.status==='in_progress' && (
+              <button onClick={()=>onPay(project)}
+                style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11.5, fontWeight:800, color:'#fff', background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', padding:'5px 13px', borderRadius:20, cursor:'pointer', boxShadow:'0 4px 14px -4px rgba(124,108,246,0.5)' }}>
+                <IcDollar s={11}/> Paiement
+              </button>
             )}
             {rejectedN>0 && (
               <span style={{ fontSize:11, fontWeight:800, color:'var(--fm-danger)', background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', padding:'3px 10px', borderRadius:20 }}>
@@ -854,6 +861,7 @@ export default function ProjectsPage() {
   const [expandedId, setExpandedId] = useState(null);
   const [acceptingId,setAcceptingId]= useState(null);
   const [rejectingId,setRejectingId]= useState(null);
+  const [paymentModalProject,setPaymentModalProject]= useState(null);
 
   /* Load client's own projects (paginated) + proposals per project */
   const loadMyProjects = useCallback(async () => {
@@ -905,8 +913,16 @@ export default function ProjectsPage() {
   async function handleAccept(proposalId) {
     setAcceptingId(proposalId);
     try {
-      await fetch(`${API}/proposals/${proposalId}/accept`, { method:'PATCH', headers:{'Content-Type':'application/json'} });
+      const res  = await fetch(`${API}/proposals/${proposalId}/accept`, { method:'PATCH', headers:{'Content-Type':'application/json'} });
+      const data = await res.json().catch(()=>null);
       await loadMyProjects();
+      // Immediately prompt for payment — the freelancer is now assigned and
+      // the project row carries the agreed amount (proposal price) as of
+      // this accept, so the modal has everything it needs right away.
+      if (res.ok && data?.project_id) {
+        const p = await fetch(`${API}/projects/by-id/${data.project_id}`).then(r=>r.json()).catch(()=>null);
+        if (p && !p.error) setPaymentModalProject(p);
+      }
     } catch {}
     finally { setAcceptingId(null); }
   }
@@ -995,6 +1011,7 @@ export default function ProjectsPage() {
                       wasEdited={editedProjects.has(p.id)}
                       users={users}
                       readOnly={readOnly}
+                      onPay={setPaymentModalProject}
                     />
                   ))}
                 </div>
@@ -1020,6 +1037,14 @@ export default function ProjectsPage() {
           project={editingProject}
           onClose={()=>setEditingProject(null)}
           onDone={()=>handleEditDone(editingProject.id)}
+        />
+      )}
+
+      {/* Payment modal — client pays the agreed amount for an accepted freelancer */}
+      {paymentModalProject && (
+        <ProjectPaymentModal
+          project={paymentModalProject}
+          onClose={()=>setPaymentModalProject(null)}
         />
       )}
 
