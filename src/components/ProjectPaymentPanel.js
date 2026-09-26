@@ -192,8 +192,8 @@ export default function ProjectPaymentPanel({ project }) {
                   style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '10px 6px', borderRadius: 12, cursor: 'pointer',
                     background: activeMethod === m.key ? 'rgba(124,108,246,0.14)' : 'var(--fm-border-soft)',
                     border: `1.5px solid ${activeMethod === m.key ? 'rgba(124,108,246,0.5)' : 'var(--fm-border)'}` }}>
-                  <img src={m.logo} alt={m.label} style={{ height: 22, objectFit: 'contain' }} />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: activeMethod === m.key ? 'var(--fm-primary-light)' : 'var(--fm-text-5)' }}>{m.label}</span>
+                  <img src={m.logo} alt={m.label} style={{ height: 36, objectFit: 'contain' }} />
+                  <span style={{ fontSize: 9.5, fontWeight: 700, color: activeMethod === m.key ? 'var(--fm-primary-light)' : 'var(--fm-text-5)' }}>{m.label}</span>
                 </button>
               ))}
             </div>
