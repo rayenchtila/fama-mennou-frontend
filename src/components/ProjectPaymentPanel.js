@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import d17Logo from '../CARTE/D17.png';
 import flouciLogo from '../CARTE/FLOUCI.png';
 import ribLogo from '../CARTE/RIB.png';
@@ -50,8 +50,18 @@ async function uploadPaymentProof(file) {
    picks D17 / Flouci / RIB, copies the number, uploads a proof
    screenshot (camera or gallery), then Valider / Annuler.
    ══════════════════════════════════════════════════════════════ */
+// projects.budget is the client's own published amount (free text, e.g.
+// "500" or "500 DT") — the reference the payment must meet or exceed, per
+// spec. Same digit-stripping convention as the backend (routes/
+// projectPayments.js's parseBudget) and as routes/projects.js's existing
+// sort-by-budget.
+function parseBudget(budgetText) {
+  const n = parseFloat(String(budgetText || '').replace(/[^0-9.]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default function ProjectPaymentPanel({ project }) {
-  const projectAmount = Number(project.amount || 0);
+  const projectAmount = parseBudget(project.budget);
 
   const [methods, setMethods]           = useState(null);
   const [activeMethod, setActiveMethod] = useState(null);
@@ -63,6 +73,9 @@ export default function ProjectPaymentPanel({ project }) {
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [sending, setSending]           = useState(false);
   const [err, setErr]                   = useState('');
+  const [showCaptureChoice, setShowCaptureChoice] = useState(false);
+  const cameraInputRef  = useRef(null);
+  const galleryInputRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API}/project-payments/methods`).then(r => r.json()).then(setMethods).catch(() => setMethods({}));
@@ -78,6 +91,7 @@ export default function ProjectPaymentPanel({ project }) {
     setFile(null);
     setPreview(null);
     setErr('');
+    setShowCaptureChoice(false);
   }
 
   function handleFile(e) {
@@ -88,6 +102,7 @@ export default function ProjectPaymentPanel({ project }) {
     setErr('');
     setFile(f);
     setPreview(URL.createObjectURL(f));
+    setShowCaptureChoice(false);
   }
 
   function copyNumber(number) {
@@ -204,20 +219,41 @@ export default function ProjectPaymentPanel({ project }) {
 
           <div>
             <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--fm-text-7)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px' }}>Capture d'écran du paiement <span style={{ color: 'var(--fm-danger)' }}>*</span></p>
-            <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 90, borderRadius: 12, border: '1.5px dashed var(--fm-border)', cursor: 'pointer', overflow: 'hidden', background: 'var(--fm-border-soft)' }}>
-              {/* accept+capture: on mobile this offers "take photo" (rear camera)
-                  as well as choosing from the gallery/files; desktop browsers
-                  ignore `capture` and just open the normal file picker. */}
-              <input type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
-              {preview ? (
-                <img src={preview} alt="Aperçu du paiement" style={{ width: '100%', maxHeight: 200, objectFit: 'contain' }} />
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, color: 'var(--fm-text-6)', padding: '16px 0' }}>
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Prendre une photo ou choisir un fichier</span>
-                </div>
-              )}
-            </label>
+
+            {/* Two separate hidden inputs — one forces the camera
+                (capture="environment"), one opens the plain gallery/file
+                picker. A single input with `capture` set removes the
+                "choose from library" option on several mobile browsers, so
+                the explicit choice below is what guarantees both paths
+                actually work regardless of which the user picks. */}
+            <input ref={cameraInputRef}  type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
+            <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+
+            {preview ? (
+              <div onClick={() => setShowCaptureChoice(true)}
+                style={{ borderRadius: 12, border: '1.5px dashed var(--fm-border)', cursor: 'pointer', overflow: 'hidden', background: 'var(--fm-border-soft)' }}>
+                <img src={preview} alt="Aperçu du paiement" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', display: 'block' }} />
+              </div>
+            ) : showCaptureChoice ? (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" onClick={() => cameraInputRef.current?.click()}
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '16px 8px', borderRadius: 12, cursor: 'pointer', background: 'var(--fm-border-soft)', border: '1.5px solid var(--fm-border)', color: 'var(--fm-text-4)' }}>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+                  <span style={{ fontSize: 12, fontWeight: 700 }}>Prendre une photo</span>
+                </button>
+                <button type="button" onClick={() => galleryInputRef.current?.click()}
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '16px 8px', borderRadius: 12, cursor: 'pointer', background: 'var(--fm-border-soft)', border: '1.5px solid var(--fm-border)', color: 'var(--fm-text-4)' }}>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></svg>
+                  <span style={{ fontSize: 12, fontWeight: 700 }}>Choisir un fichier</span>
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setShowCaptureChoice(true)}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', minHeight: 90, borderRadius: 12, border: '1.5px dashed var(--fm-border)', cursor: 'pointer', background: 'var(--fm-border-soft)', color: 'var(--fm-text-6)', fontFamily: 'inherit' }}>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+                <span style={{ fontSize: 12, fontWeight: 600 }}>Ajouter une capture d'écran</span>
+              </button>
+            )}
           </div>
 
           {err && <p style={{ fontSize: 12, color: 'var(--fm-danger)', margin: 0, fontWeight: 700 }}>{err}</p>}
