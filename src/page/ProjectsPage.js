@@ -10,7 +10,7 @@ import usePendingClientReadOnly from '../hooks/usePendingClientReadOnly';
 import PendingClientBanner from '../components/PendingClientBanner';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import ShareButton from '../components/ShareMenu';
-import ProjectPaymentModal from '../components/ProjectPaymentModal';
+import ProjectPaymentPanel from '../components/ProjectPaymentPanel';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -619,7 +619,7 @@ function EditModal({ project, onClose, onDone }) {
 /* ══════════════════════════════════════════════════════════════
    MY PROJECT CARD — client's own project with proposals
    ══════════════════════════════════════════════════════════════ */
-function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAccept, acceptingId, onReject, rejectingId, onEdit, wasEdited, users, readOnly, onPay }) {
+function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAccept, acceptingId, onReject, rejectingId, onEdit, wasEdited, users, readOnly }) {
   const { t } = useTranslation();
   const st       = STATUS_MAP[project.status] || STATUS_MAP.open;
   const stLabel  = t(`fd.status.${project.status}`, st.label);
@@ -714,12 +714,6 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
                 <IcCheck s={10}/> {t('prp.accepted')}
               </span>
             )}
-            {isLocked && project.status==='in_progress' && (
-              <button onClick={()=>onPay(project)}
-                style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11.5, fontWeight:800, color:'#fff', background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', padding:'5px 13px', borderRadius:20, cursor:'pointer', boxShadow:'0 4px 14px -4px rgba(124,108,246,0.5)' }}>
-                <IcDollar s={11}/> Paiement
-              </button>
-            )}
             {rejectedN>0 && (
               <span style={{ fontSize:11, fontWeight:800, color:'var(--fm-danger)', background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', padding:'3px 10px', borderRadius:20 }}>
                 {t('prp.n_rejected', { count: rejectedN })}
@@ -743,6 +737,10 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
             <ProposalCard key={p.id} proposal={p} onAccept={onAccept} accepting={acceptingId===p.id} onReject={onReject} rejecting={rejectingId===p.id} users={users} readOnly={readOnly}/>
           ))}
         </div>
+      )}
+      {/* Payment panel — automatically shown once a freelancer is accepted */}
+      {isLocked && project.status==='in_progress' && (
+        <ProjectPaymentPanel project={project} />
       )}
     </div>
   );
@@ -861,7 +859,6 @@ export default function ProjectsPage() {
   const [expandedId, setExpandedId] = useState(null);
   const [acceptingId,setAcceptingId]= useState(null);
   const [rejectingId,setRejectingId]= useState(null);
-  const [paymentModalProject,setPaymentModalProject]= useState(null);
 
   /* Load client's own projects (paginated) + proposals per project */
   const loadMyProjects = useCallback(async () => {
@@ -913,16 +910,11 @@ export default function ProjectsPage() {
   async function handleAccept(proposalId) {
     setAcceptingId(proposalId);
     try {
-      const res  = await fetch(`${API}/proposals/${proposalId}/accept`, { method:'PATCH', headers:{'Content-Type':'application/json'} });
-      const data = await res.json().catch(()=>null);
+      await fetch(`${API}/proposals/${proposalId}/accept`, { method:'PATCH', headers:{'Content-Type':'application/json'} });
+      // The payment panel is embedded directly on the project card and
+      // appears automatically once the project carries an accepted
+      // proposal — no separate fetch/modal needed here.
       await loadMyProjects();
-      // Immediately prompt for payment — the freelancer is now assigned and
-      // the project row carries the agreed amount (proposal price) as of
-      // this accept, so the modal has everything it needs right away.
-      if (res.ok && data?.project_id) {
-        const p = await fetch(`${API}/projects/by-id/${data.project_id}`).then(r=>r.json()).catch(()=>null);
-        if (p && !p.error) setPaymentModalProject(p);
-      }
     } catch {}
     finally { setAcceptingId(null); }
   }
@@ -1011,7 +1003,6 @@ export default function ProjectsPage() {
                       wasEdited={editedProjects.has(p.id)}
                       users={users}
                       readOnly={readOnly}
-                      onPay={setPaymentModalProject}
                     />
                   ))}
                 </div>
@@ -1037,14 +1028,6 @@ export default function ProjectsPage() {
           project={editingProject}
           onClose={()=>setEditingProject(null)}
           onDone={()=>handleEditDone(editingProject.id)}
-        />
-      )}
-
-      {/* Payment modal — client pays the agreed amount for an accepted freelancer */}
-      {paymentModalProject && (
-        <ProjectPaymentModal
-          project={paymentModalProject}
-          onClose={()=>setPaymentModalProject(null)}
         />
       )}
 
