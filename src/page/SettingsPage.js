@@ -275,11 +275,14 @@ export default function SettingsPage() {
                     onCopy={e => e.preventDefault()} onCut={e => e.preventDefault()} onContextMenu={e => e.preventDefault()}
                   />
                   <button
-                    type="button" tabIndex={-1}
+                    type="button"
                     onClick={() => setShow(v => !v)}
-                    style={{ position:'absolute', top:'50%', right:12, transform:'translateY(-50%)', zIndex:10, width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color: show ? 'var(--fm-primary-light)' : 'var(--fm-text-6)', transition:'color .18s, background .18s', outline:'none' }}
+                    aria-label={show ? t('Hide password') : t('Show password')}
+                    style={{ position:'absolute', top:'50%', right:12, transform:'translateY(-50%)', zIndex:10, width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color: show ? 'var(--fm-primary-light)' : 'var(--fm-text-6)', transition:'color .18s, background .18s' }}
                     onMouseEnter={e => { e.currentTarget.style.color='var(--fm-primary-light)'; e.currentTarget.style.background='var(--fm-primary-soft)'; }}
                     onMouseLeave={e => { e.currentTarget.style.color = show ? 'var(--fm-primary-light)' : 'var(--fm-text-6)'; e.currentTarget.style.background='transparent'; }}
+                    onFocus={e => { e.currentTarget.style.color='var(--fm-primary-light)'; e.currentTarget.style.background='var(--fm-primary-soft)'; e.currentTarget.style.boxShadow='0 0 0 2px var(--fm-primary-border)'; }}
+                    onBlur={e => { e.currentTarget.style.color = show ? 'var(--fm-primary-light)' : 'var(--fm-text-6)'; e.currentTarget.style.background='transparent'; e.currentTarget.style.boxShadow='none'; }}
                   >
                     {show
                       ? <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -402,7 +405,7 @@ export default function SettingsPage() {
             onClick={e=>e.stopPropagation()}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'22px 24px 0' }}>
               <div style={{ width:48, height:48, borderRadius:16, background:C.roseDim, border:`1px solid ${C.roseBord}`, display:'flex', alignItems:'center', justifyContent:'center', color:C.rose }}><IcLogout s={22}/></div>
-              <button onClick={()=>setLogoutModal(false)} style={{ width:32, height:32, borderRadius:'50%', background:'var(--fm-surface-hover)', border:'none', cursor:'pointer', color:C.sub, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <button onClick={()=>setLogoutModal(false)} aria-label={t('Close')} style={{ width:44, height:44, borderRadius:'50%', background:'var(--fm-surface-hover)', border:'none', cursor:'pointer', color:C.sub, display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>

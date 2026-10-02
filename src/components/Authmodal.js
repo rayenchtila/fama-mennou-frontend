@@ -128,7 +128,7 @@ function fileToBase64(file) {
   });
 }
 
-function ImageUploadBox({ label, hint, preview, onFile }) {
+function ImageUploadBox({ label, hint, preview, onFile, required = true }) {
   const { t } = useTranslation();
   const cameraRef  = useRef();
   const galleryRef = useRef();
@@ -136,19 +136,26 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
 
   return (
     <div className="flex-1" style={{ position: 'relative' }}>
-      <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--fm-text-5)' }}>{label}</p>
+      <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--fm-text-5)' }}>
+        {label} {required && <span style={{ color: 'var(--fm-danger)' }}>*</span>}
+      </p>
 
-      {/* Same original box design */}
-      <div
+      {/* Same original box design — now a real <button> so it's reachable
+          and operable via keyboard/screen reader, not just a pointer target. */}
+      <button
+        type="button"
         onClick={() => setShowPicker(v => !v)}
+        aria-haspopup="menu"
+        aria-expanded={showPicker}
+        aria-label={preview ? `${label} — ${t("Change")}` : `${label}${hint ? ` — ${hint}` : ''}`}
         className="relative w-full h-28 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 overflow-hidden flex flex-col items-center justify-center gap-1"
-        style={preview ? { borderColor: 'color-mix(in srgb, var(--fm-success) 60%, transparent)' } : { borderColor: showPicker ? 'rgba(124,108,246,.5)' : 'var(--fm-border)' }}
+        style={preview ? { borderColor: 'color-mix(in srgb, var(--fm-success) 60%, transparent)', background: 'none', padding: 0, font: 'inherit' } : { borderColor: showPicker ? 'rgba(124,108,246,.5)' : 'var(--fm-border)', background: 'none', padding: 0, font: 'inherit' }}
         onMouseEnter={e => { if (!preview) e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
         onMouseLeave={e => { if (!preview && !showPicker) e.currentTarget.style.borderColor = 'var(--fm-border)'; }}
       >
         {preview ? (
           <>
-            <img src={preview} alt={label} className="absolute inset-0 w-full h-full object-cover" />
+            <img src={preview} alt="" className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
               <span className="text-white text-xs font-semibold">{t("Change")}</span>
             </div>
@@ -162,7 +169,7 @@ function ImageUploadBox({ label, hint, preview, onFile }) {
             <span className="text-[11px] text-center px-2" style={{ color: 'var(--fm-text-7)' }}>{hint}</span>
           </>
         )}
-      </div>
+      </button>
 
       {/* Popup with 2 options */}
       {showPicker && (
@@ -830,7 +837,7 @@ function TOTPScreen({ pendingToken, onSuccess, onBack, verifyTOTP, loginWithUser
   return (
     <div style={{ textAlign: "center", padding: "8px 0" }}>
       <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(124,58,237,0.35)' }}>
+        <div style={{ width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg,var(--fm-primary),var(--fm-primary-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(124,108,246,0.35)' }}>
           <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
         </div>
       </div>
@@ -862,7 +869,7 @@ function TOTPScreen({ pendingToken, onSuccess, onBack, verifyTOTP, loginWithUser
         disabled={busy || code.length !== 6}
         style={{
           width: "100%", marginTop: 16, padding: "14px", borderRadius: 12,
-          background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "#fff",
+          background: "linear-gradient(135deg,var(--fm-primary),var(--fm-primary-dark))", color: "#fff",
           fontWeight: 700, fontSize: 15, border: "none",
           cursor: busy || code.length !== 6 ? "not-allowed" : "pointer",
           opacity: busy || code.length !== 6 ? 0.7 : 1,
@@ -915,6 +922,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
   // Terms acceptance
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsFocused, setTermsFocused] = useState(false);
 
   // CIN state
   const [cinFrontFile,    setCinFrontFile]    = useState(null);
@@ -1521,7 +1529,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
               onClick={() => handleRoleSelect(r)}
               style={{
                 width: '100%', maxWidth: '320px', padding: '16px 24px',
-                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                background: 'linear-gradient(135deg, var(--fm-primary), var(--fm-primary-dark))',
                 color: '#fff', fontWeight: '700', fontSize: '15px',
                 border: 'none', borderRadius: '14px', cursor: 'pointer',
                 textTransform: 'capitalize', opacity: loading ? 0.6 : 1,
@@ -1994,12 +2002,25 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
           {/* Terms checkbox — signup only */}
           {mode === "signup" && (
             <div className="mt-4">
-              <label className="flex items-start gap-3 cursor-pointer select-none" onClick={() => { setTermsAccepted(v => !v); setErrors(e => ({ ...e, terms: "" })); }}>
-                <div style={{
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                {/* Real checkbox input — visually hidden, but this is what
+                    makes the control tab-reachable, toggleable via
+                    Space/Enter, and announced correctly by screen readers.
+                    The styled div below is purely decorative (aria-hidden). */}
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={termsAccepted}
+                  onChange={() => { setTermsAccepted(v => !v); setErrors(e => ({ ...e, terms: "" })); }}
+                  onFocus={() => setTermsFocused(true)}
+                  onBlur={() => setTermsFocused(false)}
+                />
+                <div aria-hidden="true" style={{
                   width: 18, height: 18, borderRadius: 5, border: `2px solid ${termsAccepted ? roleColor.bg : 'var(--fm-border-strong)'}`,
-                  background: termsAccepted ? roleColor.bg : 'transparent', transition: 'background 0.25s ease, border-color 0.25s ease',
+                  background: termsAccepted ? roleColor.bg : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0, marginTop: 1, transition: 'all 0.18s ease',
+                  boxShadow: termsFocused ? `0 0 0 3px ${roleColor.glow}` : 'none',
                 }}>
                   {termsAccepted && (
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none">

@@ -121,6 +121,7 @@ function NotifPanel({ notifications, onMarkRead, onMarkAll, onClose, dark }) {
           ) : notifications.map(n => (
             <div key={n.id} role="button" tabIndex={0}
               onClick={async () => { onMarkRead(n.id); const link = await getNotifLink(n); onClose(); navigate(link); }}
+              onKeyDown={async e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onMarkRead(n.id); const link = await getNotifLink(n); onClose(); navigate(link); } }}
               className="flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors"
               style={{ borderBottom: `1px solid ${divider}`, background: n.read ? "transparent" : "rgba(124,108,246,0.06)" }}
               onMouseEnter={e => e.currentTarget.style.background = rowHov}
@@ -208,7 +209,10 @@ function MessagesPanel({ conversations, senderEmail, onClose, onChatOpen, dark }
             const name   = isAdminConv ? "Fama Mennou TEAM" : (conv.user_name || email.split("@")[0]);
             const photo  = isAdminConv ? null : conv.user_photo;
             return (
-              <div key={email} onClick={() => onChatOpen(email)}
+              <div key={email} role="button" tabIndex={0}
+                onClick={() => onChatOpen(email)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChatOpen(email); } }}
+                aria-label={name}
                 className="flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors"
                 style={{ borderBottom: `1px solid ${divider}`, background: unread > 0 ? "rgba(239,68,68,0.05)" : "transparent" }}
                 onMouseEnter={e => e.currentTarget.style.background = rowHov}
@@ -337,6 +341,20 @@ export default function Navbar({ onLogin }) {
     setMenuOpen(false); setProfOpen(false);
     setNotifOpen(false); setMsgOpen(false);
   }, [location.pathname]);
+
+  // Escape dismisses whichever panel/modal is open — previously only a
+  // backdrop click could close these, so keyboard-only users had no way
+  // out short of tabbing all the way through the panel's contents.
+  useEffect(() => {
+    const onKeyDown = e => {
+      if (e.key !== 'Escape') return;
+      setMenuOpen(false); setProfOpen(false);
+      setNotifOpen(false); setMsgOpen(false);
+      setLogoutModal(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   useEffect(() => {
     if (menuOpen) {
@@ -780,6 +798,8 @@ export default function Navbar({ onLogin }) {
             {/* Hamburger — mobile only */}
             <button
               onClick={() => setMenuOpen(v => !v)}
+              aria-label={menuOpen ? t('Close menu') : t('Open menu')}
+              aria-expanded={menuOpen}
               className="lg:hidden shrink-0 w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
               style={{ background: bg.btnHovBg, border: `1px solid ${bg.headerBd}`, color: bg.iconClr }}
             >

@@ -134,7 +134,14 @@ function AppInner() {
 
   const isAdminDashboard = location.pathname === "/admin/dashboard";
   const isUserDashboard  = location.pathname === "/dashboard" || location.pathname === "/messages";
-  const isHome           = ['/', '/about', '/blog', '/careers', '/help', '/privacy', '/terms'].includes(location.pathname);
+  // Public marketing + marketplace browse pages — the three listing pages
+  // (freelancers/clients/courses) are just as public as the homepage, and a
+  // visitor paging through them previously hit Pagination and then nothing:
+  // no way to reach Help/Privacy/Terms/social without navigating back to "/".
+  // Authenticated dashboard pages (isUserDashboard above) stay excluded —
+  // different layout assumptions (e.g. fm-chat-container's 100vh sizing)
+  // and not what this finding was about.
+  const showFooter        = ['/', '/about', '/blog', '/careers', '/help', '/privacy', '/terms', '/freelancers', '/clients', '/courses'].includes(location.pathname);
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
@@ -366,7 +373,7 @@ function AppInner() {
             />
           </Routes>
 
-          {isHome && <Footer />}
+          {showFooter && <Footer />}
         </motion.div>
       </AnimatePresence>
     </ToastProvider>

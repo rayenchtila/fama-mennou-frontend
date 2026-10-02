@@ -121,9 +121,17 @@ export default function ProjectDetailPage({ onLogin }) {
           <div style={{ textAlign:'center', padding:'80px 20px' }}>
             <p style={{ fontSize:20, fontWeight:900, color:'var(--fm-text-1)', margin:'0 0 8px' }}>{t('prp.detail.not_found_title')}</p>
             <p style={{ fontSize:14, color:'var(--fm-text-6)', margin:'0 0 20px' }}>{t('prp.detail.not_found_sub')}</p>
-            <Link to="/" style={{ display:'inline-flex', padding:'10px 20px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', color:'#fff', fontWeight:700, fontSize:13, textDecoration:'none' }}>
-              {t('prp.detail.go_home')}
-            </Link>
+            {/* Two ways out, not one — this page is reached via external/dead
+                share links, so "go home" alone leaves a visitor who actually
+                wanted to see open projects with nowhere relevant to go. */}
+            <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
+              <Link to="/" style={{ display:'inline-flex', padding:'10px 20px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', color:'#fff', fontWeight:700, fontSize:13, textDecoration:'none' }}>
+                {t('prp.detail.go_home')}
+              </Link>
+              <Link to="/clients" style={{ display:'inline-flex', padding:'10px 20px', borderRadius:12, background:'var(--fm-surface-hover)', border:'1px solid var(--fm-border-strong)', color:'var(--fm-text-3)', fontWeight:600, fontSize:13, textDecoration:'none' }}>
+                {t('home.ac.client.cta')}
+              </Link>
+            </div>
           </div>
         ) : (
           <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3, ease:'easeOut' }}>

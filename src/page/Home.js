@@ -339,7 +339,7 @@ function ActionCardsSection() {
     { to: '/courses',     color: '#14b8a6', colorDim: 'rgba(20,184,166,.16)',  colorBd: 'rgba(20,184,166,.3)',   colorLight: '#5eead4', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, title: t('home.ac.learn.title'), desc: t('home.ac.learn.desc'), cta: t('home.ac.learn.cta') },
   ];
   return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '56px' }}>
+    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '20px' }}>
         {cards.map((card, i) => (
           <motion.div key={card.to}
@@ -837,6 +837,7 @@ function FAQSection() {
               transition={{ duration: 0.4, delay: i * 0.07 }}
               style={{ background: 'var(--fm-surface)', border: `1px solid ${isOpen ? 'rgba(124,108,246,.4)' : 'var(--fm-border)'}`, borderRadius: '14px', overflow: 'hidden', transition: 'border-color .18s' }}>
               <button onClick={() => toggle(i)}
+                aria-expanded={isOpen} aria-controls={`faq-answer-${i}`}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: '18px 20px' }}>
                 <span style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--fm-text-1)' }}>{q.question}</span>
                 <span style={{ width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(124,108,246,.16)', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b9aeff', flex: 'none' }}>
@@ -844,7 +845,7 @@ function FAQSection() {
                 </span>
               </button>
               {isOpen && (
-                <div style={{ padding: '0 20px 19px', fontSize: '14.5px', color: 'var(--fm-text-5)', lineHeight: 1.6 }}>
+                <div id={`faq-answer-${i}`} style={{ padding: '0 20px 19px', fontSize: '14.5px', color: 'var(--fm-text-5)', lineHeight: 1.6 }}>
                   {q.answer}
                 </div>
               )}

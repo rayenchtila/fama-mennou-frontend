@@ -207,11 +207,16 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
             <form onSubmit={submitReview} style={{ marginTop:14, padding:'14px 16px', borderRadius:14, background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', display:'flex', flexDirection:'column', gap:12 }}>
               <p style={{ fontSize:11, fontWeight:700, color:'var(--fm-text-7)', textTransform:'uppercase', letterSpacing:'0.08em', margin:0 }}>{t('Leave a review')}</p>
               <div>
-                <div style={{ display:'inline-flex', gap:4 }}>
+                <div role="radiogroup" aria-label={t('Rating')} style={{ display:'inline-flex', gap:4 }}>
                   {[1,2,3,4,5].map(i => (
-                    <span key={i} onClick={() => { setRating(i); setRatingErr(false); }} onMouseEnter={() => setHovStar(i)} onMouseLeave={() => setHovStar(0)}>
+                    <button key={i} type="button" role="radio" aria-checked={i === rating}
+                      aria-label={t('rate_n_stars', { count: i, defaultValue: `${i} star${i > 1 ? 's' : ''}` })}
+                      onClick={() => { setRating(i); setRatingErr(false); }}
+                      onMouseEnter={() => setHovStar(i)} onMouseLeave={() => setHovStar(0)}
+                      onFocus={() => setHovStar(i)} onBlur={() => setHovStar(0)}
+                      style={{ background:'none', border:'none', padding:2, margin:0, cursor:'pointer', lineHeight:0 }}>
                       <IcStarBig on={i <= (hovStar || rating)} />
-                    </span>
+                    </button>
                   ))}
                 </div>
                 {ratingErr && <p style={{ fontSize:11, color:'var(--fm-danger)', margin:'4px 0 0' }}>{t('Please choose a rating.')}</p>}
@@ -222,8 +227,13 @@ function FreelancerCard({ freelancer, reviews, onAddReview, currentUser, complet
                 onBlur={e => { e.target.style.borderColor='var(--fm-border)'; }} />
               <div style={{ display:'flex', gap:10 }}>
                 <button type="submit" disabled={submitting || !comment.trim()}
-                  style={{ padding:'8px 18px', borderRadius:10, background:'var(--fm-primary)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', opacity:(!comment.trim()||submitting)?0.5:1 }}>
-                  {t('Submit')}
+                  style={{ padding:'8px 18px', borderRadius:10, background:'var(--fm-primary)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor: submitting ? 'not-allowed' : 'pointer',
+                    /* Dimmed only for "nothing to submit yet" — an in-flight
+                       submit stays full-opacity and shows its own label
+                       change instead, so the two disabled states (not ready
+                       vs. actively working) read as visibly different. */
+                    opacity: (!comment.trim() && !submitting) ? 0.5 : 1 }}>
+                  {submitting ? t('prp.sending') : t('Submit')}
                 </button>
                 <button type="button" onClick={() => { setShowReview(false); setRating(0); setComment(''); setRatingErr(false); }}
                   style={{ padding:'8px 14px', borderRadius:10, background:'none', border:'1px solid var(--fm-border)', color:'var(--fm-text-6)', fontSize:13, cursor:'pointer' }}>

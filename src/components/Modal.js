@@ -88,7 +88,7 @@ export default function Modal({
                     {closable && (
                       <button
                         onClick={onClose}
-                        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all"
+                        className="shrink-0 w-11 h-11 flex items-center justify-center rounded-full transition-all"
                         style={{ background: 'var(--fm-border)', color: 'var(--fm-text-5)' }}
                         onMouseEnter={e => { e.currentTarget.style.background = 'var(--fm-border-strong)'; e.currentTarget.style.color = 'var(--fm-text-1)'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'var(--fm-border)'; e.currentTarget.style.color = 'var(--fm-text-5)'; }}
@@ -217,7 +217,7 @@ export default function Modal({
             {closable && (
               <button
                 onClick={onClose}
-                className="ml-4 mt-0.5 w-8 h-8 flex items-center justify-center shrink-0 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-150"
+                className="ml-4 mt-0.5 w-11 h-11 flex items-center justify-center shrink-0 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-150"
                 aria-label={t("Close")}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

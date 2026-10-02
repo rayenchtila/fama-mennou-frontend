@@ -25,12 +25,6 @@ const AVATAR_COLORS = [
   'from-violet-500 to-violet-600',
 ];
 
-const TABS = [
-  { id: 'profile',   label: 'Profil',    icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
-  { id: 'dashboard', label: 'Dashboard', icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
-  { id: 'logout',    label: 'Log out',   icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>, danger: true },
-];
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getGradient(email = '') {
@@ -137,6 +131,7 @@ function SkeletonRow() {
 }
 
 function InputField({ label, type = 'text', ...props }) {
+  const { t } = useTranslation();
   const [showPw, setShowPw] = useState(false);
   const isPassword = type === 'password';
   return (
@@ -155,11 +150,13 @@ function InputField({ label, type = 'text', ...props }) {
         {isPassword && (
           <button
             type="button"
-            tabIndex={-1}
             onClick={() => setShowPw(v => !v)}
-            style={{ position:'absolute', top:'50%', right:10, transform:'translateY(-50%)', zIndex:10, width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color: showPw ? 'var(--fm-primary)' : 'var(--fm-text-6)', transition:'color .18s, background .18s', outline:'none' }}
+            aria-label={showPw ? t('Hide password') : t('Show password')}
+            style={{ position:'absolute', top:'50%', right:10, transform:'translateY(-50%)', zIndex:10, width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color: showPw ? 'var(--fm-primary)' : 'var(--fm-text-6)', transition:'color .18s, background .18s' }}
             onMouseEnter={e => { e.currentTarget.style.color='var(--fm-primary)'; e.currentTarget.style.background='var(--fm-primary-soft)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = showPw ? 'var(--fm-primary)' : 'var(--fm-text-6)'; e.currentTarget.style.background='transparent'; }}
+            onFocus={e => { e.currentTarget.style.color='var(--fm-primary)'; e.currentTarget.style.background='var(--fm-primary-soft)'; e.currentTarget.style.boxShadow='0 0 0 2px var(--fm-primary-border)'; }}
+            onBlur={e => { e.currentTarget.style.color = showPw ? 'var(--fm-primary)' : 'var(--fm-text-6)'; e.currentTarget.style.background='transparent'; e.currentTarget.style.boxShadow='none'; }}
           >
             {showPw
               ? <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1796,7 +1793,7 @@ function CoursesTab({ user }) {
         <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4 bg-black/50 fm-backdrop-blur-in">
           <div className="bg-white dark:bg-slate-900 rounded-3xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full sm:max-w-sm p-6 flex flex-col items-center text-center gap-4">
             <div className="w-full flex justify-end">
-              <button onClick={() => setDeleteConfirmId(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+              <button onClick={() => setDeleteConfirmId(null)} aria-label={t('Close')} className="w-11 h-11 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
@@ -1839,7 +1836,7 @@ function CoursesTab({ user }) {
                 </div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">{createdCourse ? 'Cours créé' : 'Créer un cours'}</h3>
               </div>
-              <button onClick={() => { setShowCreate(false); setCreatedCourse(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+              <button onClick={() => { setShowCreate(false); setCreatedCourse(null); }} aria-label={t('Close')} className="w-11 h-11 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
@@ -2010,7 +2007,7 @@ function CoursesTab({ user }) {
                   </svg>
                   Voir le cours
                 </button>
-                <button onClick={() => setShowLessons(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">
+                <button onClick={() => setShowLessons(null)} aria-label={t('Close')} className="w-11 h-11 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
@@ -2109,7 +2106,7 @@ function CoursesTab({ user }) {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">Schedule Live Session</h3>
-              <button onClick={() => setShowSession(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">
+              <button onClick={() => setShowSession(null)} aria-label={t('Close')} className="w-11 h-11 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
@@ -2229,7 +2226,11 @@ function SettingsTab({ user, updateUser, onLogout }) {
         <InputField label="Mot de passe actuel" type="password" value={pwForm.current} onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))} required />
         <InputField label="Nouveau mot de passe" type="password" value={pwForm.next} onChange={e => setPwForm(f => ({ ...f, next: e.target.value }))} required />
         <InputField label="Confirmer le nouveau mot de passe" type="password" value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} required />
-        {pwError && <p className="text-xs text-rose-500">{pwError}</p>}
+        {pwError && (
+          <div style={{ padding: '11px 16px', borderRadius: 12, background: 'var(--fm-danger-bg)', border: '1px solid rgba(248,113,113,0.28)' }}>
+            <p style={{ fontSize: 12.5, color: 'var(--fm-danger)', margin: 0, fontWeight: 600 }}>{pwError}</p>
+          </div>
+        )}
         {pwOk && <p style={{ fontSize: 12, color: 'var(--fm-success)', display: 'flex', alignItems: 'center', gap: 5 }}><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Mot de passe changé avec succès !</p>}
         <button type="submit" disabled={saving} className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60">
           {saving ? 'Changement…' : 'Changer le mot de passe'}
@@ -2356,7 +2357,7 @@ export default function FreelancerDashboard() {
               <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--fm-danger-bg)', border: '1px solid var(--fm-danger-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--fm-danger)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               </div>
-              <button onClick={() => setLogoutConfirm(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+              <button onClick={() => setLogoutConfirm(false)} aria-label={t('Close')} className="w-11 h-11 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>

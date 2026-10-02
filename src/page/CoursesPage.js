@@ -92,6 +92,17 @@ const CAT_COLORS = {
   Technology: '#0d9488', Design: '#8b5cf6', Marketing: '#0ea5e9',
   Writing: '#10b981', 'E-commerce': '#0891b2', Finance: '#f59e0b', All: '#0d9488',
 };
+// Per-category badge text color — plain white fails WCAG AA contrast against
+// the lighter category colors (Finance #f59e0b measures ~2.1:1, Writing is
+// borderline), so this is computed once via standard YIQ brightness rather
+// than hardcoded, and paired with a fully opaque background below (the
+// previous semi-transparent fill made contrast depend on whatever thumbnail
+// photo was underneath, which can't be guaranteed to pass either).
+const CAT_TEXT = Object.fromEntries(Object.entries(CAT_COLORS).map(([k, hex]) => {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return [k, brightness > 128 ? '#0a0817' : '#fff']; // #0a0817 = --fm-bg, reused rather than inventing a new near-black
+}));
 
 const SORT_OPTIONS = [
   { value:'free_first', label:'Free first'     },
@@ -235,13 +246,20 @@ function CourseCard({ course, onClick, onDeleted }) {
   const lessons    = Number(course.lesson_count||0);
 
   return (
-    <button
+    // A real <button> can't legally contain the owner "⋮" menu's own
+    // <button> below (nested interactive controls are invalid HTML and
+    // browsers handle the nesting inconsistently) — role="button" + keyboard
+    // handling keeps this fully clickable/keyboard-operable as a div instead.
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
         width:'100%', textAlign:'left', display:'flex', flexDirection:'column',
-        borderRadius:20, overflow:'hidden', cursor:'pointer',
+        borderRadius:24, overflow:'hidden', cursor:'pointer',
         border:      `1px solid ${hov ? C.borderAcc : C.border}`,
         background:  hov ? C.cardHov : C.card,
         transform:   hov ? 'translateY(-4px)' : 'translateY(0)',
@@ -277,11 +295,13 @@ function CourseCard({ course, onClick, onDeleted }) {
             <IcPlay />
           </div>
 
-          {/* Category badge */}
+          {/* Category badge — opaque background + computed text color
+              (CAT_TEXT) so contrast is guaranteed regardless of category or
+              whatever photo sits underneath, instead of white-on-translucent. */}
           <span style={{
             position:'absolute', top:10, left:10,
-            fontSize:10.5, fontWeight:700, color:'#fff',
-            background: catColor+'cc', backdropFilter:'blur(4px)',
+            fontSize:10.5, fontWeight:700, color: CAT_TEXT[course.category] || '#fff',
+            background: catColor, backdropFilter:'blur(4px)',
             padding:'3px 10px', borderRadius:8, letterSpacing:'0.02em',
           }}>
             {course.category}
@@ -506,14 +526,14 @@ function CourseCard({ course, onClick, onDeleted }) {
           </span>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
 /* ── Skeleton Card ── */
 function SkeletonCard() {
   return (
-    <div style={{ borderRadius:20, overflow:'hidden', background:C.card, border:`1px solid ${C.border}` }}>
+    <div style={{ borderRadius:24, overflow:'hidden', background:C.card, border:`1px solid ${C.border}` }}>
       <div style={{ paddingTop:'56.25%', background:'var(--fm-surface-hover-soft)', position:'relative' }}>
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(90deg,transparent,var(--fm-border-soft),transparent)', animation:'cpShimmer 1.6s infinite' }} />
       </div>
@@ -637,7 +657,7 @@ export default function CoursesPage() {
           <div style={{ maxWidth:860, margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,4vw,24px) 0', textAlign:'center' }}>
 
             {/* Headline */}
-            <h1 style={{ fontSize:'clamp(30px,8vw,52px)', fontWeight:900, color:C.text, margin:'0 0 16px', letterSpacing:'-0.04em', lineHeight:1.07 }}>
+            <h1 style={{ fontSize:'clamp(32px,8vw,54px)', fontWeight:900, color:C.text, margin:'0 0 16px', letterSpacing:'-0.04em', lineHeight:1.07 }}>
               {t('csp.hero_title_1')}{' '}
               <span style={{
                 background:'linear-gradient(120deg,#5eead4 0%,#14b8a6 42%,#059669 100%)',
@@ -648,7 +668,7 @@ export default function CoursesPage() {
             </h1>
 
             {/* Sub-headline */}
-            <p style={{ fontSize:16, color:C.sub, margin:'0 auto 36px', lineHeight:1.7, letterSpacing:'0.01em', maxWidth:500 }}>
+            <p style={{ fontSize:'clamp(14px,2vw,16px)', color:C.sub, margin:'0 auto 36px', lineHeight:1.7, letterSpacing:'0.01em', maxWidth:500 }}>
               {t('csp.hero_subtitle')}
             </p>
 
