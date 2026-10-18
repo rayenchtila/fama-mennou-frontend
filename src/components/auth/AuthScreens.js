@@ -47,7 +47,9 @@ export function ScreenFrame({ onBack, backLabel, icon, tone = 'info', pulse = fa
 // many tries are left after a wrong code. The server enforces every one of those limits;
 // this screen only shows them.
 //
-//   onVerify(code)  → { ok: true } | { error, attemptsLeft?, message? }
+//   onVerify(code, onAccepted) → { ok: true } | { error, attemptsLeft?, message? }
+//                     onAccepted() is called the moment the server accepts the code, before the account is created,
+//                     so the cells can light up while that happens
 //                     (a null code means "the e-mail is verified, create the account again")
 //   onResend(token) → { ok: true, expiresIn, resendIn, devCode? } | { error, retryAfter? }
 const fmtClock = sec => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
@@ -97,9 +99,10 @@ export function VerifyEmailScreen({ email, initial = {}, onVerify, onResend, onB
   async function attempt(value) {
     setBusy(true); setError(''); setFailure('');
     let r;
-    try { r = await onVerify(value); } catch { r = { error: 'network' }; }
+    try { r = await onVerify(value, () => setVerified(true)); } catch { r = { error: 'network' }; }
     setBusy(false);
     if (r?.ok) { setVerified(true); return; }
+    if (r?.error !== 'register') setVerified(false);   // the code was accepted but the e-mail proof was not (or nothing happened): back to a field to type in
     switch (r?.error) {
       case 'wrongCode':
         setError(t('auth.code_wrong', { count: r.attemptsLeft ?? 0 })); clearLater(value); break;
@@ -268,7 +271,7 @@ export function VerifyEmailScreen({ email, initial = {}, onVerify, onResend, onB
       </form>
 
       {/* The invisible security check behind "Resend code" */}
-      {!IS_DEV && <Turnstile ref={turnstile} action="resend_code" />}
+      {!IS_DEV && <Turnstile ref={turnstile} action="resend_code" appearance="interaction-only" />}
     </ScreenFrame>
   );
 }
@@ -441,7 +444,7 @@ export function ForgotPasswordScreen({ onBack, onSent }) {
           </>
         )}
 
-        {/* The invisible security check — on both steps, because "Resend code" needs a token too */}
+        {/* The security check (a small visible box) — on both steps, because "Resend code" needs a token too */}
         {!IS_DEV && <Turnstile ref={captchaRef} action="forgot_password" />}
 
         {error && <AuthNotice tone="warn" icon="error" role="alert">{error}</AuthNotice>}

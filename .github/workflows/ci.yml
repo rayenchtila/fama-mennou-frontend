@@ -50,7 +50,15 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
             cd /home/ubuntu/apps/frontend
             git pull
             npm ci
-            npm run build
+            # Build into a side folder and swap it in only once the build has succeeded. A build in place
+            # empties the live folder first: the site answers HTTP 500 (no index.html) for the whole build,
+            # and stays broken if the build fails. build_prev keeps the previous version for a quick rollback.
+            rm -rf build_new
+            BUILD_PATH=build_new npm run build
+            rm -rf build_prev
+            [ -d build ] && mv build build_prev
+            mv build_new build

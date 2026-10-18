@@ -330,7 +330,8 @@ export default function FreelancersPage() {
   // Bring the confirmation and the card into view — the hero above them is tall.
   useEffect(() => {
     if (!showOwn) return undefined;
-    const id = setTimeout(() => ownBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+    const calm = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const id = setTimeout(() => ownBannerRef.current?.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' }), 350);
     return () => clearTimeout(id);
   }, [showOwn]);
 

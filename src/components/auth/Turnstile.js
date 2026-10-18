@@ -7,10 +7,11 @@ import { AuthNotice } from './AuthControls';
 /* Cloudflare Turnstile — the security check on log-in, sign-up and password reset.
    It replaced reCAPTCHA.
 
-   The widget runs in the background and is invisible: Cloudflare only draws it when
-   it cannot be sure a visitor is human ("interaction-only"). So there is no box to
-   tick before pressing the button — the form asks for the token at the moment it
-   needs one:
+   The widget is a small visible box ("always"): it checks the browser in a second or
+   two and turns to "Success", so a visitor can see the check is there and done. No
+   tick is needed in the normal case (Cloudflare only asks for one when it is unsure)
+   — the form takes the token at the moment it needs one. `appearance="interaction-only"`
+   makes an instance invisible again (the "Resend code" check uses it):
 
      const token = await captchaRef.current.getToken();   // resolves at once if one is ready
      …send the request with it…
@@ -46,7 +47,7 @@ function loadTurnstile() {
   return scriptPromise;
 }
 
-const Turnstile = forwardRef(function Turnstile({ action, onFailure, className = '' }, ref) {
+const Turnstile = forwardRef(function Turnstile({ action, onFailure, className = '', appearance = 'always' }, ref) {
   const { t, i18n } = useTranslation();
   const { isDark } = useTheme();
   const boxRef = useRef(null);
@@ -86,13 +87,15 @@ const Turnstile = forwardRef(function Turnstile({ action, onFailure, className =
     let id = null;
     loadTurnstile().then(ts => {
       if (cancelled || !boxRef.current) return;
+      // "flexible" fills the column but never goes below 300px; on a narrower phone the compact box fits instead.
+      const room = boxRef.current.clientWidth;
       id = ts.render(boxRef.current, {
         sitekey: TURNSTILE_SITE_KEY,
         action,
         theme,
         language: lang,
-        size: 'flexible',
-        appearance: 'interaction-only',
+        size: room > 0 && room < 300 ? 'compact' : 'flexible',
+        appearance,
         retry: 'auto',
         'refresh-expired': 'auto',
         callback: value => {
@@ -115,7 +118,7 @@ const Turnstile = forwardRef(function Turnstile({ action, onFailure, className =
       if (id != null && window.turnstile) { try { window.turnstile.remove(id); } catch { /* already gone */ } }
       widgetId.current = null;
     };
-  }, [action, theme, lang, attempt]);
+  }, [action, theme, lang, attempt, appearance]);
 
   useImperativeHandle(ref, () => ({
     // A fresh token as soon as there is one (at once when one is already held).
@@ -143,7 +146,8 @@ const Turnstile = forwardRef(function Turnstile({ action, onFailure, className =
 
   return (
     <div className={className}>
-      <div ref={boxRef} data-turnstile-action={action} />
+      {/* The box's height is reserved up front, so the form does not jump when the widget appears. */}
+      <div ref={boxRef} data-turnstile-action={action} className={appearance === 'always' ? 'min-h-[65px]' : undefined} />
       {failed && (
         <AuthNotice tone="warn" icon="shield" role="alert" className="mt-2">
           <p className="m-0">{TURNSTILE_SITE_KEY ? t('auth.captcha_failed') : t('auth.captcha_unavailable')}</p>

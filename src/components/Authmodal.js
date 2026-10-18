@@ -186,6 +186,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   // "This visitor owns this address", handed over once the code is accepted. Kept so a refusal that
   // sends the visitor back to the form (a date of birth, a photo) does not cost them a second code.
   const emailProof = useRef(null);                                 // { email, proof }
+  // When the e-mailed code is accepted the six cells light up; the redirect to the log-in page waits until this moment
+  // so the confirmation is seen even when the account is created in a blink.
+  const glowUntil = useRef(0);
 
   // Google Sign Up/Login — CLIENT ONLY (button is only ever rendered when
   // role === "client"; freelancer/admin never touch this state or endpoint).
@@ -772,7 +775,13 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       return { error: "register", message: e?.message || t("Something went wrong. Please try again.") };
     }
     const reg = await register(payload);
-    if (!reg?.error) { finishSignup(data.email, "password", data.role); return { ok: true }; }
+    if (!reg?.error) {
+      const wait = glowUntil.current - Date.now();
+      glowUntil.current = 0;
+      if (wait > 0) await new Promise(r => setTimeout(r, wait));
+      finishSignup(data.email, "password", data.role);
+      return { ok: true };
+    }
 
     const code = reg.error === "validation_error" ? reg.details?.[0]?.message : reg.error;
     if (code === "emailNotVerified") {
@@ -812,7 +821,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
 
   // Called by the code screen (the sixth digit, or "Verify"). A null code means "the e-mail is
   // already verified — create the account again", after a failure that was not the code's fault.
-  async function handleVerifyCode(code) {
+  async function handleVerifyCode(code, onAccepted) {
     const data = pendingFormData;
     if (!data) return { error: "register", message: t("Something went wrong. Please try again.") };
 
@@ -834,6 +843,8 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       if (!body.success) return { error: body.error || "serverError", attemptsLeft: body.attemptsLeft };
       proof = body.emailProof;
       emailProof.current = { email: data.email, proof };
+      glowUntil.current = Date.now() + 800;
+      onAccepted?.();                                      // the code is right: the cells glow while the account is made
     }
     const done = await completeRegistration(data, proof);
     // The API no longer accepts the proof it handed out a moment ago (its key changed, or the clock ran past it):
@@ -1245,8 +1256,9 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
                 invalid={!!errors.doc} error={errors.doc} />
             )}
 
-            {/* Security check — Cloudflare Turnstile, invisible unless Cloudflare needs to ask the person.
-                The form takes a token from it when the request is sent (takeCaptcha). */}
+            {/* Security check — Cloudflare Turnstile, a small visible box that turns to "Success" on its own
+                (Cloudflare only asks for a tick when it is unsure). The form takes a token from it when the
+                request is sent (takeCaptcha). */}
             {!IS_DEV && isFinalStep && (
               <div>
                 <Turnstile ref={captchaRef} action={isLogin ? "login" : googleProfile ? "google_signup" : "signup"} />
