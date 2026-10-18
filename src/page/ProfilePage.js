@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { cldImg } from '../utils/cloudinary';
 import { uploadFile } from '../utils/upload';
 import { toast } from '../components/Toast';
+import { profileSaveError, BIO_MAX } from '../utils/profileErrors';
 
 const AVATAR_COLORS = ['bg-indigo-500','bg-emerald-500','bg-rose-500','bg-amber-500','bg-sky-500','bg-fuchsia-500'];
 
@@ -12,6 +13,8 @@ export default function ProfilePage() {
   const { t } = useTranslation();
   const fileRef = useRef();
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [bio, setBio] = useState(user?.bio || '');
   const [skills, setSkills] = useState(user?.skills || '');
 
@@ -30,8 +33,14 @@ export default function ProfilePage() {
     }
   }
 
-  function handleSave() {
-    updateUser(user.email, { bio, skills });
+  // "Saved!" only once the server has said so — a refused save (a bio over the limit, an expired session) shows why.
+  async function handleSave() {
+    if (saving) return;
+    setSaving(true);
+    setSaveError('');
+    const res = await updateUser(user.email, { bio: bio.trim(), skills });
+    setSaving(false);
+    if (res?.error) { setSaveError(profileSaveError(res, t)); return; }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -99,18 +108,27 @@ export default function ProfilePage() {
               </div>
             )}
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">{t('pp.bio')}</label>
+              <div className="flex items-baseline justify-between gap-3 mb-1.5">
+                <label htmlFor="pp-bio" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('pp.bio')}</label>
+                <span className={`text-[11px] font-semibold tabular-nums ${bio.length > BIO_MAX - 40 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`}>{bio.length}/{BIO_MAX}</span>
+              </div>
               <textarea
+                id="pp-bio"
                 value={bio}
-                onChange={e => setBio(e.target.value)}
+                onChange={e => { setBio(e.target.value); setSaveError(''); }}
+                maxLength={BIO_MAX}
+                aria-describedby="pp-bio-hint"
                 rows={3}
                 placeholder={t('pp.bio_placeholder')}
                 className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
+              <p id="pp-bio-hint" className="mt-1.5 mb-0 text-xs text-slate-500 dark:text-slate-400">{t('profile.bio_hint', { max: BIO_MAX })}</p>
             </div>
+            {saveError && <p role="alert" className="m-0 text-sm font-medium text-rose-600 dark:text-rose-400">{saveError}</p>}
             <button
               onClick={handleSave}
-              className="w-full py-2.5 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+              disabled={saving}
+              className="w-full py-2.5 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white transition-colors"
             >
               {saved
                 ? <span className="flex items-center justify-center gap-1.5"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><polyline points="20 6 9 17 4 12"/></svg>{t('pp.saved')}</span>

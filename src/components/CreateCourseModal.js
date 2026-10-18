@@ -5,9 +5,12 @@ import { uploadImage } from '../utils/upload';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
+// Same taxonomy as the filter pills on the Courses page (and the Freelancers /
+// Clients pages). The server filters on an exact match, so a course filed under
+// a name with no pill (the old list had Development, Business, Music …) could
+// never be found by category — only under "All".
 const CATEGORIES = [
-  'Design','Development','Marketing','Business',
-  'Music','Photography','Finance','Health','Other',
+  'Technology','Design','Marketing','Writing','E-commerce','Finance','Other',
 ];
 
 const inputStyle = {
@@ -27,7 +30,7 @@ export default function CreateCourseModal({ user, initialType = 'free', onClose,
   const photoRef = useRef();
 
   const [form, setForm] = useState({
-    title: '', description: '', photo: '', video_url: '', category: 'Development', full_price: '',
+    title: '', description: '', photo: '', video_url: '', category: 'Technology', full_price: '',
   });
   const [photoPreview, setPhotoPreview] = useState('');
   const [submitting,   setSubmitting]   = useState(false);

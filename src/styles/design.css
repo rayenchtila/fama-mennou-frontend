@@ -1,0 +1,600 @@
+/* ==========================================================================
+   FamaMennou design system
+   Source of truth: .claude/stitch_premium_platform_homepage_redesign (1)/DESIGN.md
+   ("Dark Precision Minimalist" — obsidian slate-indigo canvas, indigo→violet
+   accents, 1px translucent hairlines, 16px cards, pill chips).
+
+   - Colours are `R G B` channel triplets so Tailwind (`bg-ds-card/60`) and
+     plain CSS (`rgb(var(--ds-card) / .6)`) can both add alpha.
+   - Everything is defined per theme (html[data-theme]) and per accent
+     (html[data-accent]; the Courses page sets "emerald", every other page
+     keeps the default indigo).
+   - Pages opt in with the `.ds` class on their root; the legacy global rules in
+     index.css are guarded with `:not(.ds *)` so the two worlds never fight.
+   ========================================================================== */
+
+/* ── Dark (default) · indigo ─────────────────────────────────────────── */
+:root,
+:root[data-theme="dark"] {
+  --ds-canvas:  9 13 22;       /* Canvas Root           #090d16 */
+  --ds-lowest:  6 9 16;        /* surface-container-lowest #060910 */
+  --ds-low:     13 19 34;      /* surface-container-low    #0d1322 */
+  --ds-card:    17 24 39;      /* Surface Tier 1 / cards   #111827 */
+  --ds-high:    24 34 54;      /* surface-container-high   #182236 */
+  --ds-highest: 31 43 68;      /* surface-container-highest #1f2b44 */
+  --ds-input:   24 34 54;
+
+  --ds-ink:     241 245 249;   /* Text Primary   #f1f5f9 */
+  --ds-ink-2:   226 232 240;
+  --ds-mute:    148 163 184;   /* Text Secondary #94a3b8 */
+  --ds-faint:   124 138 165;   /* tertiary, lifted from #64748b so small text keeps 4.5:1 */
+
+  --ds-line: 255 255 255;
+  --ds-line-a: .08;
+  --ds-line-soft-a: .05;
+  --ds-line-strong-a: .16;
+  --ds-line-hover-a: .2;
+
+  --ds-accent: 129 140 248;    /* #818cf8 — text / icons on dark */
+  --ds-fill:   79 70 229;      /* #4f46e5 — button fill start */
+  --ds-fill-2: 124 58 237;     /* #7c3aed — button fill end */
+  --ds-accent-soft-a: .14;
+  --ds-accent-line-a: .32;
+  --ds-on-accent: 15 23 42;     /* dark label on the light lilac fill: 6:1, white would be 3:1 */
+
+  --ds-ok: 52 211 153;
+  --ds-warn: 251 191 36;
+  --ds-bad: 248 113 113;
+  --ds-info: 56 189 248;
+
+  --ds-header-bg: rgb(9 13 22 / .86);
+  --ds-header-bg-solid: rgb(9 13 22 / .96);
+  --ds-foot-bg: 6 9 16;
+  --ds-foot-ink: 241 245 249;
+  --ds-foot-mute: 148 163 184;
+  --ds-foot-line: rgb(255 255 255 / .08);
+
+  --ds-shadow-card: none;
+  --ds-shadow-pop: 0 20px 40px -15px rgb(0 0 0 / .65);
+  --ds-shadow-btn: inset 0 1px 0 rgb(255 255 255 / .18), 0 8px 22px -8px rgb(var(--ds-fill) / .7);
+  /* The one signature move: every "this has been checked" signal (verified
+     badge, active review step, avatar ring) shares this soft accent glow. */
+  --ds-glow: 0 0 0 1px rgb(var(--ds-accent) / .35), 0 0 20px -4px rgb(var(--ds-accent) / .55);
+
+  --ds-ambient:
+    radial-gradient(900px 520px at 12% -8%, rgb(99 102 241 / .11), transparent 62%),
+    radial-gradient(760px 480px at 92% -4%, rgb(139 92 246 / .08), transparent 60%);
+}
+
+/* ── Light · indigo ──────────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  --ds-canvas:  248 250 252;
+  --ds-lowest:  241 245 249;
+  --ds-low:     255 255 255;
+  --ds-card:    255 255 255;
+  --ds-high:    241 245 249;
+  --ds-highest: 226 232 240;
+  --ds-input:   255 255 255;
+
+  --ds-ink:     15 23 42;
+  --ds-ink-2:   30 41 59;
+  --ds-mute:    71 85 105;
+  --ds-faint:   100 116 139;
+
+  --ds-line: 15 23 42;
+  --ds-line-a: .09;
+  --ds-line-soft-a: .06;
+  --ds-line-strong-a: .16;
+  --ds-line-hover-a: .24;
+
+  --ds-accent: 79 70 229;
+  --ds-fill:   79 70 229;
+  --ds-fill-2: 124 58 237;
+  --ds-accent-soft-a: .09;
+  --ds-accent-line-a: .28;
+  --ds-on-accent: 255 255 255;
+
+  --ds-ok: 4 120 87;
+  --ds-warn: 180 83 9;
+  --ds-bad: 220 38 38;
+  --ds-info: 2 132 199;
+
+  --ds-header-bg: rgb(255 255 255 / .88);
+  --ds-header-bg-solid: rgb(255 255 255 / .96);
+  /* The supplied Courses screen ends on a dark navy footer even in its light
+     theme — same here, so the page has one firm anchor at the bottom. */
+  --ds-foot-bg: 15 23 42;
+  --ds-foot-ink: 241 245 249;
+  --ds-foot-mute: 148 163 184;
+  --ds-foot-line: rgb(255 255 255 / .1);
+
+  --ds-shadow-card: 0 1px 2px rgb(15 23 42 / .05), 0 12px 32px -18px rgb(15 23 42 / .18);
+  --ds-shadow-pop: 0 2px 4px rgb(15 23 42 / .06), 0 20px 44px -18px rgb(15 23 42 / .26);
+  --ds-shadow-btn: inset 0 1px 0 rgb(255 255 255 / .2), 0 8px 18px -8px rgb(var(--ds-fill) / .55);
+  --ds-glow: 0 0 0 1px rgb(var(--ds-accent) / .3), 0 0 16px -4px rgb(var(--ds-accent) / .38);
+
+  --ds-ambient:
+    radial-gradient(900px 520px at 12% -8%, rgb(99 102 241 / .08), transparent 62%),
+    radial-gradient(760px 480px at 92% -4%, rgb(139 92 246 / .06), transparent 60%);
+}
+
+/* ── Accent: emerald (Courses) ───────────────────────────────────────────
+   Light values are the supplied Courses screen's own brand scale
+   (brand-50 #f0fdf4 … brand-700 #15803d). Button fills use brand-700 rather
+   than the mock's brand-600 so white labels keep a 5:1 contrast. */
+:root[data-theme="dark"][data-accent="emerald"] {
+  --ds-accent: 74 222 128;
+  --ds-fill:   21 128 61;
+  --ds-fill-2: 22 101 52;
+  --ds-accent-soft-a: .13;
+  --ds-accent-line-a: .3;
+  --ds-on-accent: 5 46 22;
+  --ds-ambient:
+    radial-gradient(900px 520px at 18% -8%, rgb(34 197 94 / .11), transparent 62%),
+    radial-gradient(760px 480px at 92% -4%, rgb(16 185 129 / .07), transparent 60%);
+}
+:root[data-theme="light"][data-accent="emerald"] {
+  --ds-canvas:  255 255 255;
+  --ds-lowest:  247 254 249;
+  --ds-low:     240 253 244;
+  --ds-high:    240 253 244;
+  --ds-highest: 220 252 231;
+
+  --ds-line: 22 163 74;
+  --ds-line-a: .2;
+  --ds-line-soft-a: .12;
+  --ds-line-strong-a: .34;
+  --ds-line-hover-a: .45;
+
+  --ds-accent: 21 128 61;
+  --ds-fill:   21 128 61;
+  --ds-fill-2: 22 101 52;
+  --ds-accent-soft-a: .1;
+  --ds-accent-line-a: .3;
+  --ds-on-accent: 255 255 255;
+
+  --ds-header-bg: rgb(255 255 255 / .92);
+  --ds-header-bg-solid: rgb(255 255 255 / .97);
+  --ds-shadow-card: 0 1px 2px rgb(15 23 42 / .04), 0 12px 30px -18px rgb(21 128 61 / .22);
+  --ds-ambient:
+    linear-gradient(180deg, rgb(240 253 244) 0%, rgb(255 255 255) 100%);
+}
+
+/* Display gradient (hero headline): white-indigo → violet → cyan on dark,
+   deeper stops on light so large type keeps its contrast. */
+:root, :root[data-theme="dark"] { --ds-grad-a: 165 180 252; --ds-grad-b: 196 181 253; --ds-grad-c: 103 232 249; }
+:root[data-theme="light"] { --ds-grad-a: 79 70 229; --ds-grad-b: 124 58 237; --ds-grad-c: 8 145 178; }
+.ds-gradient-text {
+  background: linear-gradient(110deg, rgb(var(--ds-grad-a)), rgb(var(--ds-grad-b)) 55%, rgb(var(--ds-grad-c)));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ── Scope ────────────────────────────────────────────────────────────── */
+.ds {
+  font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: rgb(var(--ds-ink));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+/* :where() keeps these resets at zero specificity so any utility class wins. */
+:where(.ds) a { color: inherit; text-decoration: none; }
+:where(.ds) button { font-family: inherit; cursor: pointer; }
+:where(.ds) :focus-visible { outline: 2px solid rgb(var(--ds-accent)); outline-offset: 2px; }
+:where(.ds) ::selection { background: rgb(var(--ds-fill)); color: #fff; }
+
+/* Content column: 1280px cap, 20px gutters on phones, 32px from tablet up. */
+.ds-wrap { width: 100%; max-width: 1280px; margin-inline: auto; padding-inline: 1.25rem; }
+@media (min-width: 768px) { .ds-wrap { padding-inline: 2rem; } }
+
+/* Vertical rhythm between landing sections (space-2xl / space-3xl). */
+.ds-section { padding-block: 3rem; }
+@media (min-width: 768px)  { .ds-section { padding-block: 4rem; } }
+@media (min-width: 1024px) { .ds-section { padding-block: 5rem; } }
+
+/* Ambient wash behind a page's top area. */
+.ds-ambient { position: absolute; inset: 0; pointer-events: none; background: var(--ds-ambient); }
+
+/* ── Cards ────────────────────────────────────────────────────────────── */
+.ds-card {
+  background: rgb(var(--ds-card));
+  border: 1px solid rgb(var(--ds-line) / var(--ds-line-a));
+  border-radius: 16px;
+  box-shadow: var(--ds-shadow-card);
+}
+.ds-card-hover {
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1), border-color .22s, box-shadow .22s;
+}
+@media (hover: hover) {
+  .ds-card-hover:hover {
+    transform: translateY(-2px);
+    border-color: rgb(var(--ds-line) / var(--ds-line-hover-a));
+    box-shadow: var(--ds-shadow-pop);
+  }
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.ds-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  min-height: 40px; padding: 0 1rem;
+  border: 1px solid transparent; border-radius: 10px;
+  font-size: .875rem; line-height: 1.25rem; font-weight: 600; letter-spacing: .01em;
+  white-space: nowrap; user-select: none;
+  transition: transform .18s, filter .18s, background-color .18s, border-color .18s, color .18s, box-shadow .18s;
+}
+.ds-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ds-btn-sm { min-height: 34px; padding: 0 .75rem; font-size: .8125rem; border-radius: 8px; }
+.ds-btn-lg { min-height: 48px; padding: 0 1.5rem; font-size: .9375rem; border-radius: 12px; }
+
+.ds-btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, rgb(var(--ds-fill)), rgb(var(--ds-fill-2)));
+  box-shadow: var(--ds-shadow-btn);
+}
+@media (hover: hover) {
+  .ds-btn-primary:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
+}
+.ds-btn-primary:active:not(:disabled) { transform: translateY(0); filter: brightness(.96); }
+
+.ds-btn-glass {
+  color: rgb(var(--ds-ink));
+  background: rgb(var(--ds-high) / .7);
+  border-color: rgb(var(--ds-line) / var(--ds-line-strong-a));
+}
+.ds-btn-glass:hover:not(:disabled) { background: rgb(var(--ds-highest) / .85); }
+
+.ds-btn-ghost { color: rgb(var(--ds-mute)); background: transparent; }
+.ds-btn-ghost:hover:not(:disabled) { color: rgb(var(--ds-ink)); background: rgb(var(--ds-line) / .07); }
+
+/* White button for use on a gradient (CTA band). */
+.ds-btn-white { color: #4338ca; background: #fff; box-shadow: 0 10px 24px -12px rgb(0 0 0 / .5); }
+.ds-btn-white:hover { filter: brightness(.96); transform: translateY(-1px); }
+.ds-btn-outline-white { color: #fff; background: rgb(255 255 255 / .12); border-color: rgb(255 255 255 / .38); }
+.ds-btn-outline-white:hover { background: rgb(255 255 255 / .2); }
+
+/* ── Chips / pills ────────────────────────────────────────────────────── */
+.ds-chip {
+  display: inline-flex; align-items: center; gap: .375rem;
+  padding: .25rem .625rem; border-radius: 9999px;
+  font-size: .75rem; line-height: 1rem; font-weight: 600; letter-spacing: .02em;
+  color: rgb(var(--ds-mute));
+  background: rgb(var(--ds-high));
+  border: 1px solid rgb(var(--ds-line) / var(--ds-line-soft-a));
+}
+.ds-chip-accent {
+  color: rgb(var(--ds-accent));
+  background: rgb(var(--ds-accent) / var(--ds-accent-soft-a));
+  border-color: rgb(var(--ds-accent) / var(--ds-accent-line-a));
+}
+.ds-verified { box-shadow: var(--ds-glow); }
+
+/* Filter pill (category / segmented options). aria-pressed drives the state. */
+.ds-pill {
+  display: inline-flex; align-items: center; gap: .375rem; flex: none;
+  min-height: 34px; padding: 0 .875rem; border-radius: 9999px;
+  font-size: .8125rem; line-height: 1.125rem; font-weight: 600; white-space: nowrap;
+  color: rgb(var(--ds-mute)); background: transparent;
+  border: 1px solid rgb(var(--ds-line) / var(--ds-line-a));
+  transition: color .18s, background-color .18s, border-color .18s, box-shadow .18s;
+}
+.ds-pill:hover { color: rgb(var(--ds-ink)); border-color: rgb(var(--ds-line) / var(--ds-line-strong-a)); }
+.ds-pill[aria-pressed="true"] {
+  color: #fff; border-color: transparent;
+  background: linear-gradient(135deg, rgb(var(--ds-fill)), rgb(var(--ds-fill-2)));
+  box-shadow: var(--ds-shadow-btn);
+}
+
+/* Pagination button (also used for prev/next). Tonal like the supplied screen:
+   a raised surface, no outline; the current page is the solid accent. */
+.ds-pagebtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 40px; height: 40px; padding: 0 .25rem; border-radius: 12px;
+  font-size: .8125rem; line-height: 1; font-weight: 700; user-select: none;
+  color: rgb(var(--ds-mute)); background: rgb(var(--ds-high));
+  border: 1px solid transparent;
+  transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, opacity .15s;
+}
+@media (min-width: 640px) { .ds-pagebtn { min-width: 36px; height: 36px; } }
+.ds-pagebtn:hover:not(:disabled):not([aria-current="page"]) { color: rgb(var(--ds-ink)); background: rgb(var(--ds-highest)); }
+.ds-pagebtn:disabled { opacity: .4; cursor: default; }
+.ds-pagebtn[aria-current="page"] {
+  color: rgb(var(--ds-on-accent)); background: rgb(var(--ds-accent)); cursor: default;
+  box-shadow: 0 6px 16px -8px rgb(var(--ds-accent) / .7);
+}
+/* On a light page the raised surface needs an outline to read. */
+:root[data-theme="light"] .ds-pagebtn:not([aria-current="page"]) { background: rgb(var(--ds-card)); border-color: rgb(var(--ds-line) / var(--ds-line-a)); }
+
+/* ── Tonal surfaces ───────────────────────────────────────────────────────
+   The supplied Freelancers screen builds depth by stacking surface tiers
+   (canvas → low → card → high → highest) instead of drawing hairlines.
+   .ds-tonal is a panel on the "low" tier; its hover steps up one tier. */
+.ds-tonal { background: rgb(var(--ds-low)); border-radius: 16px; box-shadow: var(--ds-shadow-card); border: 1px solid rgb(var(--ds-line) / var(--ds-line-a)); }
+.ds-tonal-hover { transition: background-color .2s, box-shadow .2s, border-color .2s, transform .2s; }
+@media (hover: hover) {
+  /* DESIGN.md "Cards" spec: subtle -2px lift with border brightness
+     stepping from --ds-line-a (.08) to --ds-line-hover-a (.2) on hover. */
+  .ds-tonal-hover:hover { background: rgb(var(--ds-card)); border-color: rgb(var(--ds-line) / var(--ds-line-hover-a)); transform: translateY(-2px); }
+  :root[data-theme="light"] .ds-tonal-hover:hover { box-shadow: var(--ds-shadow-pop); }
+}
+/* One tier above .ds-tonal — cards that sit on a tonal band. */
+.ds-tonal-up { background: rgb(var(--ds-card)); border-radius: 16px; }
+:root[data-theme="light"] .ds-tonal-up { background: rgb(var(--ds-canvas)); border: 1px solid rgb(var(--ds-line) / var(--ds-line-a)); }
+/* Segmented option (category chips in the toolbar): a squarer chip than .ds-pill. */
+.ds-seg {
+  flex: none; white-space: nowrap; border-radius: 8px; padding: .5rem .875rem;
+  font-size: .75rem; line-height: 1rem; font-weight: 600;
+  color: rgb(var(--ds-mute)); background: rgb(var(--ds-card));
+  transition: background-color .15s, color .15s;
+}
+:root[data-theme="light"] .ds-seg { background: rgb(var(--ds-high)); }
+.ds-seg:hover { color: rgb(var(--ds-ink)); background: rgb(var(--ds-high)); }
+:root[data-theme="light"] .ds-seg:hover { background: rgb(var(--ds-highest)); }
+.ds-seg[aria-pressed="true"] { color: rgb(var(--ds-ink)); background: rgb(var(--ds-highest)); }
+/* A cell inside a tonal panel (search fields, stat tiles on a card). */
+.ds-cell { background: rgb(var(--ds-high)); border-radius: 12px; }
+/* Skill / keyword tag: squarer than a chip, borderless. */
+.ds-tag {
+  display: inline-flex; align-items: center; padding: .25rem .625rem; border-radius: 6px;
+  font-size: .75rem; line-height: 1rem; font-weight: 600; letter-spacing: .02em;
+  color: rgb(var(--ds-mute)); background: rgb(var(--ds-high));
+}
+/* Flat accent button (the card CTA in the supplied screen) and tonal button. */
+.ds-btn-accent { color: rgb(var(--ds-on-accent)); background: rgb(var(--ds-accent)); }
+.ds-btn-accent:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-1px); }
+.ds-btn-tonal { color: rgb(var(--ds-ink)); background: rgb(var(--ds-high)); }
+.ds-btn-tonal:hover:not(:disabled) { background: rgb(var(--ds-highest)); }
+/* Ghosted hero illustration: screen-blended and faint on dark, multiplied and fainter on light. */
+.ds-hero-art { mix-blend-mode: screen; opacity: .2; filter: contrast(1.25); }
+:root[data-theme="light"] .ds-hero-art { mix-blend-mode: multiply; opacity: .1; filter: none; }
+
+/* ── Form controls ────────────────────────────────────────────────────── */
+.ds-input {
+  width: 100%; min-height: 44px; padding: .625rem .875rem;
+  border-radius: 12px; border: 1px solid rgb(var(--ds-line) / var(--ds-line-a));
+  background: rgb(var(--ds-input)); color: rgb(var(--ds-ink));
+  font: inherit; font-size: .9375rem; outline: none;
+  transition: border-color .18s, box-shadow .18s, background-color .18s;
+}
+.ds-input::placeholder { color: rgb(var(--ds-faint)); }
+.ds-input:focus { border-color: rgb(var(--ds-accent)); box-shadow: 0 0 0 3px rgb(var(--ds-accent) / .2); }
+select.ds-input { appearance: none; -webkit-appearance: none; cursor: pointer; }
+.ds select option { background: rgb(var(--ds-card)); color: rgb(var(--ds-ink)); }
+
+/* A search bar: icon + input (+ inset button) sharing one focus ring. */
+.ds-search {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .375rem; border-radius: 14px;
+  background: rgb(var(--ds-input));
+  border: 1px solid rgb(var(--ds-line) / var(--ds-line-a));
+  box-shadow: var(--ds-shadow-card);
+  transition: border-color .18s, box-shadow .18s;
+}
+.ds-search:focus-within { border-color: rgb(var(--ds-accent)); box-shadow: 0 0 0 3px rgb(var(--ds-accent) / .2); }
+.ds-search input {
+  flex: 1; min-width: 0; min-height: 40px; background: transparent; border: 0; outline: 0;
+  color: rgb(var(--ds-ink)); font: inherit; font-size: .9375rem;
+}
+.ds-search input::placeholder { color: rgb(var(--ds-faint)); }
+
+/* ── Misc ─────────────────────────────────────────────────────────────── */
+/* Horizontal scroller: edge-to-edge on phones, momentum + snap, no bar. */
+.ds-snap-x {
+  display: flex; gap: .75rem; overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.ds-snap-x::-webkit-scrollbar { display: none; }
+.ds-snap-x > * { scroll-snap-align: start; flex: none; }
+.ds-scroll-x { display: flex; gap: .5rem; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.ds-scroll-x::-webkit-scrollbar { display: none; }
+
+.ds-skeleton {
+  background: linear-gradient(90deg, rgb(var(--ds-high)) 0%, rgb(var(--ds-highest)) 50%, rgb(var(--ds-high)) 100%);
+  background-size: 200% 100%;
+  animation: dsShimmer 1.4s ease-in-out infinite;
+}
+@keyframes dsShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@keyframes dsPulse   { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+@keyframes dsSpin    { to { transform: rotate(360deg); } }
+
+.ds-dot { display: inline-block; width: 7px; height: 7px; border-radius: 9999px; background: currentColor; box-shadow: 0 0 8px currentColor; flex: none; }
+.ds-dot-live { animation: dsPulse 2.2s ease-in-out infinite; }
+
+/* Demo-video card (Home): lifts and glows on hover; the play ring swells. */
+.ds-demo { transition: transform .28s cubic-bezier(.16, 1, .3, 1), box-shadow .28s cubic-bezier(.16, 1, .3, 1), border-color .28s; }
+.ds-demo-play { transition: transform .25s cubic-bezier(.16, 1, .3, 1); }
+@media (hover: hover) {
+  .ds-demo:hover, .ds-demo:focus-visible {
+    transform: translateY(-4px);
+    border-color: rgb(129 140 248 / .45);
+    box-shadow: 0 32px 70px -26px rgb(0 0 0 / .65), 0 0 0 1px rgb(129 140 248 / .35), 0 0 42px -10px rgb(129 140 248 / .4) !important;
+  }
+  .ds-demo:hover .ds-demo-play, .ds-demo:focus-visible .ds-demo-play { transform: scale(1.08); }
+}
+
+/* Material Symbols helper (the base class lives in index.css). */
+.ds-icon-fill { font-variation-settings: 'FILL' 1; }
+
+/* ── Brand lockup ─────────────────────────────────────────────────────────
+   The logo image and the "Fama Mennou" wordmark keep one look on every page:
+   "Fama" in the page's text colour, "Mennou" in this fixed lilac — in the header,
+   the phone menu and the footer, in either theme, whatever accent the page
+   (Courses = emerald) uses for everything else. */
+.ds-brand-accent { color: #9b8cff; }
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+.ds-header {
+  background: var(--ds-header-bg);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid rgb(var(--ds-line) / var(--ds-line-a));
+  transition: background-color .25s, box-shadow .25s;
+}
+.ds-header.is-scrolled { background: var(--ds-header-bg-solid); box-shadow: 0 10px 30px -20px rgb(0 0 0 / .55); }
+
+.ds-navlink {
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .5rem .8rem; border-radius: 10px; border: 1px solid transparent;
+  font-size: .875rem; line-height: 1.25rem; font-weight: 600; white-space: nowrap;
+  color: rgb(var(--ds-mute));
+  transition: color .15s, background-color .15s, border-color .15s;
+}
+.ds-navlink:hover { color: rgb(var(--ds-ink)); background: rgb(var(--ds-line) / .07); }
+.ds-navlink[aria-current="page"] {
+  color: rgb(var(--ds-accent));
+  background: rgb(var(--ds-accent) / var(--ds-accent-soft-a));
+  border-color: rgb(var(--ds-accent) / var(--ds-accent-line-a));
+}
+
+.ds-iconbtn {
+  position: relative; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 10px;
+  color: rgb(var(--ds-mute)); background: transparent; border: 1px solid transparent;
+  transition: color .15s, background-color .15s, border-color .15s;
+}
+.ds-iconbtn:hover, .ds-iconbtn[aria-expanded="true"] { color: rgb(var(--ds-ink)); background: rgb(var(--ds-line) / .08); }
+.ds-iconbtn-boxed { border-color: rgb(var(--ds-line) / var(--ds-line-a)); background: rgb(var(--ds-line) / .05); }
+
+.ds-count-badge {
+  position: absolute; top: 2px; inset-inline-end: 2px;
+  min-width: 16px; height: 16px; padding: 0 4px; border-radius: 9999px;
+  font-size: 9px; font-weight: 800; line-height: 16px; text-align: center; color: #fff;
+}
+
+/* Floating panels (menus, notifications, language list). */
+.ds-pop {
+  background: rgb(var(--ds-card));
+  border: 1px solid rgb(var(--ds-line) / var(--ds-line-strong-a));
+  border-radius: 16px;
+  box-shadow: var(--ds-shadow-pop);
+}
+.ds-menuitem {
+  display: flex; align-items: center; gap: .65rem; width: 100%;
+  padding: .55rem .9rem; font-size: .8125rem; line-height: 1.25rem; font-weight: 500;
+  color: rgb(var(--ds-ink-2)); background: transparent; border: 0; text-align: start;
+  transition: background-color .15s, color .15s;
+}
+.ds-menuitem:hover, .ds-menuitem[aria-current="true"] { background: rgb(var(--ds-line) / .06); color: rgb(var(--ds-ink)); }
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+.ds-footer {
+  background: rgb(var(--ds-foot-bg));
+  color: rgb(var(--ds-foot-mute));
+  border-top: 1px solid rgb(var(--ds-line) / var(--ds-line-a));
+}
+.ds-footer a:hover { color: rgb(var(--ds-foot-ink)); }
+.ds-foot-title {
+  margin: 0 0 .9rem; font-size: .6875rem; line-height: 1rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: rgb(var(--ds-foot-ink));
+}
+.ds-foot-link { display: inline-block; padding: .5rem 0; font-size: .875rem; line-height: 1.25rem; color: rgb(var(--ds-foot-mute)); transition: color .15s; }
+.ds-foot-social {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border-radius: 12px; color: rgb(var(--ds-foot-mute));
+  background: rgb(255 255 255 / .05); border: 1px solid var(--ds-foot-line);
+  transition: color .15s, background-color .15s, border-color .15s, transform .15s;
+}
+.ds-foot-social:hover { color: #fff; background: rgb(255 255 255 / .1); transform: translateY(-1px); }
+.ds-foot-chip {
+  display: inline-flex; align-items: center; padding: .25rem .625rem; border-radius: 9999px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .75rem; line-height: 1rem;
+  color: rgb(var(--ds-foot-mute)); background: rgb(255 255 255 / .05); border: 1px solid var(--ds-foot-line);
+}
+
+/* ── Auth (login / sign-up) ───────────────────────────────────────────────
+   One split screen for every auth step: a brand panel beside the form, which sits
+   on the page canvas. The panel is always the OPPOSITE of the page — dark beside a
+   light form, light beside a dark form — so the theme toggle swaps the two sides.
+   Its colours are the --ap-* roles below, never hard-coded in the markup, and each
+   set keeps every line of text at 7:1 or better against its own surface
+   (ink 17.9:1 and mute 7.1:1 on the dark panel, ink 17.9:1 and mute 7.6:1 on the light one). */
+@keyframes dsAuthIn      { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes dsAuthShellIn { from { opacity: 0; } to { opacity: 1; } }
+.ds-auth-shell { animation: dsAuthShellIn .22s ease-out both; }
+.ds-auth-in    { animation: dsAuthIn .34s cubic-bezier(.22, 1, .36, 1) both; }
+
+.ds-auth-panel {
+  /* Page dark → light panel (white, slate text, indigo accents). Also what applies before a theme is set,
+     exactly like the dark default at the top of this file. */
+  --ap-bg: 255 255 255;
+  --ap-ink: 15 23 42;                       /* headings, figures        #0f172a on #fff 17.9:1 */
+  --ap-mute: 71 85 105;                     /* body and captions        #475569 on #fff  7.6:1 */
+  --ap-accent: 67 56 202;                   /* icon glyphs              #4338ca on its tile 6.8:1 */
+  --ap-chip: 79 70 229;   --ap-chip-a: .1;  /* icon tile */
+  --ap-edge: 15 23 42;    --ap-line-a: .12;  --ap-tint-a: .04;   /* hairlines and the faint card fill */
+  --ap-glow-1: 129 140 248; --ap-glow-2: 167 139 250; --ap-glow-a: .22;
+  --ap-grid-a: .05;
+
+  position: relative; overflow: hidden; isolation: isolate;
+  background: rgb(var(--ap-bg)); color: rgb(var(--ap-mute));
+  border-inline-end: 1px solid rgb(var(--ap-edge) / var(--ap-line-a));
+}
+/* Page light → dark panel (the footer's navy, white text, lilac accents). */
+:root[data-theme="light"] .ds-auth-panel {
+  --ap-bg: 15 23 42;
+  --ap-ink: 255 255 255;                    /* 17.9:1 */
+  --ap-mute: 148 163 184;                   /* #94a3b8 on #0f172a 7.1:1 */
+  --ap-accent: 165 180 252;
+  --ap-chip: 99 102 241;  --ap-chip-a: .15;
+  --ap-edge: 255 255 255; --ap-line-a: .1;   --ap-tint-a: .03;
+  --ap-glow-1: 79 70 229;   --ap-glow-2: 109 40 217;   --ap-glow-a: .25;
+  --ap-grid-a: .03;
+}
+.ds-auth-panel::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-size: 48px 48px;
+  background-image:
+    linear-gradient(to right, rgb(var(--ap-edge) / var(--ap-grid-a)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--ap-edge) / var(--ap-grid-a)) 1px, transparent 1px);
+  -webkit-mask-image: radial-gradient(130% 100% at 15% 0%, #000 35%, transparent 90%);
+          mask-image: radial-gradient(130% 100% at 15% 0%, #000 35%, transparent 90%);
+}
+.ds-auth-glow { position: absolute; z-index: -1; width: 24rem; height: 24rem; border-radius: 9999px; filter: blur(120px); pointer-events: none; }
+/* The payment chips are the footer's; on this panel they take the panel's colours instead. */
+.ds-auth-panel .ds-foot-chip { color: rgb(var(--ap-mute)); background: rgb(var(--ap-edge) / .05); border-color: rgb(var(--ap-edge) / var(--ap-line-a)); }
+/* On this screen text and background swap places (light text on dark ↔ dark text on light). The site's 0.5s colour
+   cross-fade (index.css, `.theme-transition`) fades them separately, so for a moment both sit at the same grey and the
+   words disappear. Here it is a quick dissolve instead: the swap still reads as one move and the text is only
+   washed out for a few frames. (Visitors who ask for reduced motion get no cross-fade at all, as everywhere.) */
+.theme-transition .ds-auth-shell,
+.theme-transition .ds-auth-shell *,
+.theme-transition .ds-auth-shell *::before,
+.theme-transition .ds-auth-shell *::after { transition-duration: .16s !important; }
+/* The panel never has to scroll: the shorter the window, the less of it is shown. */
+@media (max-height: 929px) { .ds-auth-shell .ap-stats { display: none; } }
+@media (max-height: 829px) {
+  .ds-auth-shell .ap-point-text { display: none; }
+  .ds-auth-shell .ds-auth-panel { gap: 1.5rem; padding-block: 2rem; }
+}
+@media (max-height: 719px) {
+  .ds-auth-shell .ap-points { margin-top: -.25rem; }
+  .ds-auth-shell .ap-points > li { padding: 0; border-color: transparent; background: transparent; }
+}
+@media (max-height: 559px) { .ds-auth-shell .ap-points { display: none; } }
+/* A field that gets focus after a failed submit stops below the sticky header, not under it. */
+.ds-auth-form .ds-input, .ds-auth-form [data-invalid="true"] { scroll-margin-block: 7rem 4rem; }
+/* Until the icon font arrives a glyph shows as its name ("expand_more"…). Boxing every icon here to one em keeps those
+   words from pushing the header and the fields around in the meantime; once the font is in, nothing changes. */
+.ds-auth-shell .material-symbols-outlined { width: 1em; overflow: hidden; }
+
+/* An invalid control gets a red border and a red focus ring; aria-invalid carries it to screen readers too. */
+.ds-input[aria-invalid="true"] { border-color: rgb(var(--ds-bad) / .65); }
+.ds-input[aria-invalid="true"]:focus { border-color: rgb(var(--ds-bad)); box-shadow: 0 0 0 3px rgb(var(--ds-bad) / .18); }
+/* One-time code: large, centred, monospaced digits. */
+.ds-code { text-align: center; letter-spacing: .5em; text-indent: .5em; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 1.5rem; font-weight: 600; }
+/* A wrong code: the six cells shake once. Visitors who ask for reduced motion get no
+   animation (the `.ds *` rule at the bottom of this file silences it). */
+@keyframes dsShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+.ds-shake { animation: dsShake .38s cubic-bezier(.36, .07, .19, .97) both; }
+/* Native date pickers keep their own glyph legible on a dark control. */
+:root[data-theme="dark"] .ds-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.8); cursor: pointer; }
+/* 16px controls on a phone: anything smaller makes iOS zoom the page when a field gets focus. */
+@media (max-width: 639px) { .ds-auth-form .ds-input { font-size: 16px; } }
+/* Arabic letters join up: any tracking would pull the words apart (the one-time code is digits, so it keeps its own). */
+html[dir="rtl"] .ds-auth-shell :where(*):not(.ds-code) { letter-spacing: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds *, .ds *::before, .ds *::after {
+    animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important; scroll-behavior: auto !important;
+  }
+}

@@ -5,9 +5,12 @@ import { useAuth } from '../context/AuthContext';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { uploadVideo, uploadImage, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
+import { budgetLabel } from '../utils/budget';
 import { toast } from '../components/Toast';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import { useTypewriter, TypeCursor, TypeCursorStyle } from '../hooks/useTypewriter';
+import { firstWord, getInitials } from '../utils/names';
+import { profileSaveError } from '../utils/profileErrors';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -29,9 +32,6 @@ const AVATAR_COLORS = [
 
 function getGradient(email = '') {
   return AVATAR_COLORS[email.charCodeAt(0) % AVATAR_COLORS.length];
-}
-function getInitials(name = '') {
-  return name.trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
 function Avi({ user, size = 'md' }) {
@@ -180,7 +180,6 @@ const PC = {
   text:'var(--fm-text-2)', sub:'var(--fm-text-5)', muted:'var(--fm-text-7)',
 };
 const getTint_P = s => { const p=['var(--fm-primary)','#a855f7','#3b82f6','#0ea5e9','var(--fm-success)','var(--fm-warning)','#f43f5e']; return p[((s||'').charCodeAt(0)||0)%p.length]; };
-const getInits_P = n => (n||'').trim().split(/\s+/).map(w=>w[0]?.toUpperCase()||'').slice(0,2).join('');
 const PINP = { width:'100%', boxSizing:'border-box', padding:'13px 16px', borderRadius:14, background:'var(--fm-border-soft)', border:'1.5px solid var(--fm-border)', color:'var(--fm-text-2)', fontSize:14, outline:'none', fontFamily:'inherit', transition:'border-color .2s, background .2s, box-shadow .2s' };
 const focusOn_P  = e => { e.target.style.borderColor='rgba(124,108,246,0.55)'; e.target.style.background='var(--fm-primary-soft)'; e.target.style.boxShadow='0 0 0 3px var(--fm-primary-soft-strong), inset 3px 0 0 rgba(124,108,246,0.55)'; };
 const focusOff_P = e => { e.target.style.borderColor='var(--fm-border)'; e.target.style.background='var(--fm-border-soft)'; e.target.style.boxShadow='none'; };
@@ -204,6 +203,15 @@ const PIcEdit      = ({s=19}) => <svg width={s} height={s} fill="none" viewBox="
 const PIcSpark     = ({s=12}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
 const PIcLink      = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>;
 const PIcBriefcase = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>;
+const PIcSettings  = ({s=20}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>;
+const PIcLogout    = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+const PIcWallet    = ({s=18}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5a2 2 0 00-2-2h-4a2 2 0 100 4h4"/></svg>;
+const PIcTrend     = ({s=18}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>;
+const PIcTx        = ({s=18}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>;
+// Shared card chrome for the "premium" tabs (Profile/Gains/Settings) — gradient
+// top rule + bordered gradient surface, matching ProfileTab's edit-form card.
+const CARD_P = { borderRadius:24, overflow:'hidden', position:'relative', background:'linear-gradient(155deg,var(--fm-primary-soft) 0%,var(--fm-surface) 38%,var(--fm-bg) 100%)', border:'1px solid var(--fm-primary-border)', boxShadow:'0 20px 60px -18px rgba(0,0,0,0.65), 0 0 0 1px var(--fm-border-soft)' };
+const CARD_RULE = { height:2.5, background:'linear-gradient(90deg,#7c6cf6 0%,#a78bfa 55%,#6366f1 100%)' };
 
 // Greeting typed out live on every visit — "Bon après-midi, Karim 😊" appears
 // character by character instead of snapping in all at once. Same
@@ -280,22 +288,27 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
     if (!skillsInput.trim()) { setPortfolioError('Ajoutez au moins une compétence (ex: Design, Marketing...)'); return; }
     setPortfolioError('');
     setSaving(true);
-    try {
-      await updateUser(user.email, { bio, title, portfolio_url: portfolioUrl, skills: skillsInput.trim() });
-      fetch(`${API}/notifications`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'user', kind: `profile_saved_${Date.now()}`,
-          title: t('fd.notif_updated_title'),
-          message: t('fd.notif_updated_msg'),
-          email: user.email, name: user.name,
-        }),
-      }).catch(() => {});
-      setSaved(true);
-      setProfileLive(true);
-      setTimeout(() => { setSaved(false); navigate('/freelancers'); }, 3000);
-    } catch {}
+    // The profile is complete only once the server has accepted it — a refusal says why and keeps the person here.
+    const res = await updateUser(user.email, { bio: bio.trim(), title, portfolio_url: portfolioUrl, skills: skillsInput.trim() });
+    if (res?.error) {
+      setPortfolioError(profileSaveError(res, t));
+      setSaving(false);
+      return;
+    }
+    fetch(`${API}/notifications`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'user', kind: `profile_saved_${Date.now()}`,
+        title: t('fd.notif_updated_title'),
+        message: t('fd.notif_updated_msg'),
+        email: user.email, name: user.name,
+      }),
+    }).catch(() => {});
+    setSaved(true);
+    setProfileLive(true);
     setSaving(false);
+    // Straight on to "Hire a freelancer", where their own card is waiting at the top (FreelancersPage reads the flag).
+    navigate('/freelancers', { state: { profileCompleted: true } });
   }
 
   async function savePhoto(newPhoto) {
@@ -323,10 +336,10 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
 
   // ── UI-only computed values ──
   const tintP      = getTint_P(user.email || '');
-  const initsP     = getInits_P(user.name || user.email);
+  const initsP     = getInitials(user.name || user.email);
   const hour       = new Date().getHours();
   const greeting   = hour < 12 ? t('dash.greet.morning') : hour < 18 ? t('dash.greet.afternoon') : t('dash.greet.evening');
-  const firstName  = (user.name || 'Freelancer').split(' ')[0];
+  const firstName  = firstWord(user.name) || 'Freelancer';
   const avatarSrc  = photo || user.photo;
 
   const cinStatus   = user.cinStatus;
@@ -392,6 +405,13 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
               <span style={{ color:statusColor, fontSize:12, fontWeight:700 }}>
                 {isApproved ? t('dash.badge.verified') : isPending ? t('dash.badge.pending') : t('dash.badge.not_verified')}
               </span>
+              <button onClick={() => navigate(`/profile/${encodeURIComponent(user.email)}`)}
+                style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:4, background:'none', border:'none', padding:0, cursor:'pointer', fontSize:11.5, fontWeight:700, color:PC.muted, transition:'color .15s' }}
+                onMouseEnter={e => e.currentTarget.style.color = PC.accentMid}
+                onMouseLeave={e => e.currentTarget.style.color = PC.muted}>
+                {t('fd.view_public_profile')}
+                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </button>
             </div>
           </div>
 
@@ -400,7 +420,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
             <div style={{ position:'relative', flexShrink:0 }}>
               <div style={{ width:96, height:96, borderRadius:24, overflow:'hidden', background:`linear-gradient(135deg,${tintP}30,${tintP}10)`, color:tintP, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:30, letterSpacing:'-0.02em', border:`2px solid ${tintP}45`, boxShadow:`0 0 0 5px ${tintP}12, 0 20px 48px -12px ${tintP}45` }}>
                 {avatarSrc
-                  ? <img src={avatarSrc.startsWith('data:') ? avatarSrc : cldImg(avatarSrc)} alt={user.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none'; }}/>
+                  ? <img src={avatarSrc.startsWith('data:') ? avatarSrc : cldImg(avatarSrc)} alt={firstWord(user.name)} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none'; }}/>
                   : initsP}
               </div>
               <button onClick={() => photoRef.current?.click()} style={{ position:'absolute', bottom:-5, right:-5, width:34, height:34, borderRadius:12, background:`linear-gradient(135deg,${PC.accent},#6254d4)`, border:'2.5px solid var(--fm-bg)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#fff', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.75)', transition:'all .18s cubic-bezier(.4,0,.2,1)' }}
@@ -411,7 +431,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
               <input type="file" accept="image/*" ref={photoRef} style={{ display:'none' }} onChange={handlePhotoFile}/>
             </div>
             <div style={{ flex:1, minWidth:0, paddingTop:4 }}>
-              <p style={{ fontSize:24, fontWeight:900, color:PC.text, margin:'0 0 4px', letterSpacing:'-0.028em', lineHeight:1.1 }}>{user.name || '—'}</p>
+              <p style={{ fontSize:24, fontWeight:900, color:PC.text, margin:'0 0 4px', letterSpacing:'-0.028em', lineHeight:1.1 }}>{firstWord(user.name) || '—'}</p>
               {(title || user.title) && (
                 <p style={{ fontSize:12.5, fontWeight:700, color:PC.accentMid, margin:'0 0 8px', textTransform:'uppercase', letterSpacing:'0.05em' }}>{title || user.title}</p>
               )}
@@ -569,7 +589,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
               )}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
                 <p style={{ fontSize:12, color:PC.muted, margin:0, lineHeight:1.6 }}>{t('cd.changes_immediate')}</p>
-                <button onClick={handleSave} disabled={saving} className="cd-save-btn"
+                <button onClick={handleSave} disabled={saving} className="fd-save-btn"
                   style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:10, padding:'14px 34px', borderRadius:16, background:'linear-gradient(135deg,#7c6cf6 0%,#5e4fd4 100%)', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:14, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 var(--fm-border-strong)', transition:'all .2s cubic-bezier(.4,0,.2,1)', letterSpacing:'0.01em', whiteSpace:'nowrap', position:'relative', overflow:'hidden' }}
                   onMouseEnter={e => { if (!saving) { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 16px 44px -6px rgba(124,108,246,0.78), inset 0 1px 0 var(--fm-border-strong)'; } }}
                   onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 var(--fm-border-strong)'; }}>
@@ -617,7 +637,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
   const getUser = email => (users ?? []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
   const hour     = new Date().getHours();
   const greeting = hour < 12 ? t('dash.greet.morning') : hour < 18 ? t('dash.greet.afternoon') : t('dash.greet.evening');
-  const firstName = user.name?.split(' ')[0] || 'Freelancer';
+  const firstName = firstWord(user.name) || 'Freelancer';
 
   const activeMissions    = missions.filter(p => p.status === 'in_progress').length;
   const completedMissions = missions.filter(p => p.status === 'completed').length;
@@ -686,7 +706,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
                         <p className="text-[10px] text-slate-400 mt-0.5">
-                          {p.budget ? <span className="text-emerald-600 font-semibold">{p.budget}</span> : t('fd.no_budget')}
+                          {budgetLabel(p.budget) ? <span className="text-emerald-600 font-semibold">{budgetLabel(p.budget)}</span> : t('fd.no_budget')}
                           <span className="mx-1.5">·</span>
                           {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short' })}
                         </p>
@@ -755,7 +775,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
                         <Avi user={cl || { email: c.other_email }} size="md" />
                       </div>
                       <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                        {cl?.name?.split(' ')[0] || c.other_email.split('@')[0]}
+                        {firstWord(cl?.name) || c.other_email.split('@')[0]}
                       </p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{cl?.region || t('dash.role.client')}</p>
                       <span className="mt-2 inline-block text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">{t('fd.contact')}</span>
@@ -959,7 +979,7 @@ function FindProjectsTab({ user, navigate }) {
                 </div>
 
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                  {p.budget     && <span className="font-semibold text-emerald-600 dark:text-emerald-400">{p.budget} TND</span>}
+                  {budgetLabel(p.budget) && <span className="font-semibold text-emerald-600 dark:text-emerald-400">{budgetLabel(p.budget)}</span>}
                   {p.experience && <span>Expérience : {p.experience}</span>}
                   {p.period     && <span>Période : {p.period}</span>}
                 </div>
@@ -1076,8 +1096,8 @@ function MissionsTab({ user, users, navigate }) {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
                         <p className="text-xs text-slate-400 mt-0.5">
-                          {client?.name || (p.client_email || p.user_email)}
-                          {p.budget && <><span className="mx-1.5">·</span><span className="text-emerald-600 font-semibold">{p.budget}</span></>}
+                          {firstWord(client?.name) || (p.client_email || p.user_email)}
+                          {budgetLabel(p.budget) && <><span className="mx-1.5">·</span><span className="text-emerald-600 font-semibold">{budgetLabel(p.budget)}</span></>}
                           <span className="mx-1.5">·</span>
                           {new Date(p.created_at).toLocaleDateString('fr-TN', { day: 'numeric', month: 'short' })}
                         </p>
@@ -1164,6 +1184,31 @@ const COURSE_PAY_STATUS = {
   termine:    { label: 'Terminé',    dot: 'var(--fm-success)', desc: 'Paiement confirmé et accès activé. Merci pour votre confiance.',          cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
 };
 
+// One row shape reused by all four Gains lists (completed missions, project
+// payouts, course sales, course purchases) — they were four near-identical
+// hand-copied blocks before; this is the same markup once, parameterized.
+function GainRow({ icon, iconColor, title, sub, dateStr, amount, amountColor, statusLabel, statusColor, note }) {
+  return (
+    <div style={{ padding:'15px 16px', borderRadius:16, background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border-soft)', transition:'border-color .15s, background .15s' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor='var(--fm-primary-border)'; e.currentTarget.style.background='var(--fm-primary-soft)'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor='var(--fm-border-soft)'; e.currentTarget.style.background='var(--fm-surface-hover-soft)'; }}>
+      <div style={{ display:'flex', alignItems:'flex-start', gap:13 }}>
+        <span style={{ width:38, height:38, borderRadius:12, flexShrink:0, background:`${iconColor}18`, border:`1px solid ${iconColor}30`, display:'flex', alignItems:'center', justifyContent:'center', color:iconColor }}>{icon}</span>
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ fontSize:13.5, fontWeight:800, color:PC.text, margin:'0 0 2px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{title}</p>
+          <p style={{ fontSize:11.5, color:PC.muted, margin:0 }}>{sub}</p>
+          <p style={{ fontSize:11, color:PC.muted, margin:'2px 0 0', opacity:0.75 }}>{dateStr}</p>
+        </div>
+        <div style={{ textAlign:'right', flexShrink:0 }}>
+          <p style={{ fontSize:14, fontWeight:900, color:amountColor, margin:0, letterSpacing:'-0.01em' }}>{amount}</p>
+          <span style={{ display:'inline-block', marginTop:5, fontSize:10.5, fontWeight:700, color:statusColor }}>{statusLabel}</span>
+        </div>
+      </div>
+      {note && <p style={{ fontSize:11, color:PC.muted, margin:'10px 0 0', paddingTop:10, borderTop:'1px solid var(--fm-border-soft)' }}>{note}</p>}
+    </div>
+  );
+}
+
 function GainsTab({ user }) {
   const { resolveEmail } = useAuth();
   const [missions,           setMissions]           = useState([]);
@@ -1195,202 +1240,191 @@ function GainsTab({ user }) {
       .then(data => { if (Array.isArray(data)) setInstructorGains(data); });
   }, [user.email]);
 
-  const completed        = missions.filter(m => m.status === 'completed');
   const projectPayments  = missions.filter(m => m.status === 'in_progress' || m.status === 'completed');
   const incoming    = transactions.filter(t => t.direction === 'incoming');
   const totalEarned = incoming.reduce((sum, t) => sum + Number(t.amount || 0), 0);
   const balance     = Number(wallet?.balance || 0);
   const currency    = wallet?.currency || 'TND';
 
+  const completedCoursesBuyer = courseHistory.filter(c => c.payment_status === 'termine');
+  const allDone = [
+    ...missions.filter(m => m.status === 'completed' || m.payment_status === 'termine').map(p => ({ _type: 'project', _key: `p-${p.id}`, title: p.title, amount: `${Number(p.amount || 0).toFixed(2)} TND`, date: p.accepted_at || p.created_at, tag: 'Projet', sub: `Client : ${resolveEmail(p.client_email)}` })),
+    ...instructorGains.map(g => ({ _type: 'course_sale', _key: `s-${g.id}`, title: g.course_title, amount: `+${Number(g.instructor_net || 0).toFixed(2)} TND`, date: g.processed_at || g.requested_at, tag: 'Cours vendu', sub: `Acheteur : ${resolveEmail(g.buyer_email)}` })),
+    ...completedCoursesBuyer.map(c => ({ _type: 'course_buy', _key: `b-${c.id}`, title: c.course_title, amount: `${Number(c.amount || 0).toFixed(2)} TND`, date: c.requested_at, tag: 'Cours acheté', sub: `Instructeur : ${resolveEmail(c.instructor_email)}` })),
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const totalCourseGains = instructorGains.reduce((s, i) => s + Number(i.instructor_net || 0), 0);
+  const fmtDate = d => { const _d = new Date(d); return _d.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' }) + ' , ' + _d.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false }); };
+
+  const HOW_IT_WORKS = [
+    { n: 1, text: 'Terminez une mission ou vendez un cours pour générer un gain ou un paiement.' },
+    { n: 2, text: 'Une commission de 6% est déduite automatiquement par la plateforme.' },
+    { n: 3, text: 'Le reste est ajouté à votre solde et vous recevez un reçu PDF par email.' },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div style={{ paddingTop:8, paddingBottom:24, position:'relative' }}>
 
-      {/* Comment ça marche */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-3">
-        <p className="text-sm font-bold text-slate-900 dark:text-white">Comment ça marche ?</p>
-        <ol className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
-          <li className="flex gap-2"><span className="font-bold text-indigo-600 dark:text-indigo-400">1.</span> Terminez une mission ou vendez un cours pour générer un gain ou un paiement.</li>
-          <li className="flex gap-2"><span className="font-bold text-indigo-600 dark:text-indigo-400">2.</span> Une commission de 6% est déduite automatiquement par la plateforme.</li>
-          <li className="flex gap-2"><span className="font-bold text-indigo-600 dark:text-indigo-400">3.</span> Le reste est ajouté à votre solde et vous recevez un reçu PDF par email.</li>
-        </ol>
+      {/* ── Animated background blobs — same treatment as the Profile tab ── */}
+      <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
+        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:'radial-gradient(circle,rgba(16,185,129,0.12),transparent 68%)', top:'-280px', left:'-180px', animation:'fdBlob1 22s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:600, height:600, borderRadius:'50%', background:'radial-gradient(circle,var(--fm-primary-soft),transparent 68%)', top:'20%', right:'-200px', animation:'fdBlob2 28s ease-in-out infinite' }}/>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: 'Solde disponible', value: `${balance.toFixed(2)} ${currency}`,     svgPath: "M1 4h22v16H1z", svgPath2: "M1 10h22", color: "var(--fm-success)", bg: "var(--fm-success-bg)" },
-          { label: 'Transactions',     value: incoming.length,                          svgPath: "M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6", color: "var(--fm-warning)", bg: "var(--fm-warning-bg)" },
-          { label: 'Total gagné',      value: `${totalEarned.toFixed(2)} ${currency}`, svgPath: "M23 6l-9.5 9.5-5-5L1 18", svgPath2: "M17 6h6v6",          color: "var(--fm-primary)", bg: "var(--fm-primary-soft)" },
-        ].map(item => (
-          <div key={item.label} style={{ background: "var(--fm-surface)", border: "1px solid var(--fm-border)", borderRadius: 16, padding: "20px", display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: item.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={item.color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-                <path d={item.svgPath}/>{item.svgPath2 && <path d={item.svgPath2}/>}
-              </svg>
-            </div>
-            <div>
-              <p style={{ fontSize: 22, fontWeight: 800, color: item.color, letterSpacing: "-0.02em" }}>{item.value}</p>
-              <p style={{ fontSize: 10, fontWeight: 600, color: "var(--fm-text-7)", marginTop: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.label}</p>
+      <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', gap:18 }}>
+
+        {/* Header */}
+        <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+          <div style={{ width:48, height:48, borderRadius:16, flexShrink:0, background:'linear-gradient(135deg,rgba(16,185,129,0.35),rgba(16,185,129,0.1))', border:'1px solid rgba(16,185,129,0.4)', display:'flex', alignItems:'center', justifyContent:'center', color:PC.emerald, boxShadow:'0 4px 20px -6px rgba(16,185,129,0.5)' }}>
+            <PIcWallet s={21}/>
+          </div>
+          <div>
+            <h1 style={{ fontSize:24, fontWeight:900, color:PC.text, margin:0, letterSpacing:'-0.025em' }}>Mes gains</h1>
+            <p style={{ fontSize:12.5, color:PC.muted, margin:'2px 0 0' }}>Suivez vos revenus, missions et ventes de cours</p>
+          </div>
+        </div>
+
+        {/* ════ COMMENT ÇA MARCHE ════ */}
+        <div style={CARD_P}>
+          <div style={CARD_RULE}/>
+          <div style={{ padding:'20px clamp(18px,4vw,28px) 24px' }}>
+            <PFieldLabel>Comment ça marche ?</PFieldLabel>
+            <div style={{ display:'flex', flexDirection:'column', gap:12, marginTop:14 }}>
+              {HOW_IT_WORKS.map(step => (
+                <div key={step.n} style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
+                  <span style={{ width:22, height:22, borderRadius:8, flexShrink:0, background:'var(--fm-primary-soft-strong)', color:PC.accentMid, fontSize:11, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>{step.n}</span>
+                  <p style={{ fontSize:12.5, color:PC.sub, margin:0, lineHeight:1.6, paddingTop:2 }}>{step.text}</p>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Missions terminées */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-        <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>} title="Missions terminées" />
-        {loading
-          ? [...Array(3)].map((_, i) => <SkeletonRow key={i} />)
-          : (() => {
-              const completedCoursesBuyer = courseHistory.filter(c => c.payment_status === 'termine');
-              const allDone = [
-                ...missions.filter(m => m.status === 'completed' || m.payment_status === 'termine').map(p => ({ _type: 'project', _key: `p-${p.id}`, title: p.title, amount: `${Number(p.amount || 0).toFixed(2)} TND`, date: p.accepted_at || p.created_at, tag: 'Projet', sub: `Client : ${resolveEmail(p.client_email)}` })),
-                ...instructorGains.map(g => ({ _type: 'course_sale', _key: `s-${g.id}`, title: g.course_title, amount: `+${Number(g.instructor_net || 0).toFixed(2)} TND`, date: g.processed_at || g.requested_at, tag: 'Cours vendu', sub: `Acheteur : ${resolveEmail(g.buyer_email)}` })),
-                ...completedCoursesBuyer.map(c => ({ _type: 'course_buy', _key: `b-${c.id}`, title: c.course_title, amount: `${Number(c.amount || 0).toFixed(2)} TND`, date: c.requested_at, tag: 'Cours acheté', sub: `Instructeur : ${resolveEmail(c.instructor_email)}` })),
-              ].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-              return allDone.length === 0
-                ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>} text="Aucune mission terminée" />
-                : (
-                  <div className="space-y-3">
-                    {allDone.map(item => (
-                      <div key={item._key} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--fm-success-bg)', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--fm-success)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.title}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">{item.sub}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">{item.tag}</span>
-                            <p className="text-xs text-slate-400">{new Date(item.date).toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' })} , {new Date(item.date).toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false })}</p>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{item.amount}</p>
-                          <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 700, color: 'var(--fm-success)' }}>
-                            Terminé
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-            })()
-        }
-      </div>
-
-      {/* Historique des gains ( PROJECTS ) */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-        <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>} title="Historique des gains — Projets" />
-        {projectPayments.length === 0
-          ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>} text="Aucun gain pour l'instant" />
-          : (
-            <div className="space-y-3">
-              {projectPayments.map(p => {
-                const info = PROJECT_PAY_STATUS[p.payment_status] || PROJECT_PAY_STATUS.en_attente;
-                const _d0 = new Date(p.accepted_at || p.created_at);
-                const dateStr = _d0.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' }) + ' , ' + _d0.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                return (
-                  <div key={p.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{p.title}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Client : {resolveEmail(p.client_email)}</p>
-                        <p className="text-xs text-slate-400">{dateStr}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-extrabold text-slate-900 dark:text-white">{Number(p.amount || 0).toFixed(2)} TND</p>
-                        <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 700, color: info.dot }}>
-                          {info.label}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-[11px] text-slate-400 mt-2">{info.desc}</p>
-                  </div>
-                );
-              })}
+        {/* ════ SUMMARY STATS ════ */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:14 }}>
+          {[
+            { label:'Solde disponible', value:`${balance.toFixed(2)} ${currency}`, icon:PIcWallet, color:PC.emerald },
+            { label:'Transactions',     value:incoming.length,                      icon:PIcTx,     color:PC.amber },
+            { label:'Total gagné',      value:`${totalEarned.toFixed(2)} ${currency}`, icon:PIcTrend, color:PC.accentMid },
+          ].map(item => (
+            <div key={item.label} style={{ background:'var(--fm-surface)', border:'1px solid var(--fm-border)', borderRadius:18, padding:'20px', position:'relative', overflow:'hidden', transition:'border-color .2s' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = `${item.color}55`}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--fm-border)'}>
+              <div style={{ width:38, height:38, borderRadius:11, background:`${item.color}18`, border:`1px solid ${item.color}30`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:14, color:item.color }}>
+                <item.icon s={17}/>
+              </div>
+              <p style={{ fontSize:23, fontWeight:900, color:PC.text, letterSpacing:'-0.02em', margin:0 }}>{item.value}</p>
+              <p style={{ fontSize:10.5, fontWeight:700, color:PC.muted, marginTop:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{item.label}</p>
             </div>
-          )
-        }
-      </div>
+          ))}
+        </div>
 
-      {/* Historique des Gains ( COURSES ) — instructor earnings */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-        <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>} title="Historique des gains — Cours" />
-        {instructorGains.length === 0
-          ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>} text="Aucun gain de cours" />
-          : (
-            <div className="space-y-3">
-              {instructorGains.map(item => {
-                const _d1 = new Date(item.processed_at || item.requested_at);
-                const dateStr = _d1.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' }) + ' , ' + _d1.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                return (
-                  <div key={item.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.course_title}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Acheteur : {resolveEmail(item.buyer_email)}</p>
-                        <p className="text-xs text-slate-400">{dateStr}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">+{Number(item.instructor_net || 0).toFixed(2)} TND</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Brut : {Number(item.gross_amount || 0).toFixed(2)} TND</p>
-                        <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 700, color: 'var(--fm-success)' }}>
-                          Gain confirmé
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-[11px] text-slate-400 mt-2">Commission plateforme (6%) : -{Number(item.commission || 0).toFixed(2)} TND</p>
-                  </div>
-                );
-              })}
-            </div>
-          )
-        }
-        {instructorGains.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total gagné (cours)</p>
-            <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
-              {instructorGains.reduce((s, i) => s + Number(i.instructor_net || 0), 0).toFixed(2)} TND
-            </p>
+        {/* ════ MISSIONS TERMINÉES ════ */}
+        <div style={CARD_P}>
+          <div style={CARD_RULE}/>
+          <div style={{ padding:'20px clamp(18px,4vw,28px) 24px' }}>
+            <SectionHeader icon={<PIcCheck s={14}/>} title="Missions terminées" />
+            {loading
+              ? [...Array(3)].map((_, i) => <SkeletonRow key={i} />)
+              : allDone.length === 0
+              ? <Empty icon={<PIcTrend s={18}/>} text="Aucune mission terminée" />
+              : (
+                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                  {allDone.map(item => (
+                    <GainRow key={item._key}
+                      icon={<PIcCheck s={15}/>} iconColor={PC.emerald}
+                      title={item.title} sub={`${item.tag} · ${item.sub}`} dateStr={fmtDate(item.date)}
+                      amount={item.amount} amountColor={PC.emerald}
+                      statusLabel="Terminé" statusColor={PC.emerald}
+                    />
+                  ))}
+                </div>
+              )
+            }
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Historique des paiements ( COURSES ) */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-        <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>} title="Historique des paiements — Cours" />
-        {courseHistory.length === 0
-          ? <Empty icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>} text="Aucun paiement pour le moment" />
-          : (
-            <div className="space-y-3">
-              {courseHistory.map(item => {
-                const info = COURSE_PAY_STATUS[item.payment_status] || COURSE_PAY_STATUS.en_attente;
-                const _d2 = new Date(item.requested_at);
-                const dateStr = _d2.toLocaleDateString('fr-TN', { day: '2-digit', month: 'long', year: 'numeric' }) + ' , ' + _d2.toLocaleTimeString('fr-TN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                return (
-                  <div key={item.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.course_title}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Instructeur : {resolveEmail(item.instructor_email)}</p>
-                        <p className="text-xs text-slate-400">{dateStr}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-extrabold text-slate-900 dark:text-white">{Number(item.amount || 0).toFixed(2)} TND</p>
-                        <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11, fontWeight: 700, color: info.dot }}>
-                          {info.label}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-[11px] text-slate-400 mt-2">{info.desc}</p>
-                  </div>
-                );
-              })}
-            </div>
-          )
-        }
+        {/* ════ HISTORIQUE — PROJETS ════ */}
+        <div style={CARD_P}>
+          <div style={CARD_RULE}/>
+          <div style={{ padding:'20px clamp(18px,4vw,28px) 24px' }}>
+            <SectionHeader icon={<PIcTrend s={14}/>} title="Historique des gains — Projets" />
+            {projectPayments.length === 0
+              ? <Empty icon={<PIcTrend s={18}/>} text="Aucun gain pour l'instant" />
+              : (
+                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                  {projectPayments.map(p => {
+                    const info = PROJECT_PAY_STATUS[p.payment_status] || PROJECT_PAY_STATUS.en_attente;
+                    return (
+                      <GainRow key={p.id}
+                        icon={<PIcBriefcase s={15}/>} iconColor={info.dot}
+                        title={p.title} sub={`Client : ${resolveEmail(p.client_email)}`} dateStr={fmtDate(p.accepted_at || p.created_at)}
+                        amount={`${Number(p.amount || 0).toFixed(2)} TND`} amountColor={PC.text}
+                        statusLabel={info.label} statusColor={info.dot} note={info.desc}
+                      />
+                    );
+                  })}
+                </div>
+              )
+            }
+          </div>
+        </div>
+
+        {/* ════ HISTORIQUE — COURS VENDUS ════ */}
+        <div style={CARD_P}>
+          <div style={CARD_RULE}/>
+          <div style={{ padding:'20px clamp(18px,4vw,28px) 24px' }}>
+            <SectionHeader icon={<PIcWallet s={14}/>} title="Historique des gains — Cours" />
+            {instructorGains.length === 0
+              ? <Empty icon={<PIcWallet s={18}/>} text="Aucun gain de cours" />
+              : (
+                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                  {instructorGains.map(item => (
+                    <GainRow key={item.id}
+                      icon={<PIcWallet s={15}/>} iconColor={PC.emerald}
+                      title={item.course_title} sub={`Acheteur : ${resolveEmail(item.buyer_email)}`} dateStr={fmtDate(item.processed_at || item.requested_at)}
+                      amount={`+${Number(item.instructor_net || 0).toFixed(2)} TND`} amountColor={PC.emerald}
+                      statusLabel="Gain confirmé" statusColor={PC.emerald}
+                      note={`Brut : ${Number(item.gross_amount || 0).toFixed(2)} TND · Commission plateforme (6%) : -${Number(item.commission || 0).toFixed(2)} TND`}
+                    />
+                  ))}
+                </div>
+              )
+            }
+            {instructorGains.length > 0 && (
+              <div style={{ marginTop:16, paddingTop:16, borderTop:'1px solid var(--fm-border-soft)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <p style={{ fontSize:12, color:PC.muted, fontWeight:600, margin:0 }}>Total gagné (cours)</p>
+                <p style={{ fontSize:16, fontWeight:900, color:PC.emerald, margin:0 }}>{totalCourseGains.toFixed(2)} TND</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ════ HISTORIQUE — PAIEMENTS COURS ════ */}
+        <div style={CARD_P}>
+          <div style={CARD_RULE}/>
+          <div style={{ padding:'20px clamp(18px,4vw,28px) 24px' }}>
+            <SectionHeader icon={<PIcTx s={14}/>} title="Historique des paiements — Cours" />
+            {courseHistory.length === 0
+              ? <Empty icon={<PIcTx s={18}/>} text="Aucun paiement pour le moment" />
+              : (
+                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                  {courseHistory.map(item => {
+                    const info = COURSE_PAY_STATUS[item.payment_status] || COURSE_PAY_STATUS.en_attente;
+                    return (
+                      <GainRow key={item.id}
+                        icon={<PIcTx s={15}/>} iconColor={info.dot}
+                        title={item.course_title} sub={`Instructeur : ${resolveEmail(item.instructor_email)}`} dateStr={fmtDate(item.requested_at)}
+                        amount={`${Number(item.amount || 0).toFixed(2)} TND`} amountColor={PC.text}
+                        statusLabel={info.label} statusColor={info.dot} note={info.desc}
+                      />
+                    );
+                  })}
+                </div>
+              )
+            }
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -2184,70 +2218,113 @@ function SettingsTab({ user, updateUser, onLogout }) {
     finally  { setSaving(false); }
   }
 
+  const cinStatus    = user.cinStatus;
+  const isApproved   = cinStatus === 'approved';
+  const isPending    = cinStatus === 'pending';
+  const statusColor  = isApproved ? PC.emerald : isPending ? PC.amber : PC.rose;
+  const statusLabel  = isApproved ? 'Vérifié' : isPending ? 'En attente' : 'Non vérifié';
+  const StatusIcon   = isApproved ? PIcShield : isPending ? PIcClock : PIcAlert;
+
+  const infoRows = [
+    { icon: PIcMail,      label: 'Email', value: user.email },
+    { icon: PIcUser,      label: 'Nom',   value: user.name },
+    { icon: PIcBriefcase, label: 'Rôle',  value: 'Freelance' },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Account info */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-        <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>} title="Informations du compte" />
-        <div className="space-y-3">
-          <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-            <span className="text-xs text-slate-500 dark:text-slate-400">Email</span>
-            <span className="text-xs font-semibold text-slate-900 dark:text-white">{user.email}</span>
-          </div>
-          <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-            <span className="text-xs text-slate-500 dark:text-slate-400">Nom</span>
-            <span className="text-xs font-semibold text-slate-900 dark:text-white">{user.name}</span>
-          </div>
-          <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-            <span className="text-xs text-slate-500 dark:text-slate-400">Rôle</span>
-            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Freelance</span>
-          </div>
-          <div className="flex items-center justify-between py-2">
-            <span className="text-xs text-slate-500 dark:text-slate-400">Statut CIN</span>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-              user.cinStatus === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-              : user.cinStatus === 'pending' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-            }`}>
-              {user.cinStatus === 'approved'
-                ? <span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Vérifié</span>
-                : user.cinStatus === 'pending'
-                ? <span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>En attente</span>
-                : <span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Non vérifié</span>
-              }
-            </span>
-          </div>
-        </div>
+    <div style={{ paddingTop:8, paddingBottom:24, position:'relative' }}>
+
+      {/* ── Animated background blobs — same treatment as the Profile tab ── */}
+      <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
+        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:'radial-gradient(circle,var(--fm-primary-soft),transparent 68%)', top:'-280px', right:'-200px', animation:'fdBlob1 22s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(248,113,113,0.07),transparent 68%)', bottom:'-80px', left:'8%', animation:'fdBlob3 32s ease-in-out infinite' }}/>
       </div>
 
-      {/* Change password */}
-      <form onSubmit={handlePasswordChange} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
-        <SectionHeader icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>} title="Changer le mot de passe" />
-        <InputField label="Mot de passe actuel" type="password" value={pwForm.current} onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))} required />
-        <InputField label="Nouveau mot de passe" type="password" value={pwForm.next} onChange={e => setPwForm(f => ({ ...f, next: e.target.value }))} required />
-        <InputField label="Confirmer le nouveau mot de passe" type="password" value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} required />
-        {pwError && (
-          <div style={{ padding: '11px 16px', borderRadius: 12, background: 'var(--fm-danger-bg)', border: '1px solid rgba(248,113,113,0.28)' }}>
-            <p style={{ fontSize: 12.5, color: 'var(--fm-danger)', margin: 0, fontWeight: 600 }}>{pwError}</p>
-          </div>
-        )}
-        {pwOk && <p style={{ fontSize: 12, color: 'var(--fm-success)', display: 'flex', alignItems: 'center', gap: 5 }}><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Mot de passe changé avec succès !</p>}
-        <button type="submit" disabled={saving} className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors disabled:opacity-60">
-          {saving ? 'Changement…' : 'Changer le mot de passe'}
-        </button>
-      </form>
+      {/* Full-bleed like every other tab (the dashboard shell only adds its own side padding). */}
+      <div style={{ position:'relative', zIndex:1 }}>
 
-      <button onClick={onLogout}
-        style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:10, padding:"13px", borderRadius:14, background:"#ef4444", border:"none", cursor:"pointer", color:"#fff", fontSize:14, fontWeight:700, boxShadow:"0 6px 20px -4px rgba(239,68,68,0.45)", transition:"all 0.2s" }}
-        onMouseEnter={e=>e.currentTarget.style.background="#dc2626"}
-        onMouseLeave={e=>e.currentTarget.style.background="#ef4444"}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-        Se déconnecter
-      </button>
+        {/* Header */}
+        <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
+          <div style={{ width:48, height:48, borderRadius:16, flexShrink:0, background:'linear-gradient(135deg,var(--fm-primary-border),var(--fm-primary-soft))', border:'1px solid rgba(124,108,246,0.35)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fm-primary-light)', boxShadow:'0 4px 20px -6px rgba(124,108,246,0.55)' }}>
+            <PIcSettings s={21}/>
+          </div>
+          <div>
+            <h1 style={{ fontSize:24, fontWeight:900, color:PC.text, margin:0, letterSpacing:'-0.025em' }}>Paramètres</h1>
+            <p style={{ fontSize:12.5, color:PC.muted, margin:'2px 0 0' }}>Gérez votre compte et votre sécurité</p>
+          </div>
+        </div>
+
+        {/* On a phone and tablet the three cards stack. From 1024px they fill the screen in two
+            balanced columns: the account card and the log-out card on the left, the password
+            form (as tall as both together) on the right. */}
+        <div className="grid grid-cols-1 items-start gap-[18px] lg:grid-cols-2 lg:gap-6">
+
+        {/* ════ ACCOUNT INFO CARD ════ */}
+        <div style={CARD_P} className="lg:col-start-1 lg:row-start-1">
+          <div style={CARD_RULE}/>
+          <div style={{ padding:'22px clamp(18px,4vw,28px) 26px' }}>
+            <PFieldLabel>Informations du compte</PFieldLabel>
+            <div style={{ display:'flex', flexDirection:'column', marginTop:12 }}>
+              {infoRows.map(row => (
+                <div key={row.label} style={{ display:'flex', alignItems:'center', gap:12, padding:'13px 0', borderBottom:'1px solid var(--fm-border-soft)' }}>
+                  <span style={{ width:32, height:32, borderRadius:10, flexShrink:0, background:'var(--fm-border-soft)', display:'flex', alignItems:'center', justifyContent:'center', color:PC.muted }}><row.icon s={13}/></span>
+                  <span style={{ fontSize:12.5, color:PC.muted, flex:'0 0 90px' }}>{row.label}</span>
+                  <span style={{ fontSize:13, fontWeight:700, color:PC.text, marginLeft:'auto', textAlign:'right', wordBreak:'break-word' }}>{row.value}</span>
+                </div>
+              ))}
+              <div style={{ display:'flex', alignItems:'center', gap:12, padding:'13px 0 0' }}>
+                <span style={{ width:32, height:32, borderRadius:10, flexShrink:0, background:`${statusColor}18`, display:'flex', alignItems:'center', justifyContent:'center', color:statusColor }}><StatusIcon s={13}/></span>
+                <span style={{ fontSize:12.5, color:PC.muted, flex:'0 0 90px' }}>Statut CIN</span>
+                <span style={{ marginLeft:'auto', fontSize:11, fontWeight:800, padding:'4px 12px', borderRadius:20, background:`${statusColor}18`, color:statusColor }}>{statusLabel}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ════ CHANGE PASSWORD CARD ════ */}
+        <form onSubmit={handlePasswordChange} style={CARD_P} className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-stretch">
+          <div style={CARD_RULE}/>
+          <div style={{ padding:'22px clamp(18px,4vw,28px) 26px', display:'flex', flexDirection:'column', gap:16 }}>
+            <PFieldLabel>Changer le mot de passe</PFieldLabel>
+            <InputField label="Mot de passe actuel" type="password" value={pwForm.current} onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))} required />
+            <InputField label="Nouveau mot de passe" type="password" value={pwForm.next} onChange={e => setPwForm(f => ({ ...f, next: e.target.value }))} required />
+            <InputField label="Confirmer le nouveau mot de passe" type="password" value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} required />
+            {pwError && (
+              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', borderRadius:14, background:'var(--fm-danger-bg)', border:'1px solid rgba(248,113,113,0.3)' }}>
+                <p style={{ fontSize:12.5, color:'var(--fm-danger)', margin:0, fontWeight:700 }}>{pwError}</p>
+              </div>
+            )}
+            {pwOk && (
+              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', borderRadius:14, background:'var(--fm-success-bg)', border:'1px solid rgba(16,185,129,0.3)' }}>
+                <span style={{ color:PC.emerald, display:'flex', flexShrink:0 }}><PIcCheck s={14}/></span>
+                <p style={{ fontSize:12.5, color:PC.emerald, margin:0, fontWeight:700 }}>Mot de passe changé avec succès !</p>
+              </div>
+            )}
+            <button type="submit" disabled={saving}
+              style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:9, padding:'13px 20px', borderRadius:14, background:'linear-gradient(135deg,#7c6cf6 0%,#5e4fd4 100%)', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:13.5, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 28px -6px rgba(124,108,246,0.6)', transition:'all .2s cubic-bezier(.4,0,.2,1)' }}
+              onMouseEnter={e => { if (!saving) { e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 12px 34px -6px rgba(124,108,246,0.72)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 8px 28px -6px rgba(124,108,246,0.6)'; }}>
+              {saving ? 'Changement…' : <><PIcCheck s={14}/> Changer le mot de passe</>}
+            </button>
+          </div>
+        </form>
+
+        {/* ════ DANGER ZONE ════ */}
+        <div className="lg:col-start-1 lg:row-start-2" style={{ borderRadius:20, padding:'18px 22px', background:PC.roseDim, border:`1px solid ${PC.roseBord}`, display:'flex', alignItems:'center', justifyContent:'space-between', gap:14, flexWrap:'wrap' }}>
+          <div>
+            <p style={{ fontSize:13, fontWeight:800, color:PC.rose, margin:'0 0 2px' }}>Se déconnecter</p>
+            <p style={{ fontSize:12, color:PC.sub, margin:0 }}>Vous devrez vous reconnecter pour accéder à votre compte.</p>
+          </div>
+          <button onClick={onLogout}
+            style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:8, padding:'11px 20px', borderRadius:12, background:'transparent', border:`1.5px solid ${PC.roseBord}`, color:PC.rose, fontSize:13, fontWeight:700, cursor:'pointer', transition:'all .18s' }}
+            onMouseEnter={e => { e.currentTarget.style.background=PC.rose; e.currentTarget.style.color='#fff'; e.currentTarget.style.borderColor=PC.rose; }}
+            onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.color=PC.rose; e.currentTarget.style.borderColor=PC.roseBord; }}>
+            <PIcLogout s={14}/> Déconnexion
+          </button>
+        </div>
+
+        </div>
+      </div>
     </div>
   );
 }
@@ -2312,7 +2389,7 @@ export default function FreelancerDashboard() {
                       <p className="text-xs font-semibold">Aucune notification</p>
                     </div>
                   ) : userNotifs.map(n => (
-                    <div key={n.id} onClick={() => { markNotificationRead(n.id); setNotifOpen(false); const kind = n.kind||''; let route = null; if (kind.startsWith('course_access:')) { const id=kind.split(':')[1]; route=id?`/courses/${id}`:'/courses'; } else if (kind.includes('_course_')) { const id=kind.split('_course_')[1]; route=id?`/courses/${id}`:'/courses'; } else if (/^course_(approved|rejected|created)_/.test(kind)) { const id=kind.split('_').pop(); route=id&&!isNaN(id)?`/courses/${id}`:'/courses'; } if(route) navigate(route); }} className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors last:border-0 group ${n.read ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50' : 'bg-indigo-50/60 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}>
+                    <div key={n.id} onClick={() => markNotificationRead(n.id)} className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-800/50 transition-colors last:border-0 ${n.read ? 'bg-white dark:bg-slate-900' : 'bg-indigo-50/60 dark:bg-indigo-900/10'}`}>
                       <div style={{ width: 32, height: 32, borderRadius: 10, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: n.kind.startsWith('course_access') ? 'var(--fm-success-bg)' : n.kind.includes('approved') ? 'var(--fm-success-bg)' : n.kind.includes('rejected') ? 'var(--fm-danger-bg)' : n.kind.includes('lesson') ? 'var(--fm-primary-soft-strong)' : 'var(--fm-warning-bg)' }}>
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={n.kind.startsWith('course_access') ? 'var(--fm-success)' : n.kind.includes('approved') ? 'var(--fm-success)' : n.kind.includes('rejected') ? 'var(--fm-danger)' : n.kind.includes('lesson') ? 'var(--fm-primary-light)' : 'var(--fm-warning)'} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
                           {n.kind.startsWith('course_access') ? <path d="M22 10v6M2 10l10-5 10 5-10 5z"/> : n.kind.includes('approved') ? <polyline points="20 6 9 17 4 12"/> : n.kind.includes('rejected') ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : n.kind.includes('lesson') ? <><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></> : <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>}
@@ -2325,7 +2402,6 @@ export default function FreelancerDashboard() {
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         {!n.read && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
-                        <svg className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
                       </div>
                     </div>
                   ))}

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { cldImg, cldVideo } from '../utils/cloudinary';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
+import { firstWord } from '../utils/names';
 import { toast } from './Toast';
 
 const API          = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
@@ -258,11 +259,6 @@ function ImageViewer({ src, onClose }) {
   );
 }
 
-// Same masking the Freelancers / Clients / public-profile pages already apply:
-// only the last name is shown, so chatting with someone does not reveal their
-// full identity. Kept as a local copy to match how those pages each define it.
-const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p[p.length - 1] || name; };
-
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function MessengerChat({ currentUser, allUsers = [], initialChat = null, fullScreen = false }) {
@@ -270,11 +266,12 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
   const navigate = useNavigate();
   const senderEmail = currentUser?.isAdmin ? ADMIN_EMAIL : (currentUser?.email || '');
 
-  // Admins are exempt — they moderate conversations and need to know exactly
-  // who is who. Falls back to the email, unchanged, when there is no name.
+  // Like everywhere else on the platform only the FIRST word of a name is shown, so chatting with
+  // someone does not reveal their full identity. Admins are exempt — they moderate conversations
+  // and need to know exactly who is who. Falls back to the email, unchanged, when there is no name.
   const shownName = (name, fallback) => {
     const n = name || fallback || '';
-    return currentUser?.isAdmin ? n : getLastName(n);
+    return currentUser?.isAdmin ? n : (firstWord(n) || n);
   };
 
   function goToProfile(email) {
@@ -953,12 +950,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
         <div className="px-4 pt-5 pb-3">
           <div className="flex items-center justify-between mb-3.5">
             <div className="flex items-center gap-2.5">
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px -2px rgba(124,108,246,.4)' }}>
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-              </div>
-              <h2 className="text-base font-extrabold tracking-tight" style={{ color: 'var(--fm-text-1)' }}>{t('msg.page_title')}</h2>
+              <h2 className="text-lg font-extrabold tracking-tight" style={{ color: 'var(--fm-text-1)', letterSpacing:'-0.02em' }}>{t('msg.page_title')}</h2>
             </div>
             {conversations.length > 0 && (
               <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'var(--fm-primary-soft)', border: '1px solid var(--fm-primary-border)', color: 'var(--fm-primary-light)' }}>
@@ -987,7 +979,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
           {filteredConvs.length === 0 && !convSearch && (
             <div className="flex flex-col items-center justify-center py-16 gap-2">
               <svg className="w-10 h-10" style={{ color: 'var(--fm-border-strong)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
               </svg>
               <p className="text-sm" style={{ color: 'var(--fm-text-6)' }}>{t('msg.no_convs')}</p>
             </div>
@@ -1004,6 +996,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                 style={{
                   background: active ? 'var(--fm-primary-soft-strong)' : 'transparent',
                   border: active ? '1px solid var(--fm-primary-border)' : '1px solid transparent',
+                  boxShadow: active ? 'inset 3px 0 0 var(--fm-primary)' : 'none',
                 }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--fm-surface-hover)'; }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
@@ -1061,7 +1054,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                       <p className="text-xs truncate capitalize" style={{ color: 'var(--fm-text-6)' }}>{u.role || 'user'}</p>
                     </div>
                     <svg className="w-4 h-4 ml-auto shrink-0" style={{ color: 'var(--fm-primary-light)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
                     </svg>
                   </button>
                 ))}
@@ -1079,7 +1072,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
           <div style={{ position: 'relative' }}>
             <div style={{ width: 80, height: 80, borderRadius: 24, background: 'linear-gradient(135deg,rgba(124,108,246,.25),rgba(62,194,232,.18))', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 40px -8px rgba(124,108,246,.3)' }}>
               <svg width="36" height="36" style={{ color: '#9b8cff' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
               </svg>
             </div>
             <div style={{ position: 'absolute', bottom: -4, right: -4, width: 22, height: 22, borderRadius: 8, background: '#10b981', border: '2px solid #16142e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1127,7 +1120,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
           )}
 
           {/* Chat header */}
-          <div className="shrink-0 flex items-center gap-2 px-3 sm:px-4 py-3 z-10" style={{ borderBottom: '1px solid var(--fm-border)', background: 'var(--fm-surface-2)' }}>
+          <div className="shrink-0 flex items-center gap-2 px-3 sm:px-4 py-3 z-10" style={{ borderBottom: '1px solid var(--fm-border)', background: 'var(--fm-surface-2)', boxShadow: '0 4px 16px -8px var(--fm-shadow)' }}>
             {/* Back button — mobile only */}
             <button
               onClick={() => setMobileSide('list')}
@@ -1403,7 +1396,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 transition={{ duration: 0.18, ease: 'easeOut' }}
                                 className={`${bubbleRound} ${m.attachment_url && !m.content ? 'p-1' : 'px-3 sm:px-3.5 py-2 sm:py-2.5'} shadow-sm text-sm`}
                                 style={isMine
-                                  ? { background: 'linear-gradient(135deg,#7c6cf6 0%,#6c8cf6 100%)', color: '#fff', boxShadow: '0 2px 12px -4px rgba(124,108,246,.5)' }
+                                  ? { background: 'linear-gradient(135deg,#8a7bf8 0%,#6c8cf6 100%)', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.55), inset 0 1px 0 rgba(255,255,255,.2)' }
                                   : { background: 'var(--fm-surface-hover)', color: 'var(--fm-text-2)', border: '1px solid var(--fm-border)' }
                                 }
                               >

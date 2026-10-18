@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 import { cldImg } from '../utils/cloudinary';
 import usePendingClientReadOnly from '../hooks/usePendingClientReadOnly';
+import { firstWord } from '../utils/names';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -17,11 +18,6 @@ const AVATAR_COLORS = [
 function avatarColor(email = '') {
   return AVATAR_COLORS[(email.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
 }
-
-// Same masking the Freelancers / Clients / public-profile pages already apply:
-// only the last name is shown, so chatting with someone does not reveal their
-// full identity. Kept as a local copy to match how those pages each define it.
-const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p[p.length - 1] || name; };
 
 function getOnlineStatus(lastSeen) {
   if (!lastSeen) return { online: false, text: 'Hors ligne' };
@@ -89,11 +85,13 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
   const navigate = useNavigate();
   // Every name rendered in this drawer belongs to the OTHER participant (the
   // sender label is behind `!isMine`), so there is no own-name case to exempt.
-  // Admins are exempt because they moderate conversations and need to know
-  // exactly who is who. Falls back to the email, unchanged, when there is no name.
+  // Like everywhere else on the platform only the FIRST word of a name is shown, so
+  // chatting with someone does not reveal their full identity. Admins are exempt
+  // because they moderate conversations and need to know exactly who is who.
+  // Falls back to the email, unchanged, when there is no name.
   const shownName = (name, fallback) => {
     const n = name || fallback || '';
-    return user?.isAdmin ? n : getLastName(n);
+    return user?.isAdmin ? n : (firstWord(n) || n);
   };
   const [usersMap,       setUsersMap]       = useState({});
   const [conversations,  setConversations]  = useState([]);

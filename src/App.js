@@ -1,6 +1,6 @@
 // App.jsx
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -11,6 +11,7 @@ import Authmodal from "./components/Authmodal";
 import ToastProvider, { toast } from "./components/Toast";
 import CookieConsent from "./components/CookieConsent";
 import AnnouncementBanner from "./components/AnnouncementBanner";
+import TopBar from "./components/ds/TopBar";
 import { PostJobModal, PostCourseModal, PostClientModal } from "./components/Postforms";
 import Home from "./page/Home";
 import FreelancersPage from "./page/FreelancersPage";
@@ -36,8 +37,9 @@ import FreelancerDashboard from "./page/FreelancerDashboard";
 import PublicProfilePage from "./page/PublicProfilePage";
 import "./i18n";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { ThemeProvider } from "./context/ThemeContext";
+import { ThemeProvider, usePageTheme, usePageAccent } from "./context/ThemeContext";
 import { HelmetProvider } from "react-helmet-async";
+import { displayName } from "./utils/names";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -48,13 +50,42 @@ function ScrollToTop() {
   return null;
 }
 
+// ── /signup and /login: links that open the dialog straight on the right tab ──
+// Visiting one opens the dialog exactly once, then swaps the address for "/" — so no
+// "/signup" entry is left in the history to bounce back through, and a reload or the
+// back button never opens it a second time.
+function AuthRoute({ mode, onLogin }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const handled  = useRef(false);
+
+  useEffect(() => {
+    if (handled.current) return;
+    handled.current = true;
+    if (!user) onLogin(mode);
+    navigate("/", { replace: true });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+}
+
 // ── Guard: blocks any route if user is not logged in or not yet approved ──────
 function PrivateRoute({ children, onLogin }) {
   const { user, logout } = useAuth();
   const location         = useLocation();
+  const asked            = useRef(false);
+
+  // Asking for the log-in dialog is a side effect, so it belongs in an effect, once —
+  // not in the render, which React may run twice (and which updated App while rendering).
+  useEffect(() => {
+    if (user || asked.current) return;
+    asked.current = true;
+    onLogin("login", false, location.pathname + location.search);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   if (!user) {
-    onLogin("login", false, location.pathname + location.search);
     return <Navigate to="/" replace />;
   }
 
@@ -132,6 +163,13 @@ function AppInner() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // The courses area carries its own look in the supplied design: emerald
+  // accent, and light as its natural theme. The theme default only applies
+  // until the visitor makes their own choice with the toggle.
+  const inCourses = location.pathname.startsWith('/courses');
+  usePageTheme(inCourses ? 'light' : null);
+  usePageAccent(inCourses ? 'emerald' : null);
+
   const isAdminDashboard = location.pathname === "/admin/dashboard";
   const isUserDashboard  = location.pathname === "/dashboard" || location.pathname === "/messages";
   // Public marketing + marketplace browse pages — the three listing pages
@@ -142,11 +180,19 @@ function AppInner() {
   // different layout assumptions (e.g. fm-chat-container's 100vh sizing)
   // and not what this finding was about.
   const showFooter        = ['/', '/about', '/blog', '/careers', '/help', '/privacy', '/terms', '/freelancers', '/clients', '/courses'].includes(location.pathname);
+  // The brand strip the supplied screens open with: the four main pages only.
+  const showTopBar        = ['/', '/freelancers', '/clients', '/courses'].includes(location.pathname);
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [authForced, setAuthForced] = useState(false);
   const [redirectAfterLogin, setRedirectAfterLogin] = useState(null);
+  // Counts how many times the dialog has been opened. It is the dialog's React key, so every opening
+  // starts from a fresh component already in the requested mode — never a first frame in whatever
+  // mode it was last left in, corrected a moment later (which looked like "log in" flashing up and
+  // then redirecting to "sign up").
+  const [authSession, setAuthSession] = useState(0);
+  const authOpenRef = useRef(false);
 
   // Global Enter-key handler — makes every focused interactive element respond to Enter
   useEffect(() => {
@@ -179,12 +225,24 @@ function AppInner() {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
-  const handleLogin = (mode, forced = false, redirectTo = null) => {
+  // The one way to open the log-in / sign-up dialog (Navbar buttons, /signup, /login, a private page).
+  // Opening it while it is already open only changes the tab — it never opens a second one.
+  const handleLogin = useCallback((mode, forced = false, redirectTo = null) => {
+    const alreadyOpen = authOpenRef.current;
     setAuthMode(mode);
-    setAuthModalOpen(true);
     setAuthForced(forced);
     setRedirectAfterLogin(redirectTo);
-  };
+    if (!alreadyOpen) {
+      authOpenRef.current = true;
+      setAuthSession(n => n + 1);
+      setAuthModalOpen(true);
+    }
+  }, []);
+
+  const closeAuth = useCallback(() => {
+    authOpenRef.current = false;
+    setAuthModalOpen(false);
+  }, []);
 
   // Handle email verification redirect (?verified=true/false)
   useEffect(() => {
@@ -207,14 +265,12 @@ function AppInner() {
           } else {
             // Cookie missing/expired for some reason — fall back to manual login.
             toast.success('✅ Email verified! You can now log in.');
-            setAuthMode('login');
-            setAuthModalOpen(true);
+            handleLogin('login');
           }
         });
       } else {
         toast.success('✅ Email verified! You can now log in.');
-        setAuthMode('login');
-        setAuthModalOpen(true);
+        handleLogin('login');
       }
     } else {
       const reason = params.get('reason');
@@ -227,9 +283,9 @@ function AppInner() {
   }, []);
 
   const handleAuth = (userData) => {
-    setAuthModalOpen(false);
+    closeAuth();
     setAuthForced(false);
-    toast.success(`Welcome, ${userData.name}! 🎉`);
+    toast.success(`Welcome, ${displayName(userData.name)}! 🎉`);
     if (userData.isAdmin) {
       navigate('/admin/dashboard', { replace: true });
     } else if (redirectAfterLogin) {
@@ -250,8 +306,9 @@ function AppInner() {
       <ScrollToTop />
       <CookieConsent />
       <Authmodal
+        key={authSession}
         open={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
+        onClose={closeAuth}
         onAuth={handleAuth}
         defaultMode={authMode}
         closable={!authForced}
@@ -265,6 +322,7 @@ function AppInner() {
         onLogin={handleLogin}
       />
       <AnnouncementBanner />
+      {showTopBar && <TopBar />}
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -277,7 +335,7 @@ function AppInner() {
             // applied. Without this, the padding-top gap above exposes that
             // wrong-colored background instead of the site's dark theme —
             // this was the actual cause of the "blank/white page" reports.
-            background: 'var(--fm-bg, #0a0817)',
+            background: 'rgb(var(--ds-canvas, 9 13 22))',
             minHeight: '100vh',
           }}
           initial={{ opacity: 0, y: 10 }}
@@ -287,6 +345,10 @@ function AppInner() {
         >
           <Routes location={location}>
             <Route path="/" element={<Home />} />
+
+            {/* Links straight to the registration / log-in dialog (emails, ads, other sites). */}
+            <Route path="/signup" element={<AuthRoute mode="signup" onLogin={handleLogin} />} />
+            <Route path="/login"  element={<AuthRoute mode="login"  onLogin={handleLogin} />} />
 
             {/* Public — anyone can see the freelancer directory, logged in or
                 not, before or after signup, any account status. Actions
@@ -298,7 +360,7 @@ function AppInner() {
                 status. Apply/message/review buttons only render for a logged-in
                 freelancer (see isFreelancer in ClientsPage.js), so anonymous
                 visitors just can't trigger those actions. */}
-            <Route path="/clients" element={<ClientsPage />} />
+            <Route path="/clients" element={<ClientsPage onLogin={handleLogin} />} />
             <Route
               path="/courses"
               element={<PrivateRoute onLogin={handleLogin}><CoursesPage /></PrivateRoute>}

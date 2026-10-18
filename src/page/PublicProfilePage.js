@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead, { PersonJsonLd } from '../components/Seohead';
+import { firstWord, getInitials } from '../utils/names';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -38,9 +39,7 @@ const getTint = s => {
   const p = ['#7c6cf6','#a855f7','#3b82f6','#0ea5e9','#10b981','#f59e0b','#f43f5e'];
   return p[((s||'').charCodeAt(0)||0) % p.length];
 };
-const getInitials = n => (n||'').trim().split(/\s+/).map(w => w[0]?.toUpperCase()||'').slice(0,2).join('');
 const ensureHttp  = url => url && !/^https?:\/\//.test(url) ? `https://${url}` : url;
-const getLastName = name => { const p = (name||'').trim().split(/\s+/); return p[p.length - 1] || name; };
 const parseSkills = raw =>
   Array.isArray(raw) ? raw.filter(Boolean)
   : typeof raw === 'string' && raw.trim()
@@ -164,6 +163,8 @@ export default function PublicProfilePage() {
   }
 
   /* ── Derived values ── */
+  // Only the first word of a name is shown — to visitors and to the owner alike, and to search engines.
+  const shownName  = firstWord(profile.name) || email.split('@')[0];
   const inits      = getInitials(profile.name || profile.email);
   const skills     = parseSkills(profile.skills);
   const avgRating  = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
@@ -177,19 +178,19 @@ export default function PublicProfilePage() {
 
   const seoDesc = profile.bio
     ? profile.bio.slice(0, 155)
-    : `${profile.name || email} — ${roleLabel} sur FamaMennou${skills.length ? `. Compétences : ${skills.slice(0,4).join(', ')}` : ''}.`;
+    : `${shownName} — ${roleLabel} sur FamaMennou${skills.length ? `. Compétences : ${skills.slice(0,4).join(', ')}` : ''}.`;
 
   return (
     <div style={{ minHeight:'100vh', background:C.bg, fontFamily:"'Plus Jakarta Sans','Inter',sans-serif", paddingBottom:80 }}>
       <SEOHead
-        title={`${profile.name || email} — ${roleLabel}`}
+        title={`${shownName} — ${roleLabel}`}
         url={`/profile/${encodeURIComponent(email)}`}
         description={seoDesc}
         image={profile.avatar_url || undefined}
         type="profile"
-        keywords={`${profile.name || ''}, freelancer tunisie, ${skills.slice(0,3).join(', ')}, profil freelance`}
+        keywords={`${firstWord(profile.name)}, freelancer tunisie, ${skills.slice(0,3).join(', ')}, profil freelance`}
       />
-      <PersonJsonLd user={{ name: profile.name || email, email, role: profile.role, bio: profile.bio, avatar: profile.avatar_url }} />
+      <PersonJsonLd user={{ name: shownName, email, role: profile.role, bio: profile.bio, avatar: profile.avatar_url }} />
 
       {/* ── Background blobs ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
@@ -233,14 +234,12 @@ export default function PublicProfilePage() {
             <div style={{ display:'flex', alignItems:'flex-start', gap:22, marginBottom:22 }}>
               <div style={{ width:96, height:96, borderRadius:'50%', overflow:'hidden', flexShrink:0, background:`linear-gradient(135deg,${tint}30,${tint}10)`, color:tint, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:30, border:`2px solid ${tint}45`, boxShadow:`0 0 0 5px ${tint}12, 0 20px 48px -12px ${tint}45` }}>
                 {profile.photo
-                  ? <img src={profile.photo.startsWith('data:') ? profile.photo : cldImg(profile.photo)} alt={profile.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none'; }}/>
+                  ? <img src={profile.photo.startsWith('data:') ? profile.photo : cldImg(profile.photo)} alt={shownName} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none'; }}/>
                   : inits}
               </div>
               <div style={{ flex:1, minWidth:0, paddingTop:4 }}>
                 <h1 style={{ fontSize:26, fontWeight:900, color:C.text, margin:'0 0 6px', letterSpacing:'-0.03em', lineHeight:1.15 }}>
-                  {isOwnProfile
-                    ? (profile.name || email.split('@')[0])
-                    : getLastName(profile.name || email.split('@')[0])}
+                  {shownName}
                 </h1>
                 {profile.title && (
                   <p style={{ fontSize:12.5, fontWeight:700, color:C.accentMid, margin:'0 0 10px', textTransform:'uppercase', letterSpacing:'0.05em' }}>
@@ -368,7 +367,7 @@ export default function PublicProfilePage() {
                   {reviews.map((r, i) => (
                     <div key={i} style={{ padding:'14px 16px', borderRadius:14, background:C.card, border:`1px solid ${C.border}` }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-                        <span style={{ fontSize:13, fontWeight:700, color:C.text }}>{r.clientName || r.client_name}</span>
+                        <span style={{ fontSize:13, fontWeight:700, color:C.text }}>{firstWord(r.clientName || r.client_name) || r.clientName || r.client_name}</span>
                         <span style={{ display:'inline-flex', gap:2 }}>
                           {[1,2,3,4,5].map(n => <IcStar key={n} on={n <= r.rating}/>)}
                         </span>

@@ -1,4 +1,28 @@
+/* Cascade order matters: Tailwind preflight → design-system components →
+   Tailwind utilities (see tw-base.css). */
+@import './tw-base.css';
+@import './styles/design.css';
 @import './input.css';
+
+/* Google's standard Material Symbols class — the font-face comes from the
+   Google Fonts <link> in public/index.html, but that link alone doesn't
+   style the ligature; without this, icon names render as literal text. */
+/* :where() → zero specificity, so display utilities (hidden / sm:hidden …) on an
+   icon still win even though this rule is loaded after the utilities. */
+:where(.material-symbols-outlined) {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
 
 /* ============================================================
    Fama Mennou design tokens — single source of truth for theme
@@ -7,33 +31,38 @@
    mode palette 1:1 (zero visual change in dark mode); light
    values are the new light-theme equivalents.
    ============================================================ */
+/* Dark values follow the supplied design system (DESIGN.md): obsidian
+   slate-indigo canvas #090d16, cards #111827, slate text, indigo accent.
+   Previously a violet-black (#0a0817) — retuned so the pages that still use
+   these tokens sit in the same family as the redesigned Home / Freelancers /
+   Clients / Courses pages and the shared header and footer. */
 :root[data-theme="dark"] {
-  --fm-bg: #0a0817;
-  --fm-bg-2: #0c0a1e;
-  --fm-bg-3: #100d28;
-  --fm-surface: #16142e;
-  --fm-surface-2: #15122c;
+  --fm-bg: #090d16;
+  --fm-bg-2: #0b1019;
+  --fm-bg-3: #0d1322;
+  --fm-surface: #111827;
+  --fm-surface-2: #0f1626;
   --fm-surface-hover: rgba(255,255,255,0.06);
   --fm-surface-hover-soft: rgba(255,255,255,0.03);
   --fm-border: rgba(255,255,255,0.08);
   --fm-border-soft: rgba(255,255,255,0.05);
   --fm-border-strong: rgba(255,255,255,0.14);
 
-  --fm-text-1: #fbfbff;
-  --fm-text-2: #f4f3fb;
-  --fm-text-3: #dcdef0;
-  --fm-text-4: #c2c5dd;
-  --fm-text-5: #a7abc8;
-  --fm-text-6: #7e82a0;
-  --fm-text-7: #62668a;
+  --fm-text-1: #f8fafc;
+  --fm-text-2: #f1f5f9;
+  --fm-text-3: #e2e8f0;
+  --fm-text-4: #cbd5e1;
+  --fm-text-5: #a3b1c6;
+  --fm-text-6: #8391ad;
+  --fm-text-7: #6b7a96;
   --fm-text-inverse: #0f172a;
 
-  --fm-primary: #7c6cf6;
-  --fm-primary-light: #9b8cff;
-  --fm-primary-dark: #6a5cf0;
-  --fm-primary-soft: rgba(124,108,246,0.12);
-  --fm-primary-soft-strong: rgba(124,108,246,0.20);
-  --fm-primary-border: rgba(124,108,246,0.30);
+  --fm-primary: #6366f1;
+  --fm-primary-light: #818cf8;
+  --fm-primary-dark: #4f46e5;
+  --fm-primary-soft: rgba(99,102,241,0.14);
+  --fm-primary-soft-strong: rgba(99,102,241,0.22);
+  --fm-primary-border: rgba(129,140,248,0.32);
   --fm-blue: #6c8cf6;
   --fm-cyan: #3ec2e8;
   --fm-purple: #a855f7;
@@ -47,15 +76,15 @@
   --fm-info: #38bdf8;
   --fm-info-bg: rgba(14,165,233,0.12);
 
-  --fm-overlay: rgba(6,4,18,0.72);
-  --fm-shadow: rgba(0,0,0,0.45);
-  --fm-scrollbar-track: #0a0817;
-  --fm-scrollbar-thumb: #2a2750;
-  --fm-scrollbar-thumb-hover: #3a3568;
+  --fm-overlay: rgba(3,6,14,0.74);
+  --fm-shadow: rgba(0,0,0,0.5);
+  --fm-scrollbar-track: #090d16;
+  --fm-scrollbar-thumb: #243049;
+  --fm-scrollbar-thumb-hover: #33415f;
   --fm-logo-blend: screen;
 
-  --body-bg: #0a0817;
-  --body-color: #f4f3fb;
+  --body-bg: #090d16;
+  --body-color: #f1f5f9;
 }
 
 :root[data-theme="light"] {
@@ -79,12 +108,12 @@
   --fm-text-7: #cbd5e1;
   --fm-text-inverse: #fbfbff;
 
-  --fm-primary: #7c6cf6;
-  --fm-primary-light: #6d5cf0;
-  --fm-primary-dark: #5b4bd6;
-  --fm-primary-soft: rgba(124,108,246,0.08);
-  --fm-primary-soft-strong: rgba(124,108,246,0.14);
-  --fm-primary-border: rgba(124,108,246,0.25);
+  --fm-primary: #6366f1;
+  --fm-primary-light: #4f46e5;
+  --fm-primary-dark: #4338ca;
+  --fm-primary-soft: rgba(99,102,241,0.08);
+  --fm-primary-soft-strong: rgba(99,102,241,0.14);
+  --fm-primary-border: rgba(99,102,241,0.26);
   --fm-blue: #4f6fd8;
   --fm-cyan: #0891b2;
   --fm-purple: #9333ea;
@@ -140,8 +169,13 @@ input::-webkit-contacts-auto-fill-button { visibility: hidden; pointer-events: n
    device, instead of scrolling or flashing the wrong color during momentum/
    rubber-band overscroll (very visible on iOS Safari) past the top or
    bottom of a page. Every interface inherits this automatically. */
-html { scroll-behavior: smooth; overflow-x: hidden; background: var(--body-bg); }
-body { overflow-x: hidden; background: var(--body-bg); color: var(--body-color); font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; transition: background-color 0.25s ease, color 0.25s ease; }
+/* overflow-x: clip instead of hidden: same visual clipping of anything that pokes
+   out sideways, but it does not turn <body> into a scroll container — with
+   `hidden` on both html and body, every `position: sticky` element on the site
+   (the filter bars) silently stopped sticking. `hidden` stays as the fallback
+   for browsers that predate `clip`. */
+html { scroll-behavior: smooth; overflow-x: hidden; overflow-x: clip; background: var(--body-bg); }
+body { overflow-x: hidden; overflow-x: clip; background: var(--body-bg); color: var(--body-color); font-family: 'Plus Jakarta Sans', 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; transition: background-color 0.25s ease, color 0.25s ease; }
 
 /* ── Dark mode: remap Tailwind slate → Fama Mennou purple dark theme ────── */
 .dark .dark\:bg-slate-950  { background-color: #0a0817 !important; }
@@ -314,17 +348,11 @@ html[dir="rtl"] select { text-align: right; direction: rtl; }
 html[dir="rtl"] input::placeholder,
 html[dir="rtl"] textarea::placeholder { text-align: right; }
 
-/* Let browser-native text blocks flow RTL inside inline-styled pages */
-html[dir="rtl"] p,
-html[dir="rtl"] h1,
-html[dir="rtl"] h2,
-html[dir="rtl"] h3,
-html[dir="rtl"] h4,
-html[dir="rtl"] span,
-html[dir="rtl"] label,
-html[dir="rtl"] li,
-html[dir="rtl"] td,
-html[dir="rtl"] th { text-align: right; }
+/* Let browser-native text blocks flow RTL inside inline-styled pages.
+   Pages built on the design system (.ds) use logical properties
+   (text-start, ms-*, ps-* …) and Tailwind's `text-center`, so they are
+   excluded — a blanket right-align here would override their centering. */
+html[dir="rtl"] :is(p, h1, h2, h3, h4, span, label, li, td, th):not(.ds *) { text-align: right; }
 
 /* Keep code/pre/time unaffected */
 html[dir="rtl"] code,
@@ -364,20 +392,21 @@ table { width: 100%; }
   }
 }
 
-/* Touch-friendly minimum target size */
-button, a, [role="button"] { min-height: 36px; }
+/* Touch-friendly minimum target size (design-system pages size their own
+   controls — see .ds-btn / .ds-pill in styles/design.css). */
+:where(button:not(.ds *), a:not(.ds *), [role="button"]:not(.ds *)) { min-height: 36px; }
 
 /* Pages: ensure content never exceeds viewport on mobile */
 @media (max-width: 640px) {
   /* Reduce hero padding on mobile */
   [data-hero-section] { padding-top: 80px !important; padding-bottom: 48px !important; }
 
-  /* Smaller h1 on mobile */
-  h1 { font-size: clamp(26px, 7vw, 56px) !important; }
-  h2 { font-size: clamp(20px, 5.5vw, 32px) !important; }
+  /* Smaller h1 on mobile (design-system pages carry their own type scale) */
+  h1:not(.ds *) { font-size: clamp(26px, 7vw, 56px) !important; }
+  h2:not(.ds *) { font-size: clamp(20px, 5.5vw, 32px) !important; }
 
   /* Make all max-width containers properly padded */
-  [style*="maxWidth"] { padding-left: 16px !important; padding-right: 16px !important; }
+  [style*="maxWidth"]:not(.ds *) { padding-left: 16px !important; padding-right: 16px !important; }
 }
 
 /* MessagesPage: make chat height responsive */

@@ -297,35 +297,34 @@ export function AuthProvider({ children }) {
           region:   userData.region,
           gender:   userData.gender ?? null,
           skills:   userData.skills || null,
-          bio:      userData.bio    ?? null,
-          cin:      userData.cin,
-          cinFront: userData.cinFront,
-          cinBack:  userData.cinBack,
+          // Proof that this address was verified with the e-mailed code (see Authmodal.js).
+          emailProof: userData.emailProof || undefined,
+          // A freelancer's identity document: one of four kinds, one or two photos. There is no bio
+          // at sign-up any more — it is written later, from the profile page.
+          idDocType: userData.idDocType || undefined,
+          idFront:   userData.idFront   || undefined,
+          idBack:    userData.idBack    || undefined,
         }),
       });
-      const regData = await regRes.json();
+      const regData = await regRes.json().catch(() => ({}));
 
       // Registration actually failed (e.g. emailTaken, validation, serverError) —
       // surface this to the caller instead of silently treating it as success.
+      // `details` carries which field the server objected to (name, date of birth…).
       if (!regRes.ok || regData.error) {
-        return { error: regData.error || "serverError" };
+        return { error: regData.error || "serverError", details: regData.details };
       }
 
-      // In dev mode the backend auto-approves — auto-login so the user never sees the pending screen
-      if (regData.dev) {
-        const result = await login(userData.email, userData.password);
-        if (result?.success) {
-          fetchAccounts();
-          return { success: true, autoLogged: true };
-        }
-      }
+      // Signing up never signs the person in — in any environment. They are taken to the log-in
+      // page (Authmodal.js), where they log in with the e-mail and password they just chose.
 
-      if (userData.role === "freelancer" || userData.role === "client") {
+      // Clients are approved on the spot, so only a freelancer's identity check is news for the admin.
+      if (userData.role === "freelancer") {
         await addNotification({
           type:    "admin",
           kind:    "new_submission",
           title:   "Nouvelle demande de vérification",
-          message: `${userData.name} a soumis une demande de vérification CIN.`,
+          message: `${userData.name} a soumis une demande de vérification d'identité.`,
           email:   userData.email,
           name:    userData.name,
         });
@@ -474,12 +473,17 @@ export function AuthProvider({ children }) {
 
       if (!res.ok) {
         let message = `HTTP ${res.status}`;
+        let field;
         try {
           const errBody = await res.json();
-          message = errBody.message || errBody.error || message;
+          // A validation failure names the field and a stable code ("dobTooYoung", "nameNeedsTwoWords"…)
+          // so the form can say what is wrong instead of a generic "validation_error".
+          const first = errBody.details?.[0];
+          field = first?.field;
+          message = first?.message || errBody.message || errBody.error || message;
         } catch {}
         console.error("updateUser failed:", message);
-        return { error: message };
+        return { error: message, field };
       }
 
       // Only reflect the change locally once the server has confirmed the save —

@@ -23,14 +23,20 @@ if (process.env.REACT_APP_SENTRY_DSN) {
 }
 
 // ── Apply theme SYNCHRONOUSLY before first paint (prevents FOUC) ──────────────
+// Mirrors ThemeProvider: the visitor's saved choice wins; until they have made
+// one, the courses area opens in its own light/emerald look (as in the supplied
+// design) and everything else opens dark. Doing it here avoids a dark→light
+// flash when /courses is opened directly.
 (function () {
-  const saved = localStorage.getItem('fm_theme') || 'system';
+  const saved = localStorage.getItem('fm_theme');
+  const inCourses = window.location.pathname.startsWith('/courses');
+  const mode = saved || (inCourses ? 'light' : 'dark');
   const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
-  const isDark = saved === 'dark' || (saved === 'system' && prefersDark) || saved === 'system' && prefersDark;
-  const dark = saved === 'dark' || (saved !== 'light' && prefersDark);
+  const dark = mode === 'dark' || (mode === 'system' && prefersDark);
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
   document.documentElement.classList.toggle('dark', dark);
-  document.body.style.backgroundColor = dark ? '#0a0817' : '#f8fafc';
+  if (inCourses) document.documentElement.setAttribute('data-accent', 'emerald');
+  document.body.style.backgroundColor = dark ? '#090d16' : (inCourses ? '#ffffff' : '#f8fafc');
 })();
 
 // ── Apply language direction SYNCHRONOUSLY ────────────────────────────────────

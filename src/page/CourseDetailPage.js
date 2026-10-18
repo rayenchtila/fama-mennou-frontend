@@ -6,6 +6,7 @@ import { uploadVideo, warmVideoUpload } from '../utils/upload';
 import { cldImg } from '../utils/cloudinary';
 import SEOHead, { CourseJsonLd } from '../components/Seohead';
 import usePendingClientReadOnly from '../hooks/usePendingClientReadOnly';
+import { firstWord } from '../utils/names';
 
 const API    = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 const IS_DEV = process.env.REACT_APP_DEV_MODE === 'true';
@@ -333,7 +334,7 @@ export default function CourseDetailPage() {
       <SEOHead
         title={course.title}
         url={`/courses/${id}`}
-        description={course.description ? course.description.slice(0, 155) : `${course.title} — Cours en ligne sur FamaMennou par ${course.creator_name || 'un formateur expert'}.`}
+        description={course.description ? course.description.slice(0, 155) : `${course.title} — Cours en ligne sur FamaMennou par ${firstWord(course.creator_name) || 'un formateur expert'}.`}
         image={course.cover_url || undefined}
         type="article"
         keywords={`${course.title}, cours en ligne, formation, ${course.category || 'tunisie'}, FamaMennou`}
@@ -400,7 +401,7 @@ export default function CourseDetailPage() {
                 <Avatar name={course.instructor_name||course.creator_email} photo={course.instructor_photo} size={42}/>
                 <div>
                   <p style={{color:C.muted,fontSize:11,fontWeight:600,letterSpacing:.3,textTransform:'uppercase',marginBottom:2}}>{t('cdp.instructor')}</p>
-                  <p style={{color:'#fff',fontSize:14,fontWeight:700}}>{course.instructor_name||course.creator_email}</p>
+                  <p style={{color:'#fff',fontSize:14,fontWeight:700}}>{firstWord(course.instructor_name)||course.creator_email}</p>
                 </div>
               </div>
             </div>
@@ -788,7 +789,7 @@ export default function CourseDetailPage() {
                   </div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6,flexWrap:'wrap'}}>
-                      <span onClick={() => navigate(`/profile/${encodeURIComponent(r.reviewer_email)}`)} style={{color:'#fff',fontWeight:700,fontSize:14,cursor:'pointer'}}>{r.reviewer_name||r.reviewer_email}</span>
+                      <span onClick={() => navigate(`/profile/${encodeURIComponent(r.reviewer_email)}`)} style={{color:'#fff',fontWeight:700,fontSize:14,cursor:'pointer'}}>{firstWord(r.reviewer_name)||r.reviewer_email}</span>
                       <StarRating rating={r.rating} size={13}/>
                       <span style={{color:C.dim,fontSize:11,marginLeft:'auto'}}>{relTime(r.created_at)}</span>
                     </div>
@@ -800,7 +801,7 @@ export default function CourseDetailPage() {
                           <Avatar name={course?.instructor_name||course?.creator_email} photo={course?.instructor_photo} size={30}/>
                         </div>
                         <div style={{flex:1,minWidth:0}}>
-                          <p onClick={() => navigate(`/profile/${encodeURIComponent(course?.creator_email)}`)} style={{color:C.accent,fontSize:12,fontWeight:700,marginBottom:4,cursor:'pointer'}}>{course?.instructor_name||course?.creator_email}</p>
+                          <p onClick={() => navigate(`/profile/${encodeURIComponent(course?.creator_email)}`)} style={{color:C.accent,fontSize:12,fontWeight:700,marginBottom:4,cursor:'pointer'}}>{firstWord(course?.instructor_name)||course?.creator_email}</p>
                           <p style={{color:C.muted,fontSize:13,lineHeight:1.6,margin:0}}>{r.instructor_reply}</p>
                           <p style={{color:C.dim,fontSize:11,marginTop:4}}>{relTime(r.replied_at)}</p>
                         </div>

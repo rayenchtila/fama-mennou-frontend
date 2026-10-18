@@ -8,12 +8,14 @@ import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 import { cldImg } from "../utils/cloudinary";
 import { useTranslation } from "react-i18next";
 import useBodyScrollLock from "../hooks/useBodyScrollLock";
+import Icon from "./ds/Icon";
+import { displayName, getInitials } from "../utils/names";
 
 const API_URL = process.env.REACT_APP_API_URL || "https://famamennou-server.onrender.com/api";
 
-function getInitials(name = "") {
-  return name.trim().split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
-}
+// What the account menu calls the signed-in person: the first word of their name, like every other page.
+// (The team's own account keeps its full name.)
+const shownName = u => (u?.isAdmin ? u.name : displayName(u?.name));
 
 const AVATAR_HEX = [
   'linear-gradient(135deg,#6366f1,#4f46e5)',
@@ -28,126 +30,56 @@ function avatarGradient(email = '') {
   return AVATAR_HEX[(email.charCodeAt(0) || 0) % AVATAR_HEX.length];
 }
 
+// Token colours as CSS values (rgb(var(--ds-x))) so inline styles follow the
+// theme toggle and the page accent.
+const tok = (name, alpha) => `rgb(var(--ds-${name})${alpha != null ? ` / ${alpha}` : ''})`;
+const INFO = tok('info'), OK = tok('ok'), WARN = tok('warn'), BAD = tok('bad'), ACCENT = tok('accent'), MUTE = tok('mute');
+
 
 // ── Notification link resolver ─────────────────────────────────────────────────
-async function getNotifLink(n) {
-  if (!n) return "/courses";
-
-  // Notifications created since the `link` column exist carry their exact
-  // destination, decided by the backend when it had the ids in hand. Trust it.
-  //
-  // Everything below is the legacy resolver, kept only for rows written before
-  // that column existed: it reverse-engineers a route by regex-parsing ids out
-  // of the free-text `kind`. That approach is why `new_review` silently routed
-  // to /courses — it had no id and no branch here. New notification types must
-  // set `link` on the server, NOT add a branch below.
-  if (n.link) return n.link;
-
-  const k = n.kind || "";
-  if (k === "new_submission")          return "/admin/dashboard?tab=cin";
-  if (k === "new_user")                return "/admin/dashboard?tab=allusers";
-  if (k === "new_project")             return "/admin/dashboard?tab=allusers";
-  if (k === "withdrawal")              return "/admin/dashboard?tab=allusers";
-  if (k.startsWith("lesson_pending_")) return "/admin/dashboard?tab=lessons";
-  const courseMatch = k.match(/^course_(?:created|approved|rejected)_(\d+)$/);
-  if (courseMatch) return `/courses/${courseMatch[1]}`;
-  const lessonWithCourse = k.match(/^lesson_(?:created|approved|rejected)_\d+_course_(\d+)$/);
-  if (lessonWithCourse) return `/courses/${lessonWithCourse[1]}`;
-  const lessonOnly = k.match(/^lesson_(?:created|approved|rejected)_(\d+)$/);
-  if (lessonOnly) {
-    try {
-      const r = await fetch(`${API_URL}/lessons/${lessonOnly[1]}`);
-      const l = await r.json();
-      if (l?.course_id) return `/courses/${l.course_id}`;
-    } catch {}
-  }
-  if (k === "course_pending")                   return "/dashboard?tab=courses";
-  if (k === "password_changed")                  return "/settings";
-  if (k === "approved" || k === "rejected")     return "/dashboard";
-  if (k.startsWith("profile_saved"))            return "/dashboard?tab=profile";
-  if (k.startsWith("client_profile_saved"))     return "/dashboard";
-  if (k.startsWith("new_proposal:"))            return "/projects";
-  if (k.startsWith("proposal_accepted:")) {
-    const projectId = k.split(":")[1];
-    if (projectId) {
-      try {
-        const r = await fetch(`${API_URL}/projects/by-id/${projectId}`);
-        const p = await r.json();
-        if (p?.client_email) return `/messages?with=${encodeURIComponent(p.client_email)}`;
-      } catch {}
-    }
-    return "/messages";
-  }
-  if (k.startsWith("proposal_rejected:"))       return "/dashboard?tab=find-projects";
-  const reviewNotif = k.match(/^course_review(?:_reply)?:(\d+):(\d+)$/);
-  if (reviewNotif) return `/courses/${reviewNotif[1]}?tab=reviews#review-${reviewNotif[2]}`;
-  return "/courses";
-}
-
 // ── Notifications panel ────────────────────────────────────────────────────────
-function NotifPanel({ notifications, onMarkRead, onMarkAll, onClose, dark }) {
+function NotifPanel({ notifications, onClose }) {
   const { t } = useTranslation();
-  const navigate  = useNavigate();
   const unread    = notifications.filter(n => !n.read).length;
-  const panel     = dark ? "#16142e" : "#ffffff";
-  const panelBd   = dark ? "rgba(255,255,255,.1)" : "rgba(0,0,0,.1)";
-  const divider   = dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)";
-  const rowHov    = dark ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.04)";
-  const text1     = dark ? "#f4f3fb" : "#0f172a";
-  const text3     = dark ? "#62668a" : "#94a3b8";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end p-1 pt-14 sm:p-4 sm:pt-16" onClick={onClose}>
-      <div className="w-full overflow-hidden rounded-2xl shadow-2xl"
-        style={{ maxWidth: 'min(380px, calc(100vw - 8px))', background: panel, border: `1px solid ${panelBd}` }}
-        onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: `1px solid ${divider}` }}>
+    <div className="ds fixed inset-0 z-50 flex items-start justify-end p-1 pt-[calc(72px+var(--fm-topbar-offset,0px))] sm:p-4 sm:pt-[calc(76px+var(--fm-topbar-offset,0px))]" onClick={onClose}>
+      <div className="ds-pop w-full overflow-hidden" style={{ maxWidth: 'min(380px, calc(100vw - 8px))' }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-ds-line px-5 py-4">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-bold" style={{ color: text1 }}>{t("Notifications")}</p>
-            {unread > 0 && <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold text-white" style={{ background: "#7c6cf6" }}>{unread}</span>}
+            <p className="text-sm font-bold text-ds-ink">{t("Notifications")}</p>
+            {unread > 0 && <span className="rounded-full bg-ds-fill px-2 py-0.5 text-[10px] font-extrabold text-white">{unread}</span>}
           </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors" style={{ color: text3 }}>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
+          <button type="button" onClick={onClose} aria-label={t("Cancel")} className="ds-iconbtn !h-7 !w-7"><Icon name="close" size={18} /></button>
         </div>
         <div className="overflow-y-auto" style={{ maxHeight: "min(380px,60vh)" }}>
           {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2" style={{ color: text3 }}>
-              <svg className="w-8 h-8 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-              </svg>
+            <div className="flex flex-col items-center justify-center gap-2 py-10 text-ds-faint">
+              <Icon name="notifications" size={32} className="opacity-50" />
               <p className="text-xs font-semibold">{t("No notifications")}</p>
             </div>
-          ) : notifications.map(n => (
-            <div key={n.id} role="button" tabIndex={0}
-              onClick={async () => { onMarkRead(n.id); const link = await getNotifLink(n); onClose(); navigate(link); }}
-              onKeyDown={async e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onMarkRead(n.id); const link = await getNotifLink(n); onClose(); navigate(link); } }}
-              className="flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors"
-              style={{ borderBottom: `1px solid ${divider}`, background: n.read ? "transparent" : "rgba(124,108,246,0.06)" }}
-              onMouseEnter={e => e.currentTarget.style.background = rowHov}
-              onMouseLeave={e => e.currentTarget.style.background = n.read ? "transparent" : "rgba(124,108,246,0.06)"}
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: n.kind?.startsWith("proposal_accepted") ? "rgba(16,185,129,0.15)" : n.kind?.startsWith("proposal_rejected") ? "rgba(239,68,68,0.15)" : "rgba(124,108,246,0.15)" }}>
-                {n.kind?.startsWith("proposal_accepted")
-                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--fm-success)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7"/></svg>
-                  : n.kind?.startsWith("proposal_rejected")
-                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                  : n.kind?.startsWith("new_proposal")
-                  ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                  : <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                }
+          ) : notifications.map(n => {
+            const kind = n.kind || "";
+            const tint = kind.startsWith("proposal_accepted") ? OK : kind.startsWith("proposal_rejected") ? BAD : ACCENT;
+            const glyph = kind.startsWith("proposal_accepted") ? "check" : kind.startsWith("proposal_rejected") ? "close" : kind.startsWith("new_proposal") ? "mail" : "notifications";
+            return (
+              <div key={n.id}
+                className="flex items-start gap-3 border-b border-ds-line px-5 py-3.5 text-start"
+                style={{ background: n.read ? "transparent" : tok('accent', 0.07) }}>
+                <span className="flex h-8 w-8 flex-none items-center justify-center rounded-xl" style={{ background: `color-mix(in srgb, ${tint} 16%, transparent)`, color: tint }}>
+                  <Icon name={glyph} size={17} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className={`mb-0.5 truncate text-xs font-bold ${n.read ? 'text-ds-mute' : 'text-ds-ink'}`}>{n.title}</p>
+                  <p className="line-clamp-2 text-[11px] leading-relaxed text-ds-faint">{n.message}</p>
+                  <p className="mt-1 text-[10px] text-ds-faint">
+                    {new Date(n.createdAt).toLocaleDateString("fr-TN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+                {!n.read && <span className="mt-1 h-2 w-2 flex-none rounded-full bg-ds-accent" />}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold mb-0.5 truncate" style={{ color: n.read ? (dark ? "#a7abc8" : "#6b7280") : text1 }}>{n.title}</p>
-                <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: text3 }}>{n.message}</p>
-                <p className="text-[10px] mt-1" style={{ color: text3 }}>
-                  {new Date(n.createdAt).toLocaleDateString("fr-TN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
-                </p>
-              </div>
-              {!n.read && <div className="w-2 h-2 rounded-full shrink-0 mt-1" style={{ background: "#7c6cf6" }} />}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -155,7 +87,7 @@ function NotifPanel({ notifications, onMarkRead, onMarkAll, onClose, dark }) {
 }
 
 // ── Messages panel ────────────────────────────────────────────────────────────
-const MSG_COLORS = ["#7c6cf6","#a855f7","#3ec2e8","#6c8cf6","#f59e0b","#10b981"];
+const MSG_COLORS = ["#6366f1","#a855f7","#3ec2e8","#6c8cf6","#f59e0b","#10b981"];
 const msgColor = email => MSG_COLORS[(email?.charCodeAt(0) ?? 0) % MSG_COLORS.length];
 
 function fmtTime(ts) {
@@ -167,68 +99,56 @@ function fmtTime(ts) {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-function MessagesPanel({ conversations, senderEmail, onClose, onChatOpen, dark }) {
+function MessagesPanel({ conversations, senderEmail, onClose, onChatOpen }) {
   const totalUnread = conversations.reduce((s, c) => s + Number(c.unread_count || 0), 0);
   const display = conversations.filter(c => Number(c.unread_count) > 0).length > 0
     ? conversations.filter(c => Number(c.unread_count) > 0)
     : conversations.slice(0, 8);
 
-  const panel   = dark ? "#16142e" : "#ffffff";
-  const panelBd = dark ? "rgba(255,255,255,.1)" : "rgba(0,0,0,.1)";
-  const divider = dark ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)";
-  const rowHov  = dark ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.04)";
-  const text1   = dark ? "#f4f3fb" : "#0f172a";
-  const text2   = dark ? "#a7abc8" : "#6b7280";
-  const text3   = dark ? "#62668a" : "#94a3b8";
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end p-1 pt-14 sm:p-4 sm:pt-16" onClick={onClose}>
+    <div className="ds fixed inset-0 z-50 flex items-start justify-end p-1 pt-[calc(72px+var(--fm-topbar-offset,0px))] sm:p-4 sm:pt-[calc(76px+var(--fm-topbar-offset,0px))]" onClick={onClose}>
       <motion.div initial={{ opacity:0,scale:.95,y:-8 }} animate={{ opacity:1,scale:1,y:0 }} exit={{ opacity:0,scale:.95,y:-8 }} transition={{ duration:.14 }}
-        className="w-full overflow-hidden rounded-2xl shadow-2xl"
-        style={{ maxWidth: 'min(380px, calc(100vw - 8px))', background: panel, border: `1px solid ${panelBd}` }}
+        className="ds-pop w-full overflow-hidden"
+        style={{ maxWidth: 'min(380px, calc(100vw - 8px))' }}
         onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: `1px solid ${divider}` }}>
+        <div className="flex items-center justify-between border-b border-ds-line px-5 py-4">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-bold" style={{ color: text1 }}>Messages</p>
-            {totalUnread > 0 && <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold text-white" style={{ background:"#ef4444" }}>{totalUnread > 99 ? "99+" : totalUnread}</span>}
+            <p className="text-sm font-bold text-ds-ink">Messages</p>
+            {totalUnread > 0 && <span className="rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white" style={{ background: BAD }}>{totalUnread > 99 ? "99+" : totalUnread}</span>}
           </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ color: text3 }}>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
+          <button type="button" onClick={onClose} aria-label="Close" className="ds-iconbtn !h-7 !w-7"><Icon name="close" size={18} /></button>
         </div>
         <div className="overflow-y-auto" style={{ maxHeight:"min(420px,62vh)" }}>
           {display.length === 0 ? (
-            <div className="flex flex-col items-center py-10 gap-2" style={{ color: text3 }}>
-              <svg className="w-9 h-9 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <div className="flex flex-col items-center gap-2 py-10 text-ds-faint">
+              <Icon name="chat_bubble" size={36} className="opacity-40" />
               <p className="text-xs font-semibold">Aucun message</p>
             </div>
           ) : display.map(conv => {
             const unread = Number(conv.unread_count || 0);
             const email  = conv.other_email || "";
             const isAdminConv = email.toLowerCase() === "admin@famamennou.com";
-            const name   = isAdminConv ? "Fama Mennou TEAM" : (conv.user_name || email.split("@")[0]);
+            const name   = isAdminConv ? "Fama Mennou TEAM" : (displayName(conv.user_name) || email.split("@")[0]);
             const photo  = isAdminConv ? null : conv.user_photo;
             return (
               <div key={email} role="button" tabIndex={0}
                 onClick={() => onChatOpen(email)}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChatOpen(email); } }}
                 aria-label={name}
-                className="flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors"
-                style={{ borderBottom: `1px solid ${divider}`, background: unread > 0 ? "rgba(239,68,68,0.05)" : "transparent" }}
-                onMouseEnter={e => e.currentTarget.style.background = rowHov}
-                onMouseLeave={e => e.currentTarget.style.background = unread > 0 ? "rgba(239,68,68,0.05)" : "transparent"}>
-                <div className="relative shrink-0">
-                  {photo ? <img src={cldImg(photo)} alt={name} className="w-10 h-10 rounded-full object-cover" />
-                    : <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ background: msgColor(email) }}>{name.slice(0,2).toUpperCase()}</div>
+                className="flex cursor-pointer items-start gap-3 border-b border-ds-line px-5 py-3.5 text-start transition-colors"
+                style={{ background: unread > 0 ? tok('bad', 0.06) : "transparent" }}>
+                <div className="relative flex-none">
+                  {photo ? <img src={cldImg(photo)} alt={name} className="h-10 w-10 rounded-full object-cover" />
+                    : <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ background: msgColor(email) }}>{name.slice(0,2).toUpperCase()}</div>
                   }
-                  {unread > 0 && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center px-1">{unread > 9 ? "9+" : unread}</span>}
+                  {unread > 0 && <span className="absolute -top-1 -end-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-extrabold text-white">{unread > 9 ? "9+" : unread}</span>}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-1">
-                    <p className="text-sm font-semibold truncate" style={{ color: unread > 0 ? text1 : text2 }}>{name}</p>
-                    <span className="text-[10px] shrink-0 tabular-nums" style={{ color: text3 }}>{fmtTime(conv.created_at)}</span>
+                    <p className={`truncate text-sm font-semibold ${unread > 0 ? 'text-ds-ink' : 'text-ds-mute'}`}>{name}</p>
+                    <span className="flex-none text-[10px] tabular-nums text-ds-faint">{fmtTime(conv.created_at)}</span>
                   </div>
-                  <p className="text-xs truncate mt-0.5" style={{ color: unread > 0 ? (dark ? "#7e82a0" : "#6b7280") : text3 }}>
+                  <p className={`mt-0.5 truncate text-xs ${unread > 0 ? 'text-ds-mute' : 'text-ds-faint'}`}>
                     {conv.sender_email === senderEmail ? "Vous: " : ""}{conv.last_message || "Photo"}
                   </p>
                 </div>
@@ -236,11 +156,9 @@ function MessagesPanel({ conversations, senderEmail, onClose, onChatOpen, dark }
             );
           })}
         </div>
-        <div style={{ borderTop: `1px solid ${divider}` }}>
-          <button onClick={() => onChatOpen(null)} className="w-full py-3.5 text-sm font-semibold transition-colors" style={{ color:"#9b8cff" }}
-            onMouseEnter={e => e.currentTarget.style.background="rgba(124,108,246,0.06)"}
-            onMouseLeave={e => e.currentTarget.style.background=""}>
-            Voir tous les messages →
+        <div className="border-t border-ds-line">
+          <button type="button" onClick={() => onChatOpen(null)} className="flex w-full items-center justify-center gap-1.5 py-3.5 text-sm font-semibold text-ds-accent transition-colors hover:bg-ds-accent-soft">
+            Voir tous les messages <Icon name="arrow_forward" size={16} flip />
           </button>
         </div>
       </motion.div>
@@ -248,9 +166,24 @@ function MessagesPanel({ conversations, senderEmail, onClose, onChatOpen, dark }
   );
 }
 
-function LogoMark({ style }) {
-  return <img src="/logo.png" alt="Fama Mennou" style={{ mixBlendMode: "var(--fm-logo-blend)", ...style }} />;
+function LogoMark({ style, className }) {
+  return <img src="/logo.png" alt="" className={className} style={{ mixBlendMode: "var(--fm-logo-blend)", ...style }} />;
 }
+
+function Avatar({ user, size = 32 }) {
+  return (
+    <span className="flex flex-none items-center justify-center overflow-hidden rounded-full text-xs font-bold text-white"
+      style={{ width: size, height: size, background: user.photo ? 'transparent' : avatarGradient(user.email) }}>
+      {user.photo ? <img src={cldImg(user.photo)} alt={shownName(user)} className="h-full w-full object-cover" /> : getInitials(user.name)}
+    </span>
+  );
+}
+
+const LANGS = [
+  { code:'fr', label:'Français',  short:'FR' },
+  { code:'en', label:'English',   short:'EN' },
+  { code:'ar', label:'العربية',   short:'AR' },
+];
 
 // ── Navbar ────────────────────────────────────────────────────────────────────
 export default function Navbar({ onLogin }) {
@@ -258,13 +191,16 @@ export default function Navbar({ onLogin }) {
   const navigate  = useNavigate();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
+  // The home page's primary action is publishing a project; everywhere else it
+  // is plain sign-up (both open the sign-up modal for a visitor).
+  const isHome = location.pathname === '/';
   const NAV_LINKS = [
     { label: t('home.ac.hire.title'), to: "/freelancers" },
     { label: t('home.ac.client.title'), to: "/clients" },
     { label: t('Courses'), to: "/courses" },
   ];
   const { user, logout, getUserNotifications, getAdminNotifications,
-          markNotificationRead, markAllNotificationsRead, clearNotifications,
+          markAllNotificationsRead,
           fetchNotifications } = useAuth();
 
   const [scrolled,    setScrolled]    = useState(false);
@@ -333,6 +269,7 @@ export default function Navbar({ onLogin }) {
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 8);
+    fn();
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
@@ -350,7 +287,7 @@ export default function Navbar({ onLogin }) {
       if (e.key !== 'Escape') return;
       setMenuOpen(false); setProfOpen(false);
       setNotifOpen(false); setMsgOpen(false);
-      setLogoutModal(false);
+      setLogoutModal(false); setLangOpen(false);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
@@ -391,34 +328,30 @@ export default function Navbar({ onLogin }) {
     return () => document.removeEventListener("mousedown", fn);
   }, []);
 
-
-
-  // ── Color scheme (updates on every darkMode + scrolled change) ──
-  const bg = {
-    header:   darkMode
-      ? (scrolled ? "rgba(10,8,26,.97)" : "rgba(10,8,26,.80)")
-      : (scrolled ? "rgba(255,255,255,.97)" : "rgba(255,255,255,.82)"),
-    headerBd: darkMode ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.09)",
-    panel:    darkMode ? "#16142e" : "#ffffff",
-    panelBd:  darkMode ? "rgba(255,255,255,.1)" : "rgba(0,0,0,.1)",
-    divider:  darkMode ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)",
-    rowHov:   darkMode ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.04)",
-    btnHovBg: darkMode ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)",
-    iconClr:  darkMode ? "#7e82a0" : "#64748b",
-    iconHov:  darkMode ? "#f4f3fb" : "#0f172a",
-    text1:    darkMode ? "#f4f3fb" : "#0f172a",
-    text2:    darkMode ? "#a7abc8" : "#6b7280",
-    text3:    darkMode ? "#62668a" : "#94a3b8",
-    navClr:   darkMode ? "#c2c5dd" : "#374151",
-    mobileMenu: darkMode ? "#0c0a1e" : "#f8fafc",
-    mobileBd:   darkMode ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.07)",
-  };
-
-  const LANGS = [
-    { code:'fr', label:'Français',  short:'FR', flag:'🇫🇷' },
-    { code:'en', label:'English',   short:'EN', flag:'🇬🇧' },
-    { code:'ar', label:'العربية',   short:'AR', flag:'🇹🇳' },
-  ];
+  // Header action per page, as on the supplied screens: "Publier un besoin" on Home
+  // and Freelancers, "Publier un projet" on Clients, "Proposer un cours" on Courses.
+  // A visitor's click opens the sign-up dialog; a signed-in client or freelancer gets
+  // the same button (from 1440px up, where the header has room) straight to the form.
+  const path = location.pathname;
+  const ctaLabel = path === '/clients' ? t('nav.cta_project')
+    : path === '/courses' ? t('nav.cta_course')
+    : (isHome || path === '/freelancers') ? t('nav.cta_need')
+    : t('Sign up');
+  // The full labels are long for a 360px header next to the logo and the menu button, so
+  // phones narrower than 400px get a one-word version of the same action.
+  const ctaShort = path === '/courses' ? t('nav.cta_short_course')
+    : (path === '/clients' || isHome || path === '/freelancers') ? t('nav.cta_short_post')
+    : ctaLabel;
+  const memberCta = user?.role === 'client' && (isHome || path === '/freelancers' || path === '/clients')
+    ? { label: path === '/clients' ? t('nav.cta_project') : t('nav.cta_need'), go: () => navigate('/projects?post=1') }
+    : user?.role === 'freelancer' && path === '/courses'
+      ? { label: t('nav.cta_course'), go: () => navigate('/courses?create=1') }
+      : null;
+  // The supplied Clients screen draws this button outlined, with a plus icon; the others fill it.
+  const ctaOutlined = path === '/clients';
+  const ctaSkin = ctaOutlined
+    ? 'ds-btn border-ds-accent-line bg-ds-accent-soft text-ds-accent hover:bg-ds-accent/20'
+    : 'ds-btn ds-btn-primary';
   const activeLang = LANGS.find(l => l.code === i18n.language) || LANGS[0];
 
   const handleDropdownNavigate = (to) => {
@@ -431,188 +364,148 @@ export default function Navbar({ onLogin }) {
   const notifs      = user?.isAdmin ? adminNotifs : userNotifs;
   const unreadCount = notifs.filter(n => !n.read).length;
 
-  const MenuIcon = ({ d, d2, color }) => (
-    <span style={{ width: 28, height: 28, borderRadius: 7, background: color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-        <path d={d}/>{d2 && <path d={d2}/>}
-      </svg>
+  // Small tinted icon tile used in the profile menu. Colours arrive as CSS
+  // values, so the tint is derived with color-mix rather than by appending an
+  // alpha suffix to a hex string.
+  const MenuIcon = ({ name, color }) => (
+    <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg"
+      style={{ background: `color-mix(in srgb, ${color} 15%, transparent)`, color }}>
+      <Icon name={name} size={16} />
     </span>
   );
 
   const MENU_ITEMS = user?.isAdmin
     ? [
-        { icon: <MenuIcon color="var(--fm-primary)" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>, label: t("Dashboard"), to: "/admin/dashboard" },
-        { icon: <MenuIcon color="var(--fm-primary-light)" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" d2="M12 7a4 4 0 100-8 4 4 0 000 8z"/>, label: t('home.ac.hire.title'), to: "/freelancers" },
-        { icon: <MenuIcon color="var(--fm-info)" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, label: t('home.ac.client.title'), to: "/clients" },
-        { icon: <MenuIcon color="var(--fm-success)" d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" d2="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>, label: t('Courses'), to: "/courses" },
-        { icon: <MenuIcon color="var(--fm-danger)" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>, label: t("Sign out"), logout: true },
+        { icon: <MenuIcon color={ACCENT} name="shield" />, label: t("Dashboard"), to: "/admin/dashboard" },
+        { icon: <MenuIcon color={ACCENT} name="group" />, label: t('home.ac.hire.title'), to: "/freelancers" },
+        { icon: <MenuIcon color={INFO} name="work" />, label: t('home.ac.client.title'), to: "/clients" },
+        { icon: <MenuIcon color={OK} name="school" />, label: t('Courses'), to: "/courses" },
+        { icon: <MenuIcon color={BAD} name="logout" />, label: t("Sign out"), logout: true },
       ]
     : user?.role === "freelancer"
       ? [
-          { icon: <MenuIcon color="var(--fm-primary)" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: t("My Profile"),  to: "/dashboard?tab=profile" },
-          { icon: <MenuIcon color="var(--fm-success)" d="M23 6l-9.5 9.5-5-5L1 18" d2="M17 6h6v6"/>,                                        label: t("nav.gains"),   to: "/dashboard?tab=gains" },
-          { icon: <MenuIcon color="var(--fm-cyan)" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: t("msg.page_title"), to: "/messages" },
-          { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: t("Settings"), to: "/dashboard?tab=settings" },
-          { icon: <MenuIcon color="var(--fm-danger)" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: t("Sign out"),  logout: true },
+          { icon: <MenuIcon color={ACCENT} name="person" />, label: t("My Profile"),  to: "/dashboard?tab=profile" },
+          { icon: <MenuIcon color={OK} name="trending_up" />, label: t("nav.gains"),   to: "/dashboard?tab=gains" },
+          { icon: <MenuIcon color={INFO} name="chat" />, label: t("msg.page_title"), to: "/messages" },
+          { icon: <MenuIcon color={MUTE} name="settings" />, label: t("Settings"), to: "/dashboard?tab=settings" },
+          { icon: <MenuIcon color={BAD} name="logout" />, label: t("Sign out"),  logout: true },
         ]
       : [
-          { icon: <MenuIcon color="var(--fm-primary)" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" d2="M12 11a4 4 0 100-8 4 4 0 000 8z"/>, label: t("My Profile"),   to: "/dashboard"  },
-          { icon: <MenuIcon color="var(--fm-warning)" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>,         label: t("My Projects"),  to: "/projects"   },
-          { icon: <MenuIcon color="var(--fm-success)" d="M1 4h22v16H1z" d2="M1 10h22"/>,                                                     label: t("nav.payments"), to: "/payments"   },
-          { icon: <MenuIcon color="var(--fm-cyan)" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>,                      label: t("msg.page_title"), to: "/messages" },
-          { icon: <MenuIcon color="#94a3b8" d="M12 15a3 3 0 100-6 3 3 0 000 6z" d2="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>, label: t("Settings"),     to: "/settings"   },
-          { icon: <MenuIcon color="var(--fm-danger)" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>,                    label: t("Sign out"),     logout: true      },
+          { icon: <MenuIcon color={ACCENT} name="person" />, label: t("My Profile"),   to: "/dashboard"  },
+          { icon: <MenuIcon color={WARN} name="work" />,         label: t("My Projects"),  to: "/projects"   },
+          { icon: <MenuIcon color={OK} name="credit_card" />,    label: t("nav.payments"), to: "/payments"   },
+          { icon: <MenuIcon color={INFO} name="chat" />,         label: t("msg.page_title"), to: "/messages" },
+          { icon: <MenuIcon color={MUTE} name="settings" />,     label: t("Settings"),     to: "/settings"   },
+          { icon: <MenuIcon color={BAD} name="logout" />,        label: t("Sign out"),     logout: true      },
         ];
+
+  const roleLabel = u => (u.isAdmin ? t('dash.role.admin') : u.role === 'freelancer' ? t('dash.role.freelancer') : u.role === 'client' ? t('dash.role.client') : (u.role ?? "membre"));
+
+  const themeButton = (extra = "") => (
+    <button type="button" onClick={toggleTheme} className={`ds-iconbtn ${extra}`}
+      title={darkMode ? 'Switch to Light mode' : 'Switch to Dark mode'}
+      aria-label={darkMode ? 'Switch to Light mode' : 'Switch to Dark mode'}>
+      <Icon name={darkMode ? 'light_mode' : 'dark_mode'} size={19} />
+    </button>
+  );
+
+  const langMenu = (
+    <div className="relative hidden sm:block" ref={langRef}>
+      <button type="button"
+        onClick={() => { setLangOpen(v => !v); setProfOpen(false); setNotifOpen(false); setMsgOpen(false); }}
+        aria-expanded={langOpen} aria-haspopup="menu" aria-label={t('nav.languages')}
+        className="ds-iconbtn ds-iconbtn-boxed !w-auto gap-1 !px-2.5 text-[12px] font-bold tracking-wide">
+        <Icon name="language" size={16} />
+        {activeLang.short}
+        <Icon name="expand_more" size={16} className={`transition-transform ${langOpen ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {langOpen && (
+          <motion.div role="menu"
+            initial={{ opacity:0, scale:.96, y:6 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.96, y:6 }} transition={{ duration:.13 }}
+            className="ds-pop absolute end-0 z-[60] mt-2 w-44 overflow-hidden">
+            {LANGS.map(l => (
+              <button key={l.code} type="button" role="menuitem"
+                onClick={() => { i18n.changeLanguage(l.code); setLangOpen(false); }}
+                aria-current={i18n.language === l.code ? 'true' : undefined}
+                className="ds-menuitem !px-3.5 !py-2.5">
+                <span className="w-6 flex-none text-center text-[11px] font-extrabold tracking-wide text-ds-faint">{l.short}</span>
+                <span className="flex-1 font-semibold">{l.label}</span>
+                {i18n.language === l.code && <Icon name="check" size={16} className="text-ds-accent" />}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 
   return (
     <>
       <style>{`
         @keyframes glowFloat {
-          0%,100% { filter:drop-shadow(0 0 8px rgba(124,108,246,.45)); transform:translateY(0); }
-          50%      { filter:drop-shadow(0 0 14px rgba(108,140,246,.6)); transform:translateY(-2px); }
+          0%,100% { filter:drop-shadow(0 0 8px rgba(99,102,241,.45)); transform:translateY(0); }
+          50%      { filter:drop-shadow(0 0 14px rgba(129,140,248,.6)); transform:translateY(-2px); }
         }
+        @media (prefers-reduced-motion: reduce) { .fm-logo-glow { animation: none !important; } }
       `}</style>
 
       {/* ── Fixed header ── */}
-      <header
-        className="fixed top-0 left-0 right-0 z-40"
-        style={{
-          background: bg.header,
-          backdropFilter: "blur(18px)",
-          WebkitBackdropFilter: "blur(18px)",
-          borderBottom: `1px solid ${bg.headerBd}`,
-          transition: "background 0.25s, border-color 0.25s",
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 66, display: "flex", alignItems: "center", gap: 28 }}>
+      {/* top: the brand strip above the header (TopBar) pushes it down until it has scrolled away. */}
+      <header className={`ds ds-header fixed inset-x-0 top-0 z-40 ${scrolled ? 'is-scrolled' : ''}`}
+        style={{ top: 'var(--fm-topbar-offset, 0px)' }}>
+        <div className="ds-wrap flex h-[66px] items-center gap-3 xl:gap-6">
 
           {/* Logo */}
-          <Link
-            to="/"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            style={{ display: "flex", alignItems: "center", gap: 9, background: "none", border: "none", cursor: "pointer", padding: 0, flex: "none", textDecoration: "none" }}
-          >
-            <LogoMark style={{ height: 38, width: "auto", display: "block", flexShrink: 0, animation: "glowFloat 4s ease-in-out infinite" }} />
-            <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.01em", whiteSpace: "nowrap", color: bg.text1 }}>
-              Fama<span style={{ color: "#9b8cff" }}>&nbsp;Mennou</span>
+          <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex flex-none items-center gap-2.5" aria-label="Fama Mennou">
+            <LogoMark className="fm-logo-glow block h-[34px] w-auto flex-none sm:h-[38px]" style={{ animation: "glowFloat 4s ease-in-out infinite" }} />
+            <span className="flex flex-col leading-[1.15]">
+              <span className="whitespace-nowrap text-[15px] font-bold tracking-[-0.01em] text-ds-ink max-[339px]:hidden min-[400px]:text-[17px]">
+                Fama<span className="ds-brand-accent">&nbsp;Mennou</span>
+              </span>
+              <span className="hidden whitespace-nowrap text-[11px] font-medium text-ds-faint sm:block">{t('nav.tagline')}</span>
             </span>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex" style={{ alignItems: "center", gap: 0 }}>
+          <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary">
             {NAV_LINKS.map(link => {
               const active = location.pathname === link.to;
               return (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  style={{
-                    background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-                    fontSize: 14.5, fontWeight: 600, whiteSpace: "nowrap",
-                    color: active ? "#9b8cff" : bg.navClr,
-                    padding: "8px 13px", borderRadius: 8, textDecoration: "none",
-                    display: "block", transition: "color 0.15s, background 0.15s",
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.color = bg.iconHov; e.currentTarget.style.background = bg.btnHovBg; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = active ? "#9b8cff" : bg.navClr; e.currentTarget.style.background = "none"; }}
-                >
+                <Link key={link.to} to={link.to} className="ds-navlink" aria-current={active ? 'page' : undefined}>
+                  {active && <span className="h-1.5 w-1.5 rounded-full bg-ds-accent" />}
                   {link.label}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Spacer */}
-          <div style={{ flex: 1, minWidth: 14 }} />
+          <div className="min-w-3 flex-1" />
 
           {/* Right side */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div className="flex items-center gap-1.5">
+            {themeButton("hidden sm:inline-flex")}
+            {langMenu}
+
             {user ? (
               <>
-                {/* Dark / Light toggle (1st) */}
-                <button
-                  onClick={toggleTheme}
-                  className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl transition-all"
-                  style={{ color: bg.iconClr, background: 'transparent' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = bg.iconClr; }}
-                  title={darkMode ? 'Switch to Light mode' : 'Switch to Dark mode'}
-                >
-                  {darkMode ? (
-                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="5"/>
-                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
-                  ) : (
-                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                  )}
-                </button>
-
-                {/* Language selector (2nd) */}
-                <div className="relative hidden sm:block" ref={langRef}>
-                  <button
-                    onClick={() => { setLangOpen(v => !v); setProfOpen(false); setNotifOpen(false); setMsgOpen(false); }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all"
-                    style={{
-                      color: langOpen ? bg.iconHov : bg.iconClr,
-                      background: langOpen ? bg.btnHovBg : "transparent",
-                      border: `1px solid ${langOpen ? bg.headerBd : "transparent"}`,
-                      fontSize: 11, fontWeight: 700, letterSpacing: '.03em', cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => { if (!langOpen) { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}}
-                    onMouseLeave={e => { if (!langOpen) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}}
-                  >
-                    <span style={{ fontSize: 15, lineHeight: 1 }}>{activeLang.flag}</span>
-                    {activeLang.short}
-                    <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ transform: langOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform .2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                {memberCta && (
+                  <button type="button" onClick={memberCta.go} className={`${ctaSkin} !hidden !min-h-10 !px-[18px] min-[1440px]:!inline-flex`}>
+                    {ctaOutlined && <Icon name="add_circle" size={18} />}{memberCta.label}
                   </button>
+                )}
 
-                  <AnimatePresence>
-                    {langOpen && (
-                      <motion.div
-                        initial={{ opacity:0, scale:.95, y:6 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:6 }} transition={{ duration:.13 }}
-                        style={{ position:'absolute', right:0, marginTop:8, width:168, borderRadius:14, background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow:'0 16px 48px rgba(0,0,0,.25)', overflow:'hidden', zIndex:60 }}>
-                        {LANGS.map(l => (
-                          <button key={l.code}
-                            onClick={() => { i18n.changeLanguage(l.code); setLangOpen(false); }}
-                            style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background: i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : 'transparent', border:'none', cursor:'pointer', fontFamily:'inherit', transition:'background .15s' }}
-                            onMouseEnter={e => e.currentTarget.style.background = bg.rowHov}
-                            onMouseLeave={e => e.currentTarget.style.background = i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : 'transparent'}>
-                            <span style={{ fontSize: 17, lineHeight: 1, flexShrink: 0 }}>{l.flag}</span>
-                            <span style={{ fontSize:13, fontWeight:600, color: i18n.language === l.code ? 'var(--fm-primary-light)' : bg.text2, flex: 1 }}>{l.label}</span>
-                            {i18n.language === l.code && (
-                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2.5} style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            )}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Messages — chat (3rd) — hidden on mobile, already reachable via the hamburger menu's Messages link */}
-                <button
+                {/* Messages — hidden on phones (also reachable from the menu) */}
+                <button type="button"
                   onClick={() => { setNotifOpen(false); setProfOpen(false); setMsgOpen(v => !v); }}
-                  className="relative hidden sm:flex w-9 h-9 items-center justify-center rounded-xl transition-colors"
-                  style={{ color: bg.iconClr, background: "transparent" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}
-                  title="Messages"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                  </svg>
-                  {msgUnread > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-extrabold text-white" style={{ background: "#ef4444" }}>
-                      {msgUnread > 9 ? "9+" : msgUnread}
-                    </span>
-                  )}
+                  className="ds-iconbtn hidden sm:inline-flex" title="Messages" aria-label="Messages">
+                  <Icon name="chat_bubble" size={20} />
+                  {msgUnread > 0 && <span className="ds-count-badge" style={{ background: BAD }}>{msgUnread > 9 ? "9+" : msgUnread}</span>}
                 </button>
 
-                {/* Bell — notifications (4th) */}
-                <button
+                {/* Bell — notifications */}
+                <button type="button"
                   onClick={() => {
                     setNotifOpen(v => {
                       if (!v) { user.isAdmin ? markAllNotificationsRead("admin") : markAllNotificationsRead("user", user.email); }
@@ -620,89 +513,54 @@ export default function Navbar({ onLogin }) {
                     });
                     setMsgOpen(false); setProfOpen(false);
                   }}
-                  className="relative shrink-0 w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
-                  style={{ color: bg.iconClr, background: "transparent" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}
-                  title="Notifications"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                  </svg>
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-extrabold text-white" style={{ background: "#7c6cf6" }}>
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
+                  className="ds-iconbtn" title="Notifications" aria-label="Notifications">
+                  <Icon name="notifications" size={20} />
+                  {unreadCount > 0 && <span className="ds-count-badge bg-ds-fill">{unreadCount > 9 ? "9+" : unreadCount}</span>}
                 </button>
 
-                {/* Separator */}
-                <div style={{ width: 1, height: 22, background: bg.headerBd, flexShrink: 0 }} className="hidden sm:block" />
+                <span className="mx-1 hidden h-5 w-px bg-ds-line sm:block" aria-hidden="true" />
 
                 {/* Profile */}
-                <div className="relative shrink-0" ref={profRef}>
-                  <button
+                <div className="relative flex-none" ref={profRef}>
+                  <button type="button"
                     onClick={() => { setProfOpen(v => !v); setNotifOpen(false); setMsgOpen(false); }}
-                    className="flex items-center gap-2 pl-1 pr-1 sm:pr-2.5 py-1 rounded-2xl transition-all"
-                    style={{ background: profOpen ? bg.btnHovBg : "transparent", border: `1px solid ${profOpen ? bg.headerBd : "transparent"}` }}
-                  >
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0"
-                      style={{ background: user.photo ? 'transparent' : avatarGradient(user.email) }}>
-                      {user.photo ? <img src={cldImg(user.photo)} alt={user.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : getInitials(user.name)}
-                    </div>
-                    <div className="hidden sm:block text-left">
-                      <p className="text-xs font-bold leading-tight" style={{ color: bg.text1 }}>{user.name}</p>
-                      <p className="text-[10px] leading-tight capitalize" style={{ color: bg.text3 }}>{user.isAdmin ? t('dash.role.admin') : user.role === 'freelancer' ? t('dash.role.freelancer') : user.role === 'client' ? t('dash.role.client') : (user.role ?? "membre")}</p>
-                    </div>
-                    <svg className={`hidden sm:block w-3 h-3 transition-transform ${profOpen ? "rotate-180" : ""}`} style={{ color: bg.text3 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
-                    </svg>
+                    aria-expanded={profOpen} aria-haspopup="menu"
+                    className="flex items-center gap-2 rounded-2xl border border-transparent py-1 ps-1 pe-1 transition-colors hover:bg-ds-line/10 sm:pe-2.5"
+                    style={{ background: profOpen ? 'rgb(var(--ds-line) / .08)' : undefined, borderColor: profOpen ? 'rgb(var(--ds-line) / var(--ds-line-a))' : undefined }}>
+                    <Avatar user={user} size={32} />
+                    <span className="hidden text-start sm:block">
+                      <span className="block text-xs font-bold leading-tight text-ds-ink">{shownName(user)}</span>
+                      <span className="block text-[10px] capitalize leading-tight text-ds-faint">{roleLabel(user)}</span>
+                    </span>
+                    <Icon name="expand_more" size={16} className={`hidden text-ds-faint transition-transform sm:block ${profOpen ? "rotate-180" : ""}`} />
                   </button>
 
                   <AnimatePresence>
                     {profOpen && (
-                      <motion.div
-                        initial={{ opacity:0, scale:.95, y:8 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:8 }} transition={{ duration:.14 }}
-                        className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-64 overflow-hidden rounded-2xl z-50`}
-                        style={{ background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow:"0 24px 64px rgba(0,0,0,.2)" }}
-                      >
-                        <div className="px-4 py-3.5" style={{ borderBottom: `1px solid ${bg.divider}` }}>
-                          <div className="flex items-center gap-2.5 mb-2">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden"
-                              style={{ background: user.photo ? 'transparent' : avatarGradient(user.email) }}>
-                              {user.photo ? <img src={cldImg(user.photo)} alt={user.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : getInitials(user.name)}
-                            </div>
+                      <motion.div role="menu"
+                        initial={{ opacity:0, scale:.96, y:8 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.96, y:8 }} transition={{ duration:.14 }}
+                        className="ds-pop absolute end-0 z-50 mt-2 w-64 overflow-hidden">
+                        <div className="border-b border-ds-line px-4 py-3.5">
+                          <div className="mb-2 flex items-center gap-2.5">
+                            <Avatar user={user} size={36} />
                             <div className="min-w-0">
-                              <p className="text-sm font-bold truncate" style={{ color: bg.text1 }}>{user.name}</p>
-                              <p className="text-[11px] truncate" style={{ color: bg.text3 }}>{user.email}</p>
+                              <p className="truncate text-sm font-bold text-ds-ink">{shownName(user)}</p>
+                              <p className="truncate text-[11px] text-ds-faint">{user.email}</p>
                             </div>
                           </div>
-                          <span className={`text-[10px] font-bold capitalize ${user.isAdmin ? 'px-2 py-0.5 rounded-full' : ''}`}
-                            style={user.isAdmin
-                              ? { background:"rgba(239,68,68,0.15)", border:"1px solid rgba(239,68,68,0.3)", color:"#f87171" }
-                              : { color: "#9b8cff" }}>
-                            {user.isAdmin ? t('dash.role.admin') : user.role === 'freelancer' ? t('dash.role.freelancer') : user.role === 'client' ? t('dash.role.client') : user.role}
+                          <span className={`text-[10px] font-bold capitalize ${user.isAdmin ? 'rounded-full border px-2 py-0.5' : 'text-ds-accent'}`}
+                            style={user.isAdmin ? { background: tok('bad', 0.14), borderColor: tok('bad', 0.3), color: BAD } : undefined}>
+                            {roleLabel(user)}
                           </span>
                         </div>
                         <div className="py-1.5">
-                          {MENU_ITEMS.map((item) => (
-                            <button key={item.label}
+                          {MENU_ITEMS.map(item => (
+                            <button key={item.label} type="button" role="menuitem"
                               onClick={() => { setProfOpen(false); item.logout ? setLogoutModal(true) : handleDropdownNavigate(item.to); }}
-                              className="w-full text-left transition-all"
-                              style={{
-                                display: "flex", alignItems: "center", gap: 10,
-                                padding: "9px 16px",
-                                fontSize: 13.5, fontWeight: 500, letterSpacing: "0.01em",
-                                color: item.logout ? "#f87171" : bg.text2,
-                                background: "transparent",
-                                border: "none", cursor: "pointer", fontFamily: "inherit",
-                                borderTop: item.logout ? `1px solid ${bg.divider}` : "none",
-                                marginTop: item.logout ? 4 : 0,
-                              }}
-                              onMouseEnter={e => { e.currentTarget.style.background = item.logout ? "rgba(239,68,68,0.08)" : bg.rowHov; e.currentTarget.style.color = item.logout ? "#f87171" : bg.text1; }}
-                              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = item.logout ? "#f87171" : bg.text2; }}>
-                              <span style={{ display:"flex", alignItems:"center", flexShrink:0 }}>{item.icon}</span>
-                              <span style={{ fontWeight: 500 }}>{item.label}</span>
+                              className={`ds-menuitem !px-4 !py-2 ${item.logout ? 'mt-1 border-t border-ds-line' : ''}`}
+                              style={item.logout ? { color: BAD } : undefined}>
+                              {item.icon}
+                              <span>{item.label}</span>
                             </button>
                           ))}
                         </div>
@@ -712,108 +570,25 @@ export default function Navbar({ onLogin }) {
                 </div>
               </>
             ) : (
-              <div className="hidden sm:flex items-center" style={{ gap: 10 }}>
-                {/* Dark / Light toggle — visible when logged out too */}
-                <button
-                  onClick={toggleTheme}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl transition-all"
-                  style={{ color: bg.iconClr, background: 'transparent' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = bg.iconClr; }}
-                  title={darkMode ? 'Switch to Light mode' : 'Switch to Dark mode'}
-                >
-                  {darkMode ? (
-                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="5"/>
-                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
-                  ) : (
-                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                  )}
-                </button>
-
-                {/* Language selector — visible when logged out too */}
-                <div className="relative" ref={langRef}>
-                  <button
-                    onClick={() => setLangOpen(v => !v)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all"
-                    style={{
-                      color: langOpen ? bg.iconHov : bg.iconClr,
-                      background: langOpen ? bg.btnHovBg : "transparent",
-                      border: `1px solid ${langOpen ? bg.headerBd : "transparent"}`,
-                      fontSize: 11, fontWeight: 700, letterSpacing: '.03em', cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => { if (!langOpen) { e.currentTarget.style.background = bg.btnHovBg; e.currentTarget.style.color = bg.iconHov; }}}
-                    onMouseLeave={e => { if (!langOpen) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = bg.iconClr; }}}
-                  >
-                    <span style={{ fontSize: 15, lineHeight: 1 }}>{activeLang.flag}</span>
-                    {activeLang.short}
-                    <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ transform: langOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform .2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                  </button>
-
-                  <AnimatePresence>
-                    {langOpen && (
-                      <motion.div
-                        initial={{ opacity:0, scale:.95, y:6 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:6 }} transition={{ duration:.13 }}
-                        style={{ position:'absolute', right:0, marginTop:8, width:168, borderRadius:14, background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow:'0 16px 48px rgba(0,0,0,.25)', overflow:'hidden', zIndex:60 }}>
-                        {LANGS.map(l => (
-                          <button key={l.code}
-                            onClick={() => { i18n.changeLanguage(l.code); setLangOpen(false); }}
-                            style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background: i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : 'transparent', border:'none', cursor:'pointer', fontFamily:'inherit', transition:'background .15s' }}
-                            onMouseEnter={e => e.currentTarget.style.background = bg.rowHov}
-                            onMouseLeave={e => e.currentTarget.style.background = i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : 'transparent'}>
-                            <span style={{ fontSize: 17, lineHeight: 1, flexShrink: 0 }}>{l.flag}</span>
-                            <span style={{ fontSize:13, fontWeight:600, color: i18n.language === l.code ? 'var(--fm-primary-light)' : bg.text2, flex: 1 }}>{l.label}</span>
-                            {i18n.language === l.code && (
-                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="var(--fm-primary-light)" strokeWidth={2.5} style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            )}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <button
-                  onClick={() => onLogin?.("login")}
-                  style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14.5, fontWeight: 600, whiteSpace: "nowrap", color: bg.navClr, padding: "8px 8px" }}
-                  onMouseEnter={e => e.currentTarget.style.color = bg.iconHov}
-                  onMouseLeave={e => e.currentTarget.style.color = bg.navClr}
-                >
+              <>
+                <button type="button" onClick={() => onLogin?.("login")} className="ds-btn ds-btn-ghost hidden sm:inline-flex">
                   {t("Log in")}
                 </button>
-                <button
-                  onClick={() => onLogin?.("signup")}
-                  style={{ background: "#7c6cf6", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", color: "#fff", padding: "9px 18px", borderRadius: 10, boxShadow: "0 6px 16px -5px rgba(124,108,246,.7)" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#6a5cf0"}
-                  onMouseLeave={e => e.currentTarget.style.background = "#7c6cf6"}
-                >
-                  {t("Sign up")}
+                <button type="button" onClick={() => onLogin?.("signup")} className={`${ctaSkin} !min-h-9 !px-3 !text-[13px] sm:!min-h-10 sm:!px-[18px] sm:!text-sm`}>
+                  {ctaOutlined && <Icon name="add_circle" size={18} className="hidden sm:block" />}
+                  <span className="max-[399px]:hidden">{ctaLabel}</span>
+                  <span className="hidden max-[399px]:inline">{ctaShort}</span>
                 </button>
-              </div>
+              </>
             )}
 
-            {/* Hamburger — mobile only */}
-            <button
+            {/* Hamburger — below xl (the supplied design shows the inline nav from 1280px) */}
+            <button type="button"
               onClick={() => setMenuOpen(v => !v)}
               aria-label={menuOpen ? t('Close menu') : t('Open menu')}
               aria-expanded={menuOpen}
-              className="lg:hidden shrink-0 w-9 h-9 flex items-center justify-center rounded-xl transition-colors"
-              style={{ background: bg.btnHovBg, border: `1px solid ${bg.headerBd}`, color: bg.iconClr }}
-            >
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                {[0,1,2].map(i => (
-                  <span key={i} style={{
-                    display: "block", width: 18, height: 2, borderRadius: 2,
-                    background: bg.iconClr,
-                    transform: menuOpen && i===0 ? "rotate(45deg) translateY(7px)" : menuOpen && i===2 ? "rotate(-45deg) translateY(-7px)" : "",
-                    opacity: menuOpen && i===1 ? 0 : 1,
-                    transition: "transform .2s, opacity .2s",
-                  }} />
-                ))}
-              </div>
+              className="ds-iconbtn ds-iconbtn-boxed xl:!hidden">
+              <Icon name={menuOpen ? 'close' : 'menu'} size={22} />
             </button>
           </div>
 
@@ -828,116 +603,81 @@ export default function Navbar({ onLogin }) {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.22 }}
-              className="fixed inset-0 z-[99] lg:hidden"
-              style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)" }}
+              className="fixed inset-0 z-[99] xl:hidden"
+              style={{ background: "rgba(2,6,15,0.6)", backdropFilter: "blur(3px)" }}
               onClick={() => setMenuOpen(false)}
             />
 
             {/* Sidebar panel */}
-            <motion.div
-              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+            <motion.aside
+              initial={{ x: isRTL ? "-100%" : "100%" }} animate={{ x: 0 }} exit={{ x: isRTL ? "-100%" : "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 240 }}
-              className="fixed top-0 right-0 bottom-0 z-[100] flex flex-col lg:hidden"
+              className="ds fixed bottom-0 top-0 z-[100] flex flex-col overflow-y-auto border-ds-line bg-ds-canvas xl:hidden"
               style={{
-                width: "min(300px, calc(100vw - 48px))",
-                background: bg.mobileMenu,
-                borderLeft: `1px solid ${bg.mobileBd}`,
-                boxShadow: "-20px 0 60px rgba(0,0,0,0.4)",
-                overflowY: "auto",
+                [isRTL ? 'left' : 'right']: 0,
+                width: "min(320px, calc(100vw - 48px))",
+                [isRTL ? 'borderRight' : 'borderLeft']: '1px solid rgb(var(--ds-line) / var(--ds-line-a))',
+                boxShadow: isRTL ? "20px 0 60px rgba(0,0,0,0.4)" : "-20px 0 60px rgba(0,0,0,0.4)",
               }}
+              aria-label={t('Menu')}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3.5 shrink-0" style={{ borderBottom: `1px solid ${bg.mobileBd}` }}>
-                <Link to="/" onClick={() => { setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ display: "flex", alignItems: "center", gap: 7, textDecoration: "none" }}>
-                  <LogoMark style={{ height: 30, width: "auto", display: "block", flexShrink: 0 }} />
-                  <span style={{ fontWeight: 700, fontSize: 15, color: bg.text1 }}>
-                    Fama<span style={{ color: "#9b8cff" }}>&nbsp;Mennou</span>
-                  </span>
+              <div className="flex flex-none items-center justify-between border-b border-ds-line px-4 py-3.5">
+                <Link to="/" onClick={() => { setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2">
+                  <LogoMark className="block h-[30px] w-auto flex-none" />
+                  <span className="text-[15px] font-bold text-ds-ink">Fama<span className="ds-brand-accent">&nbsp;Mennou</span></span>
                 </Link>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={toggleTheme}
-                    className="w-8 h-8 flex items-center justify-center rounded-xl"
-                    style={{ background: bg.btnHovBg, color: bg.iconClr }}
-                    title={darkMode ? 'Switch to Light mode' : 'Switch to Dark mode'}
-                  >
-                    {darkMode ? (
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="5"/>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                      </svg>
-                    ) : (
-                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                      </svg>
-                    )}
-                  </button>
-                  <button onClick={() => setMenuOpen(false)}
-                    className="w-8 h-8 flex items-center justify-center rounded-xl"
-                    style={{ background: bg.btnHovBg, color: bg.iconClr }}>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <div className="flex flex-none items-center gap-1.5">
+                  {themeButton("ds-iconbtn-boxed")}
+                  <button type="button" onClick={() => setMenuOpen(false)} aria-label={t('Close menu')} className="ds-iconbtn ds-iconbtn-boxed">
+                    <Icon name="close" size={20} />
                   </button>
                 </div>
               </div>
 
               {/* User info strip */}
               {user && (
-                <div className="flex items-center gap-3 px-4 py-3 shrink-0" style={{ borderBottom: `1px solid ${bg.mobileBd}` }}>
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden"
-                    style={{ background: user.photo ? "transparent" : avatarGradient(user.email) }}>
-                    {user.photo ? <img src={cldImg(user.photo)} alt={user.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : getInitials(user.name)}
-                  </div>
+                <div className="flex flex-none items-center gap-3 border-b border-ds-line px-4 py-3">
+                  <Avatar user={user} size={36} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold truncate leading-tight" style={{ color: bg.text1 }}>{user.name}</p>
-                    <p className="text-[10px] truncate" style={{ color: bg.text3 }}>{user.email}</p>
+                    <p className="truncate text-sm font-bold leading-tight text-ds-ink">{shownName(user)}</p>
+                    <p className="truncate text-[10px] text-ds-faint">{user.email}</p>
                   </div>
-                  <span className={`text-[10px] font-bold capitalize shrink-0 ${user.isAdmin ? 'px-2 py-0.5 rounded-full' : ''}`}
-                    style={user.isAdmin
-                      ? { background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }
-                      : { color: "#9b8cff" }}>
+                  <span className={`flex-none text-[10px] font-bold capitalize ${user.isAdmin ? 'rounded-full border px-2 py-0.5' : 'text-ds-accent'}`}
+                    style={user.isAdmin ? { background: tok('bad', 0.14), borderColor: tok('bad', 0.3), color: BAD } : undefined}>
                     {user.isAdmin ? "Admin" : user.role}
                   </span>
                 </div>
               )}
 
               {/* Language switcher — mobile has no other way to reach this */}
-              <div className="flex items-center gap-2 px-4 py-3 shrink-0" style={{ borderBottom: `1px solid ${bg.mobileBd}` }}>
+              <div className="flex flex-none items-center gap-2 border-b border-ds-line px-4 py-3">
                 {LANGS.map(l => (
-                  <button key={l.code}
+                  <button key={l.code} type="button"
                     onClick={() => i18n.changeLanguage(l.code)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
-                    style={{
-                      background: i18n.language === l.code ? 'var(--fm-primary-soft-strong)' : bg.btnHovBg,
-                      color: i18n.language === l.code ? 'var(--fm-primary-light)' : bg.navClr,
-                      border: `1px solid ${i18n.language === l.code ? 'var(--fm-primary-border)' : 'transparent'}`,
-                    }}>
-                    <span style={{ fontSize: 15, lineHeight: 1 }}>{l.flag}</span>
+                    aria-pressed={i18n.language === l.code}
+                    className="ds-pill flex-1 justify-center">
                     {l.short}
                   </button>
                 ))}
               </div>
 
               {/* Nav links */}
-              <nav className="flex flex-col px-3 py-3 gap-0.5 flex-1">
-
-                {/* ── Discover ── */}
-                <p className="px-3 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>{t('nav.discover')}</p>
+              <nav className="flex flex-1 flex-col gap-0.5 px-3 py-3">
+                <p className="px-3 pb-1.5 pt-1 text-[10px] font-extrabold uppercase tracking-widest text-ds-faint">{t('nav.discover')}</p>
                 {[
-                  { label: t('home.ac.hire.title'),   to: "/freelancers", icon: <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>, icon2: <circle cx="9" cy="7" r="4"/>, color: "#9b8cff" },
-                  { label: t('home.ac.client.title'), to: "/clients",    icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#0ea5e9" },
-                  { label: t('Courses'),              to: "/courses",    icon: <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>, icon2: <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>, color: "#10b981" },
+                  { label: t('home.ac.hire.title'),   to: "/freelancers", icon: "group",  color: ACCENT },
+                  { label: t('home.ac.client.title'), to: "/clients",     icon: "work",   color: INFO },
+                  { label: t('Courses'),              to: "/courses",     icon: "school", color: OK },
                 ].map(item => {
                   const active = location.pathname === item.to;
                   return (
                     <Link key={item.to} to={item.to} onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold no-underline transition-colors"
-                      style={{ color: active ? "#9b8cff" : bg.navClr, background: active ? "rgba(124,108,246,0.1)" : "transparent" }}
-                      onMouseEnter={e => { if (!active) { e.currentTarget.style.background = bg.btnHovBg; } }}
-                      onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; } }}>
-                      <span style={{ width: 28, height: 28, borderRadius: 8, background: active ? `${item.color}22` : bg.btnHovBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={active ? item.color : bg.iconClr} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-                          {item.icon}{item.icon2}
-                        </svg>
+                      aria-current={active ? 'page' : undefined}
+                      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${active ? 'bg-ds-accent-soft text-ds-accent' : 'text-ds-ink-2 hover:bg-ds-line/10'}`}>
+                      <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg"
+                        style={{ background: `color-mix(in srgb, ${item.color} ${active ? 22 : 12}%, transparent)`, color: item.color }}>
+                        <Icon name={item.icon} size={18} />
                       </span>
                       {item.label}
                     </Link>
@@ -947,29 +687,26 @@ export default function Navbar({ onLogin }) {
                 {/* ── Account (logged-in non-admin, non-freelancer, non-client) ── */}
                 {user && !user.isAdmin && user.role !== 'freelancer' && user.role !== 'client' && (
                   <>
-                    <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bg.text3 }}>{t('nav.account')}</p>
+                    <p className="px-3 pb-1.5 pt-3 text-[10px] font-extrabold uppercase tracking-widest text-ds-faint">{t('nav.account')}</p>
                     {[
-                      { label: t("Dashboard"),        to: "/dashboard",  icon: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>, color: "#7c6cf6" },
-                      { label: t("My Projects"),      to: "/projects",   icon: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>, color: "#f59e0b" },
-                      { label: t("msg.page_title"),   to: "/messages",   icon: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>, color: "#3ec2e8", badge: msgUnread },
-                      { label: t("nav.payments"),     to: "/payments",   icon: <><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></>, color: "#10b981" },
-                      { label: t("Settings"),         to: "/settings",   icon: <><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></>, color: "#94a3b8" },
+                      { label: t("Dashboard"),        to: "/dashboard",  icon: "dashboard",    color: ACCENT },
+                      { label: t("My Projects"),      to: "/projects",   icon: "work",         color: WARN },
+                      { label: t("msg.page_title"),   to: "/messages",   icon: "chat",         color: INFO, badge: msgUnread },
+                      { label: t("nav.payments"),     to: "/payments",   icon: "credit_card",  color: OK },
+                      { label: t("Settings"),         to: "/settings",   icon: "settings",     color: MUTE },
                     ].map(item => {
                       const active = location.pathname === item.to;
                       return (
                         <Link key={item.to} to={item.to} onClick={() => setMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold no-underline transition-colors"
-                          style={{ color: active ? "#9b8cff" : bg.navClr, background: active ? "rgba(124,108,246,0.1)" : "transparent" }}
-                          onMouseEnter={e => { if (!active) { e.currentTarget.style.background = bg.btnHovBg; } }}
-                          onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; } }}>
-                          <span style={{ width: 28, height: 28, borderRadius: 8, background: active ? `${item.color}22` : bg.btnHovBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={active ? item.color : bg.iconClr} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
-                              {item.icon}
-                            </svg>
+                          aria-current={active ? 'page' : undefined}
+                          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${active ? 'bg-ds-accent-soft text-ds-accent' : 'text-ds-ink-2 hover:bg-ds-line/10'}`}>
+                          <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg"
+                            style={{ background: `color-mix(in srgb, ${item.color} ${active ? 22 : 12}%, transparent)`, color: item.color }}>
+                            <Icon name={item.icon} size={18} />
                           </span>
                           <span className="flex-1">{item.label}</span>
                           {item.badge > 0 && (
-                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold text-white" style={{ background: "#ef4444" }}>
+                            <span className="rounded-full px-1.5 py-0.5 text-[9px] font-extrabold text-white" style={{ background: BAD }}>
                               {item.badge > 9 ? "9+" : item.badge}
                             </span>
                           )}
@@ -978,37 +715,28 @@ export default function Navbar({ onLogin }) {
                     })}
                   </>
                 )}
-
               </nav>
 
               {/* Bottom actions */}
-              <div className="px-4 pb-8 pt-3 shrink-0" style={{ borderTop: `1px solid ${bg.mobileBd}` }}>
+              <div className="flex-none border-t border-ds-line px-4 pb-8 pt-3">
                 {user ? (
-                  <button onClick={() => { setMenuOpen(false); setLogoutModal(true); }}
-                    className="w-full py-3 rounded-xl font-bold text-sm transition-all"
-                    style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171" }}
-                    onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.18)"}
-                    onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,0.1)"}>
+                  <button type="button" onClick={() => { setMenuOpen(false); setLogoutModal(true); }}
+                    className="ds-btn w-full"
+                    style={{ background: tok('bad', 0.1), borderColor: tok('bad', 0.28), color: BAD }}>
                     {t("Sign out")}
                   </button>
                 ) : (
                   <div className="flex flex-col gap-3">
-                    <button onClick={() => { onLogin?.("login"); setMenuOpen(false); }}
-                      className="w-full py-3 rounded-xl font-bold text-sm transition-all"
-                      style={{ border: `1px solid ${bg.headerBd}`, color: bg.text2 }}
-                      onMouseEnter={e => e.currentTarget.style.background = bg.btnHovBg}
-                      onMouseLeave={e => e.currentTarget.style.background = ""}>
+                    <button type="button" onClick={() => { onLogin?.("login"); setMenuOpen(false); }} className="ds-btn ds-btn-glass w-full">
                       {t("Log in")}
                     </button>
-                    <button onClick={() => { onLogin?.("signup"); setMenuOpen(false); }}
-                      className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90"
-                      style={{ background: "#7c6cf6", boxShadow: "0 4px 14px -3px rgba(124,108,246,.5)" }}>
-                      {t("Sign up")}
+                    <button type="button" onClick={() => { onLogin?.("signup"); setMenuOpen(false); }} className="ds-btn ds-btn-primary w-full">
+                      {ctaLabel}
                     </button>
                   </div>
                 )}
               </div>
-            </motion.div>
+            </motion.aside>
           </>
         )}
       </AnimatePresence>
@@ -1018,10 +746,6 @@ export default function Navbar({ onLogin }) {
         {notifOpen && user && (
           <NotifPanel
             notifications={notifs}
-            dark={darkMode}
-            onMarkRead={id => markNotificationRead(id)}
-            onMarkAll={() => user.isAdmin ? markAllNotificationsRead("admin") : markAllNotificationsRead("user", user.email)}
-            onClear={() => user.isAdmin ? clearNotifications("admin") : clearNotifications("user", user.email)}
             onClose={() => setNotifOpen(false)}
           />
         )}
@@ -1032,7 +756,6 @@ export default function Navbar({ onLogin }) {
         {msgOpen && user && (
           <MessagesPanel
             conversations={msgConvs}
-            dark={darkMode}
             senderEmail={user.isAdmin ? "admin@famamennou.com" : user.email}
             onClose={() => setMsgOpen(false)}
             onChatOpen={email => {
@@ -1052,42 +775,34 @@ export default function Navbar({ onLogin }) {
         {logoutModal && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)" }}
+            className="ds fixed inset-0 z-[200] flex items-center justify-center p-4"
+            style={{ background: "rgba(2,6,15,0.55)", backdropFilter: "blur(6px)" }}
           >
             <motion.div
-              initial={{ opacity:0, scale:.92, y:12 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.92, y:12 }} transition={{ duration:.18 }}
-              className="w-full max-w-sm overflow-hidden rounded-2xl"
-              style={{ background: bg.panel, border: `1px solid ${bg.panelBd}`, boxShadow: "0 24px 64px rgba(0,0,0,.35)" }}
+              initial={{ opacity:0, scale:.94, y:12 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.94, y:12 }} transition={{ duration:.18 }}
+              className="ds-pop w-full max-w-sm overflow-hidden"
+              role="dialog" aria-modal="true" aria-labelledby="logout-title"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-6 pt-6 pb-0">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)" }}>
-                  <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-                    <polyline points="16 17 21 12 16 7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
-                  </svg>
-                </div>
-                <button onClick={() => setLogoutModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: bg.btnHovBg, color: bg.text3 }}>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              <div className="flex items-center justify-between px-6 pb-0 pt-6">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border" style={{ background: tok('bad', 0.12), borderColor: tok('bad', 0.28), color: BAD }}>
+                  <Icon name="logout" size={24} />
+                </span>
+                <button type="button" onClick={() => setLogoutModal(false)} aria-label={t('Cancel')} className="ds-iconbtn ds-iconbtn-boxed !rounded-full">
+                  <Icon name="close" size={18} />
                 </button>
               </div>
               <div className="px-6 py-4">
-                <h3 className="text-base font-extrabold mb-1" style={{ color: bg.text1 }}>{t('fd.logout_confirm')}</h3>
-                <p className="text-sm" style={{ color: bg.text2 }}>{t('fd.logout_redirect')}</p>
+                <h3 id="logout-title" className="mb-1 text-base font-extrabold text-ds-ink">{t('fd.logout_confirm')}</h3>
+                <p className="text-sm text-ds-mute">{t('fd.logout_redirect')}</p>
               </div>
               <div className="flex gap-3 px-6 pb-6">
-                <button onClick={() => setLogoutModal(false)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
-                  style={{ border: `1px solid ${bg.headerBd}`, color: bg.text2 }}
-                  onMouseEnter={e => e.currentTarget.style.background = bg.rowHov}
-                  onMouseLeave={e => e.currentTarget.style.background = ""}>
+                <button type="button" onClick={() => setLogoutModal(false)} className="ds-btn ds-btn-glass flex-1">
                   {t('Cancel')}
                 </button>
-                <button onClick={() => { logout(); setLogoutModal(false); }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 4px 12px -3px rgba(239,68,68,.4)" }}>
+                <button type="button" onClick={() => { logout(); setLogoutModal(false); }}
+                  className="ds-btn flex-1 text-white hover:brightness-110"
+                  style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 8px 20px -8px rgba(239,68,68,.6)" }}>
                   {t('fd.yes_logout')}
                 </button>
               </div>

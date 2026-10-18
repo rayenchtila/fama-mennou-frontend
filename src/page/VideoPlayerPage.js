@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
+import { firstWord } from '../utils/names';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -100,7 +101,7 @@ function CertificateCard({cert}){
       </code>
       <p style={{color:'#d97706',fontSize:12}}>
         {t('vpp.cert_issued_on',{date:new Date(cert.issued_at).toLocaleDateString('fr-FR')})}
-        {cert.instructor_name?` · ${t('vpp.cert_instructor',{name:cert.instructor_name})}`:''}
+        {cert.instructor_name?` · ${t('vpp.cert_instructor',{name:firstWord(cert.instructor_name)||cert.instructor_name})}`:''}
       </p>
     </div>
   );

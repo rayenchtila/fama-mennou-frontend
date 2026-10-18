@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -6,115 +6,53 @@ import { useTranslation } from 'react-i18next';
 import SEOHead, { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd, FAQJsonLd } from '../components/Seohead';
 import HomeAdVideo from '../components/HomeAdVideo';
 import DemoVideoSection from '../components/DemoVideoSection';
+import Icon from '../components/ds/Icon';
+import CountUp from '../components/ds/CountUp';
+import FadeIn from '../components/ds/FadeIn';
+import CategoryPills from '../components/ds/CategoryPills';
 import { cldImg } from '../utils/cloudinary';
+import { firstWord, getInitials } from '../utils/names';
+import { normalizeUser } from '../utils/normalizeUser';
+import { budgetLabel } from '../utils/budget';
 import { useTypewriter, TypeCursor, TypeCursorStyle } from '../hooks/useTypewriter';
+import useLivePoll from '../hooks/useLivePoll';
+import { loadFreelancerStats, loadProjectStats } from '../utils/liveStats';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
+const SPRING = { type: 'spring', stiffness: 120, damping: 16 };
+const nf = new Intl.NumberFormat('fr-TN');
+
+// Direction (stated up front, per the frontend-design skill): the supplied
+// "Dark Precision Minimalist" system — obsidian slate-indigo canvas, hairline
+// glass borders, indigo→violet accents — applied to the page that already
+// existed, section for section. The one recurring move is the *verification
+// glow*: every "this has been checked" signal (the verified tick on a profile,
+// the review step of the payment flow) carries the same soft accent halo, so
+// trust has one visual vocabulary. Desktop and phone are laid out separately:
+// the phone gets a stacked search, scroll-snap rails instead of tall stacks and
+// a vertical timeline for the steps.
 
 const AVATAR_GRADIENTS = [
-  'linear-gradient(135deg,#7c6cf6,#3ec2e8)',
-  'linear-gradient(135deg,#a855f7,#6c8cf6)',
-  'linear-gradient(135deg,#3ec2e8,#5b5ce0)',
+  'linear-gradient(135deg,#818cf8,#4f46e5)',
+  'linear-gradient(135deg,#7c3aed,#818cf8)',
+  'linear-gradient(135deg,#4f46e5,#06b6d4)',
 ];
 function pickGradient(seed) {
   const code = (seed || '').charCodeAt(0) || 0;
   return AVATAR_GRADIENTS[code % AVATAR_GRADIENTS.length];
 }
-function getInitials(name) {
-  return (name || '').trim().split(/\s+/).map(w => w[0]?.toUpperCase() || '').slice(0, 2).join('') || '?';
-}
 
 const COURSE_GRADIENTS = {
-  Technology: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)',
-  Design: 'linear-gradient(135deg,#a855f7,#6c8cf6)',
-  Marketing: 'linear-gradient(135deg,#5b5ce0,#3ec2e8)',
-  Writing: 'linear-gradient(135deg,#7c6cf6,#a855f7)',
-  'E-commerce': 'linear-gradient(135deg,#3ec2e8,#5b5ce0)',
-  Finance: 'linear-gradient(135deg,#a855f7,#3ec2e8)',
+  Technology: 'linear-gradient(135deg,#818cf8,#4f46e5)',
+  Design: 'linear-gradient(135deg,#7c3aed,#818cf8)',
+  Marketing: 'linear-gradient(135deg,#4f46e5,#06b6d4)',
+  Writing: 'linear-gradient(135deg,#818cf8,#7c3aed)',
+  'E-commerce': 'linear-gradient(135deg,#06b6d4,#4f46e5)',
+  Finance: 'linear-gradient(135deg,#7c3aed,#06b6d4)',
 };
-const DEFAULT_COURSE_GRADIENT = 'linear-gradient(135deg,#7c6cf6,#3ec2e8)';
+const DEFAULT_COURSE_GRADIENT = 'linear-gradient(135deg,#818cf8,#4f46e5)';
 
-const SEARCH_TYPES = ['freelancers', 'clients', 'courses'];
-const SEARCH_LABELS = ['Freelancers', 'Clients', 'Courses'];
-const SEARCH_PLACEHOLDERS = ['Name, skill, region…', 'Project type, sector…', 'React, SEO, Motion Design…'];
-
-const ACTION_CARDS = [
-  {
-    to: '/freelancers',
-    icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-    title: 'Hire Freelancers',
-    desc: 'Browse verified talent by skill and region.',
-    cta: 'Browse talent',
-  },
-  {
-    to: '/clients',
-    icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>,
-    title: 'Get Clients',
-    desc: 'Find open projects and win contracts.',
-    cta: 'View projects',
-  },
-  {
-    to: '/courses',
-    icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
-    title: 'Learn Skills',
-    desc: 'Take courses from expert freelancers.',
-    cta: 'Explore courses',
-  },
-];
-
-const HOW_IT_WORKS = [
-  { num: '1', title: 'Create your account', desc: 'Sign up in minutes with quick ID verification.' },
-  { num: '2', title: 'Choose your role', desc: 'Join as a freelancer, a client, or a learner.' },
-  { num: '3', title: 'Start', desc: 'Hire talent, win projects, or learn new skills.' },
-];
-
-const FAQ_ITEMS = [
-  { question: 'What is Fama Mennou?', answer: "Fama Mennou is Tunisia's all-in-one freelance ecosystem. Hire verified talent, win contracts as a freelancer, or grow your skills through expert-led courses — all in one place." },
-  { question: 'How are freelancers verified?', answer: 'Every freelancer goes through an identity check using their national ID card. Our team reviews each profile to ensure quality, authenticity, and trustworthiness before they appear on the platform.' },
-  { question: 'Is it free to create an account?', answer: 'Yes, signing up is completely free for freelancers, clients, and learners. A small commission applies only when a project is successfully completed.' },
-  { question: 'How do I hire a freelancer?', answer: 'Browse the marketplace, filter by skill or region, and click "Hire" or send a message directly to any verified freelancer. You can also post a project and let freelancers apply to you.' },
-  { question: 'What if I\'m not satisfied with the work?', answer: 'We have a structured dispute resolution process. Our support team mediates between both parties to reach a fair outcome. Client satisfaction is our top priority.' },
-];
-
-// ── Star icon ────────────────────────────────────────────────────────────────
-function StarIcon({ size = 14, color = 'var(--fm-primary-light)' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
-      <path d="M12 2l2.6 6.3 6.8.5-5.2 4.4 1.7 6.6L12 16.9 6.1 20.3l1.7-6.6L2.6 8.8l6.8-.5z"/>
-    </svg>
-  );
-}
-
-// ── Shield icon ──────────────────────────────────────────────────────────────
-function ShieldIcon({ size = 15, color = 'var(--fm-primary-light)' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
-      <path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"/>
-    </svg>
-  );
-}
-
-// ── Chevron right ─────────────────────────────────────────────────────────────
-function ChevronRight({ size = 15 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m9 18 6-6-6-6"/>
-    </svg>
-  );
-}
-
-// ── Clock icon ───────────────────────────────────────────────────────────────
-function ClockIcon({ size = 13, color = 'var(--fm-text-6)' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
-    </svg>
-  );
-}
-
-const CARD_STYLE = { background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', borderRadius: '16px' };
-
-// Hero headline typewriter — useTypewriter/TypeCursor now live in
+// Hero headline typewriter — useTypewriter/TypeCursor live in
 // src/hooks/useTypewriter.js (shared with dashboard greetings), this just
 // composes them into the specific two-line, gradient-on-line2 layout the
 // hero needs.
@@ -137,13 +75,50 @@ function TypewriterHeadline({ title1, title2 }) {
     <>
       <TypeCursorStyle />
       {line1}
-      {showCursor && !typingLine2 && <TypeCursor />}
+      {showCursor && !typingLine2 && <TypeCursor color="rgb(var(--ds-accent))" />}
       <br />
-      <span style={{ background: 'linear-gradient(110deg,var(--fm-primary-light),var(--fm-blue) 60%,var(--fm-cyan))', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-        {line2}
-      </span>
-      {showCursor && typingLine2 && <TypeCursor />}
+      <span className="ds-gradient-text">{line2}</span>
+      {showCursor && typingLine2 && <TypeCursor color="rgb(var(--ds-accent))" />}
     </>
+  );
+}
+
+// ── Shared section pieces ─────────────────────────────────────────────────────
+function SectionHeader({ title, sub, to, cta, center = false }) {
+  return (
+    <div className={`mb-6 flex flex-wrap items-end gap-4 md:mb-9 ${center ? 'justify-center text-center' : 'justify-between'}`}>
+      <div className={center ? 'mx-auto max-w-2xl' : 'min-w-0 max-w-2xl'}>
+        <h2 className="text-h-md-m text-ds-ink md:text-h-md">{title}</h2>
+        {sub && <p className="mt-1.5 text-b-md text-ds-mute md:text-base">{sub}</p>}
+      </div>
+      {to && (
+        <Link to={to} className="ds-btn ds-btn-glass ds-btn-sm flex-none">
+          {cta} <Icon name="arrow_forward" size={16} flip />
+        </Link>
+      )}
+    </div>
+  );
+}
+
+// Phone: a scroll-snap rail that bleeds to the screen edges. Tablet and up: a
+// regular grid. Children size themselves with `w-[84%] sm:w-[55%] md:w-auto`.
+function CardRail({ children, className = '' }) {
+  return (
+    <div className={`ds-snap-x -mx-5 scroll-px-5 px-5 pb-3 md:mx-0 md:grid md:grid-cols-2 md:gap-5 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 ${className}`}>
+      {children}
+    </div>
+  );
+}
+const RAIL_ITEM = 'w-[84%] sm:w-[55%] md:w-auto';
+
+function SkeletonCard({ height = 220 }) {
+  return <div className={`ds-card ds-skeleton ${RAIL_ITEM}`} style={{ height }} aria-hidden="true" />;
+}
+function StateMessage({ text }) {
+  return (
+    <div className="ds-card w-full px-6 py-10 text-center text-[14.5px] text-ds-mute md:col-span-full">
+      {text}
+    </div>
   );
 }
 
@@ -157,12 +132,6 @@ function HeroSection() {
 
   const SEARCH_LABELS = [t('home.search.tab1'), t('home.search.tab2'), t('home.search.tab3')];
   const SEARCH_PLACEHOLDERS = [t('home.search.ph1'), t('home.search.ph2'), t('home.search.ph3')];
-  const TAB_COLORS = [
-    { bg: '#7c6cf6', glow: 'rgba(124,108,246,.7)', shadow: 'rgba(124,108,246,.45)' },
-    { bg: '#0ea5e9', glow: 'rgba(14,165,233,.7)',  shadow: 'rgba(14,165,233,.45)'  },
-    { bg: '#14b8a6', glow: 'rgba(20,184,166,.7)',  shadow: 'rgba(20,184,166,.45)'  },
-  ];
-  const activeColor = TAB_COLORS[typeIdx];
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -171,160 +140,113 @@ function HeroSection() {
     navigate(q ? `${paths[typeIdx]}?q=${encodeURIComponent(q)}` : paths[typeIdx]);
   };
 
+  const title1 = t('home.hero.title1');
+  const title2 = t('home.hero.title2');
+
   return (
-    <section style={{ position: 'relative', overflow: 'hidden' }}>
-      <div className="fm-hero-content" style={{ position: 'relative', maxWidth: '880px', margin: '0 auto', textAlign: 'center' }}>
+    <section className="relative overflow-hidden">
+      <div className="ds-ambient" aria-hidden="true" />
+      <div className="ds-wrap relative grid items-center gap-10 pb-12 pt-9 md:pb-16 md:pt-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pb-24 lg:pt-16">
 
-        {/* Badge */}
-        <style>{`
-          @keyframes badgeShimmer {
-            0%   { background-position: 200% center; }
-            100% { background-position: -200% center; }
-          }
-          @keyframes badgePulse {
-            0%,100% { box-shadow: 0 0 0 0 rgba(124,108,246,0.0), 0 0 18px 2px rgba(124,108,246,0.18); }
-            50%      { box-shadow: 0 0 0 4px rgba(124,108,246,0.10), 0 0 28px 6px rgba(62,194,232,0.22); }
-          }
-          @keyframes dotPulse {
-            0%,100% { opacity:1; transform:scale(1); }
-            50%      { opacity:.6; transform:scale(1.5); }
-          }
-          .premium-badge-text {
-            background: linear-gradient(90deg, #b9aeff 0%, #7c6cf6 20%, #3ec2e8 40%, #a78bfa 60%, #7c6cf6 80%, #b9aeff 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: badgeShimmer 6s linear infinite;
-          }
-        `}</style>
-        <motion.span
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            padding: '6px 16px', borderRadius: '999px',
-            background: 'linear-gradient(135deg, rgba(124,108,246,0.13) 0%, rgba(62,194,232,0.08) 100%)',
-            border: '1px solid transparent',
-            backgroundClip: 'padding-box',
-            boxShadow: '0 0 0 1px rgba(124,108,246,0.35), 0 0 22px 2px rgba(124,108,246,0.15)',
-            fontSize: '12.5px', fontWeight: 700, marginBottom: '24px',
-            animation: 'badgePulse 3s ease-in-out infinite',
-            backdropFilter: 'blur(8px)',
-          }}>
-          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'linear-gradient(135deg,var(--fm-primary-light),var(--fm-cyan))', boxShadow: '0 0 10px var(--fm-primary-light)', flexShrink:0, animation:'dotPulse 2s ease-in-out infinite' }} />
-          <span className="premium-badge-text">{t('home.badge')}</span>
-        </motion.span>
+        {/* Copy column */}
+        <div className="min-w-0">
+          {/* H1 — typed out live. The full text is laid out invisibly underneath
+              so the block keeps its final height from the first frame (no
+              content jumping while it types), and stays available to screen
+              readers/crawlers via aria-label even mid-type. */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING, delay: 0.1 }}
+            aria-label={`${title1} ${title2}`}
+            className="relative text-h-xl-m text-ds-ink md:text-[2.75rem] md:leading-[1.08] xl:text-h-xl">
+            <span className="invisible block" aria-hidden="true">{title1}<br />{title2}</span>
+            <span className="absolute inset-0 block" aria-hidden="true">
+              <TypewriterHeadline title1={title1} title2={title2} />
+            </span>
+          </motion.h1>
 
-        {/* H1 — typed out live, like someone typing it in real time. Full
-            text stays available to screen readers/crawlers via aria-label
-            even while the animated version is still mid-type. */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-          aria-label={`${t('home.hero.title1')} ${t('home.hero.title2')}`}
-          style={{ fontWeight: 800, fontSize: 'clamp(34px,5.4vw,56px)', lineHeight: 1.06, letterSpacing: '-.03em', margin: '0 0 18px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-          <span aria-hidden="true">
-            <TypewriterHeadline title1={t('home.hero.title1')} title2={t('home.hero.title2')} />
-          </span>
-        </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING, delay: 0.17 }}
+            className="mt-5 max-w-xl text-[16px] leading-[1.6] text-ds-mute md:text-b-lg">
+            {t('home.hero.subtitle')}
+          </motion.p>
 
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
-          style={{ fontSize: 'clamp(16px,2vw,19px)', color: 'var(--fm-text-5)', maxWidth: '520px', margin: '0 auto 34px', lineHeight: 1.55 }}>
-          {t('home.hero.subtitle')}
-        </motion.p>
+          {/* Post-a-project shortcut — client accounts only, new or old,
+              approved or still pending (the /projects page itself already
+              disables the actual Publier button and explains why for a
+              pending client, so no extra gating is needed here). */}
+          {user?.role === 'client' && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING, delay: 0.22 }} className="mt-6">
+              <Link to="/projects?post=1" className="ds-btn ds-btn-primary ds-btn-lg">
+                {t('home.publish_cta')}
+              </Link>
+            </motion.div>
+          )}
 
-        {/* Post-a-project shortcut — every client account, new or old,
-            approved or still pending (the /projects page itself already
-            disables the actual Publier button and explains why for a
-            pending client, so no extra gating is needed here). Never
-            shown to freelancers, admins, or logged-out visitors. */}
-        {user?.role === 'client' && (
+          {/* Type tabs + search */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}
-            style={{ marginBottom: '28px' }}>
-            <Link to="/projects?post=1"
-              style={{
-                display: 'inline-block', padding: '12px 26px',
-                borderRadius: '10px', background: '#fff', color: '#000',
-                fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', textDecoration: 'none',
-                transition: 'opacity .15s ease',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}>
-              {t('home.publish_cta')}
-            </Link>
-          </motion.div>
-        )}
-
-        {/* Active promotional video(s) — renders nothing when none are live */}
-        <HomeAdVideo />
-
-        {/* Search */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
-          style={{ maxWidth: '640px', margin: '0 auto', width: '100%' }}>
-          {/* Type tabs */}
-          <div style={{ position: 'relative', display: 'flex', background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border)', borderRadius: '13px', padding: '5px', marginBottom: '12px', maxWidth: '340px', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
-            {/* Sliding pill */}
-            <div style={{
-              position: 'absolute',
-              top: '5px', bottom: '5px',
-              left: '5px',
-              width: 'calc((100% - 10px) / 3)',
-              borderRadius: '9px',
-              background: TAB_COLORS[typeIdx].bg,
-              boxShadow: `0 4px 14px -4px ${TAB_COLORS[typeIdx].glow}`,
-              transform: `translateX(calc(${typeIdx} * 100%))`,
-              transition: 'transform 0.35s cubic-bezier(0.34,1.36,0.64,1), background 0.25s ease, box-shadow 0.25s ease',
-              pointerEvents: 'none',
-            }} />
-            {SEARCH_LABELS.map((label, i) => (
-              <button key={label} onClick={() => setTypeIdx(i)}
-                style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, borderRadius: '9px', background: 'transparent', position: 'relative', zIndex: 1, transition: 'color 0.2s ease', color: typeIdx === i ? '#fff' : 'var(--fm-text-5)' }}>
-                {label}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SPRING, delay: 0.26 }}
+            className="mt-8 w-full max-w-xl">
+            <div role="tablist" aria-label={t('home.search.btn')}
+              className="mb-3 flex w-full rounded-xl border border-ds-line bg-ds-low p-1 sm:inline-flex sm:w-auto">
+              {SEARCH_LABELS.map((label, i) => (
+                <button key={label} type="button" role="tab" aria-selected={typeIdx === i} onClick={() => setTypeIdx(i)}
+                  className={`flex-1 rounded-lg px-4 py-2 text-[13px] font-semibold transition-all sm:flex-none sm:px-5 ${
+                    typeIdx === i ? 'bg-ds-fill text-white shadow-ds-btn' : 'text-ds-mute hover:text-ds-ink'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={handleSearch} className="ds-search ps-4" role="search">
+              <Icon name="search" size={20} className="flex-none text-ds-faint" />
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder={SEARCH_PLACEHOLDERS[typeIdx]}
+                aria-label={SEARCH_PLACEHOLDERS[typeIdx]} />
+              <button type="submit" className="ds-btn ds-btn-primary !min-h-11 flex-none !px-3.5 sm:!px-5" aria-label={t('home.search.btn')}>
+                <span className="hidden sm:inline">{t('home.search.btn')}</span>
+                <Icon name="arrow_forward" size={20} flip className="sm:hidden" />
               </button>
-            ))}
-          </div>
-          {/* Input */}
-          <form onSubmit={handleSearch}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--fm-surface-2)', border: '1px solid var(--fm-border)', borderRadius: '14px', padding: '7px 7px 7px 16px', boxShadow: '0 18px 44px -18px rgba(0,0,0,.7)' }}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={activeColor.bg} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flex: 'none', transition: 'stroke .2s' }}>
-              <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-            </svg>
-            <input
-              value={query} onChange={e => setQuery(e.target.value)}
-              placeholder={SEARCH_PLACEHOLDERS[typeIdx]}
-              style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: 'var(--fm-text-2)', fontFamily: 'inherit', fontSize: '15px' }}
-            />
-            <button type="submit"
-              style={{ padding: '11px 22px', borderRadius: '10px', background: activeColor.bg, color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', flex: 'none', boxShadow: `0 6px 16px -5px ${activeColor.glow}`, transition: 'background .2s, box-shadow .2s' }}>
-              {t('home.search.btn')}
-            </button>
-          </form>
+            </form>
+          </motion.div>
+        </div>
+
+        {/* Visual — the admin's sponsored video when one is live, the static
+            photo otherwise. HomeAdVideo draws its own glow + card chrome so
+            either state fills this exact spot with no layout shift. */}
+        <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...SPRING, delay: 0.15 }}>
+          <HomeAdVideo variant="hero" fallbackSrc="/images/home-hero.jpg" fallbackAlt={t('home.hero.visual_alt')} />
         </motion.div>
 
-        {/* CTA buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}
-          style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '26px' }}>
-          <Link to="/freelancers"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'var(--fm-primary)', color: '#fff', border: 'none', fontFamily: 'inherit', fontWeight: 700, fontSize: '14.5px', boxShadow: '0 8px 22px -8px rgba(124,108,246,.7)', textDecoration: 'none' }}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            {t('home.cta.hire_fl')}
-          </Link>
-          <Link to="/clients"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'var(--fm-surface-hover)', color: 'var(--fm-text-3)', border: '1px solid var(--fm-border-strong)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
-            {t('home.cta.find_cl')}
-          </Link>
-          <Link to="/courses"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 22px', borderRadius: '11px', background: 'var(--fm-surface-hover)', color: 'var(--fm-text-3)', border: '1px solid var(--fm-border-strong)', fontFamily: 'inherit', fontWeight: 600, fontSize: '14.5px', textDecoration: 'none' }}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            {t('home.cta.learn')}
-          </Link>
-        </motion.div>
+      </div>
+    </section>
+  );
+}
 
+// ── Section: Trust strip — live platform counts. Every tile reads the same
+// public /stats endpoints the Freelancers and Clients pages use, so each number
+// is real, refreshes itself while the page is open, and moves up *or down* as
+// freelancers get verified (or leave) and clients post projects — nobody
+// hand-edits a figure here. No "+" suffix: the values are exact.
+function TrustStripSection() {
+  const { t } = useTranslation();
+  const { data, loading } = useLivePoll(async () => {
+    const [fl, pr] = await Promise.all([loadFreelancerStats(), loadProjectStats()]);
+    return { verified: fl.verified, activeClients: pr.activeClients, regions: fl.regions, proposals: pr.proposalsSent };
+  });
+
+  const tiles = [
+    { value: data?.verified,      desc: t('home.trust.t1d'), accent: true },
+    { value: data?.activeClients, desc: t('home.trust.t2d') },
+    { value: data?.regions,       desc: t('home.trust.t3d') },
+    { value: data?.proposals,     desc: t('home.trust.t4d') },
+  ];
+  return (
+    <section className="border-y border-ds-line bg-ds-low py-8 md:py-10">
+      <div className="ds-wrap grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        {tiles.map((tile, i) => (
+          <FadeIn key={i} delay={i * 0.07} className="ds-card p-4 sm:p-5">
+            <CountUp value={tile.value} fallback={loading ? '…' : '—'} className={`block text-[28px] font-extrabold leading-none tracking-tight tabular-nums sm:text-[34px] ${tile.accent ? 'text-ds-accent' : 'text-ds-ink'}`} />
+            <p className="mt-2.5 text-[12.5px] leading-[1.45] text-ds-mute sm:text-[13px]">{tile.desc}</p>
+          </FadeIn>
+        ))}
       </div>
     </section>
   );
@@ -334,48 +256,33 @@ function HeroSection() {
 function ActionCardsSection() {
   const { t } = useTranslation();
   const cards = [
-    { to: '/freelancers', color: '#7c6cf6', colorDim: 'rgba(124,108,246,.16)', colorBd: 'rgba(124,108,246,.3)',  colorLight: '#b9aeff', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, title: t('home.ac.hire.title'), desc: t('home.ac.hire.desc'), cta: t('home.ac.hire.cta') },
-    { to: '/clients',     color: '#0ea5e9', colorDim: 'rgba(14,165,233,.16)',  colorBd: 'rgba(14,165,233,.3)',   colorLight: '#38bdf8', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>, title: t('home.ac.client.title'), desc: t('home.ac.client.desc'), cta: t('home.ac.client.cta') },
-    { to: '/courses',     color: '#14b8a6', colorDim: 'rgba(20,184,166,.16)',  colorBd: 'rgba(20,184,166,.3)',   colorLight: '#5eead4', icon: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, title: t('home.ac.learn.title'), desc: t('home.ac.learn.desc'), cta: t('home.ac.learn.cta') },
+    { to: '/freelancers', icon: 'group', title: t('home.ac.hire.title'), desc: t('home.ac.hire.desc'), cta: t('home.ac.hire.cta') },
+    { to: '/clients', icon: 'work', title: t('home.ac.client.title'), desc: t('home.ac.client.desc'), cta: t('home.ac.client.cta') },
+    { to: '/courses', icon: 'school', title: t('home.ac.learn.title'), desc: t('home.ac.learn.desc'), cta: t('home.ac.learn.cta') },
   ];
   return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '20px' }}>
+    <section className="ds-wrap pt-12 md:pt-16 lg:pt-20">
+      <div className="grid gap-3 md:grid-cols-3 md:gap-5">
         {cards.map((card, i) => (
-          <motion.div key={card.to}
-            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: i * 0.1 }}>
+          <FadeIn key={card.to} delay={i * 0.08}>
             <Link to={card.to}
-              style={{ ...CARD_STYLE, padding: '26px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: '14px', textDecoration: 'none', transition: 'box-shadow .18s,transform .18s,border-color .18s' }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = card.colorBd; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
-              <span style={{ width: '48px', height: '48px', borderRadius: '13px', background: card.colorDim, border: `1px solid ${card.colorBd}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: card.colorLight }}>
-                {card.icon}
+              className="ds-card ds-card-hover flex h-full items-center gap-4 p-4 md:flex-col md:items-start md:gap-3.5 md:p-6">
+              <span className="flex h-12 w-12 flex-none items-center justify-center rounded-xl border border-ds-accent-line bg-ds-accent-soft text-ds-accent">
+                <Icon name={card.icon} size={24} />
               </span>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--fm-text-1)', marginBottom: '5px' }}>{card.title}</div>
-                <div style={{ fontSize: '14px', color: 'var(--fm-text-5)', lineHeight: 1.5 }}>{card.desc}</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13.5px', fontWeight: 600, color: card.colorLight, marginTop: 'auto' }}>
-                {card.cta} <ChevronRight />
-              </div>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[16px] font-bold text-ds-ink md:text-lg">{card.title}</span>
+                <span className="mt-0.5 block text-[13.5px] leading-[1.5] text-ds-mute md:mt-1 md:text-sm">{card.desc}</span>
+              </span>
+              <span className="hidden items-center gap-1.5 text-[13.5px] font-semibold text-ds-accent md:mt-auto md:flex">
+                {card.cta} <Icon name="arrow_forward" size={16} flip />
+              </span>
+              <Icon name="chevron_right" size={22} flip className="flex-none text-ds-faint md:hidden" />
             </Link>
-          </motion.div>
+          </FadeIn>
         ))}
       </div>
     </section>
-  );
-}
-
-// ── Step arrow SVG ────────────────────────────────────────────────────────────
-function StepArrow() {
-  return (
-    <div className="hiw-arrow" style={{ flex: 'none', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '46px' }} aria-hidden="true">
-      <svg width="72" height="30" viewBox="0 0 72 30" preserveAspectRatio="xMidYMid meet" fill="none" style={{ filter: 'drop-shadow(0 0 8px rgba(124,108,246,.7))', overflow: 'visible' }}>
-        <path d="M4 15h50" stroke="rgba(124,108,246,.6)" strokeWidth="3" strokeLinecap="round" strokeDasharray="1 8"/>
-        <path d="M52 5l13 10-13 10" stroke="rgba(124,108,246,.6)" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      </svg>
-    </div>
   );
 }
 
@@ -388,298 +295,334 @@ function HowItWorksSection() {
     { num: '3', title: t('home.hiw.s3t'), desc: t('home.hiw.s3d') },
   ];
   return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-        <h2 style={{ fontWeight: 800, fontSize: 'clamp(24px,3.4vw,32px)', letterSpacing: '-.025em', margin: '0 0 8px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-          {t('home.hiw.title')}
-        </h2>
-        <p style={{ fontSize: '16px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.hiw.sub')}</p>
-      </div>
-      <style>{`@media(max-width:680px){.hiw-arrow{display:none!important}}`}</style>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+    <section className="ds-wrap pt-14 md:pt-20">
+      <SectionHeader center title={t('home.hiw.title')} sub={t('home.hiw.sub')} />
+      <ol className="relative m-0 grid list-none gap-0 p-0 md:grid-cols-3 md:gap-8">
+        {/* Desktop connector between the three number tiles */}
+        <span className="pointer-events-none absolute start-[16.66%] end-[16.66%] top-6 hidden border-t-2 border-dashed border-ds-line-strong md:block" aria-hidden="true" />
         {steps.map((step, i) => (
-          <React.Fragment key={step.num}>
-            <motion.div
-              initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.12 }}
-              style={{ flex: 1, minWidth: '200px', maxWidth: '260px', textAlign: 'center', padding: '8px' }}>
-              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: 'var(--fm-primary)', color: '#fff', fontWeight: 700, fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 18px -6px rgba(124,108,246,.7)' }}>
-                {step.num}
-              </div>
-              <div style={{ fontWeight: 700, fontSize: '17px', color: 'var(--fm-text-1)', marginBottom: '6px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{step.title}</div>
-              <div style={{ fontSize: '14px', color: 'var(--fm-text-5)', lineHeight: 1.55, maxWidth: '280px', margin: '0 auto' }}>{step.desc}</div>
-            </motion.div>
-            {i < steps.length - 1 && <StepArrow />}
-          </React.Fragment>
+          <FadeIn as="li" key={step.num} delay={i * 0.1} className="relative flex gap-4 pb-8 last:pb-0 md:flex-col md:items-center md:gap-0 md:pb-0 md:text-center">
+            {/* Phone: vertical connector down the number column */}
+            {i < steps.length - 1 && <span className="absolute start-6 top-12 bottom-0 w-px -translate-x-1/2 bg-ds-line-strong md:hidden" aria-hidden="true" />}
+            <span className="relative z-10 flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-ds-fill font-mono text-lg font-bold text-white shadow-ds-btn md:mb-4"
+              style={{ background: 'linear-gradient(135deg, rgb(var(--ds-fill)), rgb(var(--ds-fill-2)))' }}>
+              {step.num}
+            </span>
+            <div className="min-w-0 pt-1 md:pt-0">
+              <h3 className="text-[17px] font-bold text-ds-ink">{step.title}</h3>
+              <p className="mt-1.5 text-[14px] leading-[1.55] text-ds-mute md:mx-auto md:max-w-[17rem]">{step.desc}</p>
+            </div>
+          </FadeIn>
         ))}
-      </div>
+      </ol>
     </section>
   );
 }
 
-// ── Shared: loading skeleton / empty / error card ─────────────────────────────
-function SkeletonCard({ height = 190 }) {
-  return (
-    <div style={{ ...CARD_STYLE, height, animation: 'fmPulse 1.6s ease-in-out infinite' }} />
-  );
-}
-function StateMessage({ text }) {
-  return (
-    <div style={{ ...CARD_STYLE, gridColumn: '1/-1', padding: '40px 24px', textAlign: 'center', color: 'var(--fm-text-5)', fontSize: '14.5px' }}>
-      {text}
-    </div>
-  );
-}
+// ── Section: Payment verification — the real flow, laid out like the supplied
+// "contract" card: a header, three steps (done · current · next) and a footer row.
+// The card is an illustration of the process and says so ("example"); it carries no
+// amounts, dates or reference numbers. ─────────────────────────────────────────────
+const STEP_STYLE = {
+  done:    { row: 'border-ds-accent-line bg-ds-accent-soft', bubble: 'ds-verified bg-ds-fill text-white', chip: 'bg-ds-high text-ds-ok' },
+  current: { row: 'border-transparent bg-ds-high', bubble: 'bg-ds-highest text-ds-ink', chip: 'bg-ds-accent-soft text-ds-accent' },
+  next:    { row: 'border-ds-line bg-transparent', bubble: 'bg-ds-high text-ds-mute', chip: 'bg-ds-high text-ds-faint' },
+};
 
-// ── Data: top freelancers (highest rating, then most completed projects) ─────
-// `rating` and `completedProjects` come pre-aggregated on the user record itself
-// (see AuthContext.normalizeUser) — no per-freelancer fetch needed, and unlike
-// /projects/assigned/:email (auth-only), this works for anonymous visitors too.
-function useTopFreelancers(users, accountsLoaded) {
-  const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-  const items = useMemo(() => {
-    const hasProfile = u => u?.photo && u?.bio && u?.portfolio_url && u?.skills && (Array.isArray(u.skills) ? u.skills.length > 0 : String(u.skills).trim().length > 0);
-    const approved = (users || []).filter(u => u?.role === 'freelancer' && (isLocal || u?.cinStatus === 'approved') && hasProfile(u));
-    return [...approved].sort((a, b) => {
-      const ratingDiff = (b.rating || 0) - (a.rating || 0);
-      if (ratingDiff !== 0) return ratingDiff;
-      return (b.completedProjects || 0) - (a.completedProjects || 0);
-    }).slice(0, 3);
-  }, [users, isLocal]);
-
-  return { items, loading: !accountsLoaded, error: false };
-}
-
-// ── Section: Featured Freelancers ─────────────────────────────────────────────
-function FeaturedFreelancersSection({ items, loading, error }) {
+function PaymentVerificationSection() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const empty = !loading && !error && items.length === 0;
+  const steps = [
+    { state: 'done',    icon: 'check', title: t('home.trust2.s1t'), desc: t('home.trust2.s1d'), badge: t('home.trust2.st_done') },
+    { state: 'current', icon: null,    title: t('home.trust2.s2t'), desc: t('home.trust2.s2d'), badge: t('home.trust2.st_now') },
+    { state: 'next',    icon: null,    title: t('home.trust2.s3t'), desc: t('home.trust2.s3d'), badge: t('home.trust2.st_next') },
+  ];
   return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
-        <div>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-            {t('home.ff.title')}
-          </h2>
-          <p style={{ fontSize: '15px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.ff.sub')}</p>
+    <section className="ds-wrap pt-14 md:pt-20">
+      <div className="grid items-start gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
+        <div className="lg:sticky lg:top-24">
+          <h2 className="text-h-md-m text-ds-ink md:text-h-md">{t('home.trust2.title')}</h2>
+          <p className="mt-3 max-w-md text-[15.5px] leading-[1.6] text-ds-mute">{t('home.trust2.sub')}</p>
+          <p className="mt-6 hidden items-start gap-2.5 text-[13.5px] leading-[1.5] text-ds-mute lg:flex">
+            <Icon name="shield" size={18} className="mt-px flex-none text-ds-accent" />
+            <span>{t('home.trust2.note')}</span>
+          </p>
         </div>
-        <Link to="/freelancers"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border-strong)', color: 'var(--fm-text-4)', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
-          {t('home.ff.view_all')} <ChevronRight />
-        </Link>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: '18px' }}>
-        {loading && [0, 1, 2].map(i => <SkeletonCard key={i} />)}
-        {!loading && error && <StateMessage text={t('home.ff.error')} />}
-        {empty && <StateMessage text={t('home.ff.empty')} />}
-        {!loading && !error && items.map((f, i) => {
-          const skillsArr = (Array.isArray(f.skills) ? f.skills : String(f.skills || '').split(',')).map(s => String(s).trim()).filter(Boolean).slice(0, 3);
-          const roleLabel = f.title || skillsArr[0] || '';
-          const availDot   = f.availability === 'unavailable' ? 'var(--fm-danger)' : f.availability === 'busy' ? 'var(--fm-warning)' : 'var(--fm-success)';
-          const availLabel = f.availability === 'unavailable' ? t('Unavailable') : f.availability === 'busy' ? t('Busy') : t('Available');
-          return (
-            <motion.div key={f.email}
-              initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: i * 0.1 }}
-              style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s', cursor: 'pointer' }}
-              onClick={() => navigate(`/profile/${encodeURIComponent(f.email)}`)}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
-              {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '13px', marginBottom: '16px' }}>
-                {/* Real profile photo when the freelancer has one, falling back
-                    to the gradient initials circle otherwise (most accounts
-                    still have no photo). onError swaps back to initials if the
-                    image 404s, so a dead Cloudinary URL can never leave a blank
-                    hole in the card. */}
-                {f.photo ? (
-                  <img
-                    src={cldImg(f.photo)}
-                    alt={f.name || ''}
-                    loading="lazy"
-                    onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
-                    style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', flex: 'none', background: 'var(--fm-surface-hover)' }}
-                  />
-                ) : null}
-                <span style={{ width: '50px', height: '50px', borderRadius: '50%', background: pickGradient(f.email || f.name), color: '#fff', display: f.photo ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', flex: 'none' }}>
-                  {getInitials(f.name)}
-                </span>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--fm-text-1)' }}>{f.name?.split(' ')[0]}</span>
-                    <ShieldIcon size={15} color="var(--fm-primary-light)" />
+
+        <div className="ds-card p-4 md:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3 border-b border-ds-line pb-4">
+            <div className="min-w-0">
+              <p className="m-0 text-[11.5px] font-semibold text-ds-faint">{t('home.trust2.example')}</p>
+              <p className="m-0 mt-0.5 text-[15px] font-bold text-ds-ink">{t('home.trust2.card_title')}</p>
+            </div>
+            <span className="ds-chip ds-chip-accent flex-none"><Icon name="verified" size={14} />{t('home.trust2.verified')}</span>
+          </div>
+
+          <ol className="m-0 flex list-none flex-col gap-3 p-0">
+            {steps.map((step, i) => {
+              const st = STEP_STYLE[step.state];
+              return (
+                <FadeIn as="li" key={step.title} delay={i * 0.09} className={`flex items-start gap-4 rounded-xl border p-4 ${st.row}`}>
+                  <span className={`flex h-9 w-9 flex-none items-center justify-center rounded-lg text-sm font-bold ${st.bubble}`}>
+                    {step.icon ? <Icon name={step.icon} size={20} /> : <span className="font-mono">{i + 1}</span>}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+                      <h3 className="m-0 text-[15px] font-bold text-ds-ink">{step.title}</h3>
+                      <span className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${st.chip}`}>{step.badge}</span>
+                    </div>
+                    <p className="m-0 mt-1 text-[13.5px] leading-[1.55] text-ds-mute">{step.desc}</p>
                   </div>
-                  {roleLabel && <div style={{ fontSize: '13px', color: 'var(--fm-text-5)', marginTop: '2px' }}>{roleLabel}</div>}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13.5px', flex: 'none' }}>
-                  {f.rating > 0 ? (
-                    <>
-                      <StarIcon size={14} color="var(--fm-primary-light)" />
-                      <span style={{ fontWeight: 700, color: 'var(--fm-text-1)' }}>{f.rating.toFixed(1)}</span>
-                    </>
-                  ) : (
-                    <span style={{ fontWeight: 600, color: 'var(--fm-text-6)' }}>{t('home.ff.new')}</span>
-                  )}
-                </div>
-              </div>
-              {/* Skills */}
-              {skillsArr.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-                  {skillsArr.map(s => (
-                    <span key={s} style={{ fontSize: '12px', color: 'var(--fm-text-4)', background: 'var(--fm-surface-hover)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{s}</span>
-                  ))}
-                </div>
-              )}
-              {/* Footer */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '15px', borderTop: '1px solid var(--fm-border)' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 700, color: availDot }}>
-                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: availDot, boxShadow: `0 0 6px ${availDot}`, flexShrink: 0 }} />
-                  {availLabel}
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
+                </FadeIn>
+              );
+            })}
+          </ol>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-xl bg-ds-high px-4 py-3.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[12px] font-semibold text-ds-mute">{t('home.trust2.methods')}</span>
+              {['D17', 'Flouci', t('footer.bank_transfer')].map(m => <span key={m} className="ds-tag !bg-ds-highest font-mono">{m}</span>)}
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-ds-ink-2">
+              <Icon name="verified" size={16} className="text-ds-accent" />{t('home.trust2.reviewed')}
+            </span>
+          </div>
+
+          <p className="mb-0 mt-3 flex items-start gap-2.5 rounded-xl bg-ds-high px-4 py-3.5 text-[13px] leading-[1.5] text-ds-mute lg:hidden">
+            <Icon name="shield" size={18} className="mt-px flex-none text-ds-accent" />
+            <span>{t('home.trust2.note')}</span>
+          </p>
+        </div>
       </div>
     </section>
   );
 }
 
-// ── Data: top open projects (most proposals, then lowest budget, then oldest) ─
-function useTopProjects() {
-  const [projects, setProjects]             = useState([]);
-  const [proposalCounts, setProposalCounts] = useState({});
-  const [loading, setLoading]               = useState(true);
-  const [error, setError]                   = useState(false);
+// ── Section: Available talent — live from the directory endpoint (the same one the
+// Freelancers page uses), with the same category tabs. Top-rated first; only
+// freelancers who mark themselves available. ─────────────────────────────────────
+const TALENT_COUNT = 4;
+
+function useTalents(category) {
+  const [state, setState] = useState({ items: [], loading: true, error: false });
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(false);
-    // A 429/500 (e.g. right as Neon wakes from an idle suspend) returns a
-    // non-array error body — previously that silently rendered as "no open
-    // projects" instead of retrying, permanently hiding real data for the
-    // rest of the session. Retry once before accepting an empty result.
-    const fetchOpen = () => fetch(`${API}/projects/browse/open`).then(r => r.json());
-    fetchOpen().then(rows => Array.isArray(rows) ? rows
-      : new Promise(res => setTimeout(res, 2000)).then(fetchOpen)
-    ).then(rows => {
-      const open = Array.isArray(rows) ? rows : [];
-      if (cancelled) return;
-      setProjects(open);
-      // Proposal counts come from the public aggregate endpoint. This used to
-      // call /proposals/project/:id once per project — a route that returns
-      // full proposal rows and is therefore restricted to the project owner,
-      // so every other visitor got 401/403, the catch turned it into [], and
-      // every card showed "0 propositions" regardless of reality.
-      //
-      // One batched request instead of one per project, and the value is a
-      // live COUNT(*) so it rises on its own as real proposals arrive.
-      if (!open.length) return;
-      const ids = open.map(p => p.id).join(',');
-      return fetch(`${API}/proposals/counts?ids=${ids}`)
-        .then(r => r.json())
-        .then(counts => {
-          if (cancelled) return;
-          setProposalCounts(counts && typeof counts === 'object' ? counts : {});
-        })
-        .catch(() => { /* leave counts empty rather than render a wrong number */ });
-    }).catch(() => { if (!cancelled) { setError(true); setProjects([]); } })
-      .finally(() => { if (!cancelled) setLoading(false); });
+    setState(s => ({ ...s, loading: true, error: false }));
+    const q = new URLSearchParams({ page: '1', limit: String(TALENT_COUNT), sort: 'rating', availability: 'available' });
+    if (category !== 'All') q.set('category', category);
+    const url = `${API}/users/public/freelancers?${q}`;
+    const load = () => fetch(url).then(r => r.json());
+    // A transient 429/500 (e.g. right as Neon wakes from an idle suspend) answers with a
+    // non-list body — retry once before showing an error.
+    load()
+      .then(d => (Array.isArray(d?.rows) ? d : new Promise(res => setTimeout(res, 2000)).then(load)))
+      .then(d => {
+        if (cancelled) return;
+        const ok = Array.isArray(d?.rows);
+        setState({
+          items: ok ? d.rows.slice(0, TALENT_COUNT).map(r => ({
+            ...normalizeUser(r, false),
+            aggRating: Number(r.agg_rating) || 0,
+            aggReviews: Number(r.agg_review_count) || 0,
+          })) : [],
+          loading: false,
+          error: !ok,
+        });
+      })
+      .catch(() => { if (!cancelled) setState({ items: [], loading: false, error: true }); });
     return () => { cancelled = true; };
-  }, []);
+  }, [category]);
 
-  const items = useMemo(() => {
-    return [...projects].sort((a, b) => {
-      const propDiff = (proposalCounts[b.id] || 0) - (proposalCounts[a.id] || 0);
-      if (propDiff !== 0) return propDiff;
-      const budgetDiff = Number(a.budget || 0) - Number(b.budget || 0);
-      if (budgetDiff !== 0) return budgetDiff;
-      return new Date(a.created_at || 0) - new Date(b.created_at || 0);
-    }).slice(0, 3).map(p => ({ ...p, _proposalCount: proposalCounts[p.id] || 0 }));
-  }, [projects, proposalCounts]);
-
-  return { items, loading, error };
+  return state;
 }
 
-// ── Section: Trending Projects ────────────────────────────────────────────────
-function TrendingProjectsSection({ items, loading, error, users }) {
+function TalentCard({ f, index }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const empty = !loading && !error && items.length === 0;
-  const getClient = email => (users || []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
+  const skills = (Array.isArray(f.skills) ? f.skills : String(f.skills || '').split(',')).map(s => String(s).trim()).filter(Boolean).slice(0, 4);
+  const role = f.title || skills[0] || '';
+  const availCls = f.availability === 'unavailable' ? 'text-ds-bad' : f.availability === 'busy' ? 'text-ds-warn' : 'text-ds-ok';
+  const availLabel = f.availability === 'unavailable' ? t('Unavailable') : f.availability === 'busy' ? t('Busy') : t('Available');
+
   return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
-        <div>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-            {t('home.tp.title')}
-          </h2>
-          <p style={{ fontSize: '15px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.tp.sub')}</p>
+    <FadeIn as="article" delay={index * 0.07} className={`ds-card ds-card-hover relative flex flex-col p-5 ${RAIL_ITEM}`}>
+      <div className="flex items-start gap-3.5">
+        <span className="relative flex-none">
+          {f.photo ? (
+            <img src={cldImg(f.photo)} alt="" loading="lazy" className="h-14 w-14 rounded-xl bg-ds-high object-cover"
+              onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }} />
+          ) : null}
+          <span className="h-14 w-14 items-center justify-center rounded-xl text-base font-bold text-white"
+            style={{ background: pickGradient(f.email || f.name), display: f.photo ? 'none' : 'flex' }}>
+            {getInitials(f.name)}
+          </span>
+          <span className="ds-verified absolute -bottom-1 -end-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#4338ca] text-white ring-2 ring-ds-card" title={t('Verified')}>
+            <Icon name="check" size={13} />
+          </span>
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 dir="auto" className="m-0 truncate text-[16px] font-bold text-ds-ink">{firstWord(f.name)}</h3>
+          {role && <p dir="auto" className="m-0 mt-0.5 line-clamp-2 text-[13px] font-semibold leading-[1.35] text-ds-accent">{role}</p>}
         </div>
-        <Link to="/clients"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border-strong)', color: 'var(--fm-text-4)', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
-          {t('home.tp.view_all')} <ChevronRight />
-        </Link>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(330px,1fr))', gap: '18px' }}>
-        {loading && [0, 1, 2].map(i => <SkeletonCard key={i} height={230} />)}
-        {!loading && error && <StateMessage text={t('home.tp.error')} />}
-        {empty && <StateMessage text={t('home.tp.empty')} />}
-        {!loading && !error && items.map((p, i) => {
-          const client      = getClient(p.client_email);
-          const displayName = client?.company || client?.name || p.client_email?.split('@')[0] || '?';
-          const tags        = (p.keywords ? p.keywords.split(/\s+/).filter(Boolean) : []).slice(0, 3);
-          return (
-            <motion.div key={p.id}
-              initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: i * 0.1 }}
-              style={{ ...CARD_STYLE, padding: '22px', transition: 'box-shadow .18s,border-color .18s', display: 'flex', flexDirection: 'column', gap: '13px', cursor: 'pointer' }}
-              onClick={() => navigate('/clients')}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
-              {/* Client */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ width: '34px', height: '34px', borderRadius: '9px', background: pickGradient(p.client_email || displayName), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', flex: 'none' }}>{getInitials(displayName)}</span>
-                <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--fm-text-4)' }}>{displayName.split(' ')[0]}</span>
-              </div>
-              {/* Title */}
-              <div style={{ fontWeight: 700, fontSize: '17px', color: 'var(--fm-text-1)', letterSpacing: '-.01em', lineHeight: 1.3 }}>{p.title}</div>
-              {/* Budget + duration */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                {p.budget != null && <span style={{ fontSize: '14px', color: 'var(--fm-text-1)', fontWeight: 700 }}>{Number(p.budget).toLocaleString('fr-TN')} TND</span>}
-                {p.period && (
-                  <span style={{ fontSize: '13px', color: 'var(--fm-text-6)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                    <ClockIcon />{p.period}
-                  </span>
-                )}
-              </div>
-              {/* Tags */}
-              {tags.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {tags.map(tag => (
-                    <span key={tag} style={{ fontSize: '12px', color: 'var(--fm-text-4)', background: 'var(--fm-surface-hover)', borderRadius: '7px', padding: '3px 9px', fontWeight: 500 }}>{tag}</span>
-                  ))}
-                </div>
-              )}
-              {/* Footer */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '14px', borderTop: '1px solid var(--fm-border)' }}>
-                <span style={{ fontSize: '12.5px', color: 'var(--fm-text-6)' }}>{t('home.tp.proposals', { count: p._proposalCount })}</span>
-                <Link to="/clients"
-                  onClick={e => e.stopPropagation()}
-                  style={{ padding: '8px 18px', borderRadius: '9px', background: 'var(--fm-primary)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: '13.5px', textDecoration: 'none' }}>
-                  {t('home.tp.apply')}
-                </Link>
-              </div>
-            </motion.div>
-          );
-        })}
+
+      <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        {f.region && <span className="inline-flex items-center gap-1 text-ds-faint"><Icon name="location_on" size={14} />{f.region}</span>}
+        <span className={`inline-flex items-center gap-1.5 font-semibold ${availCls}`}><span className="ds-dot" />{availLabel}</span>
+      </div>
+
+      {f.bio && <p dir="auto" className="m-0 mt-3 line-clamp-3 text-[13.5px] leading-5 text-ds-mute">{f.bio}</p>}
+
+      {skills.length > 0 && (
+        <div className="mt-3.5 flex flex-wrap gap-1.5">
+          {skills.map(s => <span key={s} className="ds-tag"><bdi>{s}</bdi></span>)}
+        </div>
+      )}
+
+      <div className="mt-auto pt-[18px]">
+        <div className="flex items-end justify-between gap-3 border-t border-ds-line pt-4">
+          <div className="min-w-0">
+            <span className="block text-[11px] font-semibold text-ds-faint">{t('home.tl.rating')}</span>
+            {f.aggRating > 0 ? (
+              <span className="inline-flex items-center gap-1 text-[15px] font-bold text-ds-ink">
+                <Icon name="star" size={16} fill className="text-ds-warn" />
+                <span className="tabular-nums">{f.aggRating.toFixed(1)}</span>
+                {f.aggReviews > 0 && <span className="text-xs font-medium tabular-nums text-ds-faint">({f.aggReviews})</span>}
+              </span>
+            ) : (
+              <span className="text-[15px] font-bold text-ds-ink">{t('home.ff.new')}</span>
+            )}
+          </div>
+          {/* The whole card is the link target (stretched): a single tab stop. */}
+          <Link to={`/profile/${encodeURIComponent(f.email)}`} className="ds-btn ds-btn-accent ds-btn-sm after:absolute after:inset-0 after:content-['']">
+            {t('home.tl.profile')}
+          </Link>
+        </div>
+      </div>
+    </FadeIn>
+  );
+}
+
+function TalentsSection() {
+  const { t } = useTranslation();
+  const [category, setCategory] = useState('All');
+  const { items, loading, error } = useTalents(category);
+  const firstLoad = loading && items.length === 0;
+  const empty = !loading && !error && items.length === 0;
+
+  return (
+    <section className="ds-wrap pt-14 md:pt-20">
+      <div className="mb-6 flex flex-col gap-4 md:mb-9 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
+        <div className="min-w-0 max-w-xl">
+          <h2 className="text-h-md-m text-ds-ink md:text-h-md">{t('home.tl.title')}</h2>
+          <p className="mt-1.5 text-b-md text-ds-mute md:text-base">{t('home.tl.sub')}</p>
+        </div>
+        <CategoryPills variant="tonal" value={category} onChange={setCategory} label={t('Category')}
+          className="-mx-5 px-5 lg:mx-0 lg:max-w-[44rem] lg:justify-end lg:px-0" />
+      </div>
+
+      <CardRail className={`lg:!grid-cols-4 transition-opacity ${loading && !firstLoad ? 'opacity-60' : ''}`}>
+        {firstLoad && [0, 1, 2, 3].map(i => <SkeletonCard key={i} height={300} />)}
+        {!firstLoad && error && <StateMessage text={t('home.tl.error')} />}
+        {empty && <StateMessage text={t('home.tl.empty')} />}
+        {!firstLoad && !error && items.map((f, i) => <TalentCard key={f.email} f={f} index={i} />)}
+      </CardRail>
+
+      <div className="mt-6 text-center md:mt-8">
+        <Link to="/freelancers" className="ds-btn ds-btn-glass">
+          {t('home.tl.view_all')} <Icon name="arrow_forward" size={16} flip />
+        </Link>
       </div>
     </section>
   );
 }
+
+// ── Section: Open missions — the newest open projects, with a live count of how many
+// are open in total. ──────────────────────────────────────────────────────────────
+const MISSION_COUNT = 3;
+
+function useOpenMissions() {
+  const [state, setState] = useState({ items: [], loading: true, error: false });
+
+  useEffect(() => {
+    let cancelled = false;
+    const url = `${API}/projects/browse/open?page=1&limit=${MISSION_COUNT * 2}&sort=newest&status=open`;
+    const load = () => fetch(url).then(r => r.json());
+    load()
+      .then(d => (Array.isArray(d?.rows) ? d : new Promise(res => setTimeout(res, 2000)).then(load)))
+      .then(d => {
+        if (cancelled) return;
+        const ok = Array.isArray(d?.rows);
+        // The filter is repeated here: a backend that predates the status parameter
+        // also returns projects that have already been taken.
+        setState({ items: ok ? d.rows.filter(p => (p.status || 'open') === 'open').slice(0, MISSION_COUNT) : [], loading: false, error: !ok });
+      })
+      .catch(() => { if (!cancelled) setState({ items: [], loading: false, error: true }); });
+    return () => { cancelled = true; };
+  }, []);
+
+  return state;
+}
+
+function MissionCard({ p, index, client }) {
+  const { t } = useTranslation();
+  const name = client?.company || firstWord(client?.name) || p.client_email?.split('@')[0] || '?';
+  const place = [name, client?.region].filter(Boolean).join(' — ');
+  // The client's own figure, whatever it is ("0 TND" included) — the same reading as every other project card.
+  const budgetText = budgetLabel(p.budget);
+
+  return (
+    <FadeIn as="article" delay={index * 0.08} className={`ds-card ds-card-hover relative flex flex-col gap-3.5 p-5 ${RAIL_ITEM}`}>
+      <div className="flex items-center justify-between gap-3">
+        <span dir="auto" className="ds-tag min-w-0 max-w-[68%] font-mono"><span className="truncate">{place}</span></span>
+        {p.period && <span dir="auto" className="flex-none text-xs text-ds-faint">{String(p.period).replace(/^de\s+/i, '')}</span>}
+      </div>
+
+      <h3 dir="auto" className="m-0 line-clamp-2 text-[17px] font-bold leading-[1.3] tracking-[-0.01em] text-ds-ink">{p.title}</h3>
+      {p.description && <p dir="auto" className="m-0 line-clamp-3 text-[13.5px] leading-[1.6] text-ds-mute">{p.description}</p>}
+
+      <div className="mt-auto flex items-end justify-between gap-3 border-t border-ds-line pt-4">
+        {budgetText ? (
+          <div className="min-w-0">
+            <span className="block text-[11px] font-semibold text-ds-faint">{t('prp.budget')}</span>
+            <bdi className="block truncate text-[18px] font-extrabold tabular-nums text-ds-accent">{budgetText}</bdi>
+          </div>
+        ) : <span className="min-w-0 text-[12.5px] font-medium text-ds-faint">{t('prp.budget_unset')}</span>}
+        {/* The public project page carries the apply flow (it asks visitors to log in first). */}
+        <Link to={`/project/${p.id}`} className="ds-btn ds-btn-accent ds-btn-sm after:absolute after:inset-0 after:content-['']">
+          {t('home.tp.apply')}
+        </Link>
+      </div>
+    </FadeIn>
+  );
+}
+
+function MissionsSection({ users }) {
+  const { t } = useTranslation();
+  const { items, loading, error } = useOpenMissions();
+  const { data: stats } = useLivePoll(loadProjectStats);
+  const open = stats?.openProjects;
+  const empty = !loading && !error && items.length === 0;
+  const getClient = email => (users || []).find(u => u.email?.toLowerCase() === email?.toLowerCase());
+
+  return (
+    <section className="ds-wrap pt-14 md:pt-20">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-1 md:mb-9">
+        <h2 className="text-h-md-m text-ds-ink md:text-h-md">{t('home.mi.title')}</h2>
+        <Link to="/clients" className="inline-flex items-center gap-1.5 py-2 text-sm font-semibold text-ds-accent transition-colors hover:text-ds-ink">
+          <span>{open > 0 ? t('home.mi.view_all', { count: open }) : t('home.tp.view_all')}</span>
+          <Icon name="arrow_forward" size={16} flip />
+        </Link>
+      </div>
+      <CardRail>
+        {loading && [0, 1, 2].map(i => <SkeletonCard key={i} height={230} />)}
+        {!loading && error && <StateMessage text={t('home.tp.error')} />}
+        {empty && <StateMessage text={t('home.tp.empty')} />}
+        {!loading && !error && items.map((p, i) => <MissionCard key={p.id} p={p} index={i} client={getClient(p.client_email)} />)}
+      </CardRail>
+    </section>
+  );
+}
+
 
 // ── Data: top courses (most enrolled, then cheapest, then oldest) ────────────
 function useTopCourses() {
@@ -722,134 +665,156 @@ function useTopCourses() {
 }
 
 // ── Section: Courses Preview ──────────────────────────────────────────────────
+function CoursePreviewCard({ c, index }) {
+  const { t } = useTranslation();
+  const instructor = firstWord(c.instructor_name) || c.creator_email?.split('@')[0] || '';
+  const rating   = Number(c.avg_rating || 0);
+  const students = Number(c.total_students || 0);
+  const full     = Number(c.full_price || 0);
+  const pct      = Number(c.discount_pct || 0);
+  const final    = pct > 0 ? full * (1 - pct / 100) : full;
+  const isFree   = full === 0;
+  const cover    = COURSE_GRADIENTS[c.category] || DEFAULT_COURSE_GRADIENT;
+
+  return (
+    <FadeIn as="article" delay={index * 0.08} className={`ds-card ds-card-hover relative flex flex-col overflow-hidden ${RAIL_ITEM}`}>
+      <div className="relative flex h-32 items-center justify-center md:h-36" style={{ background: cover }}>
+        {c.thumbnail_url && <img src={cldImg(c.thumbnail_url)} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />}
+        {c.category && (
+          <span className="absolute start-3 top-3 rounded-md bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">{t(c.category)}</span>
+        )}
+        {!c.thumbnail_url && <Icon name="school" size={32} className="text-white/90" />}
+        {pct > 0 && !isFree && (
+          <span className="absolute end-3 top-3 rounded-md bg-red-500 px-2 py-1 text-[11px] font-extrabold text-white">-{pct}%</span>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col p-4 md:p-5">
+        <h3 dir="auto" className="line-clamp-2 min-h-[2.6em] text-[15px] font-bold leading-[1.35] text-ds-ink">{c.title}</h3>
+        {instructor && <p dir="auto" className="mt-1.5 truncate text-[13px] text-ds-mute">{instructor}</p>}
+        <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+          <span className="inline-flex items-center gap-1.5 text-[13px] text-ds-mute">
+            {rating > 0 ? (
+              <><Icon name="star" size={15} fill className="text-ds-warn" /><strong className="font-bold tabular-nums text-ds-ink">{rating.toFixed(1)}</strong></>
+            ) : (
+              <span className="font-semibold">{t('home.ff.new')}</span>
+            )}
+            {students > 0 && <span className="tabular-nums">· {nf.format(students)}</span>}
+          </span>
+          <span className="inline-flex items-baseline gap-1.5 whitespace-nowrap">
+            {pct > 0 && !isFree && <span className="text-xs tabular-nums text-ds-faint line-through">{full.toFixed(0)}</span>}
+            <bdi className="text-[15px] font-bold tabular-nums text-ds-ink">{isFree ? t('cc.free') : `${final.toFixed(0)} TND`}</bdi>
+          </span>
+        </div>
+      </div>
+      <Link to={`/courses/${c.id}`} aria-label={c.title} className="absolute inset-0" />
+    </FadeIn>
+  );
+}
+
 function CoursesPreviewSection({ items, loading, error }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const empty = !loading && !error && items.length === 0;
   return (
-    <section className="fm-section" style={{ maxWidth: '1140px', margin: '0 auto', paddingTop: '72px' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '26px' }}>
-        <div>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 6px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-            {t('home.cp.title')}
-          </h2>
-          <p style={{ fontSize: '15px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.cp.sub')}</p>
-        </div>
-        <Link to="/courses"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--fm-surface-hover)', border: '1px solid var(--fm-border-strong)', color: 'var(--fm-text-4)', borderRadius: '10px', padding: '9px 15px', fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', flex: 'none' }}>
-          {t('home.cp.view_all')} <ChevronRight />
-        </Link>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: '18px' }}>
-        {loading && [0, 1, 2].map(i => <SkeletonCard key={i} height={230} />)}
+    <section className="ds-wrap pt-14 md:pt-20">
+      <SectionHeader title={t('home.cp.title')} sub={t('home.cp.sub')} to="/courses" cta={t('home.cp.view_all')} />
+      <CardRail>
+        {loading && [0, 1, 2].map(i => <SkeletonCard key={i} height={260} />)}
         {!loading && error && <StateMessage text={t('home.cp.error')} />}
         {empty && <StateMessage text={t('home.cp.empty')} />}
-        {!loading && !error && items.map((c, i) => {
-          const instructor = c.instructor_name || c.creator_email?.split('@')[0] || '';
-          const rating      = Number(c.avg_rating || 0);
-          const students    = Number(c.total_students || 0);
-          const full        = Number(c.full_price || 0);
-          const pct         = Number(c.discount_pct || 0);
-          const final       = pct > 0 ? full * (1 - pct / 100) : full;
-          const isFree      = full === 0;
-          const cover       = COURSE_GRADIENTS[c.category] || DEFAULT_COURSE_GRADIENT;
-          return (
-            <motion.div key={c.id}
-              initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: i * 0.08 }}
-              style={{ ...CARD_STYLE, overflow: 'hidden', transition: 'box-shadow .18s,border-color .18s', cursor: 'pointer' }}
-              onClick={() => navigate(`/courses/${c.id}`)}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 40px -16px rgba(0,0,0,.6)'; e.currentTarget.style.borderColor = 'rgba(124,108,246,.5)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--fm-border)'; }}>
-              {/* Cover */}
-              <div style={{ height: '120px', background: cover, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                {c.thumbnail_url && (
-                  <img src={cldImg(c.thumbnail_url)} alt={c.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                )}
-                {c.category && <span style={{ position: 'absolute', top: '11px', left: '11px', fontSize: '11px', fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.28)', padding: '3px 9px', borderRadius: '6px' }}>{c.category}</span>}
-                {!c.thumbnail_url && (
-                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: .92 }}>
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                  </svg>
-                )}
-              </div>
-              {/* Body */}
-              <div style={{ padding: '16px 17px 18px' }}>
-                <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--fm-text-1)', lineHeight: 1.35, marginBottom: '7px', minHeight: '40px', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{c.title}</div>
-                {instructor && <div style={{ fontSize: '13px', color: 'var(--fm-text-5)', marginBottom: '12px' }}>{instructor.split(' ')[0]}</div>}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: 'var(--fm-text-5)' }}>
-                    {rating > 0 ? (
-                      <><StarIcon size={14} /><strong style={{ color: 'var(--fm-text-1)' }}>{rating.toFixed(1)}</strong></>
-                    ) : (
-                      <span style={{ fontWeight: 600 }}>{t('home.ff.new')}</span>
-                    )}
-                    {students > 0 && <> · {students.toLocaleString()}</>}
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--fm-text-1)', whiteSpace: 'nowrap' }}>{isFree ? t('cc.free') : `${final.toFixed(0)} TND`}</div>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
+        {!loading && !error && items.map((c, i) => <CoursePreviewCard key={c.id} c={c} index={i} />)}
+      </CardRail>
+    </section>
+  );
+}
+
+// ── Section: Dual trust columns (Businesses / Freelancers). Each bullet is
+// "Lead: sentence" — the lead is set in bold, as in the supplied design. Every line
+// states something the platform does (ID checks, payment-proof review, in-app
+// messaging, the 6% commission, withdrawal times). ──────────────────────────────
+function splitLead(text) {
+  const m = String(text).match(/^([^:：]{2,48}?)\s*[:：]\s*([\s\S]+)$/);
+  return m ? { lead: m[1], rest: m[2] } : { lead: null, rest: String(text) };
+}
+
+function DualTrustSection() {
+  const { t, i18n } = useTranslation();
+  const colon = i18n.language === 'fr' ? '\u00a0: ' : ': ';
+  const columns = [
+    {
+      icon: 'apartment', title: t('home.dual.biz.title'), sub: t('home.dual.biz.sub'),
+      bullets: [t('home.dual.biz.b1'), t('home.dual.biz.b2'), t('home.dual.biz.b3')],
+    },
+    {
+      icon: 'verified_user', title: t('home.dual.fl.title'), sub: t('home.dual.fl.sub'),
+      bullets: [t('home.dual.fl.b1'), t('home.dual.fl.b2'), t('home.dual.fl.b3')],
+    },
+  ];
+  return (
+    <section className="ds-wrap pt-14 md:pt-20">
+      <SectionHeader center title={t('home.dual.title')} />
+      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+        {columns.map((col, i) => (
+          <FadeIn key={col.title} delay={i * 0.1} className="ds-card p-5 md:p-7">
+            <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-ds-line bg-ds-high text-ds-accent">
+              <Icon name={col.icon} size={24} />
+            </span>
+            <h3 className="text-lg font-bold text-ds-ink">{col.title}</h3>
+            <p className="mb-5 mt-1.5 text-sm leading-[1.55] text-ds-mute">{col.sub}</p>
+            <ul className="m-0 flex list-none flex-col gap-3 p-0">
+              {col.bullets.map(b => {
+                const { lead, rest } = splitLead(b);
+                return (
+                  <li key={b} className="flex items-start gap-2.5 text-[13.5px] leading-[1.55] text-ds-mute">
+                    <Icon name="check_circle" size={18} fill className="mt-px flex-none text-ds-accent" />
+                    <span>{lead && <strong className="font-semibold text-ds-ink">{lead}{colon}</strong>}{rest}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </FadeIn>
+        ))}
       </div>
     </section>
   );
 }
 
-// ── Chevron down ──────────────────────────────────────────────────────────────
-function ChevronDown({ size = 14, rotated = false }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
-      style={{ transition: 'transform .2s', transform: rotated ? 'rotate(180deg)' : 'none' }}>
-      <path d="m6 9 6 6 6-6"/>
-    </svg>
-  );
-}
-
 // ── Section: FAQ ──────────────────────────────────────────────────────────────
+// Seven questions, each answered from what the platform really does (see the help
+// centre and the terms). The same keys feed the structured data in <Home/>.
+const FAQ_COUNT = 7;
+
 function FAQSection() {
   const [openIdx, setOpenIdx] = useState(null);
-  const toggle = useCallback((i) => setOpenIdx(prev => prev === i ? null : i), []);
   const { t } = useTranslation();
-  const faqItems = [
-    { question: t('home.faq.q1'), answer: t('home.faq.a1') },
-    { question: t('home.faq.q2'), answer: t('home.faq.a2') },
-    { question: t('home.faq.q3'), answer: t('home.faq.a3') },
-    { question: t('home.faq.q4'), answer: t('home.faq.a4') },
-    { question: t('home.faq.q5'), answer: t('home.faq.a5') },
-  ];
+  const faqItems = Array.from({ length: FAQ_COUNT }, (_, i) => ({ question: t(`home.faq.q${i + 1}`), answer: t(`home.faq.a${i + 1}`) }));
 
   return (
-    <section className="fm-section" style={{ maxWidth: '760px', margin: '0 auto', paddingTop: '72px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '34px' }}>
-        <h2 style={{ fontWeight: 800, fontSize: 'clamp(22px,3.2vw,29px)', letterSpacing: '-.025em', margin: '0 0 8px', color: 'var(--fm-text-1)', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-          {t('home.faq.title')}
-        </h2>
-        <p style={{ fontSize: '15px', color: 'var(--fm-text-5)', margin: 0 }}>{t('home.faq.sub')}</p>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <section className="ds-wrap max-w-[56rem] pt-14 md:pt-20">
+      <SectionHeader center title={t('home.faq.title')} />
+      <div className="flex flex-col gap-2.5 md:gap-3">
         {faqItems.map((q, i) => {
           const isOpen = openIdx === i;
           return (
-            <motion.div key={q.question}
-              initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.07 }}
-              style={{ background: 'var(--fm-surface)', border: `1px solid ${isOpen ? 'rgba(124,108,246,.4)' : 'var(--fm-border)'}`, borderRadius: '14px', overflow: 'hidden', transition: 'border-color .18s' }}>
-              <button onClick={() => toggle(i)}
-                aria-expanded={isOpen} aria-controls={`faq-answer-${i}`}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: '18px 20px' }}>
-                <span style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--fm-text-1)' }}>{q.question}</span>
-                <span style={{ width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(124,108,246,.16)', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b9aeff', flex: 'none' }}>
-                  <ChevronDown size={14} rotated={isOpen} />
-                </span>
-              </button>
-              {isOpen && (
-                <div id={`faq-answer-${i}`} style={{ padding: '0 20px 19px', fontSize: '14.5px', color: 'var(--fm-text-5)', lineHeight: 1.6 }}>
-                  {q.answer}
+            <FadeIn key={q.question} delay={i * 0.05}
+              className={`overflow-hidden rounded-xl border bg-ds-card transition-colors ${isOpen ? 'border-ds-accent-line' : 'border-ds-line'}`}>
+              <h3 className="m-0">
+                <button type="button" onClick={() => setOpenIdx(isOpen ? null : i)}
+                  aria-expanded={isOpen} aria-controls={`faq-answer-${i}`} id={`faq-q-${i}`}
+                  className="flex w-full items-center justify-between gap-4 px-4 py-4 text-start md:px-5">
+                  <span className="text-[15px] font-bold text-ds-ink md:text-[15.5px]">{q.question}</span>
+                  <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg border border-ds-accent-line bg-ds-accent-soft text-ds-accent">
+                    <Icon name="expand_more" size={18} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                  </span>
+                </button>
+              </h3>
+              {/* grid-rows 0fr→1fr animates height without measuring it */}
+              <div id={`faq-answer-${i}`} role="region" aria-labelledby={`faq-q-${i}`}
+                className={`grid transition-[grid-template-rows] duration-300 ease-out ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                <div className="overflow-hidden">
+                  <p className="m-0 px-4 pb-5 text-[14.5px] leading-[1.65] text-ds-mute md:px-5">{q.answer}</p>
                 </div>
-              )}
-            </motion.div>
+              </div>
+            </FadeIn>
           );
         })}
       </div>
@@ -861,49 +826,44 @@ function FAQSection() {
 function CTASection() {
   const { t } = useTranslation();
   return (
-    <section style={{ width: '100%', margin: 0, marginTop: '72px' }}>
-      <motion.div
-        initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg,#6c5cf6 0%,#7d5cf0 45%,#3a8ce0 100%)', padding: 'clamp(48px,8vw,88px) clamp(20px,5vw,60px)', textAlign: 'center' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(440px 240px at 12% 0%,rgba(255,255,255,.2),transparent 70%),radial-gradient(420px 240px at 90% 100%,rgba(255,255,255,.12),transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative' }}>
-          <h2 style={{ fontWeight: 800, fontSize: 'clamp(26px,4vw,38px)', letterSpacing: '-.025em', margin: '0 0 12px', color: '#fff', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-            {t('home.final.title')}
-          </h2>
-          <p style={{ fontSize: '17px', color: 'rgba(255,255,255,.88)', maxWidth: '460px', margin: '0 auto 30px' }}>
-            {t('home.final.sub')}
-          </p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/freelancers"
-              style={{ padding: '13px 26px', borderRadius: '12px', background: '#fff', color: '#6a5cf0', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '15px', boxShadow: '0 8px 20px -8px rgba(0,0,0,.4)', textDecoration: 'none' }}>
-              {t('home.final.join_fl')}
-            </Link>
-            <Link to="/clients"
-              style={{ padding: '13px 26px', borderRadius: '12px', background: 'rgba(255,255,255,.16)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: '15px', textDecoration: 'none' }}>
-              {t('home.final.hire')}
-            </Link>
+    <section className="mt-16 md:mt-24">
+      <FadeIn y={24} className="relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #4338ca 0%, #6d28d9 52%, #2563eb 100%)' }}>
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true"
+          style={{ background: 'radial-gradient(440px 240px at 12% 0%, rgba(255,255,255,.2), transparent 70%), radial-gradient(420px 240px at 90% 100%, rgba(255,255,255,.12), transparent 70%)' }} />
+        <div className="ds-wrap relative grid items-center gap-8 py-14 text-center md:py-20 lg:grid-cols-[1fr_auto] lg:gap-14 lg:text-start">
+          <div>
+            <h2 className="text-h-md-m text-white md:text-h-lg">{t('home.final.title')}</h2>
+            <p className="mx-auto mt-3 max-w-lg text-[16px] leading-[1.55] text-white/85 md:text-[17px] lg:mx-0">{t('home.final.sub')}</p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Link to="/projects?post=1" className="ds-btn ds-btn-white ds-btn-lg">{t('home.final.post')}</Link>
+            <Link to="/freelancers" className="ds-btn ds-btn-outline-white ds-btn-lg">{t('home.final.explore')}</Link>
           </div>
         </div>
-      </motion.div>
+      </FadeIn>
     </section>
   );
 }
 
 // ── Main Home page ────────────────────────────────────────────────────────────
 export default function Home() {
-  const { user, users, accountsLoaded } = useAuth();
-  const freelancers = useTopFreelancers(users, accountsLoaded);
-  const projects    = useTopProjects();
-  const courses     = useTopCourses();
+  const { user, users } = useAuth();
+  const { i18n } = useTranslation();
+  const courses = useTopCourses();
+
+  // The structured data always speaks French (the site's search language) but is
+  // built from the same keys as the visible FAQ, so the two can never drift apart.
+  const tFr = i18n.getFixedT('fr');
+  const faqs = Array.from({ length: FAQ_COUNT }, (_, i) => ({ question: tFr(`home.faq.q${i + 1}`), answer: tFr(`home.faq.a${i + 1}`) }));
 
   if (user?.isAdmin) {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
   return (
-    <div style={{ background: 'radial-gradient(960px 540px at 14% -6%,rgba(124,108,246,.22),transparent 60%),radial-gradient(860px 540px at 96% -2%,rgba(58,140,224,.16),transparent 60%),linear-gradient(180deg,var(--fm-bg-3) 0%,var(--fm-bg) 58%)', minHeight: '100vh', fontFamily: "'Plus Jakarta Sans',-apple-system,sans-serif", color: 'var(--fm-text-2)', WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
-      <style>{`@keyframes fmPulse { 0%,100% { opacity:1; } 50% { opacity:.55; } }`}</style>
+    // pt-[66px] clears the fixed header. The brand strip above it (TopBar) lives in App.js.
+    <div className="ds relative min-h-screen overflow-x-clip bg-ds-canvas pt-[66px] text-ds-ink">
       <SEOHead
         url="/"
         description="FamaMennou — La plateforme tunisienne de freelance. Trouvez des freelancers, publiez vos projets et suivez des formations en ligne."
@@ -912,22 +872,17 @@ export default function Home() {
       <OrganizationJsonLd />
       <WebSiteJsonLd />
       <LocalBusinessJsonLd />
-      <FAQJsonLd faqs={[
-        { question: "Qu'est-ce que FamaMennou ?", answer: "FamaMennou est l'écosystème freelance tout-en-un de Tunisie. Embauchez des talents vérifiés, remportez des contrats ou développez vos compétences — tout en un seul endroit." },
-        { question: "Comment les freelancers sont-ils vérifiés ?", answer: "Chaque freelancer passe par une vérification d'identité via sa carte d'identité nationale. Notre équipe examine chaque profil pour garantir qualité et fiabilité." },
-        { question: "L'inscription est-elle gratuite ?", answer: "Oui, l'inscription est entièrement gratuite. Une petite commission s'applique uniquement lorsqu'un projet est complété avec succès." },
-        { question: "Comment embaucher un freelancer ?", answer: "Parcourez la marketplace, filtrez par compétence ou région, et cliquez sur Embaucher ou envoyez un message directement à un freelancer vérifié." },
-        { question: "Que faire si je ne suis pas satisfait du travail ?", answer: "Nous avons un processus structuré de résolution des litiges. Notre équipe de support sert de médiateur pour parvenir à un résultat équitable pour les deux parties." },
-      ]} />
+      <FAQJsonLd faqs={faqs} />
       <HeroSection />
-      {/* Directly under the hero's three CTA buttons, which are the last thing
-          HeroSection renders. */}
       <DemoVideoSection />
+      <TrustStripSection />
       <ActionCardsSection />
       <HowItWorksSection />
-      <FeaturedFreelancersSection {...freelancers} />
-      <TrendingProjectsSection {...projects} users={users} />
+      <PaymentVerificationSection />
+      <TalentsSection />
+      <MissionsSection users={users} />
       <CoursesPreviewSection {...courses} />
+      <DualTrustSection />
       <FAQSection />
       <CTASection />
     </div>

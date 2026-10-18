@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { cldImg } from '../utils/cloudinary';
 import { uploadFile } from '../utils/upload';
 import { toast } from '../components/Toast';
+import { firstWord, getInitials } from '../utils/names';
+import { profileSaveError } from '../utils/profileErrors';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -27,7 +29,6 @@ const TUNISIAN_REGIONS = [
 ];
 
 const getTint     = s => { const p=['#7c6cf6','#a855f7','#3b82f6','#0ea5e9','#10b981','#f59e0b','#f43f5e']; return p[((s||'').charCodeAt(0)||0)%p.length]; };
-const getInitials = n => (n||'').trim().split(/\s+/).map(w=>w[0]?.toUpperCase()||'').slice(0,2).join('');
 
 const INP = {
   width:'100%', boxSizing:'border-box', padding:'13px 16px', borderRadius:14,
@@ -81,7 +82,7 @@ export default function ClientDashboard() {
   const inits     = getInitials(name || user.email);
   const hour      = new Date().getHours();
   const greeting  = hour < 12 ? t('dash.greet.morning') : hour < 18 ? t('dash.greet.afternoon') : t('dash.greet.evening');
-  const firstName = (name || user.name || 'Client').split(' ')[0];
+  const firstName = firstWord(name || user.name) || 'Client';
   const avatarSrc = photo || user.photo;
 
   /* ── All original handlers — unchanged ── */
@@ -108,12 +109,12 @@ export default function ClientDashboard() {
     if (!bio.trim())          { setSaveError(t('cd.err_bio'));       return; }
     setSaveError('');
     setSaving(true);
-    try {
-      await updateUser(user.email, { name, bio, region, photo });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch {}
+    // "Saved" only once the server has said so; a refusal says why instead.
+    const res = await updateUser(user.email, { name, bio: bio.trim(), region, photo });
     setSaving(false);
+    if (res?.error) { setSaveError(profileSaveError(res, t)); return; }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   }
 
   /* ── UI-only: profile completion (no effect on data/API) ── */
@@ -211,7 +212,7 @@ export default function ClientDashboard() {
             {/* Name / email / location */}
             <div style={{ flex:1, minWidth:0, paddingTop:4 }}>
               <p style={{ fontSize:24, fontWeight:900, color:C.text, margin:'0 0 7px', letterSpacing:'-0.028em', lineHeight:1.1 }}>
-                {name || user.name || '—'}
+                {firstWord(name || user.name) || '—'}
               </p>
               <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:10 }}>
                 <span style={{ color:C.muted, display:'flex' }}><IcMail s={13}/></span>

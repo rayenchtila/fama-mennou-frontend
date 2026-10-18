@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useRealtimeChannel } from '../lib/useRealtimeChannel';
 
@@ -143,26 +144,39 @@ export default function AnnouncementBanner() {
   };
 
   return (
-    <div ref={wrapRef} style={{ position: 'fixed', top: 66, left: 0, right: 0, zIndex: 39, display: 'flex', flexDirection: 'column' }}>
-      {visible.map(a => (
-        <div key={a.id} style={{ background: 'var(--fm-primary)', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(8px,2vw,10px) clamp(12px,4vw,24px)', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
-              <path d="M12 9v4" /><path d="M12 17h.01" /><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-            </svg>
-            <p style={{ flex: 1, minWidth: 0, fontSize: 'clamp(12.5px,3vw,13.5px)', fontWeight: 600, lineHeight: 1.5, margin: 0, color: '#fff', overflowWrap: 'break-word' }}>
-              {a.message}
-            </p>
-            <button
-              onClick={() => handleDismiss(a.id)}
-              aria-label="Dismiss announcement"
-              style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 6, border: 'none', background: 'rgba(255,255,255,0.18)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-            </button>
-          </div>
-        </div>
-      ))}
+    <div ref={wrapRef} style={{ position: 'fixed', top: 'calc(66px + var(--fm-topbar-offset, 0px))', left: 0, right: 0, zIndex: 39, display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        .fm-ann-dismiss { transition: background-color .15s, transform .15s; }
+        .fm-ann-dismiss:hover { background: rgba(255,255,255,0.3) !important; transform: scale(1.08); }
+        .fm-ann-dismiss:active { transform: scale(0.94); }
+      `}</style>
+      <AnimatePresence initial={false}>
+        {visible.map(a => (
+          <motion.div key={a.id}
+            initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            style={{ overflow: 'hidden', background: 'linear-gradient(90deg, var(--fm-primary-dark), var(--fm-primary) 55%, var(--fm-purple))', boxShadow: '0 2px 12px -4px rgba(99,102,241,0.45), inset 0 -1px 0 rgba(255,255,255,0.1)' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(9px,2vw,11px) clamp(12px,4vw,24px)', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: 8, background: 'rgba(255,255,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 11v5" /><path d="M12 8h.01" />
+                </svg>
+              </span>
+              <p style={{ flex: 1, minWidth: 0, fontSize: 'clamp(12.5px,3vw,13.5px)', fontWeight: 600, lineHeight: 1.5, margin: 0, color: '#fff', overflowWrap: 'break-word' }}>
+                {a.message}
+              </p>
+              <button
+                className="fm-ann-dismiss"
+                onClick={() => handleDismiss(a.id)}
+                aria-label="Dismiss announcement"
+                style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.18)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

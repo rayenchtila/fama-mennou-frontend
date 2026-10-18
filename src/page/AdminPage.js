@@ -8,6 +8,7 @@ import AdvertisementsAdmin from "../components/AdvertisementsAdmin";
 import { useRealtimeChannel } from "../lib/useRealtimeChannel";
 import { cldImg, cldVideo } from "../utils/cloudinary";
 import useBodyScrollLock from "../hooks/useBodyScrollLock";
+import { isIdDocument, sidesFor } from "../utils/idDocuments";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -55,7 +56,7 @@ function StatusBadge({ status }) {
 // the same correct source, so this can't silently drift out of sync again.
 function useCinImages(email) {
   const { authFetch } = useAuth();
-  const [data, setData] = useState({ cin_front: null, cin_back: null });
+  const [data, setData] = useState({ cin_front: null, cin_back: null, id_doc_type: 'cin' });
   const [loading, setLoading] = useState(true);
   const API_URL = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -79,9 +80,13 @@ function CINImageModal({ user, onClose }) {
   const { t } = useTranslation();
   useBodyScrollLock(true); // this component only exists while the modal is open
   const [side, setSide] = useState("front");
-  const { cin_front, cin_back, loading: cinLoading } = useCinImages(user.email);
+  const { cin_front, cin_back, id_doc_type, loading: cinLoading } = useCinImages(user.email);
+  // A passport page and a birth certificate are one photo; the national ID card and the driving licence are two.
+  const docKind  = isIdDocument(id_doc_type) ? id_doc_type : 'cin';
+  const docLabel = t(`auth.doc.${docKind}`);
+  const twoSided = sidesFor(docKind).length === 2;
 
-  const img = side === "front" ? cin_front : cin_back;
+  const img = side === "front" || !twoSided ? cin_front : cin_back;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
       <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden w-full max-w-2xl" onClick={e => e.stopPropagation()}>
@@ -91,19 +96,20 @@ function CINImageModal({ user, onClose }) {
             <div>
               <p className="font-bold text-slate-900 dark:text-white text-sm">{user.name}</p>
               <p className="text-xs text-slate-400">{user.email}</p>
+              {!cinLoading && <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 mt-0.5" data-testid="admin-doc-kind">{docLabel}</p>}
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
-        <div className="flex gap-1 p-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+        {twoSided && <div className="flex gap-1 p-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
           {[{ id: "front", label: t("Face avant") }, { id: "back", label: t("Face arrière") }].map(s => (
             <button key={s.id} onClick={() => setSide(s.id)} className={["flex-1 py-2 text-xs font-bold rounded-xl transition-all duration-200", side === s.id ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"].join(" ")}>
               {s.label}
             </button>
           ))}
-        </div>
+        </div>}
         <div className="p-4 bg-slate-900 min-h-64 flex items-center justify-center">
           {cinLoading ? (
             <svg className="w-8 h-8 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
@@ -111,7 +117,7 @@ function CINImageModal({ user, onClose }) {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
             </svg>
           ) : img ? (
-            <img src={img} alt={`CIN ${side}`} className="max-h-96 w-full object-contain rounded-xl" />
+            <img src={img} alt={twoSided ? `${docLabel} — ${side}` : docLabel} className="max-h-96 w-full object-contain rounded-xl" />
           ) : (
             <div className="text-slate-500 text-sm flex flex-col items-center gap-2">
               <svg className="w-10 h-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
@@ -231,10 +237,12 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
   // user.cinFront/cinBack are never present here — the bulk list they come
   // from deliberately strips them (see the useCinImages comment above) —
   // this thumbnail preview needs its own per-user fetch, same as the modal.
-  const { cin_front, cin_back } = useCinImages(user.email);
+  const { cin_front, cin_back, id_doc_type } = useCinImages(user.email);
+  const docKind  = isIdDocument(id_doc_type) ? id_doc_type : 'cin';
+  const twoSided = sidesFor(docKind).length === 2;
   const thumbs = [
-    { key: "cinFront", label: t("Face avant"),  src: cin_front },
-    { key: "cinBack",  label: t("Face arrière"), src: cin_back },
+    { key: "cinFront", label: twoSided ? t("Face avant") : t(`auth.doc.${docKind}`),  src: cin_front },
+    { key: "cinBack",  label: t("Face arrière"), src: twoSided ? cin_back : null },
   ];
 
   return (
@@ -270,6 +278,7 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
                 { label: t("admin.card.role"),          value: user.role,     icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> },
                 { label: t("admin.card.skills"),        value: user.skills,   icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> },
                 { label: t("admin.card.bio"),           value: user.bio,      icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
+                { label: t("admin.card.document"),      value: user.role === "freelancer" && (cin_front || cin_back) ? t(`auth.doc.${docKind}`) : null, icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M14 10h4M14 14h4M6 16c.6-1.2 1.6-2 3-2s2.4.8 3 2"/></svg> },
                 { label: t("admin.card.registered_at"), value: user.registeredAt ? new Date(user.registeredAt).toLocaleDateString("fr-TN") : null, icon: <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
               ].filter(f => f.value).map(({ label, value, icon }) => (
                 <div key={label} className="min-w-0">
@@ -1822,7 +1831,7 @@ function AdminPaymentsPanel({ API, highlightId }) {
 
 export default function AdminPage() {
   const { t } = useTranslation();
-  const { user, users, accountsLoaded, updateUser, logout, getAdminNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, fetchAccounts, fetchNotifications } = useAuth();
+  const { user, users, accountsLoaded, updateUser, logout, getAdminNotifications, markAllNotificationsRead, clearNotifications, fetchAccounts, fetchNotifications } = useAuth();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -1917,7 +1926,6 @@ export default function AdminPage() {
   const [searchDropdown,      setSearchDropdown]      = useState([]);
   const [searchSelected,      setSearchSelected]      = useState(false);
   const [searchSelectedUser,  setSearchSelectedUser]  = useState(null);
-  const [pendingCourseId,     setPendingCourseId]     = useState(null);
 
   // ── course access requests tab state ──
   const [accessRequests,      setAccessRequests]      = useState([]);
@@ -1977,59 +1985,8 @@ export default function AdminPage() {
     if (tab) setMainTab(tab);
   }, [searchParams]);
 
-  // Auto-open specific course modal when paidCourses loads after notification click
-  useEffect(() => {
-    if (pendingCourseId && paidCourses.length > 0) {
-      const course = paidCourses.find(c => String(c.id) === String(pendingCourseId));
-      if (course) { openAccessModal(course); setPendingCourseId(null); }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paidCourses, pendingCourseId]);
-
-  // Comprehensive admin notification navigation — handles all notification kinds
-  function handleAdminNotifClick(n) {
-    markNotificationRead(n.id);
-    setNotifOpen(false);
-    const kind = n.kind || '';
-
-    // course_access_granted:courseId → open exact course modal
-    if (kind.startsWith('course_access_granted')) {
-      const courseId = kind.includes(':') ? kind.split(':')[1] : null;
-      setMainTab('paidaccess');
-      navigate('/admin/dashboard?tab=paidaccess');
-      if (courseId) {
-        const found = paidCourses.find(c => String(c.id) === String(courseId));
-        if (found) openAccessModal(found);
-        else { fetchPaidCourses(); setPendingCourseId(courseId); }
-      }
-      return;
-    }
-
-    // lesson_pending_${lessonId} → lessons tab
-    if (kind.startsWith('lesson_pending')) {
-      setMainTab('lessons'); navigate('/admin/dashboard?tab=lessons'); return;
-    }
-
-    // course_request:courseId → requests tab
-    if (kind.startsWith('course_request')) {
-      setMainTab('requests'); navigate('/admin/dashboard?tab=requests');
-      fetchAccessRequests();
-      return;
-    }
-
-    // course_pending → courses tab
-    if (kind.startsWith('course_pending') || kind.startsWith('course_upload')) {
-      setMainTab('courses'); navigate('/admin/dashboard?tab=courses'); return;
-    }
-
-    // new_submission / CIN-related → cin tab
-    if (kind.startsWith('new_submission') || kind.startsWith('new_user')) {
-      setMainTab('cin'); navigate('/admin/dashboard?tab=cin'); return;
-    }
-
-    // Default → cin tab
-    setMainTab('cin'); navigate('/admin/dashboard?tab=cin');
-  }
+  // Notifications are display-only (see the panel below) — no per-item click
+  // handler needed; "Marquer tout comme lu" / "Effacer" cover read-state.
 
   const fetchCourses = async () => {
     const CACHE_KEY = 'admin_courses_cache';
@@ -3489,7 +3446,7 @@ export default function AdminPage() {
                 </div>
               ) : (
                 adminNotifications.map(n => (
-                  <div key={n.id} onClick={() => handleAdminNotifClick(n)} className={["flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 cursor-pointer transition-colors group", n.read ? "bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50" : "bg-indigo-50/50 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"].join(" ")}>
+                  <div key={n.id} className={["flex items-start gap-3 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 transition-colors", n.read ? "bg-white dark:bg-slate-900" : "bg-indigo-50/50 dark:bg-indigo-900/10"].join(" ")}>
                     <div className={["w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm",
                       n.kind.startsWith("course_access_granted") ? "bg-emerald-100 dark:bg-emerald-900/30" :
                       n.kind.startsWith("lesson_pending")         ? "bg-indigo-100 dark:bg-indigo-900/30" :
@@ -3511,7 +3468,6 @@ export default function AdminPage() {
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       {!n.read && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
-                      <svg className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </div>
                   </div>
                 ))

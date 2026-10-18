@@ -13,6 +13,8 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import SEOHead from '../components/Seohead';
+import { budgetLabel } from '../utils/budget';
+import { firstWord, getInitials } from '../utils/names';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -26,9 +28,6 @@ function timeAgo(t, date) {
   return new Date(date).toLocaleDateString();
 }
 
-function initials(name = '') {
-  return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
-}
 function tint(seed = '') {
   const hues = [252, 199, 271, 168, 24];
   const h = hues[(seed.charCodeAt(0) || 0) % hues.length];
@@ -147,9 +146,9 @@ export default function ProjectDetailPage({ onLogin }) {
                 {project.title}
               </h1>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-                {project.budget && (
+                {budgetLabel(project.budget) && (
                   <span style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13, fontWeight:800, color:'var(--fm-primary-light)', background:'rgba(124,108,246,0.1)', border:'1px solid rgba(124,108,246,0.22)', borderRadius:10, padding:'6px 13px' }}>
-                    {Ic.dollar(12)} {Number(project.budget).toLocaleString('fr-TN')} TND
+                    {Ic.dollar(12)} {budgetLabel(project.budget)}
                   </span>
                 )}
                 {project.period && (
@@ -190,10 +189,10 @@ export default function ProjectDetailPage({ onLogin }) {
             {/* Client card */}
             <div style={{ display:'flex', alignItems:'center', gap:14, borderRadius:18, background:'var(--fm-surface-hover-soft)', border:'1px solid var(--fm-border)', padding:'16px 20px', marginBottom:28 }}>
               <div style={{ width:44, height:44, borderRadius:14, background:clientTint.bg, color:clientTint.fg, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:15, flexShrink:0 }}>
-                {initials(project?.client_name)}
+                {getInitials(project?.client_name)}
               </div>
               <div style={{ minWidth:0 }}>
-                <p style={{ fontSize:14, fontWeight:800, color:'var(--fm-text-1)', margin:'0 0 2px' }}>{project?.client_name || t('prp.detail.client_fallback')}</p>
+                <p style={{ fontSize:14, fontWeight:800, color:'var(--fm-text-1)', margin:'0 0 2px' }}>{firstWord(project?.client_name) || t('prp.detail.client_fallback')}</p>
                 <p style={{ fontSize:12, color:'var(--fm-text-7)', margin:0 }}>{project?.client_region ? project.client_region : t('prp.detail.member')}</p>
               </div>
             </div>

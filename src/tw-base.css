@@ -1,0 +1,7 @@
+/* Tailwind's preflight, kept in its own file so index.css can load the
+   design-system component classes (styles/design.css) AFTER it and BEFORE the
+   utilities (input.css). That is the same base → components → utilities order
+   Tailwind's own layers give, which lets a utility such as `hidden` or `px-4`
+   still override a component class like `.ds-btn`, while the components in turn
+   override preflight's button/input resets. */
+@tailwind base;

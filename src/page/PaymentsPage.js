@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { firstWord } from '../utils/names';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -183,7 +184,7 @@ export default function PaymentsPage() {
               {projects.map(item => {
                 const otherEmail = user.role==='freelancer' ? item.client_email : item.freelancer_email;
                 const otherAcc   = accounts?.[otherEmail?.toLowerCase()];
-                const otherName  = otherAcc?.name || item.client_name || item.freelancer_name || otherEmail || '—';
+                const otherName  = firstWord(otherAcc?.name || item.client_name || item.freelancer_name) || otherEmail || '—';
                 const label      = user.role==='freelancer' ? t('ppg.client_label',{name:otherName}) : t('ppg.freelancer_label',{name:otherName});
                 return (
                   <PaymentRow key={item.id} label={item.title} amount={item.amount} statusKey={item.payment_status} statusMap={PROJ_STATUS}

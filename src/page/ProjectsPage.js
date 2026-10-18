@@ -11,6 +11,8 @@ import PendingClientBanner from '../components/PendingClientBanner';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import ShareButton from '../components/ShareMenu';
 import ProjectPaymentPanel from '../components/ProjectPaymentPanel';
+import { budgetLabel } from '../utils/budget';
+import { firstWord, getInitials } from '../utils/names';
 
 const API = process.env.REACT_APP_API_URL || 'https://famamennou-server.onrender.com/api';
 
@@ -39,7 +41,6 @@ const PERIOD_OPTIONS     = ['De 1 à 3 jours','De 4 à 7 jours','De 1 à 2 semai
 const PERIOD_DAYS        = {'De 1 à 3 jours':2,'De 4 à 7 jours':5,'De 1 à 2 semaines':10,'De 2 à 4 semaines':21,'De 1 à 3 mois':60,'Plus de 3 mois':90};
 
 const getTint     = s => TINTS[((s||'').charCodeAt(0)||0) % TINTS.length];
-const getInitials = n => (n||'').trim().split(/\s+/).map(w=>w[0]?.toUpperCase()||'').slice(0,2).join('');
 
 function timeAgo(date) {
   if (!date) return '';
@@ -316,7 +317,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
   const navigate = useNavigate();
   const u = (users||[]).find(u=>u.email?.toLowerCase()===proposal.freelancer_email?.toLowerCase());
   const [tintFg, tintBg] = getTint(proposal.freelancer_email);
-  const name    = u?.name || proposal.freelancer_email?.split('@')[0] || '?';
+  const name    = firstWord(u?.name) || proposal.freelancer_email?.split('@')[0] || '?';
   const initials= getInitials(name);
   const photo   = u?.photo;
   const isAccepted = proposal.status === 'accepted';
@@ -685,9 +686,9 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
         </div>
         {/* Meta chips */}
         <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
-          {project.budget && (
+          {budgetLabel(project.budget) && (
             <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:'var(--fm-primary-light)', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}>
-              <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>{t('prp.budget')}</span>{Number(project.budget).toLocaleString('fr-TN')} TND
+              <span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>{t('prp.budget')}</span>{budgetLabel(project.budget)}
             </span>
           )}
           {project.period && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'var(--fm-text-7)', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.duration')}</span>{project.period}</span>}
@@ -752,7 +753,7 @@ function MyProjectCard({ project, proposals, expanded, onExpand, onDelete, onAcc
 function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved, onSave, onDelete }) {
   const { t } = useTranslation();
   const [tintFg, tintBg] = getTint(project.client_email);
-  const displayName = clientUser?.name || project.client_email?.split('@')[0] || '?';
+  const displayName = firstWord(clientUser?.name) || project.client_email?.split('@')[0] || '?';
   const initials    = getInitials(displayName);
   const isVerified  = clientUser?.cinStatus==='approved' || !clientUser;
   const region      = clientUser?.region || '';
@@ -791,7 +792,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved,
       <h3 style={{ fontSize:19, fontWeight:900, color:'var(--fm-text-1)', margin:'0 0 8px', letterSpacing:'-0.02em', lineHeight:1.25 }}>{project.title}</h3>
       {project.description && <p style={{ fontSize:13, color:'var(--fm-text-6)', margin:'0 0 14px', lineHeight:1.65 }}>{project.description.length>120?project.description.slice(0,118)+'…':project.description}</p>}
       <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, marginBottom:14 }}>
-        {project.budget && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:'var(--fm-primary-light)', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>{t('prp.budget')}</span>{Number(project.budget).toLocaleString('fr-TN')} TND</span>}
+        {budgetLabel(project.budget) && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:800, color:'var(--fm-primary-light)', background:'rgba(124,108,246,0.09)', border:'1px solid rgba(124,108,246,0.18)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.75,letterSpacing:'0.03em'}}>{t('prp.budget')}</span>{budgetLabel(project.budget)}</span>}
         {project.period && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'var(--fm-text-7)', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.duration')}</span>{project.period}</span>}
         {project.experience && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'var(--fm-text-7)', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.experience')}</span>{project.experience}</span>}
         {proposalCount>0 && <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, color:'var(--fm-text-7)', background:'var(--fm-border-soft)', border:'1px solid var(--fm-border)', borderRadius:8, padding:'4px 10px' }}><span style={{fontSize:10,fontWeight:700,opacity:0.85,letterSpacing:'0.03em'}}>{t('prp.applications')}</span>{proposalCount}</span>}

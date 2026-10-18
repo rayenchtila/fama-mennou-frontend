@@ -29,6 +29,8 @@ export function normalizeUser(r, trustCin = true) {
     cinFront:           r.cin_front,
     cinBack:            r.cin_back,
     cinVerified:        r.cin_verified,
+    // Which document the identity photos are: 'cin' | 'passport' | 'driving_license' | 'birth_certificate' (admin list only).
+    idDocType:          r.id_doc_type ?? null,
     cinStatus:          r.cin_status ?? (r.cin_verified ? "approved" : "pending"),
     cinRejectionReason: r.cin_rejection_reason ?? null,
     cinApprovalReason:  r.cin_approval_reason  ?? null,
