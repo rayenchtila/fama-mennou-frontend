@@ -12,6 +12,7 @@ export default function TwoFASetup({ onDone }) {
   const [secret, setSecret] = useState(null);
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
+  const [disableCode, setDisableCode] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -53,15 +54,18 @@ export default function TwoFASetup({ onDone }) {
 
   async function disable() {
     if (!password) return setError(t("twofa.enter_password"));
+    if (disableCode.length !== 6) return setError(t("twofa.enter_6_digits"));
     setBusy(true); setError(null);
     try {
       const res  = await authFetch(`${API}/2fa/disable`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        // the password alone is what 2FA backs up, so a current authenticator code is required too
+        body: JSON.stringify({ password, token: disableCode }),
       });
       const data = await res.json();
-      if (data.error) return setError(data.error === "wrong_password" ? t("twofa.wrong_password") : data.error);
+      if (data.error) return setError(data.error === "wrong_password" ? t("twofa.wrong_password") : (data.error === "invalid_code" || data.error === "code_required") ? t("twofa.invalid_code") : data.error);
+      setDisableCode("");
       setStep("idle");
       onDone?.("disabled");
     } catch { setError(t("twofa.network_error")); }
@@ -148,13 +152,24 @@ export default function TwoFASetup({ onDone }) {
 
       {step === "disable" && (
         <div>
-          <p style={{ color: sub, fontSize: 14, marginBottom: 8 }}>{t("twofa.confirm_disable")}</p>
+          <p style={{ color: sub, fontSize: 14, marginBottom: 8 }}>{t("twofa.confirm_disable_code")}</p>
           <input
             style={inputStyle}
             type="password"
             placeholder={t("Password")}
             value={password}
+            autoComplete="current-password"
             onChange={e => setPassword(e.target.value)}
+          />
+          <input
+            style={{ ...inputStyle, marginTop: 10, letterSpacing: 6, textAlign: "center" }}
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            placeholder="000000"
+            value={disableCode}
+            onChange={e => setDisableCode(e.target.value.replace(/\D/g, ""))}
           />
           <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
             <button style={{ ...btnStyle, background: "linear-gradient(135deg,#ef4444,#dc2626)" }} onClick={disable} disabled={busy}>

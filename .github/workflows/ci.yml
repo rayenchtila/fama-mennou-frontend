@@ -53,12 +53,15 @@ jobs:
             set -e
             cd /home/ubuntu/apps/frontend
             git pull
-            npm ci
+            # --include=dev: the build needs tailwindcss & co. A shell with NODE_ENV=production would otherwise skip
+            # them and the build stops at "react-scripts: not found".
+            npm ci --include=dev
             # Build into a side folder and swap it in only once the build has succeeded. A build in place
             # empties the live folder first: the site answers HTTP 500 (no index.html) for the whole build,
             # and stays broken if the build fails. build_prev keeps the previous version for a quick rollback.
             rm -rf build_new
-            BUILD_PATH=build_new npm run build
+            # GENERATE_SOURCEMAP=false: the .map files would otherwise be served to everyone next to the bundles
+            GENERATE_SOURCEMAP=false BUILD_PATH=build_new npm run build
             rm -rf build_prev
             [ -d build ] && mv build build_prev
             mv build_new build

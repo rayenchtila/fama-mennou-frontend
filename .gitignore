@@ -22,3 +22,9 @@ yarn-error.log*
 /playwright-report/
 /playwright/.cache/
 /e2e/.auth/
+
+# Local scratch
+.env.local.bak
+*.log
+fama-vite/dist/
+.claude/

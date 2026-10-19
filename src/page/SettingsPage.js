@@ -191,7 +191,8 @@ export default function SettingsPage() {
 
     if (!currPass)           { setPassErr(t('sp.err_current_required'));        return; }
     if (!newPass)            { setPassErr(t('sp.err_new_required'));        return; }
-    if (newPass.length < 6)  { setPassErr(t('sp.err_min'));                     return; }
+    if (newPass.length < 8)  { setPassErr(t('reset.pw_min8'));                  return; }
+    if (!/[^A-Za-z]/.test(newPass)) { setPassErr(t('reset.pw_pattern'));        return; }
     if (newPass !== confirm)  { setPassErr(t('sp.err_mismatch'));  return; }
 
     setLoading(true);
@@ -206,6 +207,12 @@ export default function SettingsPage() {
 
       if (data.error === 'wrongPassword') {
         setPassErr(t('sp.err_wrong'));
+        setLoading(false);
+        return;
+      }
+      if (data.error === 'validation_error' || data.error === 'passwordTooShort') {
+        // the server applies the same rule as sign-up and "forgot password": 8+ characters with a digit or a symbol
+        setPassErr(data.error === 'passwordTooShort' ? t('reset.pw_min8') : t('reset.pw_pattern'));
         setLoading(false);
         return;
       }

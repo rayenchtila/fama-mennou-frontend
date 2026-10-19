@@ -343,7 +343,7 @@ export function ForgotPasswordScreen({ onBack, onSent }) {
       if (data.error === 'serverError')        { setError(t('Server error. Please try again in a moment.')); return; }
       if (data.error === 'invalidCaptcha' || data.error === 'captchaFailed') { setError(t('auth.captcha_failed')); return; }
       if (data.error === 'captchaUnavailable') { setError(t('auth.captcha_unavailable')); return; }
-      if (data.error === 'too_many_requests')  { setError(t('Too many attempts. Please wait a few minutes and try again.')); return; }
+      if (data.error === 'too_many_requests' || data.error === 'tooManySends') { setError(t('Too many attempts. Please wait a few minutes and try again.')); return; }
       if (data.error)                          { setError(t('Server error. Please try again in a moment.')); return; }
       setStep(2); setError('');
     } catch { setError(t('Network error. Please try again.')); }
@@ -381,6 +381,7 @@ export function ForgotPasswordScreen({ onBack, onSent }) {
       const data = await requestResetCode();
       if (data.error === 'invalidCaptcha' || data.error === 'captchaFailed') { setError(t('auth.captcha_failed')); return; }
       if (data.error === 'captchaUnavailable') { setError(t('auth.captcha_unavailable')); return; }
+      if (data.error === 'tooManySends') { setError(t('Too many attempts. Please wait a few minutes and try again.')); return; }
       if (data.error) { setError(t('Failed to resend. Please try again.')); return; }
       setCode('');
       setResendDone(true);

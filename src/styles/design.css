@@ -194,6 +194,15 @@
 /* Ambient wash behind a page's top area. */
 .ds-ambient { position: absolute; inset: 0; pointer-events: none; background: var(--ds-ambient); }
 
+/* Home hero: the visual column collapses to width 0 (empty:hidden) when no
+   sponsor campaign is live, but the grid's own column tracks don't know
+   that — left alone, the 0.9fr track still reserves its full width next to
+   the headline, as a blank gap. :has() lets the grid react to its own
+   child's emptiness and fall back to a single column. */
+@media (min-width: 1024px) {
+  .home-hero-grid:has(.home-hero-visual:empty) { grid-template-columns: 1fr; }
+}
+
 /* ── Cards ────────────────────────────────────────────────────────────── */
 .ds-card {
   background: rgb(var(--ds-card));

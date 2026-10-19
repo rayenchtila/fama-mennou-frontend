@@ -268,6 +268,7 @@ const design = {
     "auth.err_doc_upload": "L'envoi de votre document a échoué. Réessayez.",
 
     "auth.captcha_failed": "La vérification de sécurité n'a pas pu aboutir. Vérifiez votre connexion, désactivez les bloqueurs de contenu, puis réessayez.",
+    "twofa.confirm_disable_code": "Pour désactiver la 2FA, confirmez votre mot de passe et saisissez le code à 6 chiffres de votre application d'authentification :",
     "auth.captcha_unavailable": "La vérification de sécurité est momentanément indisponible. Réessayez dans un instant.",
     "auth.captcha_retry": "Réessayer",
 
@@ -559,6 +560,7 @@ const design = {
     "auth.err_doc_upload": "Your document couldn't be uploaded. Please try again.",
 
     "auth.captcha_failed": "The security check couldn't complete. Check your connection, turn off content blockers and try again.",
+    "twofa.confirm_disable_code": "To turn 2FA off, confirm your password and enter the 6-digit code from your authenticator app:",
     "auth.captcha_unavailable": "The security check is temporarily unavailable. Try again in a moment.",
     "auth.captcha_retry": "Try again",
 
@@ -868,6 +870,7 @@ const design = {
     "auth.err_doc_upload": "تعذّر رفع وثيقتك. حاول مجددًا.",
 
     "auth.captcha_failed": "تعذّر إكمال الفحص الأمني. تحقق من اتصالك وعطّل حاجبات المحتوى ثم أعد المحاولة.",
+    "twofa.confirm_disable_code": "لتعطيل المصادقة الثنائية، أكّد كلمة المرور وأدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة:",
     "auth.captcha_unavailable": "الفحص الأمني غير متاح مؤقتًا. حاول مجددًا بعد قليل.",
     "auth.captcha_retry": "أعد المحاولة",
 

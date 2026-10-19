@@ -2188,7 +2188,8 @@ function SettingsTab({ user, updateUser, onLogout }) {
     setPwError(''); setPwOk(false);
 
     if (!pwForm.current)            { setPwError('Le mot de passe actuel est requis.');       return; }
-    if (pwForm.next.length < 6)     { setPwError('Le mot de passe doit avoir au moins 6 caractères.'); return; }
+    if (pwForm.next.length < 8)     { setPwError('Le mot de passe doit avoir au moins 8 caractères.'); return; }
+    if (!/[^A-Za-z]/.test(pwForm.next)) { setPwError('Le mot de passe doit contenir au moins un chiffre ou un caractère spécial.'); return; }
     if (pwForm.next !== pwForm.confirm) { setPwError('Les mots de passe ne correspondent pas.'); return; }
 
     setSaving(true);
@@ -2201,6 +2202,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
       });
       const data = await res.json();
       if (data.error === 'wrongPassword') { setPwError('Mot de passe actuel incorrect.'); setSaving(false); return; }
+      if (data.error === 'validation_error' || data.error === 'passwordTooShort') { setPwError('Le mot de passe doit avoir au moins 8 caractères, dont un chiffre ou un caractère spécial.'); setSaving(false); return; }
       if (data.error) { setPwError('Erreur. Réessayez.'); setSaving(false); return; }
 
       /* Success */

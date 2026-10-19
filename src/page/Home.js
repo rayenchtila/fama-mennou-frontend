@@ -146,7 +146,7 @@ function HeroSection() {
   return (
     <section className="relative overflow-hidden">
       <div className="ds-ambient" aria-hidden="true" />
-      <div className="ds-wrap relative grid items-center gap-10 pb-12 pt-9 md:pb-16 md:pt-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pb-24 lg:pt-16">
+      <div className="ds-wrap home-hero-grid relative grid items-center gap-10 pb-12 pt-9 md:pb-16 md:pt-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pb-24 lg:pt-16">
 
         {/* Copy column */}
         <div className="min-w-0">
@@ -208,12 +208,12 @@ function HeroSection() {
           </motion.div>
         </div>
 
-        {/* Visual — the admin's sponsored video when one is live, the static
-            photo otherwise. HomeAdVideo draws its own glow + card chrome so
-            either state fills this exact spot with no layout shift. */}
-        <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...SPRING, delay: 0.15 }}>
-          <HomeAdVideo variant="hero" fallbackSrc="/images/home-hero.jpg" fallbackAlt={t('home.hero.visual_alt')} />
-        </motion.div>
+        {/* Visual — the video the admin published under "Publicité" (live today), in the exact spot the
+            photo used to take; it draws its own glow + card chrome. With no campaign live there is
+            nothing to show: the wrapper stays empty, so it is hidden and adds no gap. */}
+        <div className="home-hero-visual min-w-0 empty:hidden">
+          <HomeAdVideo variant="hero" />
+        </div>
 
       </div>
     </section>

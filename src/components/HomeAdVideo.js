@@ -1,9 +1,12 @@
 // Homepage promotional video ("Publicité").
 //
-// Renders whatever campaigns are live today, directly under the hero subtitle.
+// Renders whatever campaigns are live today: in the hero's visual slot
+// (variant="hero" — the spot the stock photo used to occupy) or directly under
+// the hero subtitle (variant="inline").
 // The server already filters by date and paused state, so this component never
 // has to reason about scheduling — an expired or paused campaign simply stops
-// arriving. When nothing is live the API returns [] and this renders nothing.
+// arriving. When nothing is live the API returns [] and this renders nothing:
+// no stock image, no placeholder.
 //
 // PLAYBACK NOTES
 //   * muted + playsInline + autoPlay is the only combination browsers allow to
@@ -18,6 +21,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cldImg, cldVideo } from '../utils/cloudinary';
 import useBodyScrollLock from '../hooks/useBodyScrollLock';
 import { firstWord, getInitials } from '../utils/names';
@@ -32,8 +36,9 @@ const SEGMENT_SECONDS = 5;
 const STALL_GRACE_MS = 3000;
 
 
-export default function HomeAdVideo({ variant = 'inline', fallbackSrc, fallbackAlt }) {
+export default function HomeAdVideo({ variant = 'inline' }) {
   const isHero = variant === 'hero';
+  const reduceMotion = useReducedMotion();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [ads, setAds] = useState([]);
@@ -161,33 +166,24 @@ export default function HomeAdVideo({ variant = 'inline', fallbackSrc, fallbackA
     };
   }, [watching]);
 
-  // Both placements frame their media in the same rounded, bordered card the
-  // rest of the ds system uses (DirectoryHero's glow + ds-card), so a hero
-  // slot with no live campaign and one with a live campaign never shift the
-  // surrounding layout. The "inline" placement never had this chrome and
-  // stays exactly as it was.
+  // The hero placement frames the video in the same rounded, bordered card the
+  // rest of the ds system uses (DirectoryHero's glow + ds-card). The card only
+  // exists while a campaign is live, so it eases in when the list arrives. The
+  // "inline" placement never had this chrome and stays exactly as it was.
   const heroCard = (inner) => (
-    <div data-testid="home-ad" className="relative">
+    <motion.div data-testid="home-ad" className="relative"
+      initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.45, ease: 'easeOut' }}>
       <div className="pointer-events-none absolute -inset-3 -z-0 rounded-[2rem] sm:-inset-6 bg-ds-accent/10 blur-3xl" aria-hidden="true" />
       <div className="ds-card relative p-2.5 shadow-ds-pop sm:p-3.5">
         {inner}
       </div>
-    </div>
+    </motion.div>
   );
 
-  // No live campaign: the "hero" placement still needs *something* in the
-  // visual slot it was handed, so it shows the ordinary static image instead
-  // of leaving a hole. The "inline" placement (under the search bar) was
-  // always additive, so it keeps rendering nothing — same as before.
-  if (!ads.length) {
-    if (!isHero || !fallbackSrc) return null;
-    return heroCard(
-      <div className="aspect-[16/10] overflow-hidden rounded-xl border border-ds-line sm:aspect-[4/3]">
-        <img src={fallbackSrc} alt={fallbackAlt} width="1408" height="768" fetchPriority="high"
-          className="block h-full w-full object-cover" />
-      </div>
-    );
-  }
+  // Nothing live today: nothing to show, in either placement. (The hero used to
+  // fall back to a stock photo here; the slot now belongs to the admin's video.)
+  if (!ads.length) return null;
 
   const current = ads[idx];
   const email = current.profile_email;

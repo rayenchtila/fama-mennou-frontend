@@ -318,17 +318,9 @@ export function AuthProvider({ children }) {
       // Signing up never signs the person in — in any environment. They are taken to the log-in
       // page (Authmodal.js), where they log in with the e-mail and password they just chose.
 
-      // Clients are approved on the spot, so only a freelancer's identity check is news for the admin.
-      if (userData.role === "freelancer") {
-        await addNotification({
-          type:    "admin",
-          kind:    "new_submission",
-          title:   "Nouvelle demande de vérification",
-          message: `${userData.name} a soumis une demande de vérification d'identité.`,
-          email:   userData.email,
-          name:    userData.name,
-        });
-      }
+      // The admin is told about a new freelancer by the server itself (POST /auth/register writes the
+      // admin notification). The browser used to post one too, anonymously — an open door that let anyone
+      // write into the admin feed or into another user's live notifications — so it no longer does.
 
       fetchAccounts();
       return { success: true };
