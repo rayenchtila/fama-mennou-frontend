@@ -1985,9 +1985,12 @@ export default function AdminPage() {
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
   useEffect(() => {
     let cancelled = false;
-    const loadCount = () => fetch(`${API}/project-payments/admin/pending`)
+    // Same resource AdminPaymentsPanel lists in full (/admin/pending doesn't
+    // exist on the API — it 400s — so the count is derived client-side from
+    // the one endpoint that's actually there).
+    const loadCount = () => fetch(`${API}/project-payments/admin/all`)
       .then(r => r.json())
-      .then(d => { if (!cancelled && Array.isArray(d)) setPendingPaymentsCount(d.length); })
+      .then(d => { if (!cancelled && Array.isArray(d)) setPendingPaymentsCount(d.filter(p => p.status === 'pending').length); })
       .catch(() => {});
     loadCount();
     const id = setInterval(() => { if (document.visibilityState === 'visible') loadCount(); }, 5 * 60 * 1000);
