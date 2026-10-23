@@ -45,7 +45,7 @@ export default function CinDropzone({ label, hint, preview, onFile, required = t
         {preview ? (
           <>
             <img src={preview} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" aria-hidden="true" />
+            <span className="absolute inset-0 bg-black/20" aria-hidden="true" />
             <span className="absolute bottom-2 end-2 inline-flex items-center gap-1 rounded-lg bg-black/60 px-2.5 py-1.5 text-[11px] font-semibold text-white backdrop-blur">
               <Icon name="edit" size={14} />{t('Change')}
             </span>

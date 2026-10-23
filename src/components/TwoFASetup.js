@@ -81,14 +81,14 @@ export default function TwoFASetup({ onDone }) {
   };
   const btnStyle = {
     width: "100%", padding: "13px", borderRadius: 12, fontSize: 15, fontWeight: 700,
-    background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "#fff",
+    background: "#4f46e5", color: "#fff",
     border: "none", cursor: busy ? "not-allowed" : "pointer", opacity: busy ? 0.7 : 1,
   };
 
   return (
     <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 16, padding: 24 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
         </div>
         <div>
@@ -111,7 +111,7 @@ export default function TwoFASetup({ onDone }) {
             {busy ? t("twofa.loading") : t("twofa.enable")}
           </button>
           <button
-            style={{ ...btnStyle, background: "linear-gradient(135deg,#ef4444,#dc2626)" }}
+            style={{ ...btnStyle, background: "#dc2626" }}
             onClick={() => { setStep("disable"); setError(null); }}
           >
             {t("twofa.disable")}
@@ -172,7 +172,7 @@ export default function TwoFASetup({ onDone }) {
             onChange={e => setDisableCode(e.target.value.replace(/\D/g, ""))}
           />
           <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-            <button style={{ ...btnStyle, background: "linear-gradient(135deg,#ef4444,#dc2626)" }} onClick={disable} disabled={busy}>
+            <button style={{ ...btnStyle, background: "#dc2626" }} onClick={disable} disabled={busy}>
               {busy ? "…" : t("twofa.disable")}
             </button>
             <button style={{ ...btnStyle, background: "#6b7280" }} onClick={() => { setStep("idle"); setError(null); }}>

@@ -87,7 +87,7 @@ function VideoPlayer({url}){
 function CertificateCard({cert}){
   const { t } = useTranslation();
   return(
-    <div style={{marginTop:24,padding:'24px',borderRadius:18,background:'linear-gradient(135deg,rgba(245,158,11,.12),rgba(251,191,36,.08))',border:'2px solid rgba(245,158,11,.35)',textAlign:'center',animation:'vpUp .4s ease'}}>
+    <div style={{marginTop:24,padding:'24px',borderRadius:18,background:'rgba(245,158,11,.1)',border:'2px solid rgba(245,158,11,.35)',textAlign:'center',animation:'vpUp .4s ease'}}>
       <div style={{display:'flex',justifyContent:'center',marginBottom:10}}>
         <svg width={44} height={44} fill="none" viewBox="0 0 24 24" stroke="var(--fm-warning)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H2V2h4M18 9h4V2h-4M6 9a6 6 0 0 0 12 0M12 15v4M8 19h8"/></svg>
       </div>
@@ -237,7 +237,7 @@ export default function VideoPlayerPage(){
         {/* Progress bar + % */}
         <div style={{display:'flex',alignItems:'center',gap:7,flexShrink:0}}>
           <div style={{width:isMobile?52:90,height:4,borderRadius:2,background:'var(--fm-border)',overflow:'hidden'}}>
-            <div style={{height:'100%',width:`${progress.pct}%`,background:`linear-gradient(90deg,${C.accent},${C.purple})`,borderRadius:2,transition:'width .5s ease'}}/>
+            <div style={{height:'100%',width:`${progress.pct}%`,background:C.accent,borderRadius:2,transition:'width .5s ease'}}/>
           </div>
           <span style={{color:progress.pct===100?C.emerald:C.muted,fontSize:11,fontWeight:700,minWidth:28,textAlign:'right'}}>{Math.round(progress.pct)}%</span>
         </div>
@@ -269,7 +269,7 @@ export default function VideoPlayerPage(){
                 </div>
               </div>
             ):(
-              <div style={{width:'100%',aspectRatio:'16/9',background:'linear-gradient(135deg,#0a0817,#131024)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:'24px',textAlign:'center',boxSizing:'border-box'}}>
+              <div style={{width:'100%',aspectRatio:'16/9',background:'#0a0817',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:'24px',textAlign:'center',boxSizing:'border-box'}}>
                 <div style={{width:64,height:64,borderRadius:'50%',background:'rgba(124,108,246,.12)',border:'1px solid rgba(124,108,246,.25)',display:'flex',alignItems:'center',justifyContent:'center'}}>
                   <svg width={28} height={28} fill="none" viewBox="0 0 24 24" stroke={C.accent} strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
@@ -278,7 +278,7 @@ export default function VideoPlayerPage(){
                   <p style={{color:C.muted,fontSize:13,maxWidth:280,margin:'0 auto'}}>{t('cdp.locked_msg')}</p>
                 </div>
                 <button onClick={()=>navigate(`/courses/${courseId}`)}
-                  style={{padding:'11px 24px',borderRadius:12,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
+                  style={{padding:'11px 24px',borderRadius:12,background:C.accent,color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
                   {t('vpp.buy_course_arrow')}
                 </button>
               </div>
@@ -296,7 +296,7 @@ export default function VideoPlayerPage(){
                   {lesson?.description&&<p style={{color:C.muted,fontSize:13,margin:0,lineHeight:1.6}}>{lesson.description}</p>}
                 </div>
                 <button onClick={markComplete} disabled={marking||isDone}
-                  style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px 16px',borderRadius:11,background:isDone?'rgba(16,185,129,.12)':'linear-gradient(135deg,#7c6cf6,#a855f7)',color:isDone?C.emerald:'#fff',border:isDone?'1px solid rgba(16,185,129,.3)':'none',fontWeight:700,fontSize:13,cursor:isDone?'default':'pointer',opacity:marking?.7:1,transition:'all .2s',boxShadow:isDone?'none':'0 6px 20px rgba(124,108,246,.3)',whiteSpace:'nowrap',flexShrink:0,...(isMobile&&{width:'100%'})}}>
+                  style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px 16px',borderRadius:11,background:isDone?'rgba(16,185,129,.12)':'#7c6cf6',color:isDone?C.emerald:'#fff',border:isDone?'1px solid rgba(16,185,129,.3)':'none',fontWeight:700,fontSize:13,cursor:isDone?'default':'pointer',opacity:marking?.7:1,transition:'all .2s',boxShadow:isDone?'none':'0 6px 20px rgba(124,108,246,.3)',whiteSpace:'nowrap',flexShrink:0,...(isMobile&&{width:'100%'})}}>
                   <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   {isDone?t('vpp.completed'):marking?t('vpp.saving'):t('vpp.mark_complete')}
                 </button>
@@ -312,7 +312,7 @@ export default function VideoPlayerPage(){
                 </span>
               </div>
               <div style={{height:5,borderRadius:3,background:'var(--fm-border)',overflow:'hidden'}}>
-                <div style={{height:'100%',width:`${progress.pct}%`,background:progress.pct===100?`linear-gradient(90deg,${C.emerald},#059669)`:`linear-gradient(90deg,${C.accent},${C.purple})`,borderRadius:3,transition:'width .6s ease'}}/>
+                <div style={{height:'100%',width:`${progress.pct}%`,background:progress.pct===100?C.emerald:C.accent,borderRadius:3,transition:'width .6s ease'}}/>
               </div>
             </div>
 
@@ -326,7 +326,7 @@ export default function VideoPlayerPage(){
                 {t('vpp.previous')}
               </button>
               <button onClick={()=>nextL&&goTo(nextL)} disabled={!nextL}
-                style={{display:'flex',alignItems:'center',gap:6,padding:'10px 16px',borderRadius:10,background:nextL?`linear-gradient(135deg,${C.accent},${C.purple})`:'var(--fm-surface-hover)',border:'none',color:nextL?'#fff':C.dim,fontWeight:700,fontSize:13,cursor:nextL?'pointer':'not-allowed',transition:'all .2s',opacity:nextL?1:.4,flex:1,justifyContent:'center',boxShadow:nextL?'0 4px 16px rgba(124,108,246,.3)':'none'}}>
+                style={{display:'flex',alignItems:'center',gap:6,padding:'10px 16px',borderRadius:10,background:nextL?C.accent:'var(--fm-surface-hover)',border:'none',color:nextL?'#fff':C.dim,fontWeight:700,fontSize:13,cursor:nextL?'pointer':'not-allowed',transition:'all .2s',opacity:nextL?1:.4,flex:1,justifyContent:'center',boxShadow:nextL?'0 4px 16px rgba(124,108,246,.3)':'none'}}>
                 {t('vpp.next')}
                 <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
               </button>
@@ -341,7 +341,7 @@ export default function VideoPlayerPage(){
                   </div>
                   <p style={{color:'var(--fm-warning)',fontWeight:800,fontSize:16,marginBottom:14}}>{t('vpp.all_lessons_done')}</p>
                   <button onClick={claimCert} disabled={certLoad}
-                    style={{padding:'11px 28px',borderRadius:11,background:'linear-gradient(135deg,#f59e0b,#d97706)',color:'#fff',fontWeight:700,fontSize:14,border:'none',cursor:'pointer',opacity:certLoad?.6:1,boxShadow:'0 6px 20px rgba(245,158,11,.3)'}}>
+                    style={{padding:'11px 28px',borderRadius:11,background:'#f59e0b',color:'#fff',fontWeight:700,fontSize:14,border:'none',cursor:'pointer',opacity:certLoad?.6:1,boxShadow:'0 6px 20px rgba(245,158,11,.3)'}}>
                     {certLoad?t('vpp.generating'):t('vpp.get_certificate')}
                   </button>
                 </div>

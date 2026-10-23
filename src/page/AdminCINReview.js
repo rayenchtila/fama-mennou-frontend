@@ -24,15 +24,15 @@ function Badge({ status }) {
 function Avatar({ name }) {
   const initials = name?.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase() || "?";
   const colors = [
-    "from-violet-500 to-indigo-600",
-    "from-sky-500 to-cyan-600",
-    "from-emerald-500 to-teal-600",
-    "from-amber-500 to-orange-600",
-    "from-rose-500 to-pink-600",
+    "bg-violet-500",
+    "bg-sky-500",
+    "bg-emerald-500",
+    "bg-amber-500",
+    "bg-rose-500",
   ];
   const color = colors[name?.charCodeAt(0) % colors.length] ?? colors[0];
   return (
-    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white text-sm font-bold shrink-0 shadow`}>
+    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center text-white text-sm font-bold shrink-0 shadow`}>
       {initials}
     </div>
   );

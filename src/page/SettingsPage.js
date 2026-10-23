@@ -80,7 +80,7 @@ function ToggleRow({ label, hint, checked, disabled, onChange }) {
         style={{
           flex:'none', width:44, height:25, borderRadius:20, position:'relative', cursor: disabled ? 'not-allowed' : 'pointer',
           border:`1px solid ${checked ? 'rgba(124,108,246,0.6)' : C.border}`,
-          background: checked ? 'linear-gradient(135deg,#9b8cff,#7c6cf6)' : 'var(--fm-surface-hover)',
+          background: checked ? '#9b8cff' : 'var(--fm-surface-hover)',
           transition:'background .2s, border-color .2s',
         }}>
         <span style={{
@@ -244,8 +244,8 @@ export default function SettingsPage() {
 
       {/* Blobs */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
-        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'radial-gradient(circle,rgba(124,108,246,0.12),transparent 68%)', top:'-200px', left:'-150px', animation:'spBlob1 20s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.08),transparent 68%)', top:'40%', right:'-160px', animation:'spBlob2 26s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'rgba(124,108,246,0.12)', top:'-200px', left:'-150px', animation:'spBlob1 20s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'rgba(168,85,247,0.08)', top:'40%', right:'-160px', animation:'spBlob2 26s ease-in-out infinite', willChange:'transform' }}/>
       </div>
 
       <div className="fm-page-header" style={{ position:'relative', zIndex:1, width:'100%', margin:'0 auto' }}>
@@ -310,7 +310,7 @@ export default function SettingsPage() {
               </div>
             )}
             <button type="submit" disabled={loading}
-              style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8, padding:'13px 28px', borderRadius:14, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontWeight:800, fontSize:14, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:'0 8px 24px -6px rgba(124,108,246,0.55)', transition:'opacity .15s, transform .15s', letterSpacing:'0.01em', alignSelf:'flex-start' }}
+              style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:8, padding:'13px 28px', borderRadius:14, background:'#7c6cf6', border:'none', color:'#fff', fontWeight:800, fontSize:14, cursor:loading?'not-allowed':'pointer', opacity:loading?0.7:1, boxShadow:'0 8px 24px -6px rgba(124,108,246,0.55)', transition:'opacity .15s, transform .15s', letterSpacing:'0.01em', alignSelf:'flex-start' }}
               onMouseEnter={e=>{if(!loading){e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}}
               onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}>
               {loading ? t('sp.saving') : t('sp.update_password')}
@@ -349,8 +349,8 @@ export default function SettingsPage() {
                     fontFamily:'inherit', cursor: (pushBusy || pushPerm === 'denied') ? 'not-allowed' : 'pointer',
                     color:'#fff', opacity: (pushBusy || pushPerm === 'denied') ? 0.55 : 1,
                     background: (prefs?.push_enabled && pushPerm === 'granted')
-                      ? 'linear-gradient(135deg,#64748b,#475569)'
-                      : 'linear-gradient(135deg,#9b8cff,#7c6cf6)',
+                      ? '#64748b'
+                      : '#9b8cff',
                   }}>
                   {pushBusy ? t('sp.push_working')
                     : (prefs?.push_enabled && pushPerm === 'granted') ? t('sp.push_disable') : t('sp.push_enable')}
@@ -427,7 +427,7 @@ export default function SettingsPage() {
                   {t('sp.cancel')}
                 </button>
                 <button onClick={()=>{logout();setLogoutModal(false);}}
-                  style={{ flex:1, padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#dc2626,#ef4444)', border:'none', color:'#fff', fontWeight:700, fontSize:13, cursor:'pointer', boxShadow:'0 4px 14px -3px rgba(239,68,68,0.45)' }}>
+                  style={{ flex:1, padding:'12px', borderRadius:13, background:'#dc2626', border:'none', color:'#fff', fontWeight:700, fontSize:13, cursor:'pointer', boxShadow:'0 4px 14px -3px rgba(239,68,68,0.45)' }}>
                   {t('sp.yes_logout')}
                 </button>
               </div>

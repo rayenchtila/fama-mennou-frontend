@@ -326,7 +326,7 @@ export default function HomeAdVideo({ variant = 'inline' }) {
         <span style={{
           width: 40, height: 40, borderRadius: '50%', flex: 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'linear-gradient(135deg,#7c6cf6,#3ec2e8)', color: '#fff',
+          background: '#7c6cf6', color: '#fff',
           fontWeight: 700, fontSize: 14,
         }}>{getInitials(current.profile_name)}</span>
       )}

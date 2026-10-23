@@ -55,8 +55,15 @@ async function uploadPaymentProof(file) {
 // spec. Same digit-stripping convention as the backend (routes/
 // projectPayments.js's parseBudget) and as routes/projects.js's existing
 // sort-by-budget.
+//
+// fr-TN writes a decimal with a comma ("500,50"), not a period — a lone
+// comma followed by 1-2 trailing digits means that, and is normalized to a
+// '.' first, or the digit-only strip below silently reads it as "50050".
 function parseBudget(budgetText) {
-  const n = parseFloat(String(budgetText || '').replace(/[^0-9.]/g, ''));
+  const text = String(budgetText || '');
+  const commaCount = (text.match(/,/g) || []).length;
+  const normalized = commaCount === 1 && /,\d{1,2}$/.test(text) ? text.replace(',', '.') : text;
+  const n = parseFloat(normalized.replace(/[^0-9.]/g, ''));
   return Number.isFinite(n) ? n : 0;
 }
 

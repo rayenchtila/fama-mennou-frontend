@@ -33,9 +33,9 @@ const nf = new Intl.NumberFormat('fr-TN');
 // a vertical timeline for the steps.
 
 const AVATAR_GRADIENTS = [
-  'linear-gradient(135deg,#818cf8,#4f46e5)',
-  'linear-gradient(135deg,#7c3aed,#818cf8)',
-  'linear-gradient(135deg,#4f46e5,#06b6d4)',
+  '#818cf8',
+  '#7c3aed',
+  '#4f46e5',
 ];
 function pickGradient(seed) {
   const code = (seed || '').charCodeAt(0) || 0;
@@ -43,14 +43,14 @@ function pickGradient(seed) {
 }
 
 const COURSE_GRADIENTS = {
-  Technology: 'linear-gradient(135deg,#818cf8,#4f46e5)',
-  Design: 'linear-gradient(135deg,#7c3aed,#818cf8)',
-  Marketing: 'linear-gradient(135deg,#4f46e5,#06b6d4)',
-  Writing: 'linear-gradient(135deg,#818cf8,#7c3aed)',
-  'E-commerce': 'linear-gradient(135deg,#06b6d4,#4f46e5)',
-  Finance: 'linear-gradient(135deg,#7c3aed,#06b6d4)',
+  Technology: '#818cf8',
+  Design: '#7c3aed',
+  Marketing: '#4f46e5',
+  Writing: '#818cf8',
+  'E-commerce': '#06b6d4',
+  Finance: '#7c3aed',
 };
-const DEFAULT_COURSE_GRADIENT = 'linear-gradient(135deg,#818cf8,#4f46e5)';
+const DEFAULT_COURSE_GRADIENT = '#818cf8';
 
 // Hero headline typewriter — useTypewriter/TypeCursor live in
 // src/hooks/useTypewriter.js (shared with dashboard greetings), this just
@@ -305,7 +305,7 @@ function HowItWorksSection() {
             {/* Phone: vertical connector down the number column */}
             {i < steps.length - 1 && <span className="absolute start-6 top-12 bottom-0 w-px -translate-x-1/2 bg-ds-line-strong md:hidden" aria-hidden="true" />}
             <span className="relative z-10 flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-ds-fill font-mono text-lg font-bold text-white shadow-ds-btn md:mb-4"
-              style={{ background: 'linear-gradient(135deg, rgb(var(--ds-fill)), rgb(var(--ds-fill-2)))' }}>
+              style={{ background: 'rgb(var(--ds-fill))' }}>
               {step.num}
             </span>
             <div className="min-w-0 pt-1 md:pt-0">
@@ -828,9 +828,7 @@ function CTASection() {
   return (
     <section className="mt-16 md:mt-24">
       <FadeIn y={24} className="relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #4338ca 0%, #6d28d9 52%, #2563eb 100%)' }}>
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true"
-          style={{ background: 'radial-gradient(440px 240px at 12% 0%, rgba(255,255,255,.2), transparent 70%), radial-gradient(420px 240px at 90% 100%, rgba(255,255,255,.12), transparent 70%)' }} />
+        style={{ background: '#4338ca' }}>
         <div className="ds-wrap relative grid items-center gap-8 py-14 text-center md:py-20 lg:grid-cols-[1fr_auto] lg:gap-14 lg:text-start">
           <div>
             <h2 className="text-h-md-m text-white md:text-h-lg">{t('home.final.title')}</h2>

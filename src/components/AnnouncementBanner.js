@@ -155,7 +155,7 @@ export default function AnnouncementBanner() {
           <motion.div key={a.id}
             initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
-            style={{ overflow: 'hidden', background: 'linear-gradient(90deg, var(--fm-primary-dark), var(--fm-primary) 55%, var(--fm-purple))', boxShadow: '0 2px 12px -4px rgba(99,102,241,0.45), inset 0 -1px 0 rgba(255,255,255,0.1)' }}>
+            style={{ overflow: 'hidden', background: 'var(--fm-primary)', boxShadow: '0 2px 12px -4px rgba(99,102,241,0.45), inset 0 -1px 0 rgba(255,255,255,0.1)' }}>
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(9px,2vw,11px) clamp(12px,4vw,24px)', display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: 8, background: 'rgba(255,255,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

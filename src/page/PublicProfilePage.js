@@ -66,7 +66,7 @@ function SectionCard({ title, icon, children, accent = C.accent }) {
   return (
     <div style={{ borderRadius:22, padding:'22px 24px', marginBottom:14, background:C.card, border:`1px solid ${C.border}`, boxShadow:'0 4px 20px -8px rgba(0,0,0,0.4)' }}>
       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
-        <span style={{ width:3, height:14, borderRadius:2, background:`linear-gradient(to bottom,${accent},${accent}88)`, display:'inline-block' }}/>
+        <span style={{ width:3, height:14, borderRadius:2, background: accent, display:'inline-block' }}/>
         <p style={{ fontSize:11, fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:'0.1em', margin:0 }}>
           {icon && <span style={{ marginRight:5 }}>{icon}</span>}{title}
         </p>
@@ -194,8 +194,8 @@ export default function PublicProfilePage() {
 
       {/* ── Background blobs ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
-        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:`radial-gradient(circle,${tint}14,transparent 68%)`, top:'-200px', left:'-150px', animation:'ppBlob1 22s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.08),transparent 68%)', bottom:'0', right:'-100px', animation:'ppBlob2 28s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:`${tint}14`, top:'-200px', left:'-150px', animation:'ppBlob1 22s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'rgba(168,85,247,0.08)', bottom:'0', right:'-100px', animation:'ppBlob2 28s ease-in-out infinite', willChange:'transform' }}/>
       </div>
 
       <div style={{ position:'relative', zIndex:1, maxWidth:760, margin:'0 auto', padding:'clamp(80px,10vw,90px) clamp(16px,4vw,24px) 0' }}>
@@ -214,12 +214,11 @@ export default function PublicProfilePage() {
             ════════════════ */}
         <div style={{
           borderRadius:28, overflow:'hidden', marginBottom:14, position:'relative',
-          background:`linear-gradient(140deg,${C.accentDim} 0%,${C.card} 55%)`,
+          background: C.card,
           border:'1px solid rgba(124,108,246,0.2)',
           boxShadow:'0 40px 100px -24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
         }}>
           {/* Decorative overlays */}
-          <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:`radial-gradient(ellipse 500px 300px at -5% -20%,${tint}1e,transparent 65%)` }}/>
           <div style={{ position:'absolute', inset:0, pointerEvents:'none',
             backgroundImage:'radial-gradient(rgba(255,255,255,0.025) 1px,transparent 1px)',
             backgroundSize:'26px 26px',
@@ -232,7 +231,7 @@ export default function PublicProfilePage() {
                 Embaucher des Freelancers); the role/status/availability
                 badge row above it has been removed for all users. */}
             <div style={{ display:'flex', alignItems:'flex-start', gap:22, marginBottom:22 }}>
-              <div style={{ width:96, height:96, borderRadius:'50%', overflow:'hidden', flexShrink:0, background:`linear-gradient(135deg,${tint}30,${tint}10)`, color:tint, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:30, border:`2px solid ${tint}45`, boxShadow:`0 0 0 5px ${tint}12, 0 20px 48px -12px ${tint}45` }}>
+              <div style={{ width:96, height:96, borderRadius:'50%', overflow:'hidden', flexShrink:0, background:`${tint}20`, color:tint, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:30, border:`2px solid ${tint}45`, boxShadow:`0 0 0 5px ${tint}12, 0 20px 48px -12px ${tint}45` }}>
                 {profile.photo
                   ? <img src={profile.photo.startsWith('data:') ? profile.photo : cldImg(profile.photo)} alt={shownName} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none'; }}/>
                   : inits}
@@ -396,7 +395,7 @@ export default function PublicProfilePage() {
                 </div>
                 <button
                   onClick={() => navigate('/dashboard?tab=profile')}
-                  style={{ display:'inline-flex', alignItems:'center', gap:7, fontSize:13, fontWeight:700, color:'#fff', background:`linear-gradient(135deg,${C.accent},#6254d4)`, border:'none', borderRadius:12, padding:'10px 20px', cursor:'pointer', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)', flexShrink:0 }}>
+                  style={{ display:'inline-flex', alignItems:'center', gap:7, fontSize:13, fontWeight:700, color:'#fff', background: C.accent, border:'none', borderRadius:12, padding:'10px 20px', cursor:'pointer', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)', flexShrink:0 }}>
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   {t('Edit profile', 'Edit profile')}
                 </button>
@@ -406,7 +405,7 @@ export default function PublicProfilePage() {
               ? (
                 <button
                   onClick={() => navigate(`/messages?with=${encodeURIComponent(email)}`)}
-                  style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:9, padding:'15px 0', borderRadius:18, background:`linear-gradient(135deg,${C.accent},#6254d4)`, border:'none', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:'0 8px 32px -8px rgba(124,108,246,0.55)', transition:'opacity .15s' }}
+                  style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:9, padding:'15px 0', borderRadius:18, background: C.accent, border:'none', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:'0 8px 32px -8px rgba(124,108,246,0.55)', transition:'opacity .15s' }}
                   onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; }}
                   onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}>
                   <IcChat/> {t('Send a message', 'Send a message')}

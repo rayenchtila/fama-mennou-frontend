@@ -66,7 +66,7 @@ function StarRating({rating=0,interactive=false,onRate,size=17}){
 /* ── Avatar ── */
 function Avatar({name,photo,size=40}){
   return(
-    <div style={{width:size,height:size,borderRadius:size*0.26,background:`linear-gradient(135deg,${C.accent},${C.purple})`,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:800,fontSize:size*0.38,flexShrink:0,overflow:'hidden'}}>
+    <div style={{width:size,height:size,borderRadius:size*0.26,background:C.accent,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:800,fontSize:size*0.38,flexShrink:0,overflow:'hidden'}}>
       {photo?<img src={cldImg(photo)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:(name||'?')[0].toUpperCase()}
     </div>
   );
@@ -344,16 +344,16 @@ export default function CourseDetailPage() {
 
       {/* blobs */}
       <div style={{position:'fixed',inset:0,zIndex:0,pointerEvents:'none',overflow:'hidden'}}>
-        <div style={{position:'absolute',width:680,height:680,borderRadius:'50%',background:'radial-gradient(circle,rgba(124,108,246,.13) 0%,transparent 70%)',top:-180,left:-180,animation:'cdB1 22s ease-in-out infinite'}}/>
-        <div style={{position:'absolute',width:580,height:580,borderRadius:'50%',background:'radial-gradient(circle,rgba(168,85,247,.10) 0%,transparent 70%)',bottom:-140,right:-90,animation:'cdB2 28s ease-in-out infinite'}}/>
-        <div style={{position:'absolute',width:480,height:480,borderRadius:'50%',background:'radial-gradient(circle,rgba(99,102,241,.09) 0%,transparent 70%)',top:'40%',right:'20%',animation:'cdB3 20s ease-in-out infinite'}}/>
-        <div style={{position:'absolute',width:380,height:380,borderRadius:'50%',background:'radial-gradient(circle,rgba(124,108,246,.08) 0%,transparent 70%)',bottom:'30%',left:'15%',animation:'cdB4 25s ease-in-out infinite'}}/>
+        <div style={{position:'absolute',width:680,height:680,borderRadius:'50%',background:'rgba(124,108,246,.13)',top:-180,left:-180,animation:'cdB1 22s ease-in-out infinite',willChange:'transform'}}/>
+        <div style={{position:'absolute',width:580,height:580,borderRadius:'50%',background:'rgba(168,85,247,.10)',bottom:-140,right:-90,animation:'cdB2 28s ease-in-out infinite',willChange:'transform'}}/>
+        <div style={{position:'absolute',width:480,height:480,borderRadius:'50%',background:'rgba(99,102,241,.09)',top:'40%',right:'20%',animation:'cdB3 20s ease-in-out infinite',willChange:'transform'}}/>
+        <div style={{position:'absolute',width:380,height:380,borderRadius:'50%',background:'rgba(124,108,246,.08)',bottom:'30%',left:'15%',animation:'cdB4 25s ease-in-out infinite',willChange:'transform'}}/>
       </div>
 
       <div style={{position:'relative',zIndex:1,paddingTop:64}}>
 
         {/* ═══ HERO ═══ */}
-        <div style={{background:'linear-gradient(180deg,rgba(124,108,246,.13) 0%,transparent 100%)',borderBottom:`1px solid ${C.border}`,padding:'44px 24px 52px'}}>
+        <div style={{background:'rgba(124,108,246,.05)',borderBottom:`1px solid ${C.border}`,padding:'44px 24px 52px'}}>
           <div style={{maxWidth:1200,margin:'0 auto',display:'flex',gap:40,alignItems:'flex-start',flexWrap:'wrap'}}>
 
             {/* Left */}
@@ -414,7 +414,7 @@ export default function CourseDetailPage() {
                     <img src={cldImg(course.thumbnail_url)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
                   </div>
                 ):(
-                  <div style={{aspectRatio:'16/9',background:'linear-gradient(135deg,rgba(124,108,246,.3),rgba(168,85,247,.2))',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <div style={{aspectRatio:'16/9',background:'rgba(124,108,246,.25)',display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <svg width={52} height={52} fill="none" viewBox="0 0 24 24" stroke="var(--fm-border-strong)" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                   </div>
                 )}
@@ -476,7 +476,7 @@ export default function CourseDetailPage() {
                               </div>
                               <p style={{color:C.dim,fontSize:11,marginBottom:10}}>{t('cdp.discount_hint')}</p>
                               <div style={{display:'flex',gap:8}}>
-                                <button onClick={saveDisc} disabled={discSaving||discInput===''} style={{flex:1,padding:'9px',borderRadius:9,background:'linear-gradient(135deg,#f43f5e,#e11d48)',color:'#fff',fontWeight:700,fontSize:12,border:'none',cursor:'pointer',opacity:(discSaving||discInput==='')?0.5:1}}>
+                                <button onClick={saveDisc} disabled={discSaving||discInput===''} style={{flex:1,padding:'9px',borderRadius:9,background:'#f43f5e',color:'#fff',fontWeight:700,fontSize:12,border:'none',cursor:'pointer',opacity:(discSaving||discInput==='')?0.5:1}}>
                                   {discSaving?t('cdp.saving'):t('cdp.apply')}
                                 </button>
                                 <button onClick={()=>{setShowDisc(false);setDiscInput('');}} style={{padding:'9px 13px',borderRadius:9,background:'var(--fm-border-soft)',border:`1px solid ${C.border}`,color:C.muted,fontWeight:600,fontSize:12,cursor:'pointer'}}>
@@ -490,7 +490,7 @@ export default function CourseDetailPage() {
                     </div>
                   ):hasFull||requestStatus==='approved'?(
                     <button onClick={()=>document.getElementById('curr-sec')?.scrollIntoView({behavior:'smooth'})}
-                      style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#10b981,#059669)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,boxShadow:'0 8px 24px rgba(16,185,129,.3)'}}>
+                      style={{width:'100%',padding:'14px',borderRadius:12,background:'#10b981',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:'pointer',marginBottom:12,boxShadow:'0 8px 24px rgba(16,185,129,.3)'}}>
                       {t('cdp.view_course')}
                     </button>
                   ):requestStatus==='pending'?(
@@ -502,12 +502,12 @@ export default function CourseDetailPage() {
                   ):requestStatus==='rejected'?(
                     <>
                       <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,background:'rgba(244,63,94,.1)',border:'1px solid rgba(244,63,94,.3)',color:C.rose,fontSize:12,marginBottom:10}}><svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>{t('cdp.request_rejected')}</div>
-                      <button onClick={buyFull} disabled={requesting||readOnly} title={readOnly?t("Your account is pending approval — you can browse, but this action isn't available yet."):undefined} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:readOnly?'not-allowed':'pointer',marginBottom:12,opacity:(requesting||readOnly)?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.3)'}}>
+                      <button onClick={buyFull} disabled={requesting||readOnly} title={readOnly?t("Your account is pending approval — you can browse, but this action isn't available yet."):undefined} style={{width:'100%',padding:'14px',borderRadius:12,background:'#7c6cf6',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:readOnly?'not-allowed':'pointer',marginBottom:12,opacity:(requesting||readOnly)?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.3)'}}>
                         {requesting?t('cdp.sending'):t('cdp.resend_request')}
                       </button>
                     </>
                   ):(
-                    <button onClick={buyFull} disabled={buying||requesting||readOnly} title={readOnly?t("Your account is pending approval — you can browse, but this action isn't available yet."):undefined} style={{width:'100%',padding:'14px',borderRadius:12,background:'linear-gradient(135deg,#7c6cf6,#a855f7)',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:readOnly?'not-allowed':'pointer',marginBottom:12,opacity:(buying||requesting||readOnly)?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
+                    <button onClick={buyFull} disabled={buying||requesting||readOnly} title={readOnly?t("Your account is pending approval — you can browse, but this action isn't available yet."):undefined} style={{width:'100%',padding:'14px',borderRadius:12,background:'#7c6cf6',color:'#fff',fontWeight:800,fontSize:14,border:'none',cursor:readOnly?'not-allowed':'pointer',marginBottom:12,opacity:(buying||requesting||readOnly)?.6:1,boxShadow:'0 8px 24px rgba(124,108,246,.35)'}}>
                       {requesting?t('cdp.sending_progress'):buying?t('cdp.processing'):isFree?t('cdp.enroll_free'):t('cdp.buy_course')}
                     </button>
                   )}
@@ -617,7 +617,7 @@ export default function CourseDetailPage() {
                             <span style={{color:C.accent,fontWeight:700,fontSize:12}}>{upPct}%</span>
                           </div>
                           <div style={{height:5,borderRadius:4,background:'var(--fm-border)',overflow:'hidden'}}>
-                            <div style={{height:'100%',width:`${upPct}%`,background:`linear-gradient(90deg,${C.accent},${C.purple})`,borderRadius:4,transition:'width .3s ease'}}/>
+                            <div style={{height:'100%',width:`${upPct}%`,background:C.accent,borderRadius:4,transition:'width .3s ease'}}/>
                           </div>
                         </div>
                       )}
@@ -646,7 +646,7 @@ export default function CourseDetailPage() {
                             <div><p style={{color:C.rose,fontWeight:700,fontSize:13,margin:0}}>{t('cdp.upload_failed')}</p><p style={{color:'#e11d48',fontSize:11,margin:0}}>{t('cdp.upload_failed_desc')}</p></div>
                           </div>
                           <button type="button" onClick={()=>{setUpState('idle');setUpPct(0);setUpFile('');setNewLesson(p=>({...p,video_url:''}));if(muxRef.current)muxRef.current.value='';}}
-                            style={{width:'100%',padding:'10px',borderRadius:10,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:700,fontSize:13,border:'none',cursor:'pointer'}}>
+                            style={{width:'100%',padding:'10px',borderRadius:10,background:C.accent,color:'#fff',fontWeight:700,fontSize:13,border:'none',cursor:'pointer'}}>
                             {t('cdp.reimport_video')}
                           </button>
                         </div>
@@ -660,7 +660,7 @@ export default function CourseDetailPage() {
                           {t('cdp.cancel')}
                         </button>
                         <button type="submit" disabled={addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)||upState==='uploading'||upState==='processing'}
-                          style={{flex:1,padding:'12px',borderRadius:12,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:800,fontSize:13,border:'none',cursor:'pointer',transition:'opacity .18s, transform .18s',opacity:(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)||upState==='uploading'||upState==='processing')?.45:1,boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)'}}
+                          style={{flex:1,padding:'12px',borderRadius:12,background:C.accent,color:'#fff',fontWeight:800,fontSize:13,border:'none',cursor:'pointer',transition:'opacity .18s, transform .18s',opacity:(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)||upState==='uploading'||upState==='processing')?.45:1,boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)'}}
                           onMouseEnter={e=>{if(!(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url)))e.currentTarget.style.opacity='0.88';}}
                           onMouseLeave={e=>{e.currentTarget.style.opacity=(addingL||!newLesson.title.trim()||(!IS_DEV&&!newLesson.video_url))?.45:'1';}}>
                           {addingL?t('cdp.adding'):upState==='uploading'?t('cdp.upload_short'):upState==='processing'?t('cdp.processing'):t('cdp.add')}
@@ -744,7 +744,7 @@ export default function CourseDetailPage() {
                         <span style={{color:C.muted,fontSize:12,width:10}}>{s}</span>
                         <svg width={12} height={12} fill={C.amber} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z"/></svg>
                         <div style={{flex:1,height:5,borderRadius:3,background:'var(--fm-border)',overflow:'hidden'}}>
-                          <div style={{height:'100%',width:`${pct}%`,background:`linear-gradient(90deg,${C.amber},#fbbf24)`,borderRadius:3,transition:'width .6s ease'}}/>
+                          <div style={{height:'100%',width:`${pct}%`,background:C.amber,borderRadius:3,transition:'width .6s ease'}}/>
                         </div>
                         <span style={{color:C.dim,fontSize:11,width:28,textAlign:'right'}}>{pct}%</span>
                       </div>
@@ -763,7 +763,7 @@ export default function CourseDetailPage() {
                     onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=C.border}/>
                   <div style={{display:'flex',gap:10,marginTop:12}}>
                     <button onClick={submitReview} disabled={!myRating||submitting}
-                      style={{padding:'10px 22px',borderRadius:10,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:700,fontSize:13,border:'none',cursor:'pointer',opacity:(!myRating||submitting)?.5:1}}>
+                      style={{padding:'10px 22px',borderRadius:10,background:C.accent,color:'#fff',fontWeight:700,fontSize:13,border:'none',cursor:'pointer',opacity:(!myRating||submitting)?.5:1}}>
                       {submitting?t('cdp.sending'):t('cdp.send_review')}
                     </button>
                     <button onClick={()=>{setMyRating(0);setMyReview('');}}
@@ -816,7 +816,7 @@ export default function CourseDetailPage() {
                             onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=C.border}/>
                           <div style={{display:'flex',gap:8,marginTop:8}}>
                             <button onClick={()=>submitReply(r.id,replyDraft[r.id])} disabled={!replyDraft[r.id]?.trim()||replySend}
-                              style={{padding:'7px 15px',borderRadius:8,background:`linear-gradient(135deg,${C.accent},${C.purple})`,color:'#fff',fontWeight:700,fontSize:12,border:'none',cursor:'pointer',opacity:(!replyDraft[r.id]?.trim()||replySend)?.5:1}}>
+                              style={{padding:'7px 15px',borderRadius:8,background:C.accent,color:'#fff',fontWeight:700,fontSize:12,border:'none',cursor:'pointer',opacity:(!replyDraft[r.id]?.trim()||replySend)?.5:1}}>
                               {replySend?t('cdp.sending'):t('cdp.reply')}
                             </button>
                             <button onClick={()=>{setReplyingId(null);setReplyDraft(p=>{const n={...p};delete n[r.id];return n;});}}

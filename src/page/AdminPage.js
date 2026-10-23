@@ -15,15 +15,15 @@ import { isIdDocument, sidesFor } from "../utils/idDocuments";
 function Avatar({ name }) {
   const initials = name?.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase() || "?";
   const colors = [
-    "from-violet-500 to-indigo-600",
-    "from-sky-500 to-cyan-600",
-    "from-emerald-500 to-teal-600",
-    "from-amber-500 to-orange-600",
-    "from-rose-500 to-pink-600",
+    "bg-violet-500",
+    "bg-sky-500",
+    "bg-emerald-500",
+    "bg-amber-500",
+    "bg-rose-500",
   ];
   const color = colors[(name?.charCodeAt(0) ?? 0) % colors.length];
   return (
-    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white text-sm font-bold shrink-0 shadow`}>
+    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center text-white text-sm font-bold shrink-0 shadow`}>
       {initials}
     </div>
   );
@@ -585,14 +585,14 @@ function StatisticsPanel({ allUsers }) {
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">{t("admin.gender")}</p>
             <div className="flex gap-3 mb-3">
               <div className="flex-1 bg-sky-50 dark:bg-sky-900/20 rounded-2xl border border-sky-100 dark:border-sky-900 px-3 py-2.5 flex items-center gap-2">
-                <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#0ea5e9,#38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
                 <div>
                   <p className="text-lg font-extrabold text-sky-700 dark:text-sky-400">{males}</p>
                   <p className="text-[10px] text-sky-500 font-semibold">{t("admin.men")} · {malePct}%</p>
                 </div>
               </div>
               <div className="flex-1 bg-pink-50 dark:bg-pink-900/20 rounded-2xl border border-pink-100 dark:border-pink-900 px-3 py-2.5 flex items-center gap-2">
-                <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#ec4899,#f472b6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: '#ec4899', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
                 <div>
                   <p className="text-lg font-extrabold text-pink-600 dark:text-pink-400">{females}</p>
                   <p className="text-[10px] text-pink-500 font-semibold">{t("admin.women")} · {femalePct}%</p>
@@ -1286,7 +1286,7 @@ function AdminChatPanel({ allUsers }) {
           <div ref={messagesBoxRef} className="flex-1 overflow-y-auto px-4 py-4 bg-slate-50 dark:bg-slate-950">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                <div style={{ width: 64, height: 64, borderRadius: 20, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, boxShadow: '0 8px 24px rgba(124,58,237,0.25)' }}>
+                <div style={{ width: 64, height: 64, borderRadius: 20, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, boxShadow: '0 8px 24px rgba(124,58,237,0.25)' }}>
                   <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                 </div>
                 <p className="text-sm font-semibold">{t('msg.start_chat')}</p>
@@ -1673,6 +1673,16 @@ function AdminPaymentsPanel({ API, highlightId }) {
   const METHOD_LABEL = { d17: 'D17', flouci: 'Flouci', rib: 'RIB' };
 
   function EtatCell({ row }) {
+    // Focus the reason field without the browser's native autoFocus scroll:
+    // autoFocus scrolls whatever container holds it into view, which inside
+    // this table (horizontal scroll on desktop, a long stacked list on
+    // mobile) was the page suddenly jumping the instant "Refuser" was
+    // clicked, before the admin had typed anything.
+    const reasonInputRef = React.useRef(null);
+    React.useEffect(() => {
+      if (rejectingRow === row.id) reasonInputRef.current?.focus({ preventScroll: true });
+    }, [rejectingRow, row.id]);
+
     if (row.status !== 'pending') {
       const st = STATUS_STYLE[row.status];
       return (
@@ -1687,7 +1697,7 @@ function AdminPaymentsPanel({ API, highlightId }) {
     if (rejectingRow === row.id) {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 180 }}>
-          <input autoFocus value={reasonDraft} onChange={e => setReasonDraft(e.target.value)}
+          <input ref={reasonInputRef} value={reasonDraft} onChange={e => setReasonDraft(e.target.value)}
             placeholder="Raison du refus…"
             style={{ padding: '8px 11px', borderRadius: 10, border: '1px solid var(--fm-danger)', background: 'var(--fm-surface)', color: 'var(--fm-text-1)', fontSize: 12, outline: 'none' }} />
           <div style={{ display: 'flex', gap: 6 }}>
@@ -2713,7 +2723,7 @@ export default function AdminPage() {
               <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-28 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse" />)}</div>
             ) : coursesByFilter.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
-                <div style={{ width: 72, height: 72, borderRadius: 22, background: 'linear-gradient(135deg,#6366f1,#818cf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, opacity: 0.5 }}>
+                <div style={{ width: 72, height: 72, borderRadius: 22, background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, opacity: 0.5 }}>
                   <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
                 </div>
                 <p className="text-sm font-semibold">{t('adm.no_courses_category')}</p>
@@ -2898,7 +2908,7 @@ export default function AdminPage() {
 
           {allLessons.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-              <div style={{ width: 72, height: 72, borderRadius: 22, background: 'linear-gradient(135deg,#6366f1,#818cf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, opacity: 0.45 }}>
+              <div style={{ width: 72, height: 72, borderRadius: 22, background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, opacity: 0.45 }}>
                 <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
               </div>
               <p className="text-sm font-semibold">{t('adm.no_lessons_submitted')}</p>
@@ -3482,7 +3492,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-bold mb-0.5 ${n.read ? "text-slate-700 dark:text-slate-300" : "text-slate-900 dark:text-white"}`}>{n.title}</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">{n.message}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{n.message}</p>
                       <p className="text-[10px] text-slate-400 mt-1">{new Date(n.createdAt).toLocaleDateString("fr-TN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">

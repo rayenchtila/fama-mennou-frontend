@@ -40,7 +40,7 @@ export default function HelpPage() {
           <div style={{ textAlign: 'center', marginTop: 52, padding: '32px', borderRadius: 20, background: 'rgba(124,108,246,0.06)', border: '1px solid rgba(124,108,246,0.15)' }}>
             <p style={{ fontSize: 15, color: 'var(--fm-text-5)', margin: '0 0 16px' }}>{t('help.not_found')}</p>
             <a href="mailto:famamennou.platform@gmail.com"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 12, background: 'linear-gradient(135deg,#7c6cf6,#5e4fd4)', color: '#fff', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 12, background: '#7c6cf6', color: '#fff', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
               {t('help.contact_us')}
             </a>
           </div>

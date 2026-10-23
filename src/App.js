@@ -244,6 +244,15 @@ function AppInner() {
     setAuthModalOpen(false);
   }, []);
 
+  // A brand-new account finishing sign-up drops a stale "take me back to the
+  // private page I was bounced from" intent — that intent was set before this
+  // account existed, by whatever page the visitor originally tried to reach
+  // (often /projects?post=1 from "Publier un besoin"). Without clearing it,
+  // the FIRST real login of the new account silently honors it and the
+  // visitor lands straight on "Post a project" instead of the normal
+  // post-login destination, before they have even seen their own account.
+  const clearRedirectIntent = useCallback(() => setRedirectAfterLogin(null), []);
+
   // Handle email verification redirect (?verified=true/false)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -310,6 +319,7 @@ function AppInner() {
         open={authModalOpen}
         onClose={closeAuth}
         onAuth={handleAuth}
+        onSignupComplete={clearRedirectIntent}
         defaultMode={authMode}
         closable={!authForced}
       />

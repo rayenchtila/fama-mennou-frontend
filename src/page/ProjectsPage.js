@@ -189,7 +189,7 @@ function ApplyModal({ project, user, onClose, onDone }) {
           </div>
           {err && <p style={{ fontSize:12, color:'var(--fm-danger)', margin:0 }}>{err}</p>}
           <button type="submit" disabled={sending}
-            style={{ padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:sending?'not-allowed':'pointer', opacity:sending?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
+            style={{ padding:'12px', borderRadius:13, background:'#7c6cf6', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:sending?'not-allowed':'pointer', opacity:sending?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
             {sending ? t('prp.sending') : t('prp.send_application')}
           </button>
         </form>
@@ -298,7 +298,7 @@ function PostModal({ user, onClose, onDone }) {
           </div>
           {err && <p style={{fontSize:12,color:'var(--fm-danger)'}}>{err}</p>}
           <button type="submit" disabled={posting}
-            style={{ padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:posting?'not-allowed':'pointer', opacity:posting?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
+            style={{ padding:'12px', borderRadius:13, background:'#7c6cf6', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:posting?'not-allowed':'pointer', opacity:posting?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
             {posting ? t('prp.publishing') : t('prp.publish_project')}
           </button>
         </form>
@@ -359,7 +359,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
 
             {/* Icon circle */}
             <div style={{ width:72, height:72, borderRadius:22, margin:'0 auto 22px',
-              background: isAccept ? 'linear-gradient(135deg,rgba(124,108,246,0.18),rgba(98,84,212,0.08))' : 'linear-gradient(135deg,rgba(248,113,113,0.15),rgba(220,38,38,0.06))',
+              background: isAccept ? 'rgba(124,108,246,0.13)' : 'rgba(248,113,113,0.1)',
               border:`1.5px solid ${isAccept?'rgba(124,108,246,0.4)':'rgba(248,113,113,0.4)'}`,
               display:'flex', alignItems:'center', justifyContent:'center',
               color: isAccept ? 'var(--fm-primary-light)' : 'var(--fm-danger)',
@@ -399,7 +399,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
               </button>
               <button onClick={doConfirm} disabled={accepting||rejecting}
                 style={{ flex:1.4, padding:'13px', borderRadius:14, border:'none', color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer', fontFamily:'inherit', transition:'all .15s',
-                  background: isAccept ? 'linear-gradient(135deg,#7c6cf6 0%,#6254d4 100%)' : 'linear-gradient(135deg,#ef4444 0%,#dc2626 100%)',
+                  background: isAccept ? '#7c6cf6' : '#ef4444',
                   boxShadow: isAccept ? '0 6px 24px -6px rgba(124,108,246,0.6)' : '0 6px 24px -6px rgba(239,68,68,0.5)' }}
                 onMouseEnter={e=>{e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}
                 onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}>
@@ -458,7 +458,7 @@ function ProposalCard({ proposal, onAccept, accepting, onReject, rejecting, user
                   </button>
                   <button onClick={()=>setConfirm('accept')} disabled={accepting || readOnly}
                     title={readOnly ? t("Your account is pending approval — you can browse, but this action isn't available yet.") : undefined}
-                    style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:12.5, fontWeight:800, cursor:readOnly?'not-allowed':'pointer', opacity:(accepting||readOnly)?0.5:1, boxShadow:'0 4px 14px -4px rgba(124,108,246,0.5)', transition:'all .15s' }}
+                    style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:12, background:'#7c6cf6', border:'none', color:'#fff', fontSize:12.5, fontWeight:800, cursor:readOnly?'not-allowed':'pointer', opacity:(accepting||readOnly)?0.5:1, boxShadow:'0 4px 14px -4px rgba(124,108,246,0.5)', transition:'all .15s' }}
                     onMouseEnter={e=>{if(!readOnly){e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.opacity='0.9';}}}
                     onMouseLeave={e=>{if(!readOnly){e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.opacity='1';}}}>
                     <IcCheck s={12}/>{accepting?'…':t('prp.accept')}
@@ -608,7 +608,7 @@ function EditModal({ project, onClose, onDone }) {
           </div>
           {err && <p style={{fontSize:12,color:'var(--fm-danger)'}}>{err}</p>}
           <button type="submit" disabled={posting}
-            style={{ padding:'12px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:posting?'not-allowed':'pointer', opacity:posting?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
+            style={{ padding:'12px', borderRadius:13, background:'#7c6cf6', border:'none', color:'#fff', fontSize:14, fontWeight:700, cursor:posting?'not-allowed':'pointer', opacity:posting?0.7:1, boxShadow:'0 6px 20px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}>
             {posting ? t('prp.editing') : t('prp.save_changes')}
           </button>
         </form>
@@ -812,7 +812,7 @@ function ProjectCard({ project, clientUser, proposalCount, user, onApply, saved,
         </button>
         {!isOwn && isFreelancer && (
           <button onClick={()=>onApply(project)}
-            style={{ padding:'9px 22px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}
+            style={{ padding:'9px 22px', borderRadius:12, background:'#7c6cf6', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.5)', transition:'opacity .15s' }}
             onMouseEnter={e=>{e.currentTarget.style.opacity='0.85';}}
             onMouseLeave={e=>{e.currentTarget.style.opacity='1';}}>
             {t('prp.apply_btn')}
@@ -940,8 +940,8 @@ export default function ProjectsPage() {
 
       {/* Blobs */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
-        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'radial-gradient(circle,rgba(124,108,246,0.1),transparent 68%)', top:'-200px', left:'-150px', animation:'prBlob1 22s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.07),transparent 68%)', bottom:'15%', right:'-120px', animation:'prBlob2 28s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'rgba(124,108,246,0.1)', top:'-200px', left:'-150px', animation:'prBlob1 22s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'rgba(168,85,247,0.07)', bottom:'15%', right:'-120px', animation:'prBlob2 28s ease-in-out infinite', willChange:'transform' }}/>
       </div>
 
       <div style={{ position:'relative', zIndex:1, width:'100%', margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,3vw,24px) 0' }}>
@@ -950,7 +950,7 @@ export default function ProjectsPage() {
         <div style={{ marginBottom:28 }}>
           <button onClick={()=>!readOnly && setShowPost(true)} disabled={readOnly}
             title={readOnly ? t("Your account is pending approval — you can browse, but this action isn't available yet.") : undefined}
-            style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:7, padding:'11px 20px', borderRadius:13, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:readOnly?'not-allowed':'pointer', opacity:readOnly?0.5:1, boxShadow:'0 4px 18px -4px rgba(124,108,246,0.5)', whiteSpace:'nowrap', transition:'opacity .15s, transform .15s' }}
+            style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:7, padding:'11px 20px', borderRadius:13, background:'#7c6cf6', border:'none', color:'#fff', fontSize:13, fontWeight:700, cursor:readOnly?'not-allowed':'pointer', opacity:readOnly?0.5:1, boxShadow:'0 4px 18px -4px rgba(124,108,246,0.5)', whiteSpace:'nowrap', transition:'opacity .15s, transform .15s' }}
             onMouseEnter={e=>{if(!readOnly){e.currentTarget.style.opacity='0.88';e.currentTarget.style.transform='translateY(-1px)';}}}
             onMouseLeave={e=>{if(!readOnly){e.currentTarget.style.opacity='1';e.currentTarget.style.transform='translateY(0)';}}}>
             <IcPlus s={14}/> {t('prp.publish')}

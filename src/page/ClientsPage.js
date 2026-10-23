@@ -209,7 +209,7 @@ function ReviewModal({ client, user, onClose, onDone }) {
         </div>
         {err && <p role="alert" className="m-0 text-xs text-ds-bad">{err}</p>}
         <button type="submit" disabled={loading} className="ds-btn ds-btn-lg w-full text-white hover:brightness-110"
-          style={{ background: 'linear-gradient(135deg,#d97706,#f59e0b)', boxShadow: '0 8px 22px -8px rgba(245,158,11,.55)' }}>
+          style={{ background: '#d97706', boxShadow: '0 8px 22px -8px rgba(245,158,11,.55)' }}>
           {loading ? t('prp.sending') : t('clp.send_review_arrow')}
         </button>
       </form>

@@ -151,7 +151,7 @@ const SERVER_FIELD_ERRORS = {
 
 const BLANK_FORM = { name: "", email: "", password: "", confirmPassword: "", skills: "", dob: "", region: "", gender: "" };
 
-export default function AuthModal({ open, onClose, onAuth, defaultMode = "login", closable = true }) {
+export default function AuthModal({ open, onClose, onAuth, onSignupComplete, defaultMode = "login", closable = true }) {
   const [mode,           setMode]           = useState(defaultMode);
   const [role,           setRole]           = useState("freelancer");
   const [freelancerType, setFreelancerType] = useState("freelancer");
@@ -695,10 +695,22 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   async function startSignup() {
     const data = signupData();
 
+    // Every failure below is reported on the email field — but for a freelancer
+    // on step 2 (document upload) that field is on a screen that no longer
+    // exists (step === 1 only). Without switching back, setErrors() lands on an
+    // unrendered field: the button's loading spinner stops and nothing visible
+    // happens at all, as if the click did nothing. Jumping to step 1 is exactly
+    // what the client-side validate() failures already do (see STEP1_KEYS
+    // above) — this mirrors that for the errors the server reports instead.
+    const setEmailError = (message) => {
+      setErrors({ email: message });
+      if (isFreelancer && step === 2) setStep(1);
+    };
+
     if (IS_DEV) {
       // Local/e2e mode: the e-mail step is skipped (the API skips it outside production too).
       const r = await completeRegistration(data, null);
-      if (r.error) setErrors({ email: r.message });
+      if (r.error) setEmailError(r.message);
       return undefined;
     }
 
@@ -706,7 +718,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
     if (emailProof.current?.email === data.email) {
       const r = await completeRegistration(data, emailProof.current.proof);
       if (!r.error) return undefined;                     // done — or sent back to the form to fix another field
-      if (!r.expiredProof) { setErrors({ email: r.message }); return undefined; }
+      if (!r.expiredProof) { setEmailError(r.message); return undefined; }
       emailProof.current = null;                          // the proof ran out: a fresh code it is
     }
 
@@ -721,20 +733,20 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
       });
       body = await res.json().catch(() => ({}));
     } catch {
-      setErrors({ email: t("Network error. Please check your connection and try again.") });
+      setEmailError(t("Network error. Please check your connection and try again."));
       return undefined;
     } finally {
       spendCaptcha();                                     // a token is good for one request
     }
 
-    if (body.error === "emailTaken")          { setErrors({ email: t("An account with this email already exists.") }); return undefined; }
+    if (body.error === "emailTaken")          { setEmailError(t("An account with this email already exists.")); return undefined; }
     if (body.error === "invalidCaptcha")      { setErrors({ captcha: t("auth.captcha_failed") }); return undefined; }
     if (body.error === "captchaUnavailable")  { setErrors({ captcha: t("auth.captcha_unavailable") }); return undefined; }
-    if (body.error === "tooManySends")        { setErrors({ email: t("auth.code_too_many_sends", { time: fmtWait(body.retryAfter ?? 3600, t) }) }); return undefined; }
+    if (body.error === "tooManySends")        { setEmailError(t("auth.code_too_many_sends", { time: fmtWait(body.retryAfter ?? 3600, t) })); return undefined; }
     // "tooSoon": a code for this address was sent moments ago (the visitor went back and forward).
     // It is still valid, so carry on to the code screen rather than refuse.
     const alreadySent = body.error === "tooSoon";
-    if (body.error && !alreadySent)           { setErrors({ email: t("Failed to send verification email. Try again.") }); return undefined; }
+    if (body.error && !alreadySent)           { setEmailError(t("Failed to send verification email. Try again.")); return undefined; }
 
     setVerifyInfo({
       expiresIn: body.expiresIn,
@@ -873,6 +885,7 @@ export default function AuthModal({ open, onClose, onAuth, defaultMode = "login"
   // Sign-up is done — by password or with Google. Nobody is signed in by it: the visitor goes to
   // the LOG-IN page, e-mail already filled in, with a line saying their account now exists.
   function finishSignup(email, via, signedUpAs = "client") {
+    onSignupComplete?.();
     emailProof.current = null;
     resetDocs();
     setDocType(DEFAULT_ID_DOCUMENT);

@@ -1070,7 +1070,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
       {!selectedChat && (
         <div className="flex-1 flex-col items-center justify-center gap-5 hidden md:flex" style={{ background: 'var(--fm-surface)' }}>
           <div style={{ position: 'relative' }}>
-            <div style={{ width: 80, height: 80, borderRadius: 24, background: 'linear-gradient(135deg,rgba(124,108,246,.25),rgba(62,194,232,.18))', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 40px -8px rgba(124,108,246,.3)' }}>
+            <div style={{ width: 80, height: 80, borderRadius: 24, background: 'rgba(124,108,246,.22)', border: '1px solid rgba(124,108,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 40px -8px rgba(124,108,246,.3)' }}>
               <svg width="36" height="36" style={{ color: '#9b8cff' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
               </svg>
@@ -1396,7 +1396,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                                 transition={{ duration: 0.18, ease: 'easeOut' }}
                                 className={`${bubbleRound} ${m.attachment_url && !m.content ? 'p-1' : 'px-3 sm:px-3.5 py-2 sm:py-2.5'} shadow-sm text-sm`}
                                 style={isMine
-                                  ? { background: 'linear-gradient(135deg,#8a7bf8 0%,#6c8cf6 100%)', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.55), inset 0 1px 0 rgba(255,255,255,.2)' }
+                                  ? { background: '#7c6cf6', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.55), inset 0 1px 0 rgba(255,255,255,.2)' }
                                   : { background: 'var(--fm-surface-hover)', color: 'var(--fm-text-2)', border: '1px solid var(--fm-border)' }
                                 }
                               >
@@ -1703,7 +1703,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
           )}
 
           {/* Input area */}
-          <div className="shrink-0" style={{ borderTop: '1px solid var(--fm-surface-hover)', background: 'linear-gradient(180deg, var(--fm-bg-3) 0%, var(--fm-surface-2) 100%)' }}>
+          <div className="shrink-0" style={{ borderTop: '1px solid var(--fm-surface-hover)', background: 'var(--fm-bg-3)' }}>
 
             {/* Reply banner */}
             {replyTo && (
@@ -1802,7 +1802,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
                 <button onClick={stopAndSendRecording} title={t('mgc.send')}
                   className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center transition-all"
-                  style={{ background: 'linear-gradient(135deg,#7c6cf6,#6c8cf6)', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.7)' }}
+                  style={{ background: '#7c6cf6', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.7)' }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.06)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}>
                   <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1863,7 +1863,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
               {(newMsg.trim() || stagedFile || uploading) ? (
                 <button onClick={sendMsg} disabled={uploading || (!newMsg.trim() && !stagedFile)}
                   className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center mb-0.5 transition-all"
-                  style={{ background: 'linear-gradient(135deg,#7c6cf6,#6c8cf6)', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.7)', transform: 'scale(1)' }}
+                  style={{ background: '#7c6cf6', color: '#fff', boxShadow: '0 4px 16px -4px rgba(124,108,246,.7)', transform: 'scale(1)' }}
                   onMouseEnter={e => { e.currentTarget.style.transform='scale(1.06)'; e.currentTarget.style.boxShadow='0 6px 20px -4px rgba(124,108,246,.8)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow='0 4px 16px -4px rgba(124,108,246,.7)'; }}
                 >

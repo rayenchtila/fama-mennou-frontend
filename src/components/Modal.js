@@ -46,10 +46,7 @@ export default function Modal({
   if (isFullscreen) {
     return createPortal(
       <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto overflow-x-hidden animate-[modalUp_0.25s_cubic-bezier(0.34,1.56,0.64,1)]"
-        style={{
-          background: 'var(--fm-bg)',
-          backgroundImage: 'radial-gradient(ellipse 75% 65% at 100% 0%, rgba(104,76,226,0.5) 0%, rgba(60,130,240,0.18) 42%, transparent 68%)'
-        }}>
+        style={{ background: 'var(--fm-bg)' }}>
 
         {/* Centered content wrapper */}
         <div className="flex-1 flex flex-col justify-center items-center px-4 py-8">

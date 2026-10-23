@@ -61,9 +61,7 @@
      badge, active review step, avatar ring) shares this soft accent glow. */
   --ds-glow: 0 0 0 1px rgb(var(--ds-accent) / .35), 0 0 20px -4px rgb(var(--ds-accent) / .55);
 
-  --ds-ambient:
-    radial-gradient(900px 520px at 12% -8%, rgb(99 102 241 / .11), transparent 62%),
-    radial-gradient(760px 480px at 92% -4%, rgb(139 92 246 / .08), transparent 60%);
+  --ds-ambient: rgb(99 102 241 / .05);
 }
 
 /* ── Light · indigo ──────────────────────────────────────────────────── */
@@ -113,9 +111,7 @@
   --ds-shadow-btn: inset 0 1px 0 rgb(255 255 255 / .2), 0 8px 18px -8px rgb(var(--ds-fill) / .55);
   --ds-glow: 0 0 0 1px rgb(var(--ds-accent) / .3), 0 0 16px -4px rgb(var(--ds-accent) / .38);
 
-  --ds-ambient:
-    radial-gradient(900px 520px at 12% -8%, rgb(99 102 241 / .08), transparent 62%),
-    radial-gradient(760px 480px at 92% -4%, rgb(139 92 246 / .06), transparent 60%);
+  --ds-ambient: rgb(99 102 241 / .035);
 }
 
 /* ── Accent: emerald (Courses) ───────────────────────────────────────────
@@ -129,9 +125,7 @@
   --ds-accent-soft-a: .13;
   --ds-accent-line-a: .3;
   --ds-on-accent: 5 46 22;
-  --ds-ambient:
-    radial-gradient(900px 520px at 18% -8%, rgb(34 197 94 / .11), transparent 62%),
-    radial-gradient(760px 480px at 92% -4%, rgb(16 185 129 / .07), transparent 60%);
+  --ds-ambient: rgb(34 197 94 / .05);
 }
 :root[data-theme="light"][data-accent="emerald"] {
   --ds-canvas:  255 255 255;
@@ -156,8 +150,7 @@
   --ds-header-bg: rgb(255 255 255 / .92);
   --ds-header-bg-solid: rgb(255 255 255 / .97);
   --ds-shadow-card: 0 1px 2px rgb(15 23 42 / .04), 0 12px 30px -18px rgb(21 128 61 / .22);
-  --ds-ambient:
-    linear-gradient(180deg, rgb(240 253 244) 0%, rgb(255 255 255) 100%);
+  --ds-ambient: rgb(240 253 244);
 }
 
 /* Display gradient (hero headline): white-indigo → violet → cyan on dark,
@@ -165,8 +158,7 @@
 :root, :root[data-theme="dark"] { --ds-grad-a: 165 180 252; --ds-grad-b: 196 181 253; --ds-grad-c: 103 232 249; }
 :root[data-theme="light"] { --ds-grad-a: 79 70 229; --ds-grad-b: 124 58 237; --ds-grad-c: 8 145 178; }
 .ds-gradient-text {
-  background: linear-gradient(110deg, rgb(var(--ds-grad-a)), rgb(var(--ds-grad-b)) 55%, rgb(var(--ds-grad-c)));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
+  color: rgb(var(--ds-grad-a));
 }
 
 /* ── Scope ────────────────────────────────────────────────────────────── */
@@ -236,7 +228,7 @@
 
 .ds-btn-primary {
   color: #fff;
-  background: linear-gradient(135deg, rgb(var(--ds-fill)), rgb(var(--ds-fill-2)));
+  background: rgb(var(--ds-fill));
   box-shadow: var(--ds-shadow-btn);
 }
 @media (hover: hover) {
@@ -288,7 +280,7 @@
 .ds-pill:hover { color: rgb(var(--ds-ink)); border-color: rgb(var(--ds-line) / var(--ds-line-strong-a)); }
 .ds-pill[aria-pressed="true"] {
   color: #fff; border-color: transparent;
-  background: linear-gradient(135deg, rgb(var(--ds-fill)), rgb(var(--ds-fill-2)));
+  background: rgb(var(--ds-fill));
   box-shadow: var(--ds-shadow-btn);
 }
 
@@ -396,11 +388,9 @@ select.ds-input { appearance: none; -webkit-appearance: none; cursor: pointer; }
 .ds-scroll-x::-webkit-scrollbar { display: none; }
 
 .ds-skeleton {
-  background: linear-gradient(90deg, rgb(var(--ds-high)) 0%, rgb(var(--ds-highest)) 50%, rgb(var(--ds-high)) 100%);
-  background-size: 200% 100%;
-  animation: dsShimmer 1.4s ease-in-out infinite;
+  background: rgb(var(--ds-high));
+  animation: dsPulse 1.4s ease-in-out infinite;
 }
-@keyframes dsShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 @keyframes dsPulse   { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 @keyframes dsSpin    { to { transform: rotate(360deg); } }
 
@@ -436,6 +426,12 @@ select.ds-input { appearance: none; -webkit-appearance: none; cursor: pointer; }
   backdrop-filter: blur(16px) saturate(1.4);
   border-bottom: 1px solid rgb(var(--ds-line) / var(--ds-line-a));
   transition: background-color .25s, box-shadow .25s;
+  /* Fixed + a permanently live backdrop-filter means the browser re-samples
+     the blur from whatever scrolls underneath on every frame — the single
+     heaviest cost in the page while scrolling. Isolating it onto its own
+     compositor layer up front lets the browser cache that layer instead of
+     recomputing it inline with the scroll/paint cycle. */
+  will-change: backdrop-filter;
 }
 .ds-header.is-scrolled { background: var(--ds-header-bg-solid); box-shadow: 0 10px 30px -20px rgb(0 0 0 / .55); }
 

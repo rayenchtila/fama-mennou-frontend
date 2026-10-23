@@ -37,7 +37,7 @@ export default function TopBar() {
   return (
     // Same indigo strip on every page (the supplied screens share one), whatever accent the page below uses.
     <div ref={ref} className="ds relative z-30 px-4 py-2.5 text-center text-white"
-      style={{ background: 'linear-gradient(90deg, #4f46e5, #7c3aed)' }}>
+      style={{ background: '#4f46e5' }}>
       <p className="mx-auto flex max-w-4xl items-center justify-center gap-2 text-[12.5px] font-medium leading-[1.4] tracking-[0.01em] text-white">
         <Icon name="verified_user" size={16} fill className="flex-none" />
         <span>{t('topbar.text')}</span>

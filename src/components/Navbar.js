@@ -18,13 +18,13 @@ const API_URL = process.env.REACT_APP_API_URL || "https://famamennou-server.onre
 const shownName = u => (u?.isAdmin ? u.name : displayName(u?.name));
 
 const AVATAR_HEX = [
-  'linear-gradient(135deg,#6366f1,#4f46e5)',
-  'linear-gradient(135deg,#10b981,#059669)',
-  'linear-gradient(135deg,#f43f5e,#e11d48)',
-  'linear-gradient(135deg,#f59e0b,#d97706)',
-  'linear-gradient(135deg,#0ea5e9,#0284c7)',
-  'linear-gradient(135deg,#d946ef,#a21caf)',
-  'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+  '#6366f1',
+  '#10b981',
+  '#f43f5e',
+  '#f59e0b',
+  '#0ea5e9',
+  '#d946ef',
+  '#8b5cf6',
 ];
 function avatarGradient(email = '') {
   return AVATAR_HEX[(email.charCodeAt(0) || 0) % AVATAR_HEX.length];
@@ -71,7 +71,10 @@ function NotifPanel({ notifications, onClose }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className={`mb-0.5 truncate text-xs font-bold ${n.read ? 'text-ds-mute' : 'text-ds-ink'}`}>{n.title}</p>
-                  <p className="line-clamp-2 text-[11px] leading-relaxed text-ds-faint">{n.message}</p>
+                  {/* No line-clamp: a rejection reason (payment, course, CIN…) is
+                      exactly the part of this message that matters most, and it
+                      has no length limit — clamping it here silently hid it. */}
+                  <p className="text-[11px] leading-relaxed text-ds-faint">{n.message}</p>
                   <p className="mt-1 text-[10px] text-ds-faint">
                     {new Date(n.createdAt).toLocaleDateString("fr-TN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                   </p>
@@ -802,7 +805,7 @@ export default function Navbar({ onLogin }) {
                 </button>
                 <button type="button" onClick={() => { logout(); setLogoutModal(false); }}
                   className="ds-btn flex-1 text-white hover:brightness-110"
-                  style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 8px 20px -8px rgba(239,68,68,.6)" }}>
+                  style={{ background: "#dc2626", boxShadow: "0 8px 20px -8px rgba(239,68,68,.6)" }}>
                   {t('fd.yes_logout')}
                 </button>
               </div>

@@ -34,7 +34,7 @@ const FAQ = () => {
 
       {/* Background blobs — same as hero */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-px bg-gradient-to-r from-transparent via-indigo-200 dark:via-indigo-900/40 to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-px bg-indigo-200/60 dark:bg-indigo-900/30" />
         <div className="absolute -bottom-16 -left-16 w-[280px] h-[280px] rounded-full bg-indigo-100 dark:bg-indigo-900/15 blur-3xl opacity-60" />
         <div className="absolute -top-8 -right-8 w-[220px] h-[220px] rounded-full bg-violet-100 dark:bg-violet-900/15 blur-3xl opacity-50" />
       </div>

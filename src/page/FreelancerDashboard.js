@@ -22,10 +22,10 @@ const TUNISIAN_REGIONS = [
 ];
 
 const AVATAR_COLORS = [
-  'from-indigo-500 to-indigo-600','from-emerald-500 to-emerald-600',
-  'from-rose-500 to-rose-600','from-amber-500 to-amber-600',
-  'from-sky-500 to-sky-600','from-fuchsia-500 to-fuchsia-600',
-  'from-violet-500 to-violet-600',
+  'bg-indigo-500','bg-emerald-500',
+  'bg-rose-500','bg-amber-500',
+  'bg-sky-500','bg-fuchsia-500',
+  'bg-violet-500',
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ function Avi({ user, size = 'md' }) {
   if (user?.photo)
     return <img src={cldImg(user.photo)} alt={user.name} className={`${sz} rounded-2xl object-cover shrink-0`} />;
   return (
-    <div className={`${sz} rounded-2xl bg-gradient-to-br ${getGradient(user?.email)} flex items-center justify-center text-white font-bold shrink-0`}>
+    <div className={`${sz} rounded-2xl ${getGradient(user?.email)} flex items-center justify-center text-white font-bold shrink-0`}>
       {getInitials(user?.name || user?.email || '?')}
     </div>
   );
@@ -186,7 +186,7 @@ const focusOff_P = e => { e.target.style.borderColor='var(--fm-border)'; e.targe
 function PFieldLabel({ children }) {
   return (
     <p style={{ fontSize:13, fontWeight:800, margin:'0 0 10px', display:'flex', alignItems:'center', gap:7, textTransform:'uppercase', letterSpacing:'0.1em', color:'var(--fm-primary-light)' }}>
-      <span style={{ width:2.5, height:12, borderRadius:2, background:'linear-gradient(to bottom,#7c6cf6,#a78bfa)', display:'inline-block', flexShrink:0 }}/>
+      <span style={{ width:2.5, height:12, borderRadius:2, background:'#7c6cf6', display:'inline-block', flexShrink:0 }}/>
       {children}
     </p>
   );
@@ -208,10 +208,10 @@ const PIcLogout    = ({s=15}) => <svg width={s} height={s} fill="none" viewBox="
 const PIcWallet    = ({s=18}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5a2 2 0 00-2-2h-4a2 2 0 100 4h4"/></svg>;
 const PIcTrend     = ({s=18}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>;
 const PIcTx        = ({s=18}) => <svg width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>;
-// Shared card chrome for the "premium" tabs (Profile/Gains/Settings) — gradient
-// top rule + bordered gradient surface, matching ProfileTab's edit-form card.
-const CARD_P = { borderRadius:24, overflow:'hidden', position:'relative', background:'linear-gradient(155deg,var(--fm-primary-soft) 0%,var(--fm-surface) 38%,var(--fm-bg) 100%)', border:'1px solid var(--fm-primary-border)', boxShadow:'0 20px 60px -18px rgba(0,0,0,0.65), 0 0 0 1px var(--fm-border-soft)' };
-const CARD_RULE = { height:2.5, background:'linear-gradient(90deg,#7c6cf6 0%,#a78bfa 55%,#6366f1 100%)' };
+// Shared card chrome for the "premium" tabs (Profile/Gains/Settings) — flat
+// top rule + bordered flat surface, matching ProfileTab's edit-form card.
+const CARD_P = { borderRadius:24, overflow:'hidden', position:'relative', background:'var(--fm-surface)', border:'1px solid var(--fm-primary-border)', boxShadow:'0 20px 60px -18px rgba(0,0,0,0.65), 0 0 0 1px var(--fm-border-soft)' };
+const CARD_RULE = { height:2.5, background:'#7c6cf6' };
 
 // Greeting typed out live on every visit — "Bon après-midi, Karim 😊" appears
 // character by character instead of snapping in all at once. Same
@@ -241,7 +241,7 @@ function TypewriterGreeting({ greeting, firstName, tint }) {
     <>
       <TypeCursorStyle />
       {typedPrefix}
-      <span style={{ background:`linear-gradient(110deg,var(--fm-primary-light) 0%,${tint} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+      <span style={{ color: tint }}>
         {typedName}
       </span>
       {typedSuffix}
@@ -371,24 +371,23 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
   const missing       = completionItems.filter(i => !i.done);
   const isComplete    = completion === 100;
   const progressColor = isComplete
-    ? `linear-gradient(90deg,${PC.emerald},#34d399)`
-    : `linear-gradient(90deg,${PC.accent},${PC.accentMid},#a78bfa)`;
+    ? PC.emerald
+    : PC.accent;
 
   return (
     <div style={{ paddingTop:8, paddingBottom:24 }}>
 
       {/* ── Animated background blobs ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
-        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:`radial-gradient(circle,${tintP}14,transparent 68%)`, top:'-280px', left:'-180px', animation:'fdBlob1 22s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:600, height:600, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.12),transparent 68%)', top:'20%', right:'-200px', animation:'fdBlob2 28s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(14,165,233,0.07),transparent 68%)', bottom:'-60px', left:'35%', animation:'fdBlob3 32s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:`${tintP}14`, top:'-280px', left:'-180px', animation:'fdBlob1 22s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:600, height:600, borderRadius:'50%', background:'rgba(168,85,247,0.12)', top:'20%', right:'-200px', animation:'fdBlob2 28s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'rgba(14,165,233,0.07)', bottom:'-60px', left:'35%', animation:'fdBlob3 32s ease-in-out infinite', willChange:'transform' }}/>
       </div>
 
       <div style={{ position:'relative', zIndex:1 }}>
 
         {/* ════ HERO CARD ════ */}
-        <div style={{ borderRadius:28, marginBottom:18, position:'relative', overflow:'hidden', background:'linear-gradient(140deg,var(--fm-primary-soft) 0%,var(--fm-surface) 50%,var(--fm-bg) 100%)', border:'1px solid var(--fm-primary-soft-strong)', boxShadow:'0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)' }}>
-          <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:`radial-gradient(ellipse 600px 320px at -8% -30%,${tintP}1c,transparent 65%),radial-gradient(ellipse 400px 280px at 108% 115%,rgba(168,85,247,0.12),transparent 65%)` }}/>
+        <div style={{ borderRadius:28, marginBottom:18, position:'relative', overflow:'hidden', background:'var(--fm-surface)', border:'1px solid var(--fm-primary-soft-strong)', boxShadow:'0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)' }}>
           <div style={{ position:'absolute', inset:0, pointerEvents:'none', backgroundImage:'radial-gradient(var(--fm-surface-hover-soft) 1px,transparent 1px)', backgroundSize:'28px 28px', WebkitMaskImage:'radial-gradient(ellipse 70% 60% at 50% 0%,black 40%,transparent 100%)', maskImage:'radial-gradient(ellipse 70% 60% at 50% 0%,black 40%,transparent 100%)' }}/>
 
           {/* Top bar */}
@@ -418,12 +417,12 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
           {/* Avatar + identity */}
           <div style={{ position:'relative', padding:'24px clamp(18px,4vw,32px) 0', display:'flex', alignItems:'flex-start', gap:24, flexWrap:'wrap' }}>
             <div style={{ position:'relative', flexShrink:0 }}>
-              <div style={{ width:96, height:96, borderRadius:24, overflow:'hidden', background:`linear-gradient(135deg,${tintP}30,${tintP}10)`, color:tintP, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:30, letterSpacing:'-0.02em', border:`2px solid ${tintP}45`, boxShadow:`0 0 0 5px ${tintP}12, 0 20px 48px -12px ${tintP}45` }}>
+              <div style={{ width:96, height:96, borderRadius:24, overflow:'hidden', background:`${tintP}20`, color:tintP, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:30, letterSpacing:'-0.02em', border:`2px solid ${tintP}45`, boxShadow:`0 0 0 5px ${tintP}12, 0 20px 48px -12px ${tintP}45` }}>
                 {avatarSrc
                   ? <img src={avatarSrc.startsWith('data:') ? avatarSrc : cldImg(avatarSrc)} alt={firstWord(user.name)} style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e => { e.target.style.display='none'; }}/>
                   : initsP}
               </div>
-              <button onClick={() => photoRef.current?.click()} style={{ position:'absolute', bottom:-5, right:-5, width:34, height:34, borderRadius:12, background:`linear-gradient(135deg,${PC.accent},#6254d4)`, border:'2.5px solid var(--fm-bg)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#fff', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.75)', transition:'all .18s cubic-bezier(.4,0,.2,1)' }}
+              <button onClick={() => photoRef.current?.click()} style={{ position:'absolute', bottom:-5, right:-5, width:34, height:34, borderRadius:12, background: PC.accent, border:'2.5px solid var(--fm-bg)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#fff', boxShadow:'0 4px 16px -4px rgba(124,108,246,0.75)', transition:'all .18s cubic-bezier(.4,0,.2,1)' }}
                 onMouseEnter={e => { e.currentTarget.style.transform='scale(1.12)'; e.currentTarget.style.boxShadow='0 6px 22px -4px rgba(124,108,246,0.9)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow='0 4px 16px -4px rgba(124,108,246,0.75)'; }}>
                 <PIcCamera s={14}/>
@@ -489,17 +488,17 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
         </div>
 
         {/* ════ EDIT FORM CARD ════ */}
-        <div style={{ borderRadius:26, overflow:'hidden', position:'relative', background:'linear-gradient(155deg,var(--fm-primary-soft) 0%,var(--fm-surface) 38%,var(--fm-bg) 100%)', border:'1px solid var(--fm-primary-border)', boxShadow:'0 24px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)' }}>
-          <div style={{ height:2.5, background:'linear-gradient(90deg,#7c6cf6 0%,#a78bfa 55%,#6366f1 100%)' }}/>
-          <div style={{ position:'absolute', width:360, height:230, top:-90, left:-70, borderRadius:'50%', background:'radial-gradient(circle,var(--fm-primary-soft),transparent 70%)', pointerEvents:'none' }}/>
+        <div style={{ borderRadius:26, overflow:'hidden', position:'relative', background:'var(--fm-surface)', border:'1px solid var(--fm-primary-border)', boxShadow:'0 24px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)' }}>
+          <div style={{ height:2.5, background:'#7c6cf6' }}/>
+          <div style={{ position:'absolute', width:360, height:230, top:-90, left:-70, borderRadius:'50%', background:'var(--fm-primary-soft)', pointerEvents:'none' }}/>
 
           {/* Card header */}
           <div style={{ padding:'22px 30px 20px', borderBottom:'1px solid var(--fm-surface-hover)', display:'flex', alignItems:'center', gap:14, position:'relative' }}>
-            <div style={{ width:44, height:44, borderRadius:15, flexShrink:0, background:'linear-gradient(135deg,var(--fm-primary-border),var(--fm-primary-soft))', border:'1px solid rgba(124,108,246,0.35)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fm-primary-light)', boxShadow:'0 4px 20px -6px rgba(124,108,246,0.55)' }}>
+            <div style={{ width:44, height:44, borderRadius:15, flexShrink:0, background:'var(--fm-primary-soft)', border:'1px solid rgba(124,108,246,0.35)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fm-primary-light)', boxShadow:'0 4px 20px -6px rgba(124,108,246,0.55)' }}>
               <PIcEdit s={19}/>
             </div>
             <div style={{ flex:1 }}>
-              <p style={{ fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em', background:'linear-gradient(90deg,var(--fm-text-1) 0%,var(--fm-primary-light) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>{t('fd.profile_info')}</p>
+              <p style={{ fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em', color: 'var(--fm-primary-light)' }}>{t('fd.profile_info')}</p>
               <p style={{ fontSize:12, color:'var(--fm-text-7)', margin:0 }}>{t('fd.visible_clients')}</p>
             </div>
             <span style={{ flexShrink:0, color:'var(--fm-primary-light)', fontSize:10, fontWeight:800, letterSpacing:'0.09em', textTransform:'uppercase' }}>{t('cd.edit')}</span>
@@ -590,7 +589,7 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
                 <p style={{ fontSize:12, color:PC.muted, margin:0, lineHeight:1.6 }}>{t('cd.changes_immediate')}</p>
                 <button onClick={handleSave} disabled={saving} className="fd-save-btn"
-                  style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:10, padding:'14px 34px', borderRadius:16, background:'linear-gradient(135deg,#7c6cf6 0%,#5e4fd4 100%)', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:14, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 var(--fm-border-strong)', transition:'all .2s cubic-bezier(.4,0,.2,1)', letterSpacing:'0.01em', whiteSpace:'nowrap', position:'relative', overflow:'hidden' }}
+                  style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:10, padding:'14px 34px', borderRadius:16, background:'#7c6cf6', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:14, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 var(--fm-border-strong)', transition:'all .2s cubic-bezier(.4,0,.2,1)', letterSpacing:'0.01em', whiteSpace:'nowrap', position:'relative', overflow:'hidden' }}
                   onMouseEnter={e => { if (!saving) { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 16px 44px -6px rgba(124,108,246,0.78), inset 0 1px 0 var(--fm-border-strong)'; } }}
                   onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 8px 32px -6px rgba(124,108,246,0.65), inset 0 1px 0 var(--fm-border-strong)'; }}>
                   {saved ? <><PIcCheck s={15}/> {t('cd.saved')}</> : saving ? t('cd.saving') : <><PIcEdit s={14}/> {t('cd.save_profile')}</>}
@@ -606,8 +605,6 @@ function ProfileTab({ user, updateUser, fetchAccounts }) {
         @keyframes fdBlob2 { 0%,100%{transform:translate(0,0)scale(1)} 40%{transform:translate(-60px,42px)scale(1.06)} 70%{transform:translate(25px,-25px)scale(0.97)} }
         @keyframes fdBlob3 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(40px,40px)scale(1.11)} }
         @keyframes fdFadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes fdShimmer { 0%{transform:translateX(-140%)} 100%{transform:translateX(340%)} }
-        .fd-save-btn::after { content:''; position:absolute; inset:0; width:45%; height:100%; background:linear-gradient(90deg,transparent,var(--fm-border-strong),transparent); animation:fdShimmer 2.8s ease-in-out infinite; pointer-events:none; }
         input::placeholder, textarea::placeholder { color:var(--fm-text-7); }
       `}</style>
     </div>
@@ -655,7 +652,7 @@ function DashboardTab({ user, users, onNavigate, navigate }) {
             <div className="relative">
               {user.photo
                 ? <img src={cldImg(user.photo)} alt={user.name} className="w-14 h-14 rounded-2xl object-cover shadow-md" />
-                : <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getGradient(user.email)} flex items-center justify-center text-white text-lg font-bold shadow-md`}>{getInitials(user.name)}</div>
+                : <div className={`w-14 h-14 rounded-2xl ${getGradient(user.email)} flex items-center justify-center text-white text-lg font-bold shadow-md`}>{getInitials(user.name)}</div>
               }
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900" />
             </div>
@@ -1267,15 +1264,15 @@ function GainsTab({ user }) {
 
       {/* ── Animated background blobs — same treatment as the Profile tab ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
-        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:'radial-gradient(circle,rgba(16,185,129,0.12),transparent 68%)', top:'-280px', left:'-180px', animation:'fdBlob1 22s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:600, height:600, borderRadius:'50%', background:'radial-gradient(circle,var(--fm-primary-soft),transparent 68%)', top:'20%', right:'-200px', animation:'fdBlob2 28s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:'rgba(16,185,129,0.12)', top:'-280px', left:'-180px', animation:'fdBlob1 22s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:600, height:600, borderRadius:'50%', background:'var(--fm-primary-soft)', top:'20%', right:'-200px', animation:'fdBlob2 28s ease-in-out infinite', willChange:'transform' }}/>
       </div>
 
       <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', gap:18 }}>
 
         {/* Header */}
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-          <div style={{ width:48, height:48, borderRadius:16, flexShrink:0, background:'linear-gradient(135deg,rgba(16,185,129,0.35),rgba(16,185,129,0.1))', border:'1px solid rgba(16,185,129,0.4)', display:'flex', alignItems:'center', justifyContent:'center', color:PC.emerald, boxShadow:'0 4px 20px -6px rgba(16,185,129,0.5)' }}>
+          <div style={{ width:48, height:48, borderRadius:16, flexShrink:0, background:'rgba(16,185,129,0.22)', border:'1px solid rgba(16,185,129,0.4)', display:'flex', alignItems:'center', justifyContent:'center', color:PC.emerald, boxShadow:'0 4px 20px -6px rgba(16,185,129,0.5)' }}>
             <PIcWallet s={21}/>
           </div>
           <div>
@@ -1644,12 +1641,12 @@ function CoursesTab({ user }) {
       {/* Stats — 4 cols always, compact on mobile */}
       <div className="grid grid-cols-4 gap-2 sm:gap-4">
         {[
-          { d: 'M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z', label:'Cours',     value: courses.length,                           gradient:'from-indigo-400 to-violet-500' },
-          { d: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75', label:'Étudiants', value: totalStudents,                              gradient:'from-sky-400 to-cyan-500' },
-          { d: 'M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6',                                            label:'Gains',     value:`${Number(totalEarnings).toFixed(0)} TND`, gradient:'from-emerald-400 to-teal-500' },
-          { d: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',   label:'Note moy.', value: avgRating,                                  gradient:'from-amber-400 to-orange-500' },
+          { d: 'M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z', label:'Cours',     value: courses.length,                           bg:'bg-indigo-400' },
+          { d: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75', label:'Étudiants', value: totalStudents,                              bg:'bg-sky-400' },
+          { d: 'M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6',                                            label:'Gains',     value:`${Number(totalEarnings).toFixed(0)} TND`, bg:'bg-emerald-400' },
+          { d: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',   label:'Note moy.', value: avgRating,                                  bg:'bg-amber-400' },
         ].map(s => (
-          <div key={s.label} className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${s.gradient} p-3 sm:p-4 text-white shadow-sm`}>
+          <div key={s.label} className={`relative overflow-hidden rounded-2xl ${s.bg} p-3 sm:p-4 text-white shadow-sm`}>
             <p className="text-lg sm:text-2xl font-extrabold leading-none truncate">{loading ? '…' : s.value}</p>
             <p className="text-[10px] sm:text-xs font-semibold opacity-80 mt-1 truncate">{s.label}</p>
             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', top: 8, right: 8, opacity: 0.2 }}>
@@ -2238,8 +2235,8 @@ function SettingsTab({ user, updateUser, onLogout }) {
 
       {/* ── Animated background blobs — same treatment as the Profile tab ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
-        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:'radial-gradient(circle,var(--fm-primary-soft),transparent 68%)', top:'-280px', right:'-200px', animation:'fdBlob1 22s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(248,113,113,0.07),transparent 68%)', bottom:'-80px', left:'8%', animation:'fdBlob3 32s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:'var(--fm-primary-soft)', top:'-280px', right:'-200px', animation:'fdBlob1 22s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'rgba(248,113,113,0.07)', bottom:'-80px', left:'8%', animation:'fdBlob3 32s ease-in-out infinite', willChange:'transform' }}/>
       </div>
 
       {/* Full-bleed like every other tab (the dashboard shell only adds its own side padding). */}
@@ -2247,7 +2244,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
 
         {/* Header */}
         <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
-          <div style={{ width:48, height:48, borderRadius:16, flexShrink:0, background:'linear-gradient(135deg,var(--fm-primary-border),var(--fm-primary-soft))', border:'1px solid rgba(124,108,246,0.35)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fm-primary-light)', boxShadow:'0 4px 20px -6px rgba(124,108,246,0.55)' }}>
+          <div style={{ width:48, height:48, borderRadius:16, flexShrink:0, background:'var(--fm-primary-soft)', border:'1px solid rgba(124,108,246,0.35)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fm-primary-light)', boxShadow:'0 4px 20px -6px rgba(124,108,246,0.55)' }}>
             <PIcSettings s={21}/>
           </div>
           <div>
@@ -2303,7 +2300,7 @@ function SettingsTab({ user, updateUser, onLogout }) {
               </div>
             )}
             <button type="submit" disabled={saving}
-              style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:9, padding:'13px 20px', borderRadius:14, background:'linear-gradient(135deg,#7c6cf6 0%,#5e4fd4 100%)', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:13.5, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 28px -6px rgba(124,108,246,0.6)', transition:'all .2s cubic-bezier(.4,0,.2,1)' }}
+              style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:9, padding:'13px 20px', borderRadius:14, background:'#7c6cf6', border:'1px solid rgba(155,140,255,0.2)', color:'#fff', fontWeight:800, fontSize:13.5, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.65 : 1, boxShadow:'0 8px 28px -6px rgba(124,108,246,0.6)', transition:'all .2s cubic-bezier(.4,0,.2,1)' }}
               onMouseEnter={e => { if (!saving) { e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 12px 34px -6px rgba(124,108,246,0.72)'; } }}
               onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 8px 28px -6px rgba(124,108,246,0.6)'; }}>
               {saving ? 'Changement…' : <><PIcCheck s={14}/> Changer le mot de passe</>}

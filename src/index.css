@@ -81,7 +81,10 @@
   --fm-scrollbar-track: #090d16;
   --fm-scrollbar-thumb: #243049;
   --fm-scrollbar-thumb-hover: #33415f;
-  --fm-logo-blend: screen;
+  /* normal, not screen: the logo is a flat solid blue mark now, and screen's
+     color math would tint it toward whatever sits behind it instead of
+     rendering the actual flat color. */
+  --fm-logo-blend: normal;
 
   --body-bg: #090d16;
   --body-color: #f1f5f9;

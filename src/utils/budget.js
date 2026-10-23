@@ -14,6 +14,16 @@ const PLAIN_NUMBER = /^\d[\d\s.,  ]*$/;
 const HAS_CURRENCY = /tnd|\bdt\b|dinar|د\.?\s?ت|دينار|€|\$|£|\beur\b|\busd\b/i;
 const MAX_LENGTH   = 40;   // a cell on a card, not a paragraph
 
+// fr-TN writes a decimal with a comma, not a period ("500,50" = five hundred
+// dinars fifty) — a lone comma followed by 1-2 trailing digits is that, and
+// has to become a '.' before the digit-only strip below, or it is silently
+// read as "50050". A comma followed by 3 digits (or more than one comma) is
+// a thousands grouping instead and is left for the strip to drop as usual.
+function normalizeDecimalComma(text) {
+  const commaCount = (text.match(/,/g) || []).length;
+  return commaCount === 1 && /,\d{1,2}$/.test(text) ? text.replace(',', '.') : text;
+}
+
 export function budgetLabel(raw) {
   const text = raw == null ? '' : String(raw).replace(/\s+/g, ' ').trim();
   if (!text) return null;
@@ -21,7 +31,7 @@ export function budgetLabel(raw) {
   // One amount: read it the way the payment check does (digits and the decimal point only), so the price on a
   // card is the amount a payment for that project has to reach.
   if (PLAIN_NUMBER.test(text)) {
-    const n = parseFloat(text.replace(/[^0-9.]/g, ''));
+    const n = parseFloat(normalizeDecimalComma(text).replace(/[^0-9.]/g, ''));
     return Number.isFinite(n) ? `${nf.format(n)} TND` : null;
   }
 

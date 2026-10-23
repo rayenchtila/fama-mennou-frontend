@@ -124,7 +124,7 @@ export default function ProjectDetailPage({ onLogin }) {
                 share links, so "go home" alone leaves a visitor who actually
                 wanted to see open projects with nowhere relevant to go. */}
             <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
-              <Link to="/" style={{ display:'inline-flex', padding:'10px 20px', borderRadius:12, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', color:'#fff', fontWeight:700, fontSize:13, textDecoration:'none' }}>
+              <Link to="/" style={{ display:'inline-flex', padding:'10px 20px', borderRadius:12, background:'#7c6cf6', color:'#fff', fontWeight:700, fontSize:13, textDecoration:'none' }}>
                 {t('prp.detail.go_home')}
               </Link>
               <Link to="/clients" style={{ display:'inline-flex', padding:'10px 20px', borderRadius:12, background:'var(--fm-surface-hover)', border:'1px solid var(--fm-border-strong)', color:'var(--fm-text-3)', fontWeight:600, fontSize:13, textDecoration:'none' }}>
@@ -135,7 +135,7 @@ export default function ProjectDetailPage({ onLogin }) {
         ) : (
           <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3, ease:'easeOut' }}>
             {/* Header card */}
-            <div style={{ borderRadius:24, background:'linear-gradient(140deg,var(--fm-primary-soft) 0%,var(--fm-surface) 55%,var(--fm-bg) 100%)', border:'1px solid var(--fm-primary-soft-strong)', boxShadow:'0 30px 80px -20px rgba(0,0,0,0.5)', padding:'clamp(22px,4vw,34px)', marginBottom:20 }}>
+            <div style={{ borderRadius:24, background:'var(--fm-surface)', border:'1px solid var(--fm-primary-soft-strong)', boxShadow:'0 30px 80px -20px rgba(0,0,0,0.5)', padding:'clamp(22px,4vw,34px)', marginBottom:20 }}>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14, flexWrap:'wrap' }}>
                 <span style={{ fontSize:11, fontWeight:800, color:'var(--fm-primary-light)', background:'rgba(124,108,246,0.12)', border:'1px solid rgba(124,108,246,0.25)', padding:'4px 12px', borderRadius:20 }}>
                   {t('prp.detail.badge')}
@@ -205,7 +205,7 @@ export default function ProjectDetailPage({ onLogin }) {
               </Link>
             ) : user?.role === 'client' || user?.isAdmin ? null : (
               <button onClick={handleApply}
-                style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'100%', padding:'15px', borderRadius:16, background:'linear-gradient(135deg,#7c6cf6,#6254d4)', border:'none', color:'#fff', fontWeight:800, fontSize:14.5, cursor:'pointer', boxShadow:'0 10px 32px -8px rgba(124,108,246,0.55)' }}>
+                style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'100%', padding:'15px', borderRadius:16, background:'#7c6cf6', border:'none', color:'#fff', fontWeight:800, fontSize:14.5, cursor:'pointer', boxShadow:'0 10px 32px -8px rgba(124,108,246,0.55)' }}>
                 {t('prp.detail.apply_cta')}
               </button>
             )}

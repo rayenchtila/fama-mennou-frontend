@@ -77,7 +77,7 @@ function ShareMenu({ url, title, onClose, anchorRef }) {
     { key: 'link',      label: t('prp.share.copy_link'), icon: <IcLink s={isDesktop ? 17 : 20} />,      bg: 'var(--fm-primary-soft-strong)', color: 'var(--fm-primary-light)', onClick: copyLink },
     { key: 'whatsapp',  label: 'WhatsApp',                icon: <IcWhatsapp s={isDesktop ? 18 : 22} />, bg: '#25D366',  color: '#fff', onClick: shareWhatsapp },
     { key: 'facebook',  label: 'Facebook',                icon: <IcFacebook s={isDesktop ? 18 : 22} />, bg: '#1877F2',  color: '#fff', onClick: shareFacebook },
-    { key: 'instagram', label: 'Instagram',               icon: <IcInstagram s={isDesktop ? 18 : 22} />, bg: 'linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4)', color: '#fff', onClick: shareInstagram },
+    { key: 'instagram', label: 'Instagram',               icon: <IcInstagram s={isDesktop ? 18 : 22} />, bg: '#dd2a7b', color: '#fff', onClick: shareInstagram },
   ];
 
   const iconSize = isDesktop ? 46 : 56;

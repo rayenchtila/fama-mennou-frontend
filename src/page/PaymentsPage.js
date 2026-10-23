@@ -126,8 +126,8 @@ export default function PaymentsPage() {
 
       {/* Blobs */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
-        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'radial-gradient(circle,rgba(124,108,246,0.12),transparent 68%)', top:'-200px', left:'-150px', animation:'ppBlob1 20s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(16,185,129,0.08),transparent 68%)', top:'30%', right:'-160px', animation:'ppBlob2 25s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'rgba(124,108,246,0.12)', top:'-200px', left:'-150px', animation:'ppBlob1 20s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'rgba(16,185,129,0.08)', top:'30%', right:'-160px', animation:'ppBlob2 25s ease-in-out infinite', willChange:'transform' }}/>
       </div>
 
       <div style={{ position:'relative', zIndex:1, width:'100%', margin:'0 auto', padding:'clamp(88px,10vw,100px) clamp(16px,3vw,24px) 0' }}>
@@ -140,7 +140,7 @@ export default function PaymentsPage() {
             { label:t('ppg.confirmed'),      value:loading?'—':t('ppg.n_payments',{count:confirmedCnt}),         color:C.emerald,   bg:C.emeraldDim,border:C.emeraldBord,           icon:<IcCheck s={20}/>  },
           ].map(c => (
             <div key={c.label} style={{ padding:'24px 22px', borderRadius:20, background:c.bg, border:`1px solid ${c.border}`, position:'relative', overflow:'hidden' }}>
-              <div style={{ position:'absolute', top:0, right:0, width:80, height:80, borderRadius:'50%', background:`radial-gradient(circle,${c.color}18,transparent 70%)`, transform:'translate(20px,-20px)', pointerEvents:'none' }}/>
+              <div style={{ position:'absolute', top:0, right:0, width:80, height:80, borderRadius:'50%', background:`${c.color}18`, transform:'translate(20px,-20px)', pointerEvents:'none' }}/>
               <div style={{ width:46, height:46, borderRadius:14, background:`${c.color}20`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:16, color:c.color, border:`1px solid ${c.border}` }}>{c.icon}</div>
               <p style={{ fontSize:24, fontWeight:900, color:c.color, margin:'0 0 4px', letterSpacing:'-0.03em' }}>{c.value}</p>
               <p style={{ fontSize:10.5, fontWeight:700, color:c.color, opacity:0.75, margin:0, textTransform:'uppercase', letterSpacing:'0.06em' }}>{c.label}</p>

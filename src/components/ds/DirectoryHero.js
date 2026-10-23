@@ -13,12 +13,10 @@ export default function DirectoryHero({ title, subtitle, search, onSearch, onSub
 
   return (
     <section className="relative overflow-hidden bg-ds-canvas py-10 lg:py-14">
-      {/* Ghosted illustration with the same two fades as the supplied screen */}
+      {/* Ghosted illustration — a flat low opacity keeps it subtle without a fade gradient */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
         <img src="/images/directory-hero.png" alt="" width="512" height="323"
-          className="ds-hero-art absolute end-0 top-1/2 w-[650px] max-w-none -translate-y-1/2 select-none object-contain lg:w-[820px]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ds-canvas via-ds-canvas/90 to-ds-canvas/60 rtl:bg-gradient-to-l" />
-        <div className="absolute inset-0 bg-gradient-to-b from-ds-canvas via-transparent to-ds-canvas" />
+          className="ds-hero-art absolute end-0 top-1/2 w-[650px] max-w-none -translate-y-1/2 select-none object-contain opacity-40 lg:w-[820px]" />
       </div>
       {/* Spectral glow — DESIGN.md: "vibrant spectral gradients spanning electric
           violet, dynamic indigo, and hyper-cyan". One flat 5%-opacity indigo blob

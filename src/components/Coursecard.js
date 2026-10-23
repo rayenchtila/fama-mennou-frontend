@@ -26,13 +26,13 @@ export default function CourseCard({ title, author, price, category, students, r
     <div className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/30 hover:-translate-y-1 hover:border-indigo-200 dark:hover:border-indigo-800/60 flex flex-col">
       {/* Thumbnail */}
       <div
-        className="h-36 flex items-center justify-center text-5xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 relative overflow-hidden cursor-pointer"
+        className="h-36 flex items-center justify-center text-5xl bg-slate-100 dark:bg-slate-900 relative overflow-hidden cursor-pointer"
         onClick={() => onPreview?.(course)}
       >
         {thumbnail ? (
           <img src={cldImg(thumbnail)} alt={title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)' }}>
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: '#4f46e5' }}>
             <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
           </div>
         )}

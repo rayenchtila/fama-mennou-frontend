@@ -33,7 +33,7 @@ export default function DemoVideoSection() {
           rel="noopener noreferrer"
           aria-label={`${t('home.demo.cta')} — ${t('home.demo.title')}`}
           className="ds-demo group relative mx-auto block aspect-[4/3] w-full max-w-[56rem] overflow-hidden rounded-[20px] border border-white/10 sm:aspect-video sm:rounded-[22px]"
-          style={{ background: 'radial-gradient(ellipse 85% 85% at 50% 45%, #182236, #060910)', boxShadow: '0 24px 60px -24px rgba(0,0,0,.6)' }}
+          style={{ background: '#182236', boxShadow: '0 24px 60px -24px rgba(0,0,0,.6)' }}
         >
           {/* YouTube's own poster frame for this video, shown un-cropped
               (contain) rather than cover — the recording is portrait, so
@@ -55,7 +55,7 @@ export default function DemoVideoSection() {
 
           {/* Legibility gradient for the badge/CTA strip, clear over the video itself */}
           <span aria-hidden="true" className="pointer-events-none absolute inset-0"
-            style={{ background: 'linear-gradient(180deg, rgba(6,9,16,.5) 0%, transparent 22%, transparent 60%, rgba(6,9,16,.88) 100%)' }} />
+            style={{ background: 'rgba(6,9,16,.4)' }} />
 
           {/* Top-start "recording" badge */}
           <span className="absolute start-3 top-3 inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-[rgba(6,9,16,.55)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[.04em] text-white backdrop-blur-md sm:start-4 sm:top-4">

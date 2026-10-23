@@ -56,7 +56,7 @@ function FieldLabel({ children }) {
   return (
     <p style={{ fontSize:13, fontWeight:800, margin:'0 0 10px', display:'flex', alignItems:'center', gap:7,
       textTransform:'uppercase', letterSpacing:'0.1em', color:'rgba(155,140,255,0.8)' }}>
-      <span style={{ width:2.5, height:12, borderRadius:2, background:'linear-gradient(to bottom,#7c6cf6,#a78bfa)', display:'inline-block', flexShrink:0 }}/>
+      <span style={{ width:2.5, height:12, borderRadius:2, background:'#7c6cf6', display:'inline-block', flexShrink:0 }}/>
       {children}
     </p>
   );
@@ -127,18 +127,16 @@ export default function ClientDashboard() {
   const completion    = Math.round(completionItems.filter(i => i.done).length / completionItems.length * 100);
   const missing       = completionItems.filter(i => !i.done);
   const isComplete    = completion === 100;
-  const progressColor = isComplete
-    ? `linear-gradient(90deg,${C.emerald},#34d399)`
-    : `linear-gradient(90deg,${C.accent},${C.accentMid},#a78bfa)`;
+  const progressColor = isComplete ? C.emerald : C.accent;
 
   return (
     <div style={{ minHeight:'100vh', background:C.bg, fontFamily:"'Plus Jakarta Sans','Inter',sans-serif", paddingBottom:120 }}>
 
       {/* ── Animated background blobs ── */}
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:0 }}>
-        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:`radial-gradient(circle,${tint}14,transparent 68%)`, top:'-280px', left:'-180px', animation:'cdBlob1 22s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:600, height:600, borderRadius:'50%', background:'radial-gradient(circle,rgba(168,85,247,0.09),transparent 68%)', top:'20%', right:'-200px', animation:'cdBlob2 28s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(14,165,233,0.07),transparent 68%)', bottom:'-60px', left:'35%', animation:'cdBlob3 32s ease-in-out infinite' }}/>
+        <div style={{ position:'absolute', width:800, height:800, borderRadius:'50%', background:`${tint}14`, top:'-280px', left:'-180px', animation:'cdBlob1 22s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:600, height:600, borderRadius:'50%', background:'rgba(168,85,247,0.09)', top:'20%', right:'-200px', animation:'cdBlob2 28s ease-in-out infinite', willChange:'transform' }}/>
+        <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'rgba(14,165,233,0.07)', bottom:'-60px', left:'35%', animation:'cdBlob3 32s ease-in-out infinite', willChange:'transform' }}/>
       </div>
 
       <div style={{ position:'relative', zIndex:1, width:'100%', margin:'0 auto', padding:'clamp(80px,10vw,90px) clamp(16px,3vw,24px) 0' }}>
@@ -148,14 +146,12 @@ export default function ClientDashboard() {
             ════════════════════════════════════════════ */}
         <div style={{
           borderRadius:28, marginBottom:18, position:'relative', overflow:'hidden',
-          background:'linear-gradient(140deg,rgba(124,108,246,0.1) 0%,var(--fm-surface) 50%,var(--fm-bg) 100%)',
+          background:'var(--fm-surface)',
           border:'1px solid rgba(124,108,246,0.2)',
           boxShadow:`0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)`,
         }}>
 
-          {/* Decorative: radial glow + dot grid */}
-          <div style={{ position:'absolute', inset:0, pointerEvents:'none',
-            background:`radial-gradient(ellipse 600px 320px at -8% -30%, ${tint}1c, transparent 65%), radial-gradient(ellipse 400px 280px at 108% 115%, rgba(168,85,247,0.09), transparent 65%)` }}/>
+          {/* Decorative: dot grid */}
           <div style={{ position:'absolute', inset:0, pointerEvents:'none',
             backgroundImage:'radial-gradient(var(--fm-surface-hover-soft) 1px, transparent 1px)',
             backgroundSize:'28px 28px',
@@ -166,7 +162,7 @@ export default function ClientDashboard() {
           <div style={{ position:'relative', padding:'28px 32px 0' }}>
             <h1 style={{ fontSize:30, fontWeight:900, color:C.text, margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
               {greeting},{' '}
-              <span style={{ background:`linear-gradient(110deg,var(--fm-text-1) 0%,${tint} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+              <span style={{ color: tint }}>
                 {firstName}
               </span>{' '}😊
             </h1>
@@ -179,7 +175,7 @@ export default function ClientDashboard() {
             <div style={{ position:'relative', flexShrink:0 }}>
               <div style={{
                 width:96, height:96, borderRadius:24, overflow:'hidden',
-                background:`linear-gradient(135deg,${tint}30,${tint}10)`,
+                background:`${tint}20`,
                 color:tint, display:'flex', alignItems:'center', justifyContent:'center',
                 fontWeight:900, fontSize:30, letterSpacing:'-0.02em',
                 border:`2px solid ${tint}45`,
@@ -195,7 +191,7 @@ export default function ClientDashboard() {
                 style={{
                   position:'absolute', bottom:-5, right:-5,
                   width:34, height:34, borderRadius:12,
-                  background:`linear-gradient(135deg,${C.accent},#6254d4)`,
+                  background: C.accent,
                   border:`2.5px solid ${C.bg}`,
                   display:'flex', alignItems:'center', justifyContent:'center',
                   cursor:'pointer', color:'#fff',
@@ -271,16 +267,13 @@ export default function ClientDashboard() {
             ════════════════════════════════════════════ */}
         <div style={{
           borderRadius:26, overflow:'hidden', position:'relative',
-          background:'linear-gradient(155deg,rgba(124,108,246,0.08) 0%,var(--fm-surface) 38%,var(--fm-bg) 100%)',
+          background:'var(--fm-surface)',
           border:'1px solid rgba(124,108,246,0.22)',
           boxShadow:'0 24px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px var(--fm-border-soft), inset 0 1px 0 var(--fm-border)',
         }}>
 
-          {/* Top gradient accent line */}
-          <div style={{ height:2.5, background:'linear-gradient(90deg,#7c6cf6 0%,#a78bfa 55%,#6366f1 100%)', flexShrink:0 }}/>
-
-          {/* Corner ambient glow */}
-          <div style={{ position:'absolute', width:360, height:230, top:-90, left:-70, borderRadius:'50%', background:'radial-gradient(circle,rgba(124,108,246,0.1),transparent 70%)', pointerEvents:'none' }}/>
+          {/* Top accent line */}
+          <div style={{ height:2.5, background:'#7c6cf6', flexShrink:0 }}/>
 
           {/* ── Card header ── */}
           <div style={{
@@ -289,7 +282,7 @@ export default function ClientDashboard() {
           }}>
             <div style={{
               width:44, height:44, borderRadius:15, flexShrink:0,
-              background:'linear-gradient(135deg,rgba(124,108,246,0.3),rgba(124,108,246,0.08))',
+              background:'rgba(124,108,246,0.18)',
               border:'1px solid rgba(124,108,246,0.35)',
               display:'flex', alignItems:'center', justifyContent:'center', color:'#9b8cff',
               boxShadow:'0 4px 20px -6px rgba(124,108,246,0.55)',
@@ -299,8 +292,7 @@ export default function ClientDashboard() {
             <div style={{ flex:1 }}>
               <p style={{
                 fontSize:15.5, fontWeight:800, margin:'0 0 2px', letterSpacing:'-0.025em',
-                background:'linear-gradient(90deg,var(--fm-text-1) 0%,var(--fm-primary-light) 100%)',
-                WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
+                color: 'var(--fm-primary-light)',
               }}>{t('cd.profile_info')}</p>
               <p style={{ fontSize:12, color:'var(--fm-text-7)', margin:0 }}>{t('cd.visible_clients')}</p>
             </div>
@@ -401,7 +393,7 @@ export default function ClientDashboard() {
                   style={{
                     flexShrink:0, display:'inline-flex', alignItems:'center', gap:10,
                     padding:'14px 34px', borderRadius:16,
-                    background:'linear-gradient(135deg,#7c6cf6 0%,#5e4fd4 100%)',
+                    background:'#7c6cf6',
                     border:'1px solid rgba(155,140,255,0.2)',
                     color:'#fff', fontWeight:800, fontSize:14,
                     cursor: saving ? 'not-allowed' : 'pointer',
@@ -431,8 +423,6 @@ export default function ClientDashboard() {
         @keyframes cdBlob2 { 0%,100%{transform:translate(0,0)scale(1)} 40%{transform:translate(-60px,42px)scale(1.06)} 70%{transform:translate(25px,-25px)scale(0.97)} }
         @keyframes cdBlob3 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(40px,40px)scale(1.11)} }
         @keyframes cdFadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes cdShimmer { 0%{transform:translateX(-140%)} 100%{transform:translateX(340%)} }
-        .cd-save-btn::after { content:''; position:absolute; inset:0; width:45%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.13),transparent); animation:cdShimmer 2.8s ease-in-out infinite; pointer-events:none; }
         select option { background:var(--fm-surface); color:var(--fm-text-5); }
         input::placeholder, textarea::placeholder { color:var(--fm-text-7); }
         ::-webkit-scrollbar { width:5px; }

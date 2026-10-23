@@ -24,7 +24,7 @@ export default function CareersPage() {
             <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--fm-text-1)', margin: '0 0 10px' }}>{t('careers.no_openings')}</h2>
             <p style={{ fontSize: 15, color: 'var(--fm-text-5)', margin: '0 0 24px' }}>{t('careers.no_openings_desc')}</p>
             <a href="mailto:famamennou.platform@gmail.com"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 12, background: 'linear-gradient(135deg,#7c6cf6,#5e4fd4)', color: '#fff', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 12, background: '#7c6cf6', color: '#fff', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
               {t('careers.spontaneous_application')}
             </a>
           </div>
