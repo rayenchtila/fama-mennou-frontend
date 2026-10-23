@@ -878,7 +878,12 @@ export default function ProjectsPage() {
       const map = {};
       await Promise.all(arr.map(async p => {
         const props = await fetch(`${API}/proposals/project/${p.id}`).then(r=>r.json()).catch(()=>[]);
-        map[p.id] = Array.isArray(props) ? props : [];
+        const list = Array.isArray(props) ? props : [];
+        // Defensive: a proposal must never render twice for the same applicant — whatever
+        // the cause (a stale/duplicate response, a race between two in-flight loads), keep
+        // only the first row seen per proposal id.
+        const seenIds = new Set();
+        map[p.id] = list.filter(pr => (seenIds.has(pr.id) ? false : (seenIds.add(pr.id), true)));
       }));
       setMyPropsMap(map);
     } catch {}
