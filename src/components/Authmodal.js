@@ -886,6 +886,11 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
   // the LOG-IN page, e-mail already filled in, with a line saying their account now exists.
   function finishSignup(email, via, signedUpAs = "client") {
     onSignupComplete?.();
+    // Meta Pixel "Complete registration" (the pixel itself is loaded in public/index.html). It fires here,
+    // and only here, because this is the one place that runs once the account really exists. Clients only.
+    if (signedUpAs === "client") {
+      window.fbq?.("track", "CompleteRegistration", { content_name: "Inscription Client", status: "completed" });
+    }
     emailProof.current = null;
     resetDocs();
     setDocType(DEFAULT_ID_DOCUMENT);
