@@ -14,7 +14,7 @@ import { ID_DOCUMENTS, idDocument } from '../../utils/idDocuments';
 
    It also says plainly that the document NUMBER may be covered before the photo is
    taken — what must stay readable is the name, the date of birth and the photo. */
-export default function DocumentStep({ docType, onDocType, previews, onFile, invalid, error }) {
+export default function DocumentStep({ docType, onDocType, previews, busy, onFile, invalid, error }) {
   const { t } = useTranslation();
   const doc = idDocument(docType);
   const two = doc.sides.length === 2;
@@ -71,7 +71,7 @@ export default function DocumentStep({ docType, onDocType, previews, onFile, inv
           so a passport page can never be sent as the front of a licence. */}
       <div key={docType} className={two ? 'flex gap-3' : 'max-w-[20rem]'} data-invalid={invalid ? 'true' : undefined}>
         {doc.sides.map(side => (
-          <CinDropzone key={side} label={slot[side].label} hint={slot[side].hint} preview={previews[side]}
+          <CinDropzone key={side} label={slot[side].label} hint={slot[side].hint} preview={previews[side]} busy={!!busy?.[side]}
             invalid={invalid && !previews[side]} onFile={f => onFile(side, f)} />
         ))}
       </div>

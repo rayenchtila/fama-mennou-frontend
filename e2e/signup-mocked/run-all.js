@@ -21,6 +21,7 @@ const BEHAVIOUR = [
   ['t10_admin_doc.js',         'Admin identity review'],
   ['t13_forgot_password.js',   'Forgot password (Turnstile on both steps)'],
   ['t14_login_paths.js',       'Log-in paths (captcha, refusals, two roles, under review)'],
+  ['t16_doc_photo_unreadable.js', 'Document photo that cannot be read (after the code / at pick time)'],
 ];
 const EXTRA = [
   ['t9_contrast.js',           'WCAG contrast of the new screens'],

@@ -44,6 +44,7 @@ The API repo is expected next to this one (`../rayen-buisness BACKEND`); set `BA
 | `t10_admin_doc.js` | The admin identity review names the submitted document; one photo for one-sided kinds |
 | `t13_forgot_password.js` | Password reset: a fresh single-use Turnstile token for every code request (including resend), the API's refusals are shown and never advance to step 2 |
 | `t14_login_paths.js` | Log-in: token sent and re-armed per request, the API's refusals, a two-role account (no second captcha), a freelancer still under review |
+| `t16_doc_photo_unreadable.js` | The identity-document photo is read and shrunk the moment it is picked: a file that becomes unreadable before the e-mailed code is typed (app switch, in-app browser) no longer breaks sign-up, and a photo the browser cannot read is refused on the document step in the visitor's language |
 | `t11_email.js` | Renders the sign-up code e-mail (large selectable code) |
 | `t12_visual.js` | Screenshots of the new screens on a phone, in Arabic and in dark mode |
 

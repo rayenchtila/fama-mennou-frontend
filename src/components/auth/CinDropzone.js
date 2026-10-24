@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Icon from '../ds/Icon';
+import { Spinner } from './AuthControls';
 
 /* One photo of an identity document: a side of the national ID card or of the driving licence, or the
    single page of a passport or a birth certificate (see DocumentStep). Same behaviour as before — a small menu offers
@@ -8,7 +9,7 @@ import Icon from '../ds/Icon';
    as the dashed drop area of the supplied sign-up design. Once a photo is picked it fills
    the box, with a persistent "Change" button (a hover-only label does not exist on touch
    screens). */
-export default function CinDropzone({ label, hint, preview, onFile, required = true, invalid = false }) {
+export default function CinDropzone({ label, hint, preview, onFile, required = true, invalid = false, busy = false }) {
   const { t } = useTranslation();
   const cameraRef = useRef(null);
   const galleryRef = useRef(null);
@@ -27,7 +28,7 @@ export default function CinDropzone({ label, hint, preview, onFile, required = t
 
   const pick = ref => { setOpen(false); ref.current?.click(); };
   // The input is deliberately left as it is after a pick (not reset): the file read that follows
-  // has to keep working with exactly the handle the gallery picker returned.
+  // (right away, see handleDocFile in AuthModal) has to keep working with exactly the handle the picker returned.
   const onChange = e => { const f = e.target.files?.[0]; if (f) onFile(f); };
 
   return (
@@ -39,7 +40,7 @@ export default function CinDropzone({ label, hint, preview, onFile, required = t
 
       <button type="button" onClick={() => setOpen(v => !v)} aria-haspopup="menu" aria-expanded={open}
         aria-label={preview ? `${label} — ${t('Change')}` : `${label}${hint ? ` — ${hint}` : ''}`}
-        data-invalid={invalid ? 'true' : undefined}
+        data-invalid={invalid ? 'true' : undefined} aria-busy={busy || undefined}
         className={`group relative flex h-32 w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-2 border-dashed p-0 text-center transition-colors ${
           preview ? 'border-ds-ok/60 bg-ds-low' : invalid ? 'border-ds-bad/60 bg-ds-bad/5' : open ? 'border-ds-accent bg-ds-low' : 'border-ds-line-strong bg-ds-low hover:border-ds-accent hover:bg-ds-high'}`}>
         {preview ? (
@@ -53,7 +54,7 @@ export default function CinDropzone({ label, hint, preview, onFile, required = t
         ) : (
           <>
             <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-ds-line bg-ds-high text-ds-faint transition-colors group-hover:border-ds-accent-line group-hover:bg-ds-accent-soft group-hover:text-ds-accent">
-              <Icon name="photo_camera" size={20} />
+              {busy ? <Spinner className="h-5 w-5" /> : <Icon name="photo_camera" size={20} />}
             </span>
             <span className="px-3 text-[12px] font-medium leading-snug text-ds-mute">{hint}</span>
           </>

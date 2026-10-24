@@ -139,6 +139,15 @@ function fileToBase64(file) {
   });
 }
 
+// The shrunk photo as an object URL for the preview: it shows what will really be sent and, unlike a URL on the
+// picked file itself, keeps working after the picker's file handle is gone.
+function jpegObjectUrl(base64) {
+  const bin = atob(base64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));
+}
+
 // The sign-up fields that live on a freelancer's first step (the second step is the identity document).
 const STEP1_KEYS = ["name", "email", "password", "confirmPassword", "dob", "gender", "region", "skills"];
 
@@ -159,6 +168,9 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
   const formRef = useRef(null);
   // The preview URLs of the document photos, so they can be released instead of living until the tab is closed.
   const docUrls = useRef({ front: null, back: null });
+  // Counts the picks of each side: a photo still being read when it is replaced, or when the kind of document
+  // changes, is stale and is dropped.
+  const docPick = useRef({ front: 0, back: 0 });
   const [loading,        setLoading]        = useState(false);
   const [errors,  setErrors]  = useState({});
   const [form,    setForm]    = useState(BLANK_FORM);
@@ -200,10 +212,12 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
   // Terms acceptance
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // The identity document: which kind, and the photo of each side it has.
+  // The identity document: which kind, and the photo of each side it has — read and shrunk as soon as it is
+  // picked (base64 JPEG, see handleDocFile), so nothing depends on the picked file afterwards.
   const [docType,     setDocType]     = useState(DEFAULT_ID_DOCUMENT);
-  const [docFiles,    setDocFiles]    = useState({ front: null, back: null });
+  const [docData,     setDocData]     = useState({ front: null, back: null });
   const [docPreviews, setDocPreviews] = useState({ front: null, back: null });
+  const [docBusy,     setDocBusy]     = useState({ front: false, back: false });   // a photo is being read
 
   const { t }                        = useTranslation();
   const { register, login, verifyTOTP, loginWithUserData, logout, updateUser } = useAuth();
@@ -267,9 +281,11 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
     for (const side of ["front", "back"]) {
       if (docUrls.current[side]) URL.revokeObjectURL(docUrls.current[side]);
       docUrls.current[side] = null;
+      docPick.current[side]++;
     }
-    setDocFiles({ front: null, back: null });
+    setDocData({ front: null, back: null });
     setDocPreviews({ front: null, back: null });
+    setDocBusy({ front: false, back: false });
   }
 
   function set(field) {
@@ -279,7 +295,12 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
     };
   }
 
-  function handleDocFile(side, file) {
+  // The photo is read and shrunk the moment it is picked, not when the account is created. By then the visitor
+  // has been off reading the e-mailed code (often in another app) and the handle the picker returned can be
+  // gone: every way of reading it failed and "This file isn't a valid image" appeared on the code screen, with the
+  // code already spent. Reading now also means a photo the browser cannot read is refused here, where choosing
+  // another one costs nothing.
+  async function handleDocFile(side, file) {
     // A file that is not an image, or is absurdly large, is refused here with a clear message instead of
     // failing later, once the e-mail code has already been spent.
     const looksLikeImage = /^image\//i.test(file.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || "");
@@ -287,11 +308,26 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
       setErrors(err => ({ ...err, doc: t("auth.err_doc_file") }));
       return;
     }
-    const url = URL.createObjectURL(file);
+    const pick = ++docPick.current[side];
+    const stale = () => pick !== docPick.current[side];
+    setDocBusy(b => ({ ...b, [side]: true }));
+    let base64;
+    try {
+      base64 = await fileToBase64(file);
+    } catch {
+      if (!stale()) {
+        setDocBusy(b => ({ ...b, [side]: false }));
+        setErrors(err => ({ ...err, doc: t("auth.err_doc_file") }));
+      }
+      return;
+    }
+    if (stale()) return;
+    const url = jpegObjectUrl(base64);
     if (docUrls.current[side]) URL.revokeObjectURL(docUrls.current[side]);
     docUrls.current[side] = url;
-    setDocFiles(f => ({ ...f, [side]: file }));
+    setDocData(d => ({ ...d, [side]: base64 }));
     setDocPreviews(p => ({ ...p, [side]: url }));
+    setDocBusy(b => ({ ...b, [side]: false }));
     setErrors(err => ({ ...err, doc: "" }));
   }
 
@@ -345,7 +381,7 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
       }
       if (!form.gender) errs.gender = t("Please select your gender");
       // Whichever document was chosen, every side it has needs its photo.
-      if (!IS_DEV && !sidesFor(docType).every(side => docFiles[side]))
+      if (!IS_DEV && !sidesFor(docType).every(side => docData[side]))
         errs.doc = t("auth.err_doc_required");
     }
     if (mode === "signup") {
@@ -770,8 +806,8 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
     if (data.role === "freelancer") {
       payload.idDocType = docType;
       const sides = sidesFor(docType);
-      if (docFiles.front && sides.includes("front")) payload.idFront = await fileToBase64(docFiles.front);
-      if (docFiles.back  && sides.includes("back"))  payload.idBack  = await fileToBase64(docFiles.back);
+      if (docData.front && sides.includes("front")) payload.idFront = docData.front;
+      if (docData.back  && sides.includes("back"))  payload.idBack  = docData.back;
     }
     return payload;
   }
@@ -914,7 +950,7 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
   const isLogin        = mode === "login";
   const isGoogleSignup = mode === "signup" && isClient && !!googleProfile;
   const dobLimits      = dobBounds();   // the date picker only offers dates that make the person 18 to 56
-  const docsReady      = sidesFor(docType).every(side => docFiles[side]);   // every photo the chosen document needs is in
+  const docsReady      = sidesFor(docType).every(side => docData[side]);   // every photo the chosen document needs is in
   // The last step of a flow carries the captcha, the terms and the submit button: the log-in form, a
   // client's single-step sign-up, and a freelancer's second step.
   const isFinalStep    = isLogin || isClient || step === 2;
@@ -1270,7 +1306,7 @@ export default function AuthModal({ open, onClose, onAuth, onSignupComplete, def
                 verification, so this is skipped for them entirely (no upload, no admin review queue,
                 no pending-approval gate). */}
             {isFreelancer && step === 2 && (
-              <DocumentStep docType={docType} onDocType={chooseDocType} previews={docPreviews} onFile={handleDocFile}
+              <DocumentStep docType={docType} onDocType={chooseDocType} previews={docPreviews} busy={docBusy} onFile={handleDocFile}
                 invalid={!!errors.doc} error={errors.doc} />
             )}
 
