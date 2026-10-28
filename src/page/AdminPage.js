@@ -246,7 +246,9 @@ function UserNotificationCard({ user, onApprove, onReject, onView, justActed }) 
   ];
 
   return (
-    <div className={["bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-500 overflow-hidden", acted === "approved" ? "border-emerald-300 dark:border-emerald-700 shadow-lg shadow-emerald-100 dark:shadow-emerald-900/20" : acted === "rejected" ? "border-rose-300 dark:border-rose-700 shadow-lg shadow-rose-100 dark:shadow-rose-900/20" : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"].join(" ")}>
+    // data-clarity-mask: full identity profile (DOB, document photo, bio…)
+    // for admin review — none of it belongs in a session recording.
+    <div data-clarity-mask="true" className={["bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-500 overflow-hidden", acted === "approved" ? "border-emerald-300 dark:border-emerald-700 shadow-lg shadow-emerald-100 dark:shadow-emerald-900/20" : acted === "rejected" ? "border-rose-300 dark:border-rose-700 shadow-lg shadow-rose-100 dark:shadow-rose-900/20" : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"].join(" ")}>
 
       {status === "pending" && (
         <div className="flex items-center gap-2 px-5 pt-4 pb-0">
@@ -1743,7 +1745,10 @@ function AdminPaymentsPanel({ API, highlightId }) {
   const DESKTOP_COLS = ['Projet', 'Client', 'Freelance', 'Montant', 'Date', 'Paiement', 'Photo', 'Statut'];
 
   return (
-    <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    // data-clarity-mask: amounts, D17/Flouci/RIB numbers, client/freelancer
+    // identities and the proof screenshot itself are all payment detail /
+    // confidential user data — none of it belongs in a session recording.
+    <div data-clarity-mask="true" className="max-w-6xl mx-auto px-2 sm:px-4 py-4" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {loading ? (
         <div style={{ textAlign: 'center', padding: '32px 0', fontSize: 13, color: 'var(--fm-text-6)' }}>Chargement…</div>
       ) : rows.length === 0 ? (

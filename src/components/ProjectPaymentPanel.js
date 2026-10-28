@@ -154,7 +154,10 @@ export default function ProjectPaymentPanel({ project }) {
   const activeNumber = activeMethod === 'd17' ? methods?.d17_number : activeMethod === 'flouci' ? methods?.flouci_number : activeMethod === 'rib' ? methods?.rib : null;
 
   return (
-    <div style={{ borderTop: '1px solid var(--fm-border)', padding: '18px 24px', background: 'rgba(124,108,246,0.04)' }}>
+    // data-clarity-mask: the whole payment panel — amount, method, account
+    // number shown to pay, proof screenshot — is payment detail, never sent
+    // to session-replay.
+    <div data-clarity-mask="true" style={{ borderTop: '1px solid var(--fm-border)', padding: '18px 24px', background: 'rgba(124,108,246,0.04)' }}>
       <p style={{ fontSize: 10, fontWeight: 800, color: 'var(--fm-text-7)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>Paiement du projet</p>
 
       {loadingStatus ? (

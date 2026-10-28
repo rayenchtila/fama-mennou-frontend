@@ -84,6 +84,10 @@ export const AuthField = forwardRef(function AuthField(
           ref={ref}
           id={fieldId}
           type={isPassword && show ? 'text' : type}
+          // Clarity auto-masks type="password", but the show/hide toggle above
+          // switches this to type="text" while revealed — an explicit mask
+          // keeps it hidden from the recording either way.
+          data-clarity-mask={isPassword ? 'true' : undefined}
           aria-required={required || undefined}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={describedBy}

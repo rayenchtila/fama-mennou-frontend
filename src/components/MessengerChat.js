@@ -1364,7 +1364,7 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
 
                           {/* Editing mode */}
                           {isEditing ? (
-                            <div className="flex flex-col gap-2 min-w-[200px]" onClick={e => e.stopPropagation()}>
+                            <div data-clarity-mask="true" className="flex flex-col gap-2 min-w-[200px]" onClick={e => e.stopPropagation()}>
                               {m.attachment_url && (
                                 <div className="relative w-fit">
                                   <img src={editStagedFile?.previewUrl || cldImg(m.attachment_url)} alt="" className="w-28 h-28 object-cover rounded-xl" />
@@ -1389,8 +1389,10 @@ export default function MessengerChat({ currentUser, allUsers = [], initialChat 
                             </div>
                           ) : (
                             <>
-                              {/* Bubble */}
+                              {/* Bubble — data-clarity-mask: private message content must
+                                  never reach a session-replay recording. */}
                               <motion.div
+                                data-clarity-mask="true"
                                 initial={{ opacity: 0, y: 6, scale: 0.97 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ duration: 0.18, ease: 'easeOut' }}

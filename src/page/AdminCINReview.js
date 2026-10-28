@@ -63,9 +63,11 @@ function CINImageModal({ user, onClose }) {
   useBodyScrollLock(true); // this component only exists while the modal is open
   const [side, setSide] = useState("front");
   const img = side === "front" ? user.cinFront : user.cinBack;
- 
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
+    // data-clarity-mask: an identity document photo must never reach a
+    // session recording.
+    <div data-clarity-mask="true" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 fm-backdrop-blur-in" onClick={onClose}>
       <div
         className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden w-full max-w-2xl"
         onClick={e => e.stopPropagation()}

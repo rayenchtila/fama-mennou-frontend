@@ -268,7 +268,11 @@ export default function Navbar({ onLogin }) {
     };
   }, [senderEmail, fetchMsgs]);
 
-  useRealtimeChannel(senderEmail, { new_message: fetchMsgs });
+  // The admin's bell fills by itself: a new sign-up, withdrawal… is pushed to the open page, no refresh needed.
+  useRealtimeChannel(senderEmail, {
+    new_message: fetchMsgs,
+    ...(user?.isAdmin ? { new_notification: fetchNotifications } : {}),
+  });
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 8);
@@ -366,6 +370,17 @@ export default function Navbar({ onLogin }) {
   const adminNotifs = user?.isAdmin ? getAdminNotifications() : [];
   const notifs      = user?.isAdmin ? adminNotifs : userNotifs;
   const unreadCount = notifs.filter(n => !n.read).length;
+
+  // Opening the bell marks what is in it as read, so the number starts again from 0. The admin's list is pulled
+  // from the server first: the page may have been open for a while, and a sign-up since then has to be in the list
+  // the admin is looking at — not marked read without ever having been shown. If that refresh fails, nothing is
+  // marked read and the number stays.
+  async function openNotifications() {
+    if (!user) return;
+    if (!user.isAdmin) { markAllNotificationsRead("user", user.email); return; }
+    const latest = await fetchNotifications();
+    if (latest?.some(n => n.type === "admin" && !n.read)) await markAllNotificationsRead("admin");
+  }
 
   // Small tinted icon tile used in the profile menu. Colours arrive as CSS
   // values, so the tint is derived with color-mix rather than by appending an
@@ -510,15 +525,13 @@ export default function Navbar({ onLogin }) {
                 {/* Bell — notifications */}
                 <button type="button"
                   onClick={() => {
-                    setNotifOpen(v => {
-                      if (!v) { user.isAdmin ? markAllNotificationsRead("admin") : markAllNotificationsRead("user", user.email); }
-                      return !v;
-                    });
+                    if (!notifOpen) openNotifications();
+                    setNotifOpen(v => !v);
                     setMsgOpen(false); setProfOpen(false);
                   }}
                   className="ds-iconbtn" title="Notifications" aria-label="Notifications">
                   <Icon name="notifications" size={20} />
-                  {unreadCount > 0 && <span className="ds-count-badge bg-ds-fill">{unreadCount > 9 ? "9+" : unreadCount}</span>}
+                  {unreadCount > 0 && <span className="ds-count-badge bg-ds-fill" style={user.isAdmin ? { background: BAD } : undefined}>{unreadCount > 9 ? "9+" : unreadCount}</span>}
                 </button>
 
                 <span className="mx-1 hidden h-5 w-px bg-ds-line sm:block" aria-hidden="true" />

@@ -276,6 +276,10 @@ export default function SettingsPage() {
                 <div style={{ position:'relative' }}>
                   <input
                     type={show ? 'text' : 'password'}
+                    // Clarity auto-masks type="password", but the eye toggle
+                    // switches this to type="text" while revealed — an
+                    // explicit mask keeps it hidden from the recording either way.
+                    data-clarity-mask="true"
                     value={val} onChange={e => setVal(e.target.value)}
                     placeholder=""
                     style={{ ...INP, paddingRight:50 }} onFocus={focusOn} onBlur={focusOff}

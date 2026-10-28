@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import * as Sentry from "@sentry/react";
+import Clarity from "@microsoft/clarity";
 import "./index.css";
 import "./i18n";
 import "./lib/fetchInterceptor"; // patches window.fetch to attach JWT to backend calls
@@ -20,6 +21,18 @@ if (process.env.REACT_APP_SENTRY_DSN) {
     // something in our code, and not actionable here.
     ignoreErrors: [/Error invoking postMessage: Java object is gone/],
   });
+}
+
+// Session-replay analytics — production only, so a developer's own local
+// testing never pollutes the Clarity dashboard. This file only ever executes
+// once per page load (it is the app's entry module, not a component), so
+// this is the one and only init call; nothing else in the app should call
+// Clarity.init again. Sensitive content (passwords, payment details, chat
+// messages, ID documents) is excluded via data-clarity-mask="true" at the
+// source — see MessengerChat.js, ChatDrawer.js, ProjectPaymentPanel.js,
+// AdminPage.js's payments panel, and CinDropzone.js.
+if (process.env.NODE_ENV === "production") {
+  Clarity.init("z4uesa3x7a");
 }
 
 // ── Apply theme SYNCHRONOUSLY before first paint (prevents FOUC) ──────────────

@@ -441,7 +441,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                       )}
 
                       {isEditing ? (
-                        <div className="flex gap-1.5 items-center w-full min-w-[200px]">
+                        <div data-clarity-mask="true" className="flex gap-1.5 items-center w-full min-w-[200px]">
                           <input autoFocus value={editText} onChange={e => setEditText(e.target.value)}
                             onKeyDown={e => {
                               if (e.key === 'Enter') editMsg(m.id, editText);
@@ -458,7 +458,7 @@ export default function ChatDrawer({ user, initialEmail, onClose }) {
                           </button>
                         </div>
                       ) : (
-                        <button onClick={e => {
+                        <button data-clarity-mask="true" onClick={e => {
                             if (!isMine) return;
                             e.stopPropagation();
                             const rect = e.currentTarget.getBoundingClientRect();

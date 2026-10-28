@@ -111,6 +111,10 @@ export function AuthProvider({ children }) {
           token = await refreshAccessToken();
         }
         fetchAccounts();
+        // The page's first fetchNotifications() went out before this token was back, and the API answers a
+        // request with no token with an empty list and a 200 — so nothing retried it, and a signed-in admin
+        // (or user) saw no notification at all until the 5-minute poll. Ask again now that the token is here.
+        fetchNotifications();
       })();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -201,11 +205,16 @@ export function AuthProvider({ children }) {
     finally { setAccountsLoaded(true); }
   }, [fetchAccountsAttempt]);
 
+  // The latest request wins: an older answer (the empty list a tokenless first call gets) must never land
+  // on top of the real one. Resolves with the list it stored, or null when it stored nothing.
+  const notifRequestRef = useRef(0);
   const fetchNotifications = useCallback(async () => {
+    const mine = ++notifRequestRef.current;
     try {
       const res = await fetch(`${API}/notifications`);
       const rows = await res.json();
-      setNotifications(rows.map(n => ({
+      if (mine !== notifRequestRef.current) return null;
+      const list = rows.map(n => ({
         id: n.id,
         type: n.type,
         kind: n.kind,
@@ -215,8 +224,10 @@ export function AuthProvider({ children }) {
         name: n.name,
         read: n.read,
         createdAt: n.created_at,
-      })));
-    } catch {}
+      }));
+      setNotifications(list);
+      return list;
+    } catch { return null; }
   }, []);
 
   useEffect(() => {
@@ -550,11 +561,15 @@ export function AuthProvider({ children }) {
 
   async function markAllNotificationsRead(targetType, email) {
     try {
-      const targets = notifications.filter(n => {
-        if (targetType === "admin") return n.type === "admin" && !n.read;
-        return n.type === "user" && n.email === email?.toLowerCase() && !n.read;
-      });
-      await Promise.all(targets.map(n => fetch(`${API}/notifications/${n.id}/read`, { method: "PATCH" })));
+      if (targetType === "admin") {
+        // One request for the whole admin feed: a long backlog is hundreds of rows, and one PATCH each
+        // would run into the API's write limit half-way. Nothing is shown as read if the server refused.
+        const res = await fetch(`${API}/notifications/admin/read-all`, { method: "PATCH" });
+        if (!res.ok) return;
+      } else {
+        const targets = notifications.filter(n => n.type === "user" && n.email === email?.toLowerCase() && !n.read);
+        await Promise.all(targets.map(n => fetch(`${API}/notifications/${n.id}/read`, { method: "PATCH" })));
+      }
       setNotifications(prev => prev.map(n => {
         if (targetType === "admin" && n.type === "admin") return { ...n, read: true };
         if (targetType === "user" && n.type === "user" && n.email === email?.toLowerCase()) return { ...n, read: true };

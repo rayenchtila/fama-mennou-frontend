@@ -38,7 +38,9 @@ export default function CinDropzone({ label, hint, preview, onFile, required = t
         {preview && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-ds-ok"><Icon name="check_circle" size={14} fill />{t('auth.cin_added')}</span>}
       </p>
 
-      <button type="button" onClick={() => setOpen(v => !v)} aria-haspopup="menu" aria-expanded={open}
+      {/* data-clarity-mask: an identity document photo must never reach a
+          session recording. */}
+      <button type="button" data-clarity-mask="true" onClick={() => setOpen(v => !v)} aria-haspopup="menu" aria-expanded={open}
         aria-label={preview ? `${label} — ${t('Change')}` : `${label}${hint ? ` — ${hint}` : ''}`}
         data-invalid={invalid ? 'true' : undefined} aria-busy={busy || undefined}
         className={`group relative flex h-32 w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-2 border-dashed p-0 text-center transition-colors ${

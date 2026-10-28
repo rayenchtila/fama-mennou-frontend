@@ -141,6 +141,10 @@ function InputField({ label, type = 'text', ...props }) {
         <input
           {...props}
           type={isPassword ? (showPw ? 'text' : 'password') : type}
+          // Clarity auto-masks type="password", but the eye toggle switches
+          // this to type="text" while revealed — an explicit mask keeps it
+          // hidden from the recording either way.
+          data-clarity-mask={isPassword ? 'true' : undefined}
           className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
           style={{ paddingRight: isPassword ? 44 : undefined }}
           onCopy={isPassword ? e => e.preventDefault() : undefined}
